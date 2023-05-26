@@ -10,7 +10,11 @@
 from pathlib import Path
 import re
 
+import numpy as np
+from Cython.Build import cythonize
+
 from setuptools import setup, find_packages
+from setuptools.extension import Extension
 
 
 parent_path = Path(__file__).parent
@@ -29,8 +33,22 @@ setup(
     package_dir={'': 'src'},
     packages=find_packages('src'),
 
+    ext_modules=cythonize([
+        Extension('extra.staging.ftd',
+                  ['src/extra/staging/ftd.pyx'],
+                  include_dirs=[np.get_include()],
+                  extra_compile_args=[
+                      '-g0', '-O3', '-fpic', '-frename-registers',
+                      '-ftree-vectorize']),
+    ]),
+
     python_requires='>=3.6',
-    install_requires=['extra_data', 'extra_geom', 'karabo_bridge'],
+    install_requires=[
+        'extra_data',
+        'extra_geom',
+        'karabo_bridge',
+        'euxfel_bunch_pattern'
+    ],
     extras_require={
         'test': ['pytest',],
     },
