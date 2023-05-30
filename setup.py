@@ -33,6 +33,13 @@ setup(
     install_requires=['extra_data', 'extra_geom', 'karabo_bridge'],
     extras_require={
         'test': ['pytest',],
+        'docs': [
+            'black',
+            'mkdocs-material',
+            'mkdocstrings',
+            'mkdocstrings-python',
+            'pymdown-extensions'
+          ],
     },
 
     classifiers=[
