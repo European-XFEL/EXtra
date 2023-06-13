@@ -5,6 +5,8 @@ easier.
 
 ::: extra.components.Scantool
 
+::: extra.components.Scan
+
 ::: extra.components.XrayPulses
 
 ::: extra.components.OpticalLaserPulses

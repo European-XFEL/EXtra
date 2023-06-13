@@ -18,6 +18,8 @@
 
 Added:
 
+- The [Scan][extra.components.Scan] component to automatically detect steps
+  within a motor scan (!4).
 - [DldPulses][extra.components.DldPulses] to access pulse information saved during delay line detector event reconstruction (!42).
 - The helper function [imshow2][extra.utils.imshow2] to provide good defaults when
   plotting images (!38).
