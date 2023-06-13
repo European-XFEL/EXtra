@@ -10,3 +10,5 @@ easier.
 ::: extra.components.OpticalLaserPulses
 
 ::: extra.components.pulses.PulsePattern
+
+::: extra.components.Scan
