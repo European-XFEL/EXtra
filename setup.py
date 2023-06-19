@@ -30,7 +30,12 @@ setup(
     packages=find_packages('src'),
 
     python_requires='>=3.9',
-    install_requires=['extra_data', 'extra_geom', 'karabo_bridge'],
+    install_requires=[
+        'extra_data>=1.13',
+        'extra_geom',
+        'karabo_bridge',
+        'euxfel_bunch_pattern'
+    ],
     extras_require={
         'test': ['pytest',],
         'docs': [
