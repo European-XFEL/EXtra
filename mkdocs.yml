@@ -16,6 +16,7 @@ nav:
   - index.md
   - reading-data.md
   - detector-geometry.md
+  - components.md
   - karabo-bridge.md
   - utilities.md
 

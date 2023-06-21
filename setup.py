@@ -29,7 +29,7 @@ setup(
     package_dir={'': 'src'},
     packages=find_packages('src'),
 
-    python_requires='>=3.6',
+    python_requires='>=3.9',
     install_requires=['extra_data', 'extra_geom', 'karabo_bridge'],
     extras_require={
         'test': ['pytest',],
