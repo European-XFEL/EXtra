@@ -1,7 +1,6 @@
 from datetime import timedelta
 
 import numpy as np
-from xarray import DataArray
 
 from extra_data import SourceData, KeyData
 
@@ -31,7 +30,7 @@ class Scan:
     ```
     """
 
-    def __init__(self, motor, resolution=None, min_trains=None):
+    def __init__(self, motor, name=None, resolution=None, min_trains=None):
         """
         The class tries to detect the best parameters automatically, but it will
         still fail in some situations. If that happens either the `resolution`
@@ -65,7 +64,6 @@ class Scan:
             min_trains (int): The minimum number of trains per-step in the scan. It
                 will be guessed if not passed explicitly.
         """
-        self._name = "motor"
         self._steps = []
         self._resolution = None
         self._min_trains = None
@@ -73,22 +71,27 @@ class Scan:
         # Debugging variables
         self._diff = None
 
+        from xarray import DataArray
+
         if isinstance(motor, SourceData):
             self._input_pos = motor["actualPosition"].xarray()
-            self._name = f"{motor.source}.actualPosition"
+            default_name = f"{motor.source}.actualPosition"
         elif isinstance(motor, KeyData):
             if not motor.ndim == 1:
                 raise ValueError(f"KeyData of motor positions must be 1-dimensional, is actually {motor.ndim}-dimensional")
 
             self._input_pos = motor.xarray()
-            self._name = f"{motor.source}.{motor.key.removesuffix('.value')}"
+            default_name = f"{motor.source}.{motor.key.removesuffix('.value')}"
         elif isinstance(motor, DataArray):
             if not "trainId" in motor.coords:
                 raise ValueError("DataArray of motor positions must have a trainId coordinate")
 
             self._input_pos = motor
+            default_name = motor.name if motor.name is not None else "motor"
         elif isinstance(motor, np.ndarray):
             raise TypeError("The input cannot be a plain Numpy array, train ID information is required")
+
+        self._name = name if name is not None else default_name
 
         steps = self._get_motor_steps(self._input_pos,
                                       resolution=resolution,
@@ -147,7 +150,7 @@ class Scan:
 
         This is an internal function meant to help with debugging.
         """
-        if self._diff is None:
+        if len(self.steps) == 0:
             print("No data, automatic resolution detection was not used.")
             return
 
@@ -155,7 +158,7 @@ class Scan:
         fig, ax = plt.subplots(figsize=(9, 5))
 
         diff_filt_masked = self._diff.copy()
-        diff_filt_masked[~((self._diff_lb <= self._diff) & (self._diff <= self._diff_ub))] = 0
+        diff_filt_masked[~self._filter_positions_mask(self._diff)] = 0
 
         plt.plot(self._diff, "*", label="Full diff points")
         plt.plot(diff_filt_masked, "*", label="Filtered points")
@@ -164,6 +167,34 @@ class Scan:
         plt.legend()
 
         return ax
+
+    @classmethod
+    def _mkscan(cls, n_steps, step_size=10, step_length=10, step_length_rnd=0):
+        """Create a mock scan with specific parameters.
+
+        This is an internal function to help with debugging and testing.
+        """
+        # Helper lambda to calculate an offset to add to the step length to
+        # randomize it, such that the step length is between 0x-2x step_length.
+        length_offset = lambda: int(step_length_rnd * np.random.uniform(-step_length, step_length))
+        steps = [np.full(max(1, step_length + length_offset()),
+                         i * step_size)
+                 for i in range(n_steps)]
+
+        motor = np.concatenate(steps)
+
+        from xarray import DataArray
+        motor = DataArray(motor,
+                          name="fake-motor",
+                          dims=("trainId",),
+                          coords={
+                              "trainId": np.arange(len(motor))
+                          })
+
+        return cls(motor), steps
+
+    def _filter_positions_mask(self, positions):
+        return (self._diff_lb <= positions) & (positions <= self._diff_ub)
 
     def _guess_resolution(self, position):
         # When guessing the resolution we only take the middle 50% of trains to
@@ -174,6 +205,10 @@ class Scan:
         self._diff = np.diff(self._position_subset)
         self._diff = self._diff[self._diff != 0]
 
+        # If there is no non-zero diffs the motor definitely isn't moving at all
+        if len(self._diff) == 0:
+            return None
+
         # Filter the deltas by two standard deviations. This is
         # partly to remove any backlash from the motor moving into
         # the start position, partly to try to remove any movements
@@ -182,7 +217,7 @@ class Scan:
         diff_mean = np.nanmean(self._diff)
         self._diff_lb = diff_mean - diff_std * 2
         self._diff_ub = diff_mean + diff_std * 2
-        diff_filt = self._diff[(self._diff_lb <= self._diff) & (self._diff <= self._diff_ub)]
+        diff_filt = self._diff[self._filter_positions_mask(self._diff)]
 
         # If everything has been filtered out then the motor probably isn't
         # moving at all.
