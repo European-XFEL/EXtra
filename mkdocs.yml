@@ -19,6 +19,7 @@ nav:
   - components.md
   - karabo-bridge.md
   - utilities.md
+  - changelog.md
 
 watch:
   - src
@@ -41,6 +42,12 @@ markdown_extensions:
       alternate_style: true
   - pymdownx.tasklist:
       custom_checkbox: true
+  - pymdownx.saneheaders
+  - pymdownx.emoji
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: European-XFEL
+      repo: EXtra
   - tables
   - attr_list
   - toc:
