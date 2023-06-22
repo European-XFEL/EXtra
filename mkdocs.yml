@@ -46,6 +46,7 @@ markdown_extensions:
   - pymdownx.emoji
   - pymdownx.magiclink:
       repo_url_shorthand: true
+      normalize_issue_symbols: true
       user: European-XFEL
       repo: EXtra
   - tables

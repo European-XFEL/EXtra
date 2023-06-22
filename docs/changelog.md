@@ -11,4 +11,6 @@ Added:
 - Components for extracting the X-ray and optical laser pulse patterns:
   [XrayPulses](components.md#extra.components.XrayPulses) and
   [OpticalLaserPulses](components.md#extra.components.OpticalLaserPulses) in !5.
-
+- A collection of [utility](utilities.md) functions.
+- Sub-modules to forward [EXtra-data](reading-data.md),
+  [EXtra-geom](detector-geometry.md), and [karabo-bridge-py](karabo-bridge.md).
