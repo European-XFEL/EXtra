@@ -98,3 +98,4 @@ ENV/
 # HDF5 data files
 *.h5
 
+src/extra/__version__.py
