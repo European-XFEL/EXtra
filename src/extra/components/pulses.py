@@ -177,23 +177,6 @@ class PulsePattern:
             [train_ids, np.concatenate(train_pulses)],
             names=['trainId', pulses_label])
 
-    def _get_pulse_mask(self):
-        if self._with_timeserver:
-            return self._mask_table(self._key.ndarray())
-        else:
-            mask = np.zeros(
-                (len(self._source.train_ids), self._bunch_pattern_table_len),
-                dtype=bool)
-            node = self._get_ppdecoder_node()
-
-            for i, (pulse_ids, num_pulses) in enumerate(zip(
-                self._source[f'{node}.pulseIds'].ndarray(),
-                self._source[f'{node}.nPulses'].ndarray()
-            )):
-                mask[i, pulse_ids[:num_pulses]] = True
-
-            return mask
-
     def _mask_table(self, table):
         """Mask bunch pattern table."""
         raise NotImplementedError('_mask_table')
@@ -262,6 +245,49 @@ class PulsePattern:
 
         return res
 
+    def get_pulse_mask(self, labelled=True):
+        """Get boolean pulse mask.
+
+        The returned mask has the same shape as the full bunch pattern
+        table but only contains boolean flags whether a given pulse
+        was present in this pattern.
+
+        Args:
+            labelled (bool, optional): Whether a labelled xarray
+                DataArray (default) or unlabelled numpy array is
+                returned.
+
+        Returns:
+            (xarray.DataArray or numpy.ndarray):
+
+        Returns:
+            (numpy.ndarray):
+        """
+
+        if self._with_timeserver:
+            mask = self._mask_table(self._key.ndarray())
+        else:
+            node = self._get_ppdecoder_node()
+            mask = np.zeros(
+                (len(self._source.train_ids), self._bunch_pattern_table_len),
+                dtype=bool)
+
+            for i, (pulse_ids, num_pulses) in enumerate(zip(
+                self._source[f'{node}.pulseIds'].ndarray(),
+                self._source[f'{node}.nPulses'].ndarray()
+            )):
+                mask[i, pulse_ids[:num_pulses]] = True
+
+        if labelled:
+            import xarray as xr
+            return xr.DataArray(
+                mask,
+                dims=['trainId', 'pulseId'],
+                coords={'trainId': self._key.train_id_coordinates(),
+                        'pulseId': np.arange(mask.shape[1])})
+        else:
+            return mask
+
     def is_constant_pattern(self):
         """Whether pulse IDs are constant in this data.
 
@@ -272,7 +298,7 @@ class PulsePattern:
             (bool): Whether pulse IDs are identical in every train.
         """
 
-        pulse_mask = self._get_pulse_mask()
+        pulse_mask = self.get_pulse_mask(labelled=False)
         return (pulse_mask == pulse_mask[0]).all()
 
     def get_pulse_counts(self, labelled=True):
@@ -287,7 +313,7 @@ class PulsePattern:
                 train, indexed by train ID if labelled is True.
         """
 
-        counts = self._get_pulse_mask().sum(axis=1)
+        counts = self.get_pulse_mask(labelled=False).sum(axis=1)
 
         if labelled:
             import pandas as pd
@@ -316,7 +342,7 @@ class PulsePattern:
             self._source.drop_empty_trains().select_trains(np.s_[0]).train_ids
         ])
 
-        return first_tid_self._get_pulse_mask()[0].nonzero()[0]
+        return first_tid_self.get_pulse_mask(labelled=False)[0].nonzero()[0]
 
     def get_pulse_ids(self, labelled=True):
         """Get pulse IDs.
@@ -330,7 +356,7 @@ class PulsePattern:
                 ID and pulse number if labelled is True.
         """
 
-        pulse_mask = self._get_pulse_mask()
+        pulse_mask = self.get_pulse_mask(labelled=False)
         pulse_ids = np.concatenate([mask.nonzero()[0] for mask in pulse_mask])
 
         if labelled:
@@ -352,7 +378,7 @@ class PulsePattern:
                 pulse ID or pulse number.
         """
 
-        return self._make_pulse_index(self._get_pulse_mask())
+        return self._make_pulse_index(self.get_pulse_mask(labelled=False))
 
     def search_pulse_patterns(self):
         """Search identical pulse patterns in this data.
@@ -369,7 +395,7 @@ class PulsePattern:
                 identified by index slices with identical pulse IDs.
         """
 
-        pulse_mask = self._get_pulse_mask()
+        pulse_mask = self.get_pulse_mask(labelled=False)
 
         # Find the unique patterns and the respective indices for each
         # unique pattern.

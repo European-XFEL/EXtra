@@ -100,6 +100,21 @@ def test_select_trains(mock_spb_aux_run):
         subpulses.timeserver['data.bunchPatternTable'])
 
 
+def test_get_pulse_mask(mock_spb_aux_run):
+    run = RunDirectory(mock_spb_aux_run).select('SPB*')
+    pulses = XrayPulses(run)
+
+    mask = XrayPulses(run).get_pulse_mask()
+    assert mask.dims == ('trainId', 'pulseId')
+    assert mask[1000:1300:6].all()
+
+    mask = XrayPulses(run, sase=2).get_pulse_mask()
+    assert mask[1500:2000:8].all()
+
+    assert XrayPulses(run, sase=2).get_pulse_mask(labelled=False) \
+        [1500:2000:8].all()
+
+
 def test_is_constant_pattern(mock_spb_aux_run):
     run = RunDirectory(mock_spb_aux_run).select('SPB*')
     pulses = XrayPulses(run)
