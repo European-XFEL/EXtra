@@ -66,7 +66,7 @@ def test_init(mock_spb_aux_run):
         XrayPulses(run)
 
     # Pick one specifically.
-    pulses = XrayPulses(run, timeserver='ODD_TIMESERVER_NAME')
+    pulses = XrayPulses(run, source='ODD_TIMESERVER_NAME')
     assert_equal_sourcedata(
         pulses.timeserver,
         run['ODD_TIMESERVER_NAME'])
@@ -203,7 +203,7 @@ def test_optical_laser(mock_spb_aux_run):
     with pytest.raises(ValueError):
         OpticalLaserPulses(run)
 
-    OpticalLaserPulses(run, timeserver='ODD_TIMESERVER_NAME')
+    OpticalLaserPulses(run, source='ODD_TIMESERVER_NAME')
 
     # Only odd timeserver now
     run = run.select('ODD_TIMESERVER_NAME*')

@@ -36,32 +36,54 @@ class PulsePattern:
     pattern table.
     """
 
-    # An implementation of this base class is required to implement the
-    # _get_pulse_mask() method.
+    # All methods are built on top of get_pulse_mask and trains(). Their
+    # default implementations require implementation of  _mask_table()
+    # and _get_ppdecoder_node().
 
-    # Regular expressions for timeserver control and pipeline data.
+    # Number of elements in bunch pattern table according to XFEL Timing
+    # System Specification, Version 2.2 (2013). The original table may
+    # have up to 7222 entries at 9 MHz with the Karabo Timeserver device
+    # only forwarding the even places at 4.5 MHz.
+    _bunch_pattern_table_len = 3611
+
+    # Timeserver class ID and regular expressions.
+    _timeserver_class = 'TimeServer'
     _timeserver_control_re = re.compile(
-        r'^[A-Z]{3}_(BR|RR)_(UTC|SYS)/TSYS/TIMESERVER$')
+        r'^\w{3}_(BR|RR)_(UTC|SYS)\/TSYS\/TIMESERVER$')
     _timeserver_pipeline_re = re.compile(r'^{}:outputBunchPattern'.format(
         _timeserver_control_re.pattern[:-1]))
 
-    # Class IDs for timeserver devices.
-    _timeserver_class = 'TimeServer'
+    # Pulse pattern decoder class ID and regular expression.
+    _ppdecoder_class = 'PulsePatternDecoder'
+    _ppdecoder_re = re.compile(
+        r'^\w{3}_(BR|RR)_(UTC|SYS)\/(MDL|TSYS)\/'
+        r'(BUNCH|PULSE|PP)\w*_(DECODER|PATTERN)$')
 
-    def __init__(self, data, timeserver=None, sase=None):
-        if timeserver is None:
-            timeserver = self._find_timeserver(data)
+    def __init__(self, data, source=None, sase=None):
+        if source is None:
+            source = self._find_pulsepattern_source(data)
 
-        self._source = data[timeserver]
+        self._source = data[source]
 
-        if ':' in timeserver:
-            self._key = self._source['data.bunchPatternTable']
+        if 'maindump.pulseIds.value' in self._source.keys():
+            # PulsePatternDecoder source.
+            self._with_timeserver = False
+
+            # TODO: SourceData.train_id_coordinates() would make this
+            # redundant.
+            self._key = self._source['maindump.pulseIds']
         else:
-            self._key = self._source['bunchPatternTable']
+            # Timeserver source.
+            self._with_timeserver = True
+
+            if ':' in source:
+                self._key = self._source['data.bunchPatternTable']
+            else:
+                self._key = self._source['bunchPatternTable']
 
     @classmethod
-    def _find_timeserver(cls, data):
-        """Try to find a timeserver source."""
+    def _find_pulsepattern_source(cls, data):
+        """Try to find a pulse pattern source."""
 
         # Try to go by device class first.
         # By the time the device class was recorded, time servers also
@@ -107,7 +129,35 @@ class PulsePattern:
         elif timeserver_sources:
             return timeserver_sources.pop()
 
-        raise ValueError('no timeserver found, please pass one explicitly')
+        # Try to go by device class first.
+        ppdecoder_sources = {
+            source
+            for source in data.control_sources
+            if data[source].device_class == cls._ppdecoder_class
+        }
+
+        if len(ppdecoder_sources) > 1:
+            raise ValueError('multiple ppdecoder sources found via device '
+                             'class, please pass one explicitly:\n' +
+                             ', '.join(sorted(ppdecoder_sources)))
+        elif ppdecoder_sources:
+            return ppdecoder_sources.pop()
+
+        # Try again by source regexp.
+        for source in data.control_sources:
+            m = cls._ppdecoder_re.match(source)
+            if m is not None:
+                ppdecoder_sources.add(m[0])
+
+        if len(ppdecoder_sources) > 1:
+            raise ValueError('multiple ppdecoder control sources found, '
+                             'please pass one explicitly:\n' + ', '.join(
+                                sorted(ppdecoder_sources)))
+        elif ppdecoder_sources:
+            return ppdecoder_sources.pop()
+
+        raise ValueError('no timeserver or ppdecoder found, please pass '
+                         'one explicitly')
 
     def _make_pulse_index(self, pulse_mask, with_pulse_id=True):
         """Generate multi index for a given pulse mask."""
@@ -127,9 +177,30 @@ class PulsePattern:
             [train_ids, np.concatenate(train_pulses)],
             names=['trainId', pulses_label])
 
-    def _get_pulse_mask(self, table):
-        """Generate pulse mask from a given bunch pattern table."""
-        raise NotImplementedError('_get_pulse_mask')
+    def _get_pulse_mask(self):
+        if self._with_timeserver:
+            return self._mask_table(self._key.ndarray())
+        else:
+            mask = np.zeros(
+                (len(self._source.train_ids), self._bunch_pattern_table_len),
+                dtype=bool)
+            node = self._get_ppdecoder_node()
+
+            for i, (pulse_ids, num_pulses) in enumerate(zip(
+                self._source[f'{node}.pulseIds'].ndarray(),
+                self._source[f'{node}.nPulses'].ndarray()
+            )):
+                mask[i, pulse_ids[:num_pulses]] = True
+
+            return mask
+
+    def _mask_table(self, table):
+        """Mask bunch pattern table."""
+        raise NotImplementedError('_mask_table')
+
+    def _get_ppdecoder_node(self):
+        """Get node in pulse pattern decoder device."""
+        raise NotImplementedError('_get_ppdecoder_node')
 
     @property
     def master_clock(self) -> float:
@@ -153,11 +224,29 @@ class PulsePattern:
     @property
     def timeserver(self) -> SourceData:
         """Used timeserver source."""
+
+        if not self._with_timeserver:
+            raise ValueError('component is initialized with ppdecoder source, '
+                             'timeserver not available')
+        return self._source
+
+    @property
+    def pulse_pattern_decoder(self) -> SourceData:
+        """Used PulsePatternDecoder source."""
+
+        if self._with_timeserver:
+            raise ValueError('component is initialized with timeserver '
+                             'source, ppdecoder not available')
         return self._source
 
     @property
     def bunch_pattern_table(self) -> KeyData:
         """Used bunch pattern table key."""
+
+        if not self._with_timeserver:
+            raise ValueError('component is initialized with ppdecoder source, '
+                             'bunch pattern table not available')
+
         return self._key
 
     def select_trains(self, trains):
@@ -183,7 +272,7 @@ class PulsePattern:
             (bool): Whether pulse IDs are identical in every train.
         """
 
-        pulse_mask = self._get_pulse_mask(self._key.ndarray())
+        pulse_mask = self._get_pulse_mask()
         return (pulse_mask == pulse_mask[0]).all()
 
     def get_pulse_counts(self, labelled=True):
@@ -198,7 +287,7 @@ class PulsePattern:
                 train, indexed by train ID if labelled is True.
         """
 
-        counts = self._get_pulse_mask(self._key.ndarray()).sum(axis=1)
+        counts = self._get_pulse_mask().sum(axis=1)
 
         if labelled:
             import pandas as pd
@@ -223,7 +312,11 @@ class PulsePattern:
 
         """
 
-        return self._get_pulse_mask(self._key[0].ndarray()[0]).nonzero()[0]
+        first_tid_self = self.select_trains(by_id[
+            self._source.drop_empty_trains().select_trains(np.s_[0]).train_ids
+        ])
+
+        return first_tid_self._get_pulse_mask()[0].nonzero()[0]
 
     def get_pulse_ids(self, labelled=True):
         """Get pulse IDs.
@@ -237,7 +330,7 @@ class PulsePattern:
                 ID and pulse number if labelled is True.
         """
 
-        pulse_mask = self._get_pulse_mask(self._key.ndarray())
+        pulse_mask = self._get_pulse_mask()
         pulse_ids = np.concatenate([mask.nonzero()[0] for mask in pulse_mask])
 
         if labelled:
@@ -259,8 +352,7 @@ class PulsePattern:
                 pulse ID or pulse number.
         """
 
-        return self._make_pulse_index(
-            self._get_pulse_mask(self._key.ndarray()))
+        return self._make_pulse_index(self._get_pulse_mask())
 
     def search_pulse_patterns(self):
         """Search identical pulse patterns in this data.
@@ -277,7 +369,7 @@ class PulsePattern:
                 identified by index slices with identical pulse IDs.
         """
 
-        pulse_mask = self._get_pulse_mask(self._key.ndarray())
+        pulse_mask = self._get_pulse_mask()
 
         # Find the unique patterns and the respective indices for each
         # unique pattern.
@@ -310,8 +402,18 @@ class PulsePattern:
             (int, ndarray): Train ID and pulse IDs.
         """
 
-        for train_id, table in self._key.trains():
-            yield train_id, self._get_pulse_mask(table).nonzero()[0]
+        if self._with_timeserver:
+            for train_id, table in self._key.trains():
+                yield train_id, self._mask_table(table).nonzero()[0]
+        else:
+            node = self._get_ppdecoder_node()
+
+            # TODO: SourceData.trains()
+            for (train_id, pulse_ids), (_, num_pulses) in zip(
+                self._source[f'{node}.pulseIds'].trains(),
+                self._source[f'{node}.nPulses'].trains()
+            ):
+                yield train_id, pulse_ids[:num_pulses]
 
 
 class XrayPulses(PulsePattern):
@@ -319,7 +421,7 @@ class XrayPulses(PulsePattern):
 
     The pulse structure of each train at European XFEL is described by
     the bunch pattern table and accesssible in recorded data through the
-    timeserver device.
+    timeserver device or in decoded form through pulse pattern decoders.
 
     This component aids in locating and reading the bunch pattern table,
     as well as providing utility methods to apply the pulse patterns to
@@ -339,9 +441,9 @@ class XrayPulses(PulsePattern):
     Args:
         data (extra.data.DataCollection): Data to access bunch pattern
             data from.
-        timeserver (str, optional): Source name of a timeserver, only
-            needed if the data includes more than one timeserver or it
-            could not be detected automatically.
+        source (str, optional): Source name of a timeserver or pulse
+            pattern decoder, only needed if the data includes more than
+            one such device or none could not be detected automatically.
         sase (int, optional): SASE beamline to interpret pulses of, only
             needed if the data includes sources from more than one
             beamline or it could not be detected automatically.
@@ -354,8 +456,8 @@ class XrayPulses(PulsePattern):
         3: {'SA3', 'LA3', 'SCS', 'SQS', 'SXP'}
     }
 
-    def __init__(self, data, timeserver=None, sase=None):
-        super().__init__(data, timeserver)
+    def __init__(self, data, source=None, sase=None):
+        super().__init__(data, source)
 
         if sase not in {1, 2, 3}:
             sase = self._identify_sase(data)
@@ -363,8 +465,13 @@ class XrayPulses(PulsePattern):
         self._sase = sase
 
     def __repr__(self):
-        return "<{} for SA{} using timeserver={}>".format(
-            type(self).__name__, self._sase, self._source.source)
+        if self._with_timeserver:
+            source_type = 'timeserver'
+        else:
+            source_type = 'ppdecoder'
+
+        return "<{} for SA{} using {}={}>".format(
+            type(self).__name__, self._sase, source_type, self._source.source)
 
     @classmethod
     def _identify_sase(cls, data):
@@ -386,8 +493,11 @@ class XrayPulses(PulsePattern):
                              'please pass the SASE beamline explicitly'.format(
                                 ', '.join(sases)))
 
-    def _get_pulse_mask(self, table):
+    def _mask_table(self, table):
         return is_sase(table, sase=self._sase)
+
+    def _get_ppdecoder_node(self):
+        return f'sase{self._sase}'
 
     @property
     def sase(self) -> int:
@@ -416,9 +526,9 @@ class OpticalLaserPulses(PulsePattern):
     Args:
         data (extra.data.DataCollection): Data to access bunch pattern
             data from.
-        timeserver (str, optional): Source name of a timeserver, only
-            needed if the data includes more than one timeserver or it
-            could not be detected automatically.
+        source (str, optional): Source name of a timeserver or pulse
+            pattern decoder, only needed if the data includes more than
+            one such device or none could not be detected automatically.
         ppl_seed (extra.components.pulses.PPL_BITS or str, optional):
             PPL seed to interpret pulses of, only needed if the data
             includes sources from more than one instrument or it could
@@ -426,6 +536,7 @@ class OpticalLaserPulses(PulsePattern):
             seed value or an instrument as a string.
     """
 
+    # Mapping of instrument names to PPL seeds.
     _instrument_ppl_seeds = {
         'FXE': PPL_BITS.LP_FXE,
         'SPB': PPL_BITS.LP_SPB,
@@ -435,23 +546,42 @@ class OpticalLaserPulses(PulsePattern):
         'SQS': PPL_BITS.LP_SQS
     }
 
-    def __init__(self, data, timeserver=None, ppl_seed=None):
-        super().__init__(data, timeserver)
+    def __init__(self, data, source=None, ppl_seed=None):
+        super().__init__(data, source)
+
+        if not self._with_timeserver:
+            # Pulse pattern decoders are configured for a particular
+            # PPL seed at runtime.
+            native_seed = PPL_BITS[self._source.run_value('laserSource.value')]
 
         if ppl_seed is None:
-            ppl_seed = self._identify_ppl_seed(data)
+            if self._with_timeserver:
+                ppl_seed = self._identify_ppl_seed(data)
+            else:
+                ppl_seed = native_seed
         elif isinstance(ppl_seed, str):
             try:
-                ppl_seed = self._instrument_ppl_seeds[ppl_seed]
+                ppl_seed = self._instrument_ppl_seeds[ppl_seed.upper()]
             except KeyError:
                 raise ValueError(f'no PPL seed known associated to '
                                  f'{ppl_seed}') from None
 
+            if not self._with_timeserver and native_seed != ppl_seed:
+                raise ValueError(f'cannot use {PPL_BITS(ppl_seed).name}, '
+                                 f'component is initialized with ppdecoder '
+                                 f'using {PPL_BITS(native_seed).name}')
+
         self._ppl_seed = ppl_seed
 
     def __repr__(self):
-        return "<{} for {} using timeserver={}>".format(
-            type(self).__name__, self._ppl_seed.name, self._source.source)
+        if self._with_timeserver:
+            source_type = 'timeserver'
+        else:
+            source_type = 'ppdecoder'
+
+        return "<{} for {} using {}={}>".format(
+                type(self).__name__, self._ppl_seed.name, source_type,
+                self._source.source)
 
     @classmethod
     def _identify_ppl_seed(cls, data):
@@ -472,8 +602,11 @@ class OpticalLaserPulses(PulsePattern):
                              'please pass the PPL seed explicitly'.format(
                                 ', '.join(cls._instrument_ppl_seeds.keys())))
 
-    def _get_pulse_mask(self, table):
-        return is_laser(table, laser=self._ppl_seed)
+    def _mask_table(self, table):
+        return is_laser(table, self._ppl_seed)
+
+    def _get_ppdecoder_node(self):
+        return 'laser'
 
     @property
     def ppl_seed(self) -> Optional[PPL_BITS]:
