@@ -60,3 +60,14 @@ def test_scantool():
         scantool = Scantool(mock_run)
     assert scantool.scan_type in str(scantool)
     assert scantool.scan_type in repr(scantool)
+
+    # Test compatibility with Karabacon 3.0.7-2.16.2, which is an older version
+    # still used at FXE. In this version the activeMotors and acquisitionTime
+    # are stored as first-level properties rather than being under deviceEnv.
+    mock_run_values["acquisitionTime.value"] = mock_run_values["deviceEnv.acquisitionTime.value"]
+    mock_run_values["activeMotors.value"] = mock_run_values["deviceEnv.activeMotors.value"]
+    del mock_run_values["deviceEnv.acquisitionTime.value"]
+    del mock_run_values["deviceEnv.activeMotors.value"]
+
+    # This shouldn't throw an exception
+    scantool = Scantool(mock_run)
