@@ -1,10 +1,9 @@
 [build-system]
-requires = ["setuptools>=61", "wheel", "setuptools_scm[toml]>=7.1.0"]
+requires = ["setuptools>=61", "wheel", "setuptools_scm[toml]==7.1.0"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools_scm]
-write_to = "src/extra/__version__.py"
-version_scheme = "no-guess-dev"
+[tool.setuptools.dynamic]
+version = { attr = "get_version.version" }
 
 [project]
 name = "EXtra"
