@@ -161,9 +161,8 @@ class Scantool:
             compact (bool): Whether to print the information in a compact 1-line format or a
                 multi-line format.
         """
-        if not self.active:
-            device = " " if compact else f" ({self.source_name}) "
-            return f"Scantool{device}not active."
+        if compact and not self.active:
+            return f"Scantool ({self.source_name}) not active."
         else:
             if compact:
                 motor_info = [self._motor_fmt(name, compact=True) for name in self.motors]
@@ -177,6 +176,11 @@ class Scantool:
 
                 info.extend(["  " + self._motor_fmt(name, compact=False)
                              for name in self.motors])
+
+                if not self.active:
+                    info = ["Note: the scantool was not active for this run!",
+                            ""] + info
+
                 return "\n".join(info)
 
     def __repr__(self):
