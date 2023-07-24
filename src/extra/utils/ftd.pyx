@@ -46,10 +46,11 @@ def sinc_interpolate(
         y_interp = np.zeros(len(x_interp), dtype=np.float64)
 
     cdef int i, k, \
+        interp_len = min(x_interp.shape[0], y_interp.shape[0]), \
         sampling_start = max(<int>floor(x_interp[0]) - window, 0), \
         sampling_end = min(<int>ceil(x_interp[0]) + window, y_sampled.shape[0])
 
-    for i in range(y_interp.shape[0]):
+    for i in range(interp_len):
         for k in range(sampling_start, sampling_end):
             y_interp[i] += y_sampled[k] * _sinc(k - x_interp[i])
 
