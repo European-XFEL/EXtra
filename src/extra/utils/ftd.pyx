@@ -66,7 +66,7 @@ cdef int _cfd_fast_pos(
 
     cdef int i, j, edge_idx = 0, next_edge = -1, \
         max_edge = min(edges.shape[0], amplitudes.shape[0])
-    cdef data_t cfd_i, cfd_j
+    cdef data_t cfd_i, cfd_j, edge_pos
 
     for i in range(delay, signal.shape[0] - 1):
         if signal[i] <= threshold:
@@ -78,8 +78,18 @@ cdef int _cfd_fast_pos(
         cfd_j = signal[j] - fraction * signal[j - delay]
 
         if cfd_i > walk and cfd_j < walk and i > next_edge:
-            edges[edge_idx] = i + (cfd_i - walk) / (cfd_i - cfd_j)
+            if interp == EdgeInterpolation.NEAREST:
+                edge_pos = i if fabs(cfd_j - walk) > fabs(cfd_i - walk) else j
+            elif interp == EdgeInterpolation.LINEAR:
+                edge_pos = i + (cfd_i - walk) / (cfd_i - cfd_j)
+            elif interp == EdgeInterpolation.SPLINE:
+                raise NotImplementedError('spline interpolation')
+            elif interp == EdgeInterpolation.SINC:
+                raise NotImplementedError('sinc interpolation')
+            else:
+                raise ValueError('invalid interpolation mode')
 
+            edges[edge_idx] = edge_pos
             next_edge = i + width
             edge_idx += 1
 
@@ -98,7 +108,7 @@ cdef int _cfd_fast_neg(
 
     cdef int i, j, edge_idx = 0, next_edge = -1, \
         max_edge = min(edges.shape[0], amplitudes.shape[0])
-    cdef data_t cfd_i, cfd_j
+    cdef data_t cfd_i, cfd_j, edge_pos
 
     for i in range(delay, signal.shape[0] - 1):
         if signal[i] >= threshold:
@@ -110,8 +120,18 @@ cdef int _cfd_fast_neg(
         cfd_j = signal[j] - fraction * signal[j - delay]
 
         if cfd_i < walk and cfd_j > walk and i > next_edge:
-            edges[edge_idx] = i + (walk - cfd_i) / (cfd_j - cfd_i)
+            if interp == EdgeInterpolation.NEAREST:
+                edge_pos = i if fabs(cfd_j - walk) > fabs(cfd_i - walk) else j
+            elif interp == EdgeInterpolation.LINEAR:
+                edge_pos = i + (walk - cfd_i) / (cfd_j - cfd_i)
+            elif interp == EdgeInterpolation.SPLINE:
+                raise NotImplementedError('spline interpolation')
+            elif interp == EdgeInterpolation.SINC:
+                raise NotImplementedError('sinc interpolation')
+            else:
+                raise ValueError('invalid interpolation mode')
 
+            edges[edge_idx] = edge_pos
             next_edge = i + width
             edge_idx += 1
 
@@ -340,7 +360,7 @@ def dled(
                             / (signal[ratio_idx+1] - signal[ratio_idx])
 
                     elif interp == EdgeInterpolation.SPLINE:
-                        ratio_pos = <floating>ratio_idx
+                        raise NotImplementedError('spline interpolation')
 
                     elif interp == EdgeInterpolation.SINC:
                         ratio_pos = <data_t>_dled_sinc_interp(
