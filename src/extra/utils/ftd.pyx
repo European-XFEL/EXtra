@@ -1,5 +1,13 @@
 # cython: boundscheck=False, wraparound=False, cdivision=True
 
+"""Fast timing disciminators.
+
+This module contains native software implementations for fast timing
+discrimination that mark the arrival time of pulses on the digitized
+recording of a continguous analog signal.
+"""
+
+
 from cython cimport floating
 from cython.view cimport contiguous
 from libc.math cimport M_PI, sin, fabs, floor, ceil
