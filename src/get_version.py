@@ -10,7 +10,7 @@ def _custom_version(v: ScmVersion):
         return version
 
     if v.distance:
-        version += f".dev{v.distance}"
+        version += f".{v.distance}"
 
     if v.node:
         # Drop off the "g" prefix
