@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=61", "wheel", "setuptools_scm[toml]==7.1.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = { attr = "get_version.version" }
+
+[project]
+name = "EXtra"
+dynamic = ["version"]
+description = "European XFEL toolkit for research and analysis"
+authors = [{name = "European XFEL", email = "da@xfel.eu"}]
+dependencies = [
+    "euxfel_bunch_pattern",
+    "extra_data>=1.13",
+    "extra_geom",
+    "karabo_bridge",
+]
+requires-python = ">=3.9"
+readme = "README.md"
+license = {text = "BSD-3-Clause"}
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+
+[project.urls]
+Homepage = "https://github.com/European-XFEL/EXtra"
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+]
+docs = [
+    "black",
+    "mkdocs-material",
+    "mkdocstrings",
+    "mkdocstrings-python",
+    "pymdown-extensions",
+]

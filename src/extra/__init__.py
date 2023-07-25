@@ -1,4 +1,3 @@
-
 # coding: utf-8
 """The EXtra package.
 
@@ -34,4 +33,10 @@ You should have received a copy of the 3-Clause BSD License along with this
 program. If not, see <https://opensource.org/licenses/BSD-3-Clause>
 """
 
-__version__ = '1.0.0a1'
+
+try:
+    from .__version__ import __version__
+except ImportError:
+    __version__ = "unknown"
+
+__all__ = ["__version__"]
