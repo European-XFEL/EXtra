@@ -4,6 +4,7 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
+from extra_data import RunDirectory
 from extra_data.tests.mockdata import write_file
 from extra_data.tests.mockdata.xgm import XGM
 
@@ -20,4 +21,4 @@ def mock_spb_aux_run():
 
     with TemporaryDirectory() as td:
         write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 100)
-        yield td
+        yield RunDirectory(td)
