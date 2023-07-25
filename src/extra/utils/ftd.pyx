@@ -211,7 +211,7 @@ def cfd(
     if edges is None:
         edges = np.zeros(
             len(amplitudes) if amplitudes is not None else len(signal) // 100,
-            dtype=np.float32)
+            dtype=np.asarray(signal).dtype)
 
     if amplitudes is None:
         amplitudes = np.zeros_like(edges, dtype=np.asarray(signal).dtype)
@@ -276,7 +276,7 @@ def dled(
     # are inverted instead (essentially making the signal always
     # positive) or handled specifically in other cases.
     cdef bint negative = threshold < 0
-    cdef floating s = 1
+    cdef data_t s = 1
 
     if negative:
         threshold = -threshold
@@ -350,12 +350,12 @@ def dled(
                     if interp == EdgeInterpolation.NEAREST:
                         if fabs(s * signal[ratio_idx] - ratio_value) > \
                                 fabs(s * signal[ratio_idx+1] - ratio_value):
-                            ratio_pos = <floating>(ratio_idx+1)
+                            ratio_pos = <data_t>(ratio_idx+1)
                         else:
-                            ratio_pos = <floating>ratio_idx
+                            ratio_pos = <data_t>ratio_idx
 
                     elif interp == EdgeInterpolation.LINEAR:
-                        ratio_pos = <floating>ratio_idx \
+                        ratio_pos = <data_t>ratio_idx \
                             + (s * ratio_value - signal[ratio_idx]) \
                             / (signal[ratio_idx+1] - signal[ratio_idx])
 
