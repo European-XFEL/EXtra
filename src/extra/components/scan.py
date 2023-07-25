@@ -12,13 +12,13 @@ class Scan:
     ```python
             -----------------------------------------------------------
     In [1]: |s = Scan(run["MOTOR/MCMOTORYFACE"])                      |
-            |s                                                        |
+            |s.info()                                                 |
             -----------------------------------------------------------
     Out[1]: Scan over MOTOR/MCMOTORYFACE.actualPosition from -0.5800 to -0.5600:
              Steps: 21
              Scan time: 0:17:54
              Average step length: 511.33 trains (51.13s)
-             Average step size: 1.00e-03
+             Average step size: 1.00e-03 [arb. u.]
 
             Detection parameters:
              resolution: 5.00e-04
@@ -88,8 +88,8 @@ class Scan:
 
             self._input_pos = motor
             default_name = motor.name if motor.name is not None else "motor"
-        elif isinstance(motor, np.ndarray):
-            raise TypeError("The input cannot be a plain Numpy array, train ID information is required")
+        else:
+            raise TypeError(f"Unrecognized input type: {type(motor)}")
 
         self._name = name if name is not None else default_name
 
@@ -104,7 +104,7 @@ class Scan:
             self._steps = steps
 
         self._positions = np.array([pos for pos, _ in self.steps])
-        self._positions_tids = [tids for _, tids in self.steps]
+        self._positions_train_ids = [tids for _, tids in self.steps]
 
     @property
     def steps(self) -> list:
@@ -117,11 +117,11 @@ class Scan:
         return self._positions
 
     @property
-    def positions_tids(self) -> list:
+    def positions_train_ids(self) -> list:
         """List of train IDs for each position."""
-        return self._positions_tids
+        return self._positions_train_ids
 
-    def plot(self):
+    def plot(self, ax=None):
         """Visualize the scan steps.
 
         Each step is plotted in a different color on top of the motor
@@ -132,10 +132,11 @@ class Scan:
         ![](images/scan-plot.png)
 
         """
-        import matplotlib.pyplot as plt
-        fig, ax = plt.subplots(figsize=(9, 5))
+        if ax is None:
+            import matplotlib.pyplot as plt
+            fig, ax = plt.subplots(figsize=(9, 5))
 
-        for tids in self.positions_tids:
+        for tids in self.positions_train_ids:
             ax.plot(tids, self._input_pos.sel(trainId=tids))
 
         ax.plot(self._input_pos.trainId, self._input_pos, alpha=0.2, label="Motor position")
@@ -299,30 +300,36 @@ class Scan:
 
         return steps
 
-    def __str__(self):
-        return f"<Scan over {self._name} with {len(self.steps)} steps>"
-
     def __repr__(self):
+        return f"<{self.format(compact=True)}>"
+
+    def format(self, compact=False):
+        if compact:
+            return f"Scan over {self._name} with {len(self.steps)} steps"
+
         if len(self.steps) == 0:
             return f"No steps detected for {self._name}"
 
         start_pos = self.positions[0]
         end_pos = self.positions[-1]
         n_steps = len(self.positions)
-        avg_step_length = np.nanmean([len(tids) for tids in self.positions_tids])
+        avg_step_length = np.nanmean([len(tids) for tids in self.positions_train_ids])
         avg_step_time = avg_step_length / 10
         avg_step_size = np.nanmean(np.diff(self.positions))
 
-        start_train = self.positions_tids[0][0]
-        end_train = self.positions_tids[-1][-1]
+        start_train = self.positions_train_ids[0][0]
+        end_train = self.positions_train_ids[-1][-1]
         scan_time = timedelta(seconds=round((end_train - start_train) / 10))
 
         return f"Scan over {self._name} from {start_pos:.4f} to {end_pos:.4f}:\n" \
                f" Steps: {n_steps}\n" \
                f" Scan time: {scan_time}\n" \
                f" Average step length: {avg_step_length:.2f} trains ({avg_step_time:.2f}s)\n" \
-               f" Average step size: {avg_step_size:.2e}\n" \
+               f" Average step size: {avg_step_size:.2e} [arb. u.]\n" \
                "\n" \
                f"Detection parameters:\n" \
                f" resolution: {self._resolution:.2e}\n" \
                f" min_trains: {self._min_trains}"
+
+    def info(self, compact=False):
+        print(self.format(compact=compact))
