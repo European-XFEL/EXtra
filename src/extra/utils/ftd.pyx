@@ -57,6 +57,297 @@ def sinc_interpolate(
     return np.asarray(y_interp)
 
 
+
+def cfd_new(
+    data_array_t signal, data_t threshold, int delay,
+    int width=0, data_t fraction=1.0, data_t walk=0.0,
+    int interp = EdgeInterpolation.LINEAR,
+    data_array_t edges = None,
+    data_array_t amplitudes = None
+):
+    """Fast constant fraction discriminator."""
+
+    if edges is None:
+        edges = np.zeros(
+            len(amplitudes) if amplitudes is not None else len(signal) // 100,
+            dtype=np.asarray(signal).dtype)
+
+    if amplitudes is None:
+        amplitudes = np.zeros_like(edges, dtype=np.asarray(signal).dtype)
+
+    cdef int i, j, edge_idx = 0, next_edge = -1, \
+        max_edge = min(edges.shape[0], amplitudes.shape[0])
+    cdef data_t cfd_i, cfd_j, edge_pos
+
+    cdef bint negative = threshold < 0
+
+    with nogil:
+        for i in range(delay, signal.shape[0] - 1):
+            if negative:
+                if signal[i] >= threshold:
+                    continue
+            elif signal[i] <= threshold:
+                continue
+
+            j = i + 1
+
+            if negative:
+                cfd_i = fraction * signal[i - delay] - signal[i]
+                cfd_j = fraction * signal[j - delay] - signal[j]
+            else:
+                cfd_i = signal[i] - fraction * signal[i - delay]
+                cfd_j = signal[j] - fraction * signal[j - delay]
+
+            if cfd_i > walk and cfd_j < walk and i > next_edge:
+                if interp == EdgeInterpolation.NEAREST:
+                    edge_pos = i if fabs(cfd_j - walk) > fabs(cfd_i - walk) \
+                        else j
+                elif interp == EdgeInterpolation.LINEAR:
+                    edge_pos = i + (cfd_i - walk) / (cfd_i - cfd_j)
+                elif interp == EdgeInterpolation.SPLINE:
+                    raise NotImplementedError('spline interpolation')
+                elif interp == EdgeInterpolation.SINC:
+                    raise NotImplementedError('sinc interpolation')
+                else:
+                    raise ValueError('invalid interpolation mode')
+
+                edges[edge_idx] = edge_pos
+                next_edge = i + width
+                edge_idx += 1
+
+                if edge_idx == max_edge:
+                    break
+
+    return np.asarray(edges)[:edge_idx], np.asarray(amplitudes)[:edge_idx], \
+        edge_idx
+
+
+
+cdef inline data_t _cfd_interp_edge(data_array_t signal,
+                             int i, int j,
+                             data_t cfd_i, data_t cfd_j,
+                             data_t walk, int interp) nogil:
+    if interp == EdgeInterpolation.NEAREST:
+        return i if fabs(cfd_j - walk) > fabs(cfd_i - walk) else j
+    elif interp == EdgeInterpolation.LINEAR:
+        return i + (cfd_i - walk) / (cfd_i - cfd_j)
+    elif interp == EdgeInterpolation.SPLINE:
+        raise NotImplementedError('spline interpolation')
+    elif interp == EdgeInterpolation.SINC:
+        raise NotImplementedError('sinc interpolation')
+    else:
+        raise ValueError('invalid interpolation mode')
+
+
+def cfd_new2(
+    data_array_t signal, data_t threshold, int delay,
+    int width=0, data_t fraction=1.0, data_t walk=0.0,
+    int interp = EdgeInterpolation.LINEAR,
+    data_array_t edges = None,
+    data_array_t amplitudes = None
+):
+    """Fast constant fraction discriminator."""
+
+    if edges is None:
+        edges = np.zeros(
+            len(amplitudes) if amplitudes is not None else len(signal) // 100,
+            dtype=np.asarray(signal).dtype)
+
+    if amplitudes is None:
+        amplitudes = np.zeros_like(edges, dtype=np.asarray(signal).dtype)
+
+    cdef int i, j, edge_idx = 0, next_edge = -1, \
+        max_edge = min(edges.shape[0], amplitudes.shape[0])
+    cdef data_t cfd_i, cfd_j, edge_pos
+
+    cdef bint negative = threshold < 0
+
+    with nogil:
+        if threshold > 0:
+            for i in range(delay, signal.shape[0] - 1):
+                if signal[i] <= threshold:
+                    continue
+
+                j = i + 1
+
+                cfd_i = signal[i] - fraction * signal[i - delay]
+                cfd_j = signal[j] - fraction * signal[j - delay]
+
+                if cfd_i > walk and cfd_j < walk and i > next_edge:
+                    edges[edge_idx] = _cfd_interp_edge(
+                        signal, i, j, cfd_i, cfd_j, walk, interp)
+                    next_edge = i + width
+                    edge_idx += 1
+
+                    if edge_idx == max_edge:
+                        break
+
+        else:
+            for i in range(delay, signal.shape[0] - 1):
+                if signal[i] >= threshold:
+                    continue
+
+                j = i + 1
+
+                cfd_i = signal[i] - fraction * signal[i - delay]
+                cfd_j = signal[j] - fraction * signal[j - delay]
+
+                if cfd_i < walk and cfd_j > walk and i > next_edge:
+                    edges[edge_idx] = _cfd_interp_edge(
+                        signal, i, j, -cfd_i, -cfd_j, -walk, interp)
+                    next_edge = i + width
+                    edge_idx += 1
+
+                    if edge_idx == max_edge:
+                        break
+
+    return np.asarray(edges)[:edge_idx], np.asarray(amplitudes)[:edge_idx], \
+        edge_idx
+
+
+def cfd_new3(
+    data_array_t signal, data_t threshold, int delay,
+    int width=0, data_t fraction=1.0, data_t walk=0.0,
+    int interp = EdgeInterpolation.LINEAR,
+    data_array_t edges = None,
+    data_array_t amplitudes = None
+):
+    """Fast constant fraction discriminator."""
+
+    if edges is None:
+        edges = np.zeros(
+            len(amplitudes) if amplitudes is not None else len(signal) // 100,
+            dtype=np.asarray(signal).dtype)
+
+    if amplitudes is None:
+        amplitudes = np.zeros_like(edges, dtype=np.asarray(signal).dtype)
+
+    cdef int i, j, edge_idx = 0, next_edge = -1, \
+        max_edge = min(edges.shape[0], amplitudes.shape[0])
+    cdef data_t cfd_i, cfd_j
+
+    with nogil:
+        if threshold > 0:
+            for i in range(delay, signal.shape[0] - 1):
+                if signal[i] <= threshold:
+                    continue
+
+                j = i + 1
+
+                cfd_i = signal[i] - fraction * signal[i - delay]
+                cfd_j = signal[j] - fraction * signal[j - delay]
+
+                if cfd_i > walk and cfd_j < walk and i > next_edge:
+                    if interp == EdgeInterpolation.NEAREST:
+                        edges[edge_idx] = i \
+                            if fabs(cfd_j - walk) > fabs(cfd_i - walk) else j
+                    elif interp == EdgeInterpolation.LINEAR:
+                        edges[edge_idx] = i + (cfd_i - walk) / (cfd_i - cfd_j)
+                    elif interp == EdgeInterpolation.SPLINE:
+                        raise NotImplementedError('spline interpolation')
+                    elif interp == EdgeInterpolation.SINC:
+                        raise NotImplementedError('sinc interpolation')
+                    else:
+                        raise ValueError('invalid interpolation mode')
+
+                    next_edge = i + width
+                    edge_idx += 1
+
+                    if edge_idx == max_edge:
+                        break
+
+        else:
+            for i in range(delay, signal.shape[0] - 1):
+                if signal[i] >= threshold:
+                    continue
+
+                j = i + 1
+
+                cfd_i = signal[i] - fraction * signal[i - delay]
+                cfd_j = signal[j] - fraction * signal[j - delay]
+
+                if cfd_i < walk and cfd_j > walk and i > next_edge:
+                    if interp == EdgeInterpolation.NEAREST:
+                        edges[edge_idx] = i \
+                            if fabs(cfd_j - walk) > fabs(cfd_i - walk) else j
+                    elif interp == EdgeInterpolation.LINEAR:
+                        edges[edge_idx] = i + (walk - cfd_i) / (cfd_j - cfd_i)
+                    elif interp == EdgeInterpolation.SPLINE:
+                        raise NotImplementedError('spline interpolation')
+                    elif interp == EdgeInterpolation.SINC:
+                        raise NotImplementedError('sinc interpolation')
+                    else:
+                        raise ValueError('invalid interpolation mode')
+
+                    next_edge = i + width
+                    edge_idx += 1
+
+                    if edge_idx == max_edge:
+                        break
+
+    return np.asarray(edges)[:edge_idx], np.asarray(amplitudes)[:edge_idx], \
+        edge_idx
+
+
+
+def cfd_new4(
+    data_array_t signal, data_t threshold, int delay,
+    int width=0, data_t fraction=1.0, data_t walk=0.0,
+    int interp = EdgeInterpolation.LINEAR,
+    data_array_t edges = None,
+    data_array_t amplitudes = None
+):
+    """Constant fraction discriminator.
+
+    Args:
+        signal (array_like): 1D input array with analog signal.
+        threshold (data-type): Trigger threshold.
+        delay (int): Delay between the raw and inverted signal.
+        width (int, optional): Minimal distance between found edges,
+            none by default.
+        fraction (data-type, optional): Fraction of the inverted signal,
+            1.0 by default.
+        walk (data-type, optional): Point of intersection in the
+            inverted signal, 0.0 by default.
+        interp (EdgeInterpolation, optional): Interpolation mode to
+            locate the edge position, linear by default.
+            TODO: Always linear at the moment.
+        edges (ArrayLike, optional): 1D output array to hold the
+            positions of found edges, a new one is allocated if None is
+            passed.
+        amplitudes (ArrayLike, optional): 1D output array to hold the
+            pulse amplitudes corresponding to found edges, a new one is
+            allocated if None is passed.
+
+    Returns:
+        (ArrayLike, ArrayLike, int) 1D arrays containing the edge
+            positions and amplitudes, number of found edges.
+    """
+
+    if edges is None:
+        edges = np.zeros(
+            len(amplitudes) if amplitudes is not None else len(signal) // 100,
+            dtype=np.asarray(signal).dtype)
+
+    if amplitudes is None:
+        amplitudes = np.zeros_like(edges, dtype=np.asarray(signal).dtype)
+
+    with nogil:
+        if threshold > 0:
+            num_edges = _cfd_fast_pos(signal, edges, amplitudes,
+                                      threshold, delay, width, fraction, walk,
+                                      interp)
+        elif threshold < 0:
+            num_edges = _cfd_fast_neg(signal, edges, amplitudes,
+                                      threshold, delay, width, fraction, walk,
+                                      interp)
+        else:
+            raise ValueError('threshold must be non-zero')
+
+    return np.asarray(edges)[:num_edges], np.asarray(amplitudes)[:num_edges], \
+        num_edges
+
+
 cdef int _cfd_fast_pos(
     data_array_t signal, data_array_t edges, data_array_t amplitudes,
     data_t threshold, int delay, int width, data_t fraction, data_t walk,
