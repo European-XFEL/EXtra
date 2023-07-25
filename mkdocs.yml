@@ -73,6 +73,7 @@ plugins:
             show_root_heading: yes
             heading_level: 3
             show_source: no
+            inherited_members: yes
 
 extra_css:
   - css/mkdocstrings.css
