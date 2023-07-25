@@ -8,5 +8,3 @@ easier.
 ::: extra.components.XrayPulses
 
 ::: extra.components.OpticalLaserPulses
-
-::: extra.components.pulses.PulsePattern
