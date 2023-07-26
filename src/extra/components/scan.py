@@ -30,25 +30,19 @@ class Scan:
     ```
     """
 
-    def __init__(self, motor, name=None, resolution=None, min_trains=None):
+    def __init__(self, motor, name=None, resolution=None, min_trains=None, intra_step_filtering=1):
         """
         The class tries to detect the best parameters automatically, but it will
         still fail in some situations. If that happens either the `resolution`
         or `min_trains` parameters (unlikely to be both) will need to be set
-        manually, typically on a per-motor rather than per-scan basis. You
-        should always check the results of the detection with
-        [Scan.plot()][extra.components.Scan.plot] to verify that they're
-        correct.
+        manually, typically on a per-motor rather than per-run basis. In cases
+        with noisy devices being scanned the `intra_train_filtering` parameter
+        may also need to be tweaked.
 
-        The `resolution` parameter is the trickiest one to guess
-        automatically. For example, if it's set too high then multiple real
-        steps will be detected as single steps. And if it's set too low and
-        there's a lot of drift in the motor steps, there can be multiple
-        detected steps within a single real step.
-
-        `min_trains` rarely fails badly. Usually you will only need to tweak
-        this if the length of the steps varies a lot and some of the smaller
-        steps are being cut out (this often happens with energy scans).
+        Note:
+            You should always check the results of the detection with
+            [Scan.plot()][extra.components.Scan.plot] to verify that they're
+            correct.
 
         Args:
             motor (SourceData, KeyData, DataArray): An
@@ -61,12 +55,35 @@ class Scan:
             resolution (float): The usable resolution of the motor. Ideally this
                 should be slightly above the noise level of the motor (and below the
                 step size of the scan). It will be guessed if not passed explicitly.
-            min_trains (int): The minimum number of trains per-step in the scan. It
-                will be guessed if not passed explicitly.
+
+                This is the trickiest parameter to guess automatically. For
+                example, if it's set too high then multiple real steps will be
+                detected as single steps. And if it's set too low and there's a
+                lot of drift in the motor steps, there can be multiple detected
+                steps within a single real step.
+            min_trains (int): The minimum number of trains per-step in the
+                scan. It will be guessed if not passed explicitly.
+
+                The automatic guessing rarely fails badly. Usually you will only
+                need to tweak this if the length of the steps varies a lot and
+                some of the smaller steps are being cut out (this often happens
+                with energy scans).
+            intra_step_filtering (float): A factor that influences how
+                aggressively noisy trains within a step will be filtered
+                out. Higher values mean less aggressive and lower values mean
+                more aggressive.
+
+                This factor is used to remove trains in a step that are outside
+                a certain range of the mean value in the step. Usually this is
+                good for removing trains on the boundaries of a step, but if the
+                device being scanned is very noisy then it can lead to some of
+                the valid trains being accidentally removed. Increasing this
+                factor to e.g. `1.5` or `2` should help.
         """
         self._steps = []
         self._resolution = None
         self._min_trains = None
+        self._intra_step_filtering = intra_step_filtering
 
         # Debugging variables
         self._diff = None
@@ -93,9 +110,8 @@ class Scan:
 
         self._name = name if name is not None else default_name
 
-        steps = self._get_motor_steps(self._input_pos,
-                                      resolution=resolution,
-                                      min_trains=min_trains)
+        steps = self._get_motor_steps(self._input_pos, resolution,
+                                      min_trains, intra_step_filtering)
 
         # Sometimes motors that have jitter are erroneously detected as a
         # single-step scan, so we ignore those and only take scans with more
@@ -139,7 +155,7 @@ class Scan:
         for tids in self.positions_train_ids:
             ax.plot(tids, self._input_pos.sel(trainId=tids))
 
-        ax.plot(self._input_pos.trainId, self._input_pos, alpha=0.2, label="Motor position")
+        ax.plot(self._input_pos.trainId, self._input_pos, alpha=0.3, label="Motor position")
         ax.set_xlabel("Train ID")
         ax.set_title(f"Scan over {self._name} with {len(self.steps)} steps")
         ax.legend()
@@ -243,7 +259,7 @@ class Scan:
         # mean step size (absolute minimum is 2 trains).
         return int(max(2, mean_step_length // 2))
 
-    def _get_motor_steps(self, actual_pos, resolution=None, min_trains=None):
+    def _get_motor_steps(self, actual_pos, resolution, min_trains, intra_step_filtering):
         if resolution is None:
             resolution = self._guess_resolution(actual_pos)
 
@@ -281,7 +297,7 @@ class Scan:
             # Remove trains that are outside 1 standard deviation
             # of the mean position of the step.
             step_positions = actual_pos.sel(trainId=tids)
-            std = np.std(step_positions).item()
+            std = np.std(step_positions).item() * intra_step_filtering
             mean = np.nanmean(step_positions).item()
 
             for tid in tids.copy():
@@ -303,7 +319,17 @@ class Scan:
     def __repr__(self):
         return f"<{self.format(compact=True)}>"
 
-    def format(self, compact=False):
+    def info(self, compact=False):
+        """Print information about the scan from [Scan.format()][extra.components.Scan.format]"""
+        print(self.format(compact=compact))
+
+    def format(self, compact=False) -> str:
+        """Format information about the scan as a string.
+
+        Args:
+            compact (bool): Whether to format the information in a one-line or
+                multi-line string.
+        """
         if compact:
             return f"Scan over {self._name} with {len(self.steps)} steps"
 
@@ -329,7 +355,5 @@ class Scan:
                "\n" \
                f"Detection parameters:\n" \
                f" resolution: {self._resolution:.2e}\n" \
-               f" min_trains: {self._min_trains}"
-
-    def info(self, compact=False):
-        print(self.format(compact=compact))
+               f" min_trains: {self._min_trains}\n" \
+               f" intra_step_filtering: {self._intra_step_filtering}"
