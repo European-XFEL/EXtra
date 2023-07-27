@@ -5,7 +5,7 @@ import numpy as np
 import extra
 
 from euxfel_bunch_pattern import PPL_BITS
-from extra.data import RunDirectory, SourceData, KeyData, by_id
+from extra.data import SourceData, KeyData, by_id
 from extra.components import XrayPulses, OpticalLaserPulses
 
 
@@ -33,7 +33,7 @@ def assert_equal_keydata(kd1, kd2):
 
 
 def test_definitions(mock_spb_aux_run):
-    pulses = XrayPulses(RunDirectory(mock_spb_aux_run).select('SPB*'))
+    pulses = XrayPulses(mock_spb_aux_run.select('SPB*'))
     pulses.master_clock
     pulses.bunch_clock_divider
     pulses.bunch_repetition_rate
@@ -41,7 +41,7 @@ def test_definitions(mock_spb_aux_run):
 
 def test_init(mock_spb_aux_run):
     # First only select "regular" sources.
-    run = RunDirectory(mock_spb_aux_run).select('SPB*')
+    run = mock_spb_aux_run.select('SPB*')
 
     pulses = XrayPulses(run)
     assert_equal_sourcedata(
@@ -68,7 +68,7 @@ def test_init(mock_spb_aux_run):
 
     # Now take the full run, should have two timeservers and raise
     # exception.
-    run = RunDirectory(mock_spb_aux_run)
+    run = mock_spb_aux_run
 
     with pytest.raises(ValueError):
         XrayPulses(run)
@@ -94,7 +94,7 @@ def test_init(mock_spb_aux_run):
 
 
 def test_select_trains(mock_spb_aux_run):
-    run = RunDirectory(mock_spb_aux_run).select('SPB*')
+    run = mock_spb_aux_run.select('SPB*')
     pulses = XrayPulses(run)
 
     subrun = run.select_trains(np.s_[:20])
@@ -110,7 +110,7 @@ def test_select_trains(mock_spb_aux_run):
 
 @pytest.mark.parametrize('source', **pattern_sources)
 def test_get_pulse_mask(mock_spb_aux_run, source):
-    run = RunDirectory(mock_spb_aux_run)
+    run = mock_spb_aux_run
     pulses = XrayPulses(run, source=source)
 
     mask = XrayPulses(run, source=source).get_pulse_mask()
@@ -126,7 +126,7 @@ def test_get_pulse_mask(mock_spb_aux_run, source):
 
 @pytest.mark.parametrize('source', **pattern_sources)
 def test_is_constant_pattern(mock_spb_aux_run, source):
-    run = RunDirectory(mock_spb_aux_run)
+    run = mock_spb_aux_run
     pulses = XrayPulses(run, source=source)
 
     assert not pulses.is_constant_pattern()
@@ -135,7 +135,7 @@ def test_is_constant_pattern(mock_spb_aux_run, source):
 
 @pytest.mark.parametrize('source', **pattern_sources)
 def test_get_pulse_counts(mock_spb_aux_run, source):
-    run = RunDirectory(mock_spb_aux_run)
+    run = mock_spb_aux_run
     pulses = XrayPulses(run, source=source)
 
     # Test labelled.
@@ -155,7 +155,7 @@ def test_get_pulse_counts(mock_spb_aux_run, source):
 
 @pytest.mark.parametrize('source', **pattern_sources)
 def test_peek_pulse_ids(mock_spb_aux_run, source):
-    run = RunDirectory(mock_spb_aux_run).select('SPB*')
+    run = mock_spb_aux_run.select('SPB*')
 
     np.testing.assert_equal(
         XrayPulses(run, source=source).peek_pulse_ids(),
@@ -167,7 +167,7 @@ def test_peek_pulse_ids(mock_spb_aux_run, source):
 
 @pytest.mark.parametrize('source', **pattern_sources)
 def test_get_pulse_ids(mock_spb_aux_run, source):
-    run = RunDirectory(mock_spb_aux_run)
+    run = mock_spb_aux_run
     pulses = XrayPulses(run, source=source)
 
     # Test labelled.
@@ -184,7 +184,7 @@ def test_get_pulse_ids(mock_spb_aux_run, source):
 
 @pytest.mark.parametrize('source', **pattern_sources)
 def test_search_pulse_patterns(mock_spb_aux_run, source):
-    run = RunDirectory(mock_spb_aux_run)
+    run = mock_spb_aux_run
     pulses = XrayPulses(run, source=source)
 
     patterns = pulses.search_pulse_patterns()
@@ -197,7 +197,7 @@ def test_search_pulse_patterns(mock_spb_aux_run, source):
 
 @pytest.mark.parametrize('source', **pattern_sources)
 def test_trains(mock_spb_aux_run, source):
-    run = RunDirectory(mock_spb_aux_run)
+    run = mock_spb_aux_run
     pulses = XrayPulses(run, source=source)
 
     for ref_tid, (tid, pids) in zip(run.train_ids, pulses.trains()):
@@ -211,7 +211,7 @@ def test_trains(mock_spb_aux_run, source):
 
 @pytest.mark.parametrize('source', **pattern_sources)
 def test_optical_laser_basic(mock_spb_aux_run, source):
-    run = RunDirectory(mock_spb_aux_run)
+    run = mock_spb_aux_run
     pulses = OpticalLaserPulses(run, source=source)
 
     assert pulses.ppl_seed == PPL_BITS.LP_SPB
@@ -220,7 +220,7 @@ def test_optical_laser_basic(mock_spb_aux_run, source):
 
 
 def test_optical_laser_specials(mock_spb_aux_run):
-    run = RunDirectory(mock_spb_aux_run).select('SPB*')
+    run = mock_spb_aux_run.select('SPB*')
 
     # Different laser seed by enum
     pulses = OpticalLaserPulses(run, ppl_seed=PPL_BITS.LP_SQS)
@@ -233,7 +233,7 @@ def test_optical_laser_specials(mock_spb_aux_run):
     assert (pulses.get_pulse_counts() == 0).all()
 
     # Full run with two timeservers
-    run = RunDirectory(mock_spb_aux_run)
+    run = mock_spb_aux_run
 
     with pytest.raises(ValueError):
         OpticalLaserPulses(run)
@@ -258,7 +258,7 @@ def test_optical_laser_specials(mock_spb_aux_run):
 
 
 def test_ppdecoder(mock_spb_aux_run):
-    run = RunDirectory(mock_spb_aux_run)
+    run = mock_spb_aux_run
     pulses = XrayPulses(run, source='SPB_RR_SYS/MDL/BUNCH_PATTERN')
 
     assert_equal_sourcedata(pulses.pulse_pattern_decoder,
