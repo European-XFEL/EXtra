@@ -6,15 +6,10 @@ from extra_data import SourceData
 class Scantool:
     """Interface for the European XFEL scantool (Karabacon).
 
-    Note that the [repr][] function for this class uses
-    [Scantool.format()][extra.components.Scantool.format]
-    internally, so evaluating a `Scantool` object in a Jupyter notebook
-    cell will print the scantool configuration:
-
     ```python
             -----------------------------------------------------------
     In [1]: |scantool = Scantool(run)                                 |
-            |scantool                                                 |
+            |scantool.info()                                          |
             -----------------------------------------------------------
     Out[1]: Scantool (MID_RR_SYS/MDL/KARABACON) configuration:
               Scan type: dscan
@@ -167,7 +162,11 @@ class Scantool:
             else:
                 return f"{name} ({self.motor_devices[name]}): {motion_info}"
 
-    def format(self, compact=True):
+    def info(self, compact=False):
+        """Print information about the scantool from [Scantool.format()][extra.components.Scantool.format]."""
+        print(self.format(compact=compact))
+
+    def format(self, compact=False):
         """Format information about the scantool as a string.
 
         Args:
@@ -197,7 +196,10 @@ class Scantool:
                 return "\n".join(info)
 
     def __repr__(self):
-        return self.format(compact=False)
+        if len(self.motors) == 1:
+            motor_str = self.motors[0]
+        else:
+            motor_str = f"{len(self.motors)} motors"
 
-    def __str__(self):
-        return self.format(compact=True)
+        active_str = "" if self.active else " (inactive)"
+        return f"<Scantool {self.source_name}{active_str} configured for {self.scan_type} over {motor_str}>"

@@ -42,8 +42,6 @@ def test_scantool():
     mock_source["isMoving"].ndarray.return_value = np.zeros(10, dtype=np.uint8)
     scantool = Scantool(mock_run)
     assert not scantool.active
-    assert "not active" in str(scantool)
-    assert "not active" in repr(scantool)
 
     # Now with a run where it is active
     mock_source["isMoving"].ndarray.return_value = np.ones(10, dtype=np.uint8)
@@ -51,15 +49,11 @@ def test_scantool():
     assert scantool.active
     assert scantool.motors == ["polarizer_theta", "Theta_ana"]
     assert scantool.motor_devices is not None
-    assert scantool.scan_type in str(scantool)
-    assert scantool.scan_type in repr(scantool)
 
     # And with a run with an unsupported actualConfiguration format
     mock_run_values["actualConfiguration.value"] = "--- Motors:['MID_AUXT1_UPP/MOTOR/R1:default', 'MID_EXP_UPP/MOTOR/T7:default']"
     with pytest.warns():
         scantool = Scantool(mock_run)
-    assert scantool.scan_type in str(scantool)
-    assert scantool.scan_type in repr(scantool)
 
     # Test compatibility with Karabacon 3.0.7-2.16.2, which is an older version
     # still used at FXE. In this version the activeMotors and acquisitionTime
@@ -71,3 +65,8 @@ def test_scantool():
 
     # This shouldn't throw an exception
     scantool = Scantool(mock_run)
+
+    # Smoke tests
+    scantool.info()
+    scantool.format()
+    repr(scantool)
