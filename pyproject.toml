@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 version = { attr = "get_version.version" }
 
 [project]
-name = "EXtra"
+name = "euxfel-EXtra"
 dynamic = ["version"]
 description = "European XFEL toolkit for research and analysis"
 authors = [{name = "European XFEL", email = "da@xfel.eu"}]
