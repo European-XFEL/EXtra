@@ -25,5 +25,7 @@ setup(
         Extension('extra.signal._interpolation',
                   ['src/extra/signal/_interpolation.pyx'],
                   **cython_ext_kw),
+        Extension('extra.components._adq', ['src/extra/components/_adq.pyx'],
+                  **cython_ext_kw),
     ], language_level=3),
 )

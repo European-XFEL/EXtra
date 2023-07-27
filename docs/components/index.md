@@ -17,6 +17,8 @@ Component index:
     - [MachinePulses][extra.components.MachinePulses]
     - [DldPulses][extra.components.DldPulses]
 - [Delay Line Detectors](dld.md)
-    - [DelayLineDetector](extra.components.DelayLineDetector)
+    - [DelayLineDetector][extra.components.DelayLineDetector]
 - [Optical Lasers](las.md)
-    - [OpticalLaserDelay](extra.components.OpticalLaserDelay)
+    - [OpticalLaserDelay][extra.components.OpticalLaserDelay]
+- [ADQ Digitizers](adq.md)
+    - [AdqRawChannel][extra.components.AdqRawChannel]

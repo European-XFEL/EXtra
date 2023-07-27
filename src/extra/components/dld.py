@@ -154,7 +154,7 @@ class DelayLineDetector:
                 structured data.
         """
 
-        num_rows = data.shape[1]
+        num_rows = data.shape[-1]
         raw = data.ravel()
 
         # Obtain mask which entries are actually filled.
