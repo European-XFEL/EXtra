@@ -40,6 +40,6 @@ docs = [
     "black",
     "mkdocs-material",
     "mkdocstrings",
-    "mkdocstrings-python",
+    "mkdocstrings-python>=1.2.0",
     "pymdown-extensions",
 ]

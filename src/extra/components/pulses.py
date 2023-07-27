@@ -236,7 +236,7 @@ class PulsePattern:
         """Select a subset of trains in this data.
 
         This method accepts the same type of arguments as
-        extra_data.DataCollection.select_trains()
+        [DataCollection.select_trains()][extra_data.DataCollection.select_trains].
         """
 
         res = copy(self)
@@ -291,9 +291,6 @@ class PulsePattern:
     def is_constant_pattern(self):
         """Whether pulse IDs are constant in this data.
 
-        Args:
-            None
-
         Returns:
             (bool): Whether pulse IDs are identical in every train.
         """
@@ -327,11 +324,8 @@ class PulsePattern:
         """Get pulse IDs for the first train.
 
         This method is a faster alternative to
-        PulsePattern.get_pulse_ids by only reading the bunch pattern
+        `get_pulse_ids()` by only reading the bunch pattern
         table for the very first train of this data.
-
-        Args:
-            None
 
         Returns:
             (numpy.ndarray): Pulse IDs in the first train of this data.
@@ -370,9 +364,6 @@ class PulsePattern:
     def get_pulse_index(self):
         """Get a multi-level index for pulse-resolved data.
 
-        Args:
-            None
-
         Returns:
             (pandas.MultiIndex): Multi-level index covering train ID and
                 pulse ID or pulse number.
@@ -385,10 +376,7 @@ class PulsePattern:
 
         Reads the bunch pattern table and gathers contiguous train
         regions of constant pulse pattern. It returns a list of train
-        slices and correspondig pulse IDs.
-
-        Args:
-            None
+        slices and corresponding pulse IDs.
 
         Returns:
             (list of (slice, ndarray) tuples): List of train regions
@@ -456,13 +444,14 @@ class XrayPulses(PulsePattern):
     exclusive use of X-rays or pump-probe experiments with congruent
     optical laser pulses.
 
-    For specific access to pulses from one of the optical laser sources,
-    please see the almost correspondig `OpticalLaserPulses` component
-    with the same interface.
+    For specific access to pulses from one of the optical laser sources, please
+    see the almost corresponding
+    [OpticalLaserPulses][extra.components.OpticalLaserPulses] component with the
+    same interface.
 
-    This class only deals with X-ray pulses of a particular SASE
-    beamline, please see `OpticalLaserPulses` to access pulses of the
-    optical laser sources.
+    This class only deals with X-ray pulses of a particular SASE beamline,
+    please see [OpticalLaserPulses][extra.components.OpticalLaserPulses] to
+    access pulses of the optical laser sources.
 
     Args:
         data (extra.data.DataCollection): Data to access bunch pattern
@@ -473,6 +462,7 @@ class XrayPulses(PulsePattern):
         sase (int, optional): SASE beamline to interpret pulses of, only
             needed if the data includes sources from more than one
             beamline or it could not be detected automatically.
+
     """
 
     # Source prefixes in use at each SASE.
@@ -547,7 +537,8 @@ class OpticalLaserPulses(PulsePattern):
     pulses by means of optical delay.
 
     For experiments where all FEL and PPL laser pulses overlap, it is
-    recommended to just use the `XrayPulses` component.
+    recommended to just use the [XrayPulses][extra.components.XrayPulses]
+    component.
 
     Args:
         data (extra.data.DataCollection): Data to access bunch pattern

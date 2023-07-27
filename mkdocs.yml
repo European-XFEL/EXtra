@@ -63,6 +63,7 @@ plugins:
           - https://docs.python.org/3/objects.inv
           - https://extra-data.readthedocs.io/en/latest/objects.inv
           - https://numpy.org/doc/stable/objects.inv
+          - https://pandas.pydata.org/docs/objects.inv
           options:
             docstring_style: google
             separate_signature: yes
@@ -73,6 +74,7 @@ plugins:
             show_root_heading: yes
             heading_level: 3
             show_source: no
+            inherited_members: yes
 
 extra_css:
   - css/mkdocstrings.css
