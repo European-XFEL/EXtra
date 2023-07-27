@@ -24,7 +24,7 @@ except ImportError:
         return zip(a, b)
 
 
-__all__ = ['XrayPulses', 'OpticalLaserPulses']
+__all__ = ['XrayPulses', 'OpticalLaserPulses', 'PumpProbePulses']
 
 
 class PulsePattern:
@@ -159,7 +159,7 @@ class PulsePattern:
         raise ValueError('no timeserver or ppdecoder found, please pass '
                          'one explicitly')
 
-    def _make_pulse_index(self, pulse_mask, with_pulse_id=True):
+    def _get_pulse_index(self, pulse_mask, with_pulse_id=True):
         """Generate multi index for a given pulse mask."""
 
         pulse_counts = pulse_mask.sum(axis=1)
@@ -176,6 +176,31 @@ class PulsePattern:
         return pd.MultiIndex.from_arrays(
             [train_ids, np.concatenate(train_pulses)],
             names=['trainId', pulses_label])
+
+    def _search_pulse_patterns(self, pulse_mask, pattern_entry_func):
+        # Find the unique patterns and the respective indices for each
+        # unique pattern.
+        unique_patterns, pattern_indices = np.unique(
+            pulse_mask, axis=0, return_inverse=True)
+
+        # Find positions of pattern changes plus beginning and end.
+        pattern_changes = np.concatenate([
+            [-1],
+            (pattern_indices[1:] - pattern_indices[:-1]).nonzero()[0],
+            [len(pulse_mask)]])
+
+        tids = self._key.train_id_coordinates()
+        one = np.uint64(1)  # Avoid conversion to float64.
+
+        def gen_slice(start, stop):
+            return by_id[tids[start]:tids[stop-1]+one]
+
+        # Build list of (train_slice, pattern) tuples.
+        patterns = [
+            pattern_entry_func(gen_slice(start+1, stop), pulse_mask[start+1])
+            for start, stop in pairwise(pattern_changes)]
+
+        return patterns
 
     def _mask_table(self, table):
         """Mask bunch pattern table."""
@@ -336,7 +361,7 @@ class PulsePattern:
             self._source.drop_empty_trains().select_trains(np.s_[0]).train_ids
         ])
 
-        return first_tid_self.get_pulse_mask(labelled=False)[0].nonzero()[0]
+        return np.flatnonzero(first_tid_self.get_pulse_mask(labelled=False)[0])
 
     def get_pulse_ids(self, labelled=True):
         """Get pulse IDs.
@@ -351,13 +376,14 @@ class PulsePattern:
         """
 
         pulse_mask = self.get_pulse_mask(labelled=False)
-        pulse_ids = np.concatenate([mask.nonzero()[0] for mask in pulse_mask])
+        pulse_ids = np.concatenate(
+            [np.flatnonzero(mask) for mask in pulse_mask])
 
         if labelled:
             import pandas as pd
             return pd.Series(
                 data=pulse_ids, dtype=np.uint32,
-                index=self._make_pulse_index(pulse_mask, with_pulse_id=False))
+                index=self._get_pulse_index(pulse_mask, with_pulse_id=False))
         else:
             return pulse_ids
 
@@ -369,7 +395,7 @@ class PulsePattern:
                 pulse ID or pulse number.
         """
 
-        return self._make_pulse_index(self.get_pulse_mask(labelled=False))
+        return self._get_pulse_index(self.get_pulse_mask(labelled=False))
 
     def search_pulse_patterns(self):
         """Search identical pulse patterns in this data.
@@ -383,31 +409,9 @@ class PulsePattern:
                 identified by index slices with identical pulse IDs.
         """
 
-        pulse_mask = self.get_pulse_mask(labelled=False)
-
-        # Find the unique patterns and the respective indices for each
-        # unique pattern.
-        unique_patterns, pattern_indices = np.unique(
-            pulse_mask, axis=0, return_inverse=True)
-
-        # Find positions of pattern changes plus beginning and end.
-        pattern_changes = np.concatenate([
-            [-1],
-            (pattern_indices[1:] - pattern_indices[:-1]).nonzero()[0],
-            [len(pulse_mask)]])
-
-        tids = self._key.train_id_coordinates()
-        one = np.uint64(1)  # Avoid conversion to float64.
-
-        def gen_slice(start, stop):
-            return by_id[tids[start]:tids[stop-1]+one]
-
-        # Build list of (train_slice, pattern) tuples.
-        patterns = [
-            (gen_slice(start+1, stop), pulse_mask[start+1].nonzero()[0])
-            for start, stop in pairwise(pattern_changes)]
-
-        return patterns
+        return self._search_pulse_patterns(
+            self.get_pulse_mask(labelled=False),
+            lambda slice_, mask: (slice_, np.flatnonzero(mask)))
 
     def trains(self):
         """Iterate over pulse IDs by train.
@@ -629,3 +633,176 @@ class OpticalLaserPulses(PulsePattern):
     def ppl_seed(self) -> Optional[PPL_BITS]:
         """Used laser seed."""
         return self._ppl_seed
+
+
+class PumpProbePulses(XrayPulses, OpticalLaserPulses):
+    """An interface to combined FEL and PPL pulses.
+
+    Four different ways to anchor PPL pulses:
+
+        * Fixed bunch table position
+        * Relative to first pulse in units of bunch table
+        * Relative to first pulse in units of pulses
+
+    This class has a slightly different interface for some methods, i.e.
+    .search_pulse_patterns() and .trains()
+
+    Args:
+        data (extra.data.DataCollection): Data to access bunch pattern
+            data from.
+        source (str, optional): Source name of a timeserver or pulse
+            pattern decoder, only needed if the data includes more than
+            one such device or none could not be detected automatically.
+        instrument (src, optional): Instrument to interpret FEL and PPL
+            pulses of, only needed if the data includes sources from
+            more than one instrument or it could not be detected
+            automatically.
+            May also be a tuple of (sase, ppl_seed).
+    """
+
+    # TODO: What to do if the chosen anchoring mode does not work?
+
+    def __init__(self, data, source=None, instrument=None,
+                 bunch_table_position=None, bunch_table_offset=None,
+                 pulse_offset=None):
+        if all([x is None for x in (
+            bunch_table_position, bunch_table_offset, pulse_offset
+        )]):
+            raise ValueError('must specify one of bunch_table_position, '
+                             'bunch_table_offset, pulse_offset')
+
+        self._bunch_table_position = bunch_table_position
+        self._bunch_table_offset = bunch_table_offset
+        self._pulse_offset = pulse_offset
+
+        if instrument is None:
+            sase = None
+            ppl_seed = None
+        elif isinstance(instrument, tuple) and len(instrument) == 2:
+            sase = int(instrument[0])
+            ppl_seed = instrument[1]
+        elif isinstance(instrument, str):
+            sase = next(iter({
+                sase for sase, topics in XrayPulses._sase_topics.items()
+                if instrument.upper() in topics}), 0)
+
+            ppl_seed = instrument
+        else:
+            raise TypeError('instrument must be str, 2-tuple or None')
+
+        # Run the OpticalLaserPulses initializer to handle constraints
+        # with pulse pattern decoder.
+        OpticalLaserPulses.__init__(self, data, source, ppl_seed=ppl_seed)
+
+        # Run missing initialization for XrayPulses.
+        if sase is None:
+            sase = self._identify_sase(data)
+
+        self._sase = sase
+
+    def __repr__(self):
+        if self._bunch_table_position is not None:
+            offset_str = f'@{self._bunch_table_position}b'
+        elif self._bunch_table_offset is not None:
+            offset_str = f'@SA{self._sase}{self._bunch_table_offset:+d}b'
+        elif self._pulse_offset is not None:
+            offset_str = f'@SA{self._sase}{self._pulse_offset:+d}p'
+
+        if self._with_timeserver:
+            source_type = 'timeserver'
+        else:
+            source_type = 'ppdecoder'
+
+        return "<{} for SA{} / {}{} using {}={}>".format(
+                type(self).__name__, self._sase, self._ppl_seed.name,
+                offset_str, source_type, self._source.source)
+
+    def _get_pulse_index(self, pulse_mask, with_pulse_id=True):
+        # Warning, do NOT use this function with pulse masks not created
+        # by get_pulse_mask()!
+        # pulse_mask should be an ndarray
+
+        # Turn mask into flags via an int view and cut down to the
+        # actual pulses.
+        flags = pulse_mask.view(np.int8)
+        flags.shape = (pulse_mask.shape[0] * pulse_mask.shape[1],)
+        flags = flags[flags > 0]
+
+        # Generates FEL pulse mask
+        index = super()._get_pulse_index(pulse_mask, with_pulse_id)
+
+        # Add new columns via frame conversion.
+        import pandas as pd
+        frame = index.to_frame()
+        frame['fel'] = (flags & 0b01) > 0
+        frame['ppl'] = (flags & 0b10) > 0
+
+        return pd.MultiIndex.from_frame(frame)
+
+    def get_pulse_mask(self, labelled=True):
+        mask = np.zeros(self._key.shape, dtype=np.bool_)
+        flags = mask.view(np.int8)
+
+        for i, (_, fel, ppl) in enumerate(self.trains()):
+            flags[i, fel] |= 1
+            flags[i, ppl] |= 2
+
+        if labelled:
+            import xarray as xr
+            return xr.DataArray(
+                mask,
+                dims=['trainId', 'pulseId'],
+                coords={'trainId': self._key.train_id_coordinates(),
+                        'pulseId': np.arange(mask.shape[1])})
+        else:
+            return mask
+
+    def is_constant_pattern(self):
+        flags = self.get_pulse_mask(labelled=False).view(np.int8)
+        return (flags == flags[0]).all()
+
+    def search_pulse_patterns(self):
+        return self._search_pulse_patterns(
+            self.get_pulse_mask(labelled=False).view(np.int8),
+            lambda slice_, flags: (slice_,
+                                   np.flatnonzero(flags & 0b01),
+                                   np.flatnonzero(flags & 0b10)))
+
+    def _trains(self):
+        if self._with_timeserver:
+            for train_id, table in self._key.trains():
+                yield train_id, \
+                    np.flatnonzero(XrayPulses._mask_table(self, table)), \
+                    np.flatnonzero(OpticalLaserPulses._mask_table(self, table))
+        else:
+            fel_node = XrayPulses._get_ppdecoder_node(self)
+            ppl_node = OpticalLaserPulses._get_ppdecoder_node(self)
+
+            # TODO: SourceData.trains()
+            for (
+                (train_id, fel_ids), (_, fel_num), (_, ppl_ids), (_, ppl_num)
+            ) in zip(
+                self._source[f'{fel_node}.pulseIds'].trains(),
+                self._source[f'{fel_node}.nPulses'].trains(),
+                self._source[f'{ppl_node}.pulseIds'].trains(),
+                self._source[f'{ppl_node}.nPulses'].trains()
+            ):
+                yield train_id, fel_ids[:fel_num], ppl_ids[:ppl_num]
+
+    def trains(self):
+        """Iterate over pulse IDs by train.
+
+        Yields:
+            (int, ndarray, ndarray) Train ID, FEL and PPL pulse IDs.
+        """
+
+        for train_id, fel, ppl in self._trains():
+            # TODO: Error handling
+            if self._bunch_table_position is not None:
+                offset = self._bunch_table_position
+            elif self._bunch_table_offset is not None:
+                offset = fel[0] + self._bunch_table_offset
+            elif self._pulse_offset is not None:
+                offset = fel[0] + (fel[1] - fel[0]) * self._pulse_offset
+
+            yield train_id, fel, ppl + offset
