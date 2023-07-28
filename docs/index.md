@@ -12,7 +12,7 @@ This is where you can find:
 
 ## Installation
 If you're using EXtra on the Maxwell cluster then you can access it through our
-default environment:
+default environment (i.e. the `xfel (current)` kernel on Jupyterhub):
 ```bash
 module load exfel exfel-python
 ```
@@ -20,5 +20,5 @@ module load exfel exfel-python
 This installation is always kept updated with the `master` branch. You can
 also install it yourself with `pip`:
 ```bash
-pip install extra
+pip install euxfel-extra
 ```
