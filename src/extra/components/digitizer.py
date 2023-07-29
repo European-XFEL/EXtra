@@ -4,7 +4,8 @@ import re
 
 import numpy as np
 
-from extra.components import XrayPulses
+from ._digitizer import _slice_to_pulses
+from .pulses import PulsePattern, XrayPulses
 
 
 class AdqChannel:
@@ -45,6 +46,11 @@ class AdqChannel:
 
         self.interleaved = interleaved
 
+        if name is None:
+            name = f'{self.raw_key.source}:{self.raw_key.key}'
+
+        self.name = name
+
         if clock_ratio is None:
             # FIX: Assumes ADQ412 are used with control source not
             # telling whether it's a -3G or -4G board.
@@ -52,15 +58,7 @@ class AdqChannel:
 
         self.clock_ratio = clock_ratio * (2 if interleaved else 1)
 
-        if pulses is None:
-            pulses = XrayPulses(data)
-
         self.pulses = pulses
-
-        if name is None:
-            name = f'{self.raw_key.source}:{self.raw_key.key}'
-
-        self.name = name
 
     @classmethod
     def _find_adq_pipeline(cls, data, prefix=''):
@@ -124,6 +122,34 @@ class AdqChannel:
         return bool(
             control_src[f'board{board}.interleavedMode'].as_single_value())
 
+    def _reshaped_pulses_shape(self, pulse_ids):
+        num_pulses = pulse_ids.groupby(level=0).count().max()
+
+        pulse_delta = np.diff(np.asarray(pulse_ids))
+        samples_per_pulse = self.get_samples_per_pulse(
+            pulse_period=np.unique(pulse_delta[pulse_delta > 0]).min())
+
+        return num_pulses, samples_per_pulse
+
+    def _sliced_pulses_shape(self, pulse_ids):
+        # Collect all unique pulse distance values.
+        pulse_delta = np.diff(np.asarray(pulse_ids))
+        samples_per_pulse = self.get_samples_per_pulse(
+            pulse_period=np.unique(pulse_delta[pulse_delta > 0]).min())
+
+        return len(pulse_ids), samples_per_pulse
+
+    def _reshape_to_pulses(self, data, num_pulses, samples_per_pulse, first_pulse_offset):
+        pulses_start = first_pulse_offset
+        pulses_end = first_pulse_offset + num_pulses * samples_per_pulse
+
+        if pulses_end > data.shape[-1]:
+            raise ValueError(f'trace axis too short for {num_pulses} pulses '
+                             f'located at {pulses_start}:{pulses_end}]')
+
+        return data[..., pulses_start:pulses_end].reshape(
+            *data.shape[:-1], num_pulses, samples_per_pulse)
+
     @property
     def sampling_rate(self):
         """Sampling rate in Hz."""
@@ -152,22 +178,25 @@ class AdqChannel:
 
         res.instrument_src = self.instrument_src.select_trains(trains)
         res.raw_key = self.raw_key.select_trains(trains)
-        res.pulses = self.pulses.select_trains(trains)
+
+        if self.pulses is not None:
+            res.pulses = self.pulses.select_trains(trains)
 
         return res
 
-    def get_samples_per_pulse(self, repetition_rate=None, pulse_period=None,
+    def get_samples_per_pulse(self, pulse_period=None, repetition_rate=None,
                               pulse_ids=None, fractional=False):
         """Get number of samples per pulse.
 
-        Computes the number of samples corresponding to a time period
+        Computes the number of samples corresponding to a time period.
 
-        TODO: Define better order of interpreting overlapping arguments
+        Calling with no arguments tries to use pulse information initialized with.
 
         Args:
             repetition_rate (float): Pulse repetition rate in Hz.
             pulse_period (int or float): Pulse period in PPT units (int)
                 or seconds (float).
+            pulse_ids (array_like, optional): Pulse IDs for a single train.
             fractional (bool, optional): Whether to round to possible
                 EuXFEL repetition rates (default) or return the full
                 fractional value.
@@ -177,37 +206,50 @@ class AdqChannel:
                 fractional=True.
         """
 
-        if pulse_ids is not None:
-            pulse_period = set(pulse_ids[1:] - pulse_ids[:-1])
-
-            if len(pulse_period) > 1:
-                raise ValueError('more than one period between pulse IDs')
-
-            pulse_period = int(pulse_period.pop())
-
-        if repetition_rate is not None:
-            pulse_period = AdqChannel._master_clock / repetition_rate
-
-        elif isinstance(pulse_period, float):
+        if isinstance(pulse_period, float):
             # Float are interpreted as pulse period in seconds, convert
             # to units of 4.5 MHz.
             pulse_period = AdqChannel._master_clock * pulse_period
 
         elif not isinstance(pulse_period, int):
-            raise ValueError('must pass either pulse_period, repetition_rate '
-                             'or pulse_ids')
+            # Any non-int value assumes the pulse period has to be
+            # determined from other values.
+
+            if repetition_rate is not None:
+                pulse_period = AdqChannel._master_clock / repetition_rate
+            elif pulse_ids is None and self.pulses is not None:
+                pulse_ids = self.pulses.peek_pulse_ids()
+
+            if pulse_ids is not None:
+                # May either be passed directly or come from pulses
+                # component.
+                try:
+                    pulse_period = set(pulse_ids[1:] - pulse_ids[:-1])
+                except IndexError:
+                    raise ValueError('two or more pulses requires to infer '
+                                     'pulse period') from None
+
+                if len(pulse_period) > 1:
+                    raise ValueError('more than one period between pulse IDs')
+
+                pulse_period = int(pulse_period.pop())
+
+        if pulse_period is None:
+            raise ValueError('must pass either pulse_period, repetition_rate, '
+                             'pulse_ids or initialize component with pulse '
+                             'information')
 
         if not fractional:
             pulse_period = int(round(pulse_period, 1))
 
         return self.clock_ratio * pulse_period
 
-    def reshape_to_pulses(self, data, first_pulse_offset=1000,
-                          pulse_ids=None, samples_per_pulse=None,
-                          num_pulses=None, **samples_per_pulse_kwargs):
+    def reshape_to_pulses(self, data, first_pulse_offset=1000):
         """Reshape train data to pulse data.
 
-        TODO: Define better order of interpreting overlapping arguments
+        Assumes constant pulse length
+        Assumes constant number of pulses per train
+        Uses first train
 
         Returns:
             data (ArrayLike): Digitizer trace(s) for one or more trains,
@@ -218,50 +260,57 @@ class AdqChannel:
             num_pulses (int, optional):
         """
 
+        if self.pulses is None:
+            raise RuntimeError('component must be initialized with pulse '
+                               'information')
+
+        if not isinstance(data, np.ndarray):
+            data = np.asarray(data)
+
+        pulse_ids = self.pulses.peek_pulse_ids()
+
+        num_pulses = len(pulse_ids)
+        samples_per_pulse = self.get_samples_per_pulse(pulse_ids=pulse_ids)
+
+        return self._reshape_to_pulses(data, num_pulses, samples_per_pulse, first_pulse_offset)
+
+    def slice_to_pulses(self, data, first_pulse_offset=1000, out=None):
+        """Reshape train data to pulse data.
+
+        Assumes digitizer triggers with first pulse
+        Assumes constant pulse length
+
+        Returns:
+            data (ArrayLike): Digitizer trace(s) for one or more trains,
+                last axis is assumed to be sample axis and on a train
+                boundary.
+            first_pulse_offset (int, optional):
+            inplace (bool, optional): Whether the memory for data may be
+                re-used or not, may lead to changes of input data!
+        """
+
+        if self.pulses is None:
+            raise RuntimeError('component must be initialized with pulse '
+                               'information')
+
         trace_len = data.shape[-1]
-        pulses_start = first_pulse_offset
 
-        if (
-            pulse_ids is None and
-            (samples_per_pulse is None or num_pulses is None)
-        ):
-            # If nothing was passed, get pulse IDs from timing component.
-            pulse_ids = self.pulses.peek_pulse_ids()
+        # By train for non-constant pattern.
+        all_pids = self.pulses.get_pulse_ids(labelled=True)
 
-        if pulse_ids is not None:
-            if samples_per_pulse is None:
-                samples_per_pulse = self.get_samples_per_pulse(
-                    pulse_ids=pulse_ids, **samples_per_pulse_kwargs)
+        shape = self._sliced_pulses_shape(all_pids)
 
-            if num_pulses is None:
-                num_pulses = len(pulse_ids)
+        if out is None:
+            out = np.zeros(shape, dtype=data.dtype)
+        elif out is data:
+            out = data.reshape(-1)[:np.prod(shape)].reshape(shape)
+        elif any([a < b for a, b in zip(out.shape, shape)]):
+            raise ValueError(f'out must at least be of shape {shape}')
 
-        if samples_per_pulse is None:
-            samples_per_pulse = self.get_samples_per_pulse(
-                **samples_per_pulse_kwargs)
+        _slice_to_pulses(data, out, all_pids.to_numpy(),
+                        first_pulse_offset, self.clock_ratio)
 
-        if not isinstance(samples_per_pulse, int):
-            # Non-integer pulse spacings are possible in principle, but
-            # not common at EuXFEL given the clock synchronization of
-            # FEL and digitizers.
-            # Something to be done for later, also requires Cython code
-            # for acceptable performance.
-            raise ValueError('only integer samples_per_pulse supported '
-                             'currently, please contact da-support@xfel.eu if '
-                             'you require fractional values')
-
-        if num_pulses is None:
-            num_pulses = (trace_len - first_pulse_offset) // samples_per_pulse
-
-        pulses_end = first_pulse_offset + num_pulses * samples_per_pulse
-
-        if pulses_end > trace_len:
-            raise ValueError(f'trace axis too short for {num_pulses} pulses '
-                             f'[trace_len={trace_len}, '
-                             f'pulses={pulses_start}:{pulses_end}]')
-
-        return data[..., pulses_start:pulses_end].reshape(
-            *data.shape[:-1], num_pulses, samples_per_pulse)
+        return out
 
     @staticmethod
     def _correct_cm_by_train(signal, period, baseline=np.s_[:1000],
@@ -308,84 +357,145 @@ class AdqChannel:
         return out
 
     def ndarray(
-        self, by_pulse=True, train_roi=(),
-        raw=None, out=None, dtype=np.float32,
-        corrected=True, cm_period=None, baseline=np.s_[:1000], baselevel=0,
-        **reshape_pulses_kwargs
+        self, train_roi=(), out=None,
+        by_pulse='slice', first_pulse_offset=10000,
+        corrected=True, cm_period=None, baseline=np.s_[:1000], baselevel=0
     ):
-        # TODO: casting can be made more efficient by first allocating a proper
-        # array with f32, use its first half to load in data as u16 and then cast
-        # it in-place to f32.
-
-        # TODO: Implement parallelized version with pasha.
-
-        if raw is not None:
-            # Verify
-            data_by_train = raw.copy()
-        else:
-            data_by_train = self.raw_key.ndarray(
-                roi=train_roi, out=out).astype(dtype)
-
-        if corrected:
-            if cm_period is None:
-                cm_period = 16 if self.interleaved else 8
-
-            self._correct_cm_by_train(data_by_train, cm_period, baseline,
-                                      baselevel, out=data_by_train)
-
         if by_pulse:
-            data_by_pulse = self.reshape_to_pulses(
-                data=data_by_train, **reshape_pulses_kwargs)
+            pulse_ids = self.pulses.get_pulse_ids(labelled=True)
+            pulse_ids_numpy = pulse_ids.to_numpy()
 
-            return data_by_pulse
-        else:
-            return data_by_train
+            if by_pulse == 'slice':
+                req_shape = self._sliced_pulses_shape(pulse_ids)
+            elif by_pulse == 'reshape':
+                req_shape = self.raw_key.shape[:1] \
+                    + self._reshaped_pulses_shape(pulse_ids)
+            else:
+                raise ValueError('by_pulse may be `slice` or `reshape`')
+
+        elif not by_pulse:
+            from extra_data.read_machinery import roi_shape
+            req_shape = self.raw_key.shape[:1] + roi_shape(
+                self.raw_key.entry_shape, train_roi)
+
+        dtype = np.float32 if corrected else self.raw_key.dtype
+
+        if out is None:
+            out = np.empty(req_shape, dtype=dtype)
+        elif out is not None and out.shape != req_shape:
+            raise ValueError(f'requires output array of shape {req_shape}')
+
+        if corrected and cm_period is None:
+            cm_period = 16 if self.interleaved else 8
+
+        tmp = None
+        dest_cursor = 0
+
+        # Looping over contiguous chunks of instrument data.
+        for cg_chunk in self.raw_key._data_chunks_nonempty:
+            dset = cg_chunk.dataset
+            hdf_chunk = dset.chunks
+
+            # Looping over HDF chunks it is composed of.
+            for start in range(0, cg_chunk.total_count, hdf_chunk[0]):
+                end = min(start + hdf_chunk[0], cg_chunk.total_count)
+                train_ids = cg_chunk.train_ids[start:end]
+
+                dest_chunk_end = dest_cursor + (end - start)
+                slices = (slice(cg_chunk.first + np.uint64(start),
+                                cg_chunk.first + np.uint64(end)),) + train_roi
+
+                if by_pulse:
+                    pulse_slice = pulse_ids.index.slice_indexer(
+                        (train_ids[0], 0), (train_ids[-1], 79))
+
+                    if tmp is None:
+                        # Read into a temporary buffer for slicing.
+                        tmp = np.zeros(hdf_chunk, dtype=dtype)
+
+                    chunk_out = tmp[:(end-start)]
+
+                    if by_pulse == 'slice':
+                        data_out = out[pulse_slice]
+                    elif by_pulse == 'reshape':
+                        data_out = out[dest_cursor:dest_chunk_end, :]
+                else:
+                    # Read directly into the output buffer.
+                    chunk_out = out[dest_cursor:dest_chunk_end]
+
+                dset.read_direct(chunk_out, source_sel=slices)
+                dest_cursor = dest_chunk_end
+
+                if corrected:
+                    self._correct_cm_by_train(chunk_out, cm_period, baseline,
+                                              baselevel, out=chunk_out)
+
+                if by_pulse == 'slice':
+                    _slice_to_pulses(
+                        chunk_out, data_out, pulse_ids_numpy[pulse_slice],
+                        first_pulse_offset, self.clock_ratio
+                    )
+
+                elif by_pulse == 'reshape':
+                    data_out[:] = self._reshape_to_pulses(
+                        chunk_out, *req_shape[1:], first_pulse_offset)
+
+        return out
 
     def xarray(
-        self, by_pulse=True, train_roi=(), raw=None, out=None, name=None,
-        in_pulse_ids=False, in_physical_time=False,
-        corrected=True, cm_period=None, baseline=np.s_[:1000], baselevel=0,
-        **reshape_pulses_kwargs
+        self, train_roi=(), out=None, name=None,
+        by_pulse='slice', first_pulse_offset=10000,
+        pulse_dim='pulseId', sample_dim='sample',
+        corrected=True, cm_period=None, baseline=np.s_[:1000], baselevel=0
     ):
+        """
+
+        Args:
+            pulse_dim (str, optional): May be pulseId, pulseNumber
+            sample_dim (str, optional): May be sample, time
+        """
+
         import xarray
 
-        if (
-            by_pulse and
-            in_pulse_ids and
-            ('pulse_ids' not in reshape_pulses_kwargs)
-        ):
-            # If data is to be pulse separated with proper indices and
-            # no explicit indices were passed, load them already now and
-            # add them to the kwargs for reshape_pulses. This way
-            # another read can be avoided.
-            reshape_pulses_kwargs['pulse_ids'] = \
-                self.pulses.peek_pulse_ids()
-
         data = self.ndarray(
-            by_pulse=by_pulse, train_roi=train_roi, raw=raw, out=out,
+            train_roi=train_roi, out=out,
+            by_pulse=by_pulse, first_pulse_offset=first_pulse_offset,
             corrected=corrected, cm_period=cm_period,
-            baseline=baseline, baselevel=baselevel,
-            **reshape_pulses_kwargs)
+            baseline=baseline, baselevel=baselevel)
 
-        dims = ['trainId']
-        coords = {'trainId': self.raw_key.train_id_coordinates()}
+        dims = []
+        coords = {}
 
-        if by_pulse:
-            if in_pulse_ids:
+        if by_pulse == 'slice':
+            dims.append('pulse')
+            coords['pulse'] = self.pulses.get_pulse_index()
+
+        elif by_pulse == 'reshape':
+            dims.append('trainId')
+            coords['trainId'] = self.raw_key.train_id_coordinates()
+
+            if pulse_dim == 'pulseId':
                 dims.append('pulseId')
-                coords['pulseId'] = reshape_pulses_kwargs['pulse_ids']
-            else:
-                dims.append('pulseIndex')
-                coords['pulseIndex'] = np.arange(data.shape[1], dtype=np.int32)
+                coords['pulseId'] = self.pulses.peek_pulse_ids()
+            elif pulse_dim == 'pulseNumber':
+                dims.append('pulseNumber')
+                coords['pulseNumber'] = np.arange(data.shape[1],
+                                                  dtype=np.int32)
+
+        else:
+            dims.append('trainId')
+            coords['trainId'] = self.raw_key.train_id_coordinates()
 
         samples = np.arange(data.shape[-1], dtype=np.int32)
 
-        if in_physical_time:
+        if sample_dim == 'time':
             dims.append('time')
             coords['time'] = samples * self.sampling_period
-        else:
+        elif sample_dim == 'sample':
             dims.append('sample')
             coords['sample'] = samples
+        else:
+            raise ValueError('sample_dim must be `time` or `sample`')
 
         if name is None:
             name = self.name
