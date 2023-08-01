@@ -5,6 +5,9 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.dynamic]
 version = { attr = "get_version.version" }
 
+[tool.setuptools.exclude-package-data]
+"*" = ["get_version.py"]
+
 [project]
 name = "euxfel-EXtra"
 dynamic = ["version"]
