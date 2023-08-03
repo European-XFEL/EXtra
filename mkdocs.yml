@@ -6,6 +6,8 @@ theme:
   name: material
   logo: images/logo.jpg
   favicon: images/logo.jpg
+  icon:
+    repo: fontawesome/brands/github
   font:
     text: Open Sans
   features:
