@@ -13,6 +13,11 @@
     pip install git+https://github.com/European-XFEL/EXtra.git
     ```
 
+Added:
+
+- The helper function [imshow2][extra.utils.imshow2] to provide good defaults when
+  plotting images (!38).
+
 Changed:
 
 - [Scantool][extra.components.Scantool]'s `__repr__()` functionality to print

@@ -65,6 +65,7 @@ plugins:
           - https://extra-data.readthedocs.io/en/latest/objects.inv
           - https://numpy.org/doc/stable/objects.inv
           - https://pandas.pydata.org/docs/objects.inv
+          - https://matplotlib.org/stable/objects.inv
           options:
             docstring_style: google
             separate_signature: yes
