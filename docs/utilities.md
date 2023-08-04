@@ -15,3 +15,7 @@ else.
 ::: extra.utils.find_nearest_index
 
 ::: extra.utils.find_nearest_value
+
+## Plotting functions
+
+::: extra.utils.imshow2
