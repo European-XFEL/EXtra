@@ -20,6 +20,9 @@ Added:
 
 Changed:
 
+- All methods in [XrayPulses][extra.components.XrayPulses] and
+  [OpticalLaserPulses][extra.components.OpticalLaserPulses] now support labelled results
+  and default to it.
 - [Scantool][extra.components.Scantool]'s `__repr__()` functionality to print
   information was moved to [Scantool.info()][extra.components.Scantool.info]
   (!29).

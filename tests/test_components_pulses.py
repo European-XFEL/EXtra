@@ -115,6 +115,8 @@ def test_get_pulse_mask(mock_spb_aux_run, source):
 
     mask = XrayPulses(run, source=source).get_pulse_mask()
     assert mask.dims == ('trainId', 'pulseId')
+    assert (mask.coords['trainId'] == run.train_ids).all()
+    assert (mask.coords['pulseId'] == np.arange(mask.shape[1])).all()
     assert mask[1000:1300:6].all()
 
     mask = XrayPulses(run, source=source, sase=2).get_pulse_mask()
@@ -147,7 +149,7 @@ def test_get_pulse_counts(mock_spb_aux_run, source):
     # Test unlabelled.
     np.testing.assert_equal(pulses.get_pulse_counts(labelled=False), counts)
 
-    # Check different SASE.
+    # Test different SASE.
     counts = XrayPulses(run, source=source, sase=2).get_pulse_counts()
     assert (counts.index == run.train_ids).all()
     assert (counts == 63).all()
@@ -156,10 +158,17 @@ def test_get_pulse_counts(mock_spb_aux_run, source):
 @pytest.mark.parametrize('source', **pattern_sources)
 def test_peek_pulse_ids(mock_spb_aux_run, source):
     run = RunDirectory(mock_spb_aux_run).select('SPB*')
+    pulses = XrayPulses(run, source=source)
 
-    np.testing.assert_equal(
-        XrayPulses(run, source=source).peek_pulse_ids(),
-        np.r_[1000:1300:6])
+    # Test labelled.
+    pids = pulses.peek_pulse_ids()
+    np.testing.assert_equal(pids.index, np.arange(len(pids)))
+    np.testing.assert_equal(pids, np.r_[1000:1300:6])
+
+    # Test unlabelled.
+    np.testing.assert_equal(pulses.peek_pulse_ids(labelled=False), pids)
+
+    # Test different SASE.
     np.testing.assert_equal(
         XrayPulses(run, source=source, sase=2).peek_pulse_ids(),
         np.r_[1500:2000:8])
@@ -183,16 +192,53 @@ def test_get_pulse_ids(mock_spb_aux_run, source):
 
 
 @pytest.mark.parametrize('source', **pattern_sources)
+def test_get_pulse_index(mock_spb_aux_run, source):
+    run = RunDirectory(mock_spb_aux_run)
+    pulses = XrayPulses(run, source=source)
+
+    index = pulses.get_pulse_index()
+    assert index.names == ['trainId', 'pulseId']
+
+    train_ids = index.get_level_values(0)
+    np.testing.assert_equal(
+        train_ids[:2500], np.repeat(run.train_ids[:50], 50))
+    np.testing.assert_equal(
+        train_ids[2500:], np.repeat(run.train_ids[50:], 25))
+
+    pulse_ids = index.get_level_values(1)
+    np.testing.assert_equal(
+        pulse_ids[:2500], np.tile(np.r_[1000:1300:6], 50))
+    np.testing.assert_equal(
+        pulse_ids[2500:], np.tile(np.r_[1000:1300:12], 50))
+
+    pulse_numbers = pulses.get_pulse_index('pulseNumber').get_level_values(1)
+    np.testing.assert_equal(pulse_numbers[:2500], np.tile(np.r_[:50], 50))
+    np.testing.assert_equal(pulse_numbers[2500:], np.tile(np.r_[:25], 50))
+
+    times = pulses.get_pulse_index('time').get_level_values(1)
+    rate = pulses.bunch_repetition_rate
+    np.testing.assert_allclose(
+        times[:2500], np.tile((np.r_[1000:1300:6] - 1000) / rate, 50))
+    np.testing.assert_allclose(
+        times[2500:], np.tile((np.r_[1000:1300:12] - 1000) / rate, 50))
+
+
+@pytest.mark.parametrize('source', **pattern_sources)
 def test_search_pulse_patterns(mock_spb_aux_run, source):
     run = RunDirectory(mock_spb_aux_run)
     pulses = XrayPulses(run, source=source)
 
-    patterns = pulses.search_pulse_patterns()
-    assert len(patterns) == 2
-    assert patterns[0][0].value == by_id[10000:10049].value
-    np.testing.assert_equal(patterns[0][1], np.r_[1000:1300:6])
-    assert patterns[1][0].value == by_id[10050:10100].value
-    np.testing.assert_equal(patterns[1][1], np.r_[1000:1300:12])
+    for labelled in [True, False]:
+        patterns = pulses.search_pulse_patterns(labelled=labelled)
+        assert len(patterns) == 2
+        assert patterns[0][0].value == by_id[10000:10049].value
+        np.testing.assert_equal(patterns[0][1], np.r_[1000:1300:6])
+        assert patterns[1][0].value == by_id[10050:10100].value
+        np.testing.assert_equal(patterns[1][1], np.r_[1000:1300:12])
+
+        if labelled:
+            np.testing.assert_equal(patterns[0][1].index, np.arange(50))
+            np.testing.assert_equal(patterns[1][1].index, np.arange(25))
 
 
 @pytest.mark.parametrize('source', **pattern_sources)
@@ -200,13 +246,19 @@ def test_trains(mock_spb_aux_run, source):
     run = RunDirectory(mock_spb_aux_run)
     pulses = XrayPulses(run, source=source)
 
-    for ref_tid, (tid, pids) in zip(run.train_ids, pulses.trains()):
-        assert ref_tid == tid
+    for ref_tid, (tid_l, pids_l), (tid_ul, pids_ul) in zip(
+        run.train_ids, pulses.trains(), pulses.trains(labelled=False)
+    ):
+        assert ref_tid == tid_l == tid_ul
 
-        if tid < run.train_ids[50]:
-            np.testing.assert_equal(pids, np.r_[1000:1300:6])
+        if tid_l < run.train_ids[50]:
+            np.testing.assert_equal(pids_l.index, np.r_[:50])
+            np.testing.assert_equal(pids_l, np.r_[1000:1300:6])
+            np.testing.assert_equal(pids_l, pids_ul)
         else:
-            np.testing.assert_equal(pids, np.r_[1000:1300:12])
+            np.testing.assert_equal(pids_l.index, np.r_[:25])
+            np.testing.assert_equal(pids_l, np.r_[1000:1300:12])
+            np.testing.assert_equal(pids_l, pids_ul)
 
 
 @pytest.mark.parametrize('source', **pattern_sources)
