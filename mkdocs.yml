@@ -10,6 +10,7 @@ theme:
     text: Open Sans
   features:
     - content.code.annotate
+    - content.code.copy
     - navigation.instant
 
 nav:
