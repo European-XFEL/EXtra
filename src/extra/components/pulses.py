@@ -236,7 +236,7 @@ class PulsePattern:
         """Select a subset of trains in this data.
 
         This method accepts the same type of arguments as
-        [DataCollection.select_trains()][extra_data.DataCollection.select_trains].
+        [DataCollection.select_trains()][extra_data.DataCollection.select_trains].  # noqa
         """
 
         res = copy(self)
@@ -356,10 +356,10 @@ class PulsePattern:
         if labelled:
             import pandas as pd
             return pd.Series(
-                data=pulse_ids, dtype=np.uint32,
+                data=pulse_ids, dtype=np.int32,
                 index=self._make_pulse_index(pulse_mask, with_pulse_id=False))
         else:
-            return pulse_ids
+            return pulse_ids.astype(np.int32)
 
     def get_pulse_index(self):
         """Get a multi-level index for pulse-resolved data.
@@ -444,14 +444,10 @@ class XrayPulses(PulsePattern):
     exclusive use of X-rays or pump-probe experiments with congruent
     optical laser pulses.
 
-    For specific access to pulses from one of the optical laser sources, please
-    see the almost corresponding
-    [OpticalLaserPulses][extra.components.OpticalLaserPulses] component with the
-    same interface.
-
-    This class only deals with X-ray pulses of a particular SASE beamline,
-    please see [OpticalLaserPulses][extra.components.OpticalLaserPulses] to
-    access pulses of the optical laser sources.
+    This class only deals with X-ray pulses of a particular SASE
+    beamline, please see
+    [OpticalLaserPulses][extra.components.OpticalLaserPulses] to access
+    pulses of the optical laser sources.
 
     Args:
         data (extra.data.DataCollection): Data to access bunch pattern
@@ -537,8 +533,8 @@ class OpticalLaserPulses(PulsePattern):
     pulses by means of optical delay.
 
     For experiments where all FEL and PPL laser pulses overlap, it is
-    recommended to just use the [XrayPulses][extra.components.XrayPulses]
-    component.
+    recommended to just use the
+    [XrayPulses][extra.components.XrayPulses] component.
 
     Args:
         data (extra.data.DataCollection): Data to access bunch pattern
