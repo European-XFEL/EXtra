@@ -1,8 +1,11 @@
-<!-- Let's try to follow the naming guidelines here: https://keepachangelog.com/en/1.0.0/#how -->
+<!-- Let's try to follow the naming guidelines here: https://keepachangelog.com/en/1.0.0/#how. -->
+
+<!-- Note: before making a new release make sure to update the 'Unreleased' link at -->
+<!-- the bottom to compare to the new version. -->
 
 # Changelog
 
-## Unreleased
+## [Unreleased]
 
 !!! note
     All of the changes here are deployed to our current environment, even though
@@ -22,12 +25,12 @@ Changed:
 
 - All methods in [XrayPulses][extra.components.XrayPulses] and
   [OpticalLaserPulses][extra.components.OpticalLaserPulses] now support labelled results
-  and default to it.
+  and default to it (!40).
 - [Scantool][extra.components.Scantool]'s `__repr__()` functionality to print
   information was moved to [Scantool.info()][extra.components.Scantool.info]
   (!29).
 
-## 2023.2
+## [2023.2]
 The initial release! :tada: :sparkles:
 
 Added:
@@ -39,3 +42,7 @@ Added:
 - A collection of [utility](utilities.md) functions.
 - Sub-modules to forward [EXtra-data](reading-data.md),
   [EXtra-geom](detector-geometry.md), and [karabo-bridge-py](karabo-bridge.md).
+
+
+[Unreleased]: https://github.com/European-XFEL/EXtra/compare/2023.2...master
+[2023.2]: https://github.com/European-XFEL/EXtra/releases/tag/2023.2
