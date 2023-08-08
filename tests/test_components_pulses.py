@@ -1,4 +1,6 @@
 
+from unittest.mock import MagicMock
+
 import pytest
 import numpy as np
 
@@ -6,7 +8,7 @@ import extra
 
 from euxfel_bunch_pattern import PPL_BITS
 from extra.data import RunDirectory, SourceData, KeyData, by_id
-from extra.components import XrayPulses, OpticalLaserPulses
+from extra.components import XrayPulses, OpticalLaserPulses, DldPulses
 
 
 pattern_sources = dict(
@@ -321,3 +323,58 @@ def test_ppdecoder(mock_spb_aux_run):
 
     with pytest.raises(ValueError):
         pulses.bunch_pattern_table
+
+
+def test_dld_pulses(capsys):
+    from numpy.lib.recfunctions import drop_fields
+
+    trigger_dt = np.dtype([('start', np.int32), ('stop', np.int32),
+                           ('offset', np.float64), ('pulse', np.int16),
+                           ('fel', np.bool_), ('ppl', np.bool_)])
+
+    triggers = np.zeros(10, dtype=trigger_dt)
+    triggers['start'] = 10 + np.arange(10) * 1000
+    triggers['stop'] = 794 + np.arange(10) * 1000
+    triggers['offset'] = 0.0
+    triggers['pulse'] = 100 + np.arange(10) * 4
+    triggers['fel'] = True
+    triggers['ppl'] = False
+
+    mock_key = MagicMock()
+    mock_key.train_id_coordinates.return_value = np.repeat(1000, 10)
+    mock_key.data_counts.return_value = np.array([10])
+    mock_key.ndarray.return_value = triggers
+
+    mock_source = MagicMock()
+    mock_source.__getitem__ = lambda self, _: mock_key
+
+    # Test regular.
+    pulses = DldPulses(mock_source)
+    pulse_ids = pulses.get_pulse_ids()
+    assert pulse_ids.index.names == ['trainId', 'pulseNumber', 'fel', 'ppl']
+    np.testing.assert_equal(pulse_ids, triggers['pulse'])
+
+    triggers_ = pulses.get_triggers()
+    assert triggers_.index.names == ['trainId', 'pulseId', 'fel', 'ppl']
+    np.testing.assert_equal(triggers_['start'],  triggers['start'])
+    np.testing.assert_equal(triggers_['stop'],  triggers['stop'])
+    np.testing.assert_equal(triggers_['offset'],  triggers['offset'])
+
+    # Test without fel/ppl fields.
+    mock_key.ndarray.return_value = drop_fields(triggers, ['fel', 'ppl'])
+    assert DldPulses(mock_source).get_pulse_ids().index.names == [
+        'trainId', 'pulseNumber']
+
+    # Test without pulse field and default settings.
+    mock_key.ndarray.return_value = drop_fields(triggers, ['pulse'])
+    np.testing.assert_equal(DldPulses(mock_source).get_pulse_ids(),
+                            np.r_[:50:5])
+    captured = capsys.readouterr()
+    assert 'No actual pulse IDs available in data' in captured.err
+
+    # Test without pulse field and custom settings.
+    mock_key.ndarray.return_value = drop_fields(triggers, ['pulse'])
+    pulses = DldPulses(mock_source, clock_ratio=196/1.97, first_pulse_id=100)
+    np.testing.assert_equal(pulses.get_pulse_ids(), np.r_[100:200:10])
+    captured = capsys.readouterr()
+    assert 'No actual pulse IDs available in data' in captured.err
