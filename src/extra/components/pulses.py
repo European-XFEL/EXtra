@@ -778,3 +778,87 @@ class OpticalLaserPulses(TimeserverPulses):
     def ppl_seed(self) -> Optional[PPL_BITS]:
         """Used laser seed."""
         return self._ppl_seed
+
+
+class DldPulses(PulsePattern):
+    """An interface to pulses from DLD reconstruction.
+
+    The facility-provided event reconstruction for delay line detectors
+    records its own pulse pattern information as part of its output in
+    the `raw.triggers` key. This class exposes the same pulse pattern
+    interface based on this information, and is primarily meant to be
+    used alongside such data. Note that it is influenced by parameters
+    set at the time of reconstruction, and hence may (incorrectly!)
+    differ from timeserver data.
+
+    For data processed before October 2022, this data may not contain
+    flags for FEL/PPL pulses and may also be based on analog trigger
+    signals. It is also lacking the true pulse IDs, which are in this
+    case estimated by this component based on trigger positions.
+
+    Args:
+        detector (SourceData): Instrument source of reconstructed event
+            data to retrieve trigger information from.
+        clock_ratio (int, optional): Ratio between bunch repetition rate
+            and digitizer sampling rate, only used in case of missing
+            pulse ID information in data and 196 by default
+            (non-interleaved ADQ412-3G).
+        first_pulse_id (int, optional): Pulse ID for the first pulse,
+            only used in case of missing pulse ID information in data
+            and 0 by default.
+    """
+
+    def __init__(self, detector, *, clock_ratio=None, first_pulse_id=None):
+        super().__init__(detector, detector['raw.triggers'])
+
+        self._clock_ratio = clock_ratio
+        self._first_pulse_id = first_pulse_id
+
+    def _get_pulse_ids(self):
+        triggers = self._key.ndarray()
+
+        index_levels = {
+            'trainId': self._key.train_id_coordinates(),
+            'pulseNumber': np.concatenate([
+                np.arange(count, dtype=np.int32) for count
+                in self._key.data_counts(labelled=False)]),
+        }
+
+        if 'fel' in triggers.dtype.fields:
+            index_levels['fel'] = triggers['fel'].copy()
+            index_levels['ppl'] = triggers['ppl'].copy()
+
+        import pandas as pd
+        index = pd.MultiIndex.from_arrays(
+            list(index_levels.values()), names=list(index_levels.keys()))
+
+        if 'pulse' in triggers.dtype.fields:
+            pulse_ids = triggers['pulse'].copy()
+        else:
+            # Try to guess pulse IDs from trigger positions.
+            import sys
+            print(f'{self.__class__.__name__}._get_pulse_ids(): No actual '
+                  f'pulse IDs available in data, estimating from trigger '
+                  f'positions. See documentation for more details.',
+                  file=sys.stderr)
+
+            pulse_ids = (triggers['start'] - triggers['start'][0]) \
+                // (self._clock_ratio or 196) + (self._first_pulse_id or 0)
+
+        return pd.Series(data=pulse_ids, index=index, dtype=np.int32)
+
+    def get_triggers(self, labelled=True):
+        """Get trigger information.
+
+        Returns:
+            (pd.Series or ndarray): Trigger fields start, stop, offset
+        """
+
+        from numpy.lib.recfunctions import drop_fields
+        triggers = drop_fields(self._key.ndarray(), ['pulse', 'fel', 'ppl'])
+
+        if labelled:
+            import pandas as pd
+            return pd.DataFrame(data=triggers, index=self.get_pulse_index())
+        else:
+            return triggers
