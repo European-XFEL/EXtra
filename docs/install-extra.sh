@@ -53,6 +53,7 @@ function check_and_install()
 }
 
 # Always install into the current environment
+source /usr/share/Modules/init/bash
 module load exfel exfel-python
 
 check_and_install
