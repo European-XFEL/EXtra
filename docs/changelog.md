@@ -18,6 +18,7 @@
 
 Added:
 
+- [PumpProbePulses][extra.components.PumpProbePulses] to combine X-ray and optical laser pulses in a single pattern (!24).
 - The [Scan][extra.components.Scan] component to automatically detect steps
   within a motor scan (!4).
 - [DldPulses][extra.components.DldPulses] to access pulse information saved during delay line detector event reconstruction (!42).
