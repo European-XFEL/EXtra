@@ -4,8 +4,10 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
+from extra_data import RunDirectory
 from extra_data.tests.mockdata import write_file
 from extra_data.tests.mockdata.xgm import XGM
+from extra_data.tests.mockdata.motor import Motor
 
 from .mockdata.timeserver import Timeserver, PulsePatternDecoder
 
@@ -16,8 +18,9 @@ def mock_spb_aux_run():
         Timeserver('SPB_RR_SYS/TSYS/TIMESERVER'),
         PulsePatternDecoder('SPB_RR_SYS/MDL/BUNCH_PATTERN'),
         Timeserver('ODD_TIMESERVER_NAME'),
-        XGM('SPB_XTD9_XGM/DOOCS/MAIN')]
+        XGM('SPB_XTD9_XGM/DOOCS/MAIN'),
+        Motor("MOTOR/MCMOTORYFACE")]
 
     with TemporaryDirectory() as td:
         write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 100)
-        yield td
+        yield RunDirectory(td)
