@@ -6,7 +6,7 @@ EXtra-geom==1.10.0
 fonttools==4.42.1
 h5py==3.9.0
 karabo-bridge==0.7.0
-kiwisolver==1.4.4
+kiwisolver==1.4.5
 matplotlib==3.7.1
 msgpack==1.0.5
 msgpack-numpy==0.4.8
