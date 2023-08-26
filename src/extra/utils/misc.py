@@ -69,7 +69,7 @@ def imshow2(image, *args, lognorm=False, ax=None, **kwargs):
         kwargs["norm"] = LogNorm()
 
     # Set the vmin/vmax if we're not using `norm`
-    if "norm" not in kwargs:
+    if "norm" not in kwargs and np.issubdtype(image.dtype, np.number):
         if "vmin" not in kwargs:
             vmin = np.nanquantile(image, 0.01)
             kwargs["vmin"] = vmin
