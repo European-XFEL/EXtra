@@ -322,7 +322,22 @@ class Scan:
             # Note that we add 1 to end_tid_idx so that the end train ID will be
             # included too, otherwise it'd be skipped as the stop value of a
             # range.
-            steps[i] = (steps[i][0], all_tids[start_tid_idx:end_tid_idx + 1])
+            final_tids = all_tids[start_tid_idx:end_tid_idx + 1]
+
+            # Go over the positions and set them to the mean value of the motor for
+            # their train IDs. Right now they're set to the value of the first train
+            # in the step, which can be subtly off from what a user would expect.
+            final_position = actual_pos.sel(trainId=final_tids).mean().item()
+
+            steps[i] = (final_position, final_tids)
+
+        # Detect backlash at the beginning by comparing the step direction of
+        # the first and second steps. If there's backlash they're typically not
+        # the same, so we remove the first step if so.
+        first_step = steps[1][0] - steps[0][0]
+        second_step = steps[2][0] - steps[1][0]
+        if np.sign(first_step) != np.sign(second_step):
+            del steps[0]
 
         return steps
 
