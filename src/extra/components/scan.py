@@ -119,6 +119,11 @@ class Scan:
         self._positions_train_ids = [tids for _, tids in self.steps]
 
     @property
+    def name(self) -> str:
+        """Name of the device being scanned."""
+        return self._name
+
+    @property
     def steps(self) -> list:
         """List of `(position, train_ids)` tuples for each step in the scan."""
         return self._steps
@@ -153,7 +158,7 @@ class Scan:
 
         ax.plot(self._input_pos.trainId, self._input_pos, alpha=0.3, label="Motor position")
         ax.set_xlabel("Train ID")
-        ax.set_title(f"Scan over {self._name} with {len(self.steps)} steps")
+        ax.set_title(f"Scan over {self.name} with {len(self.steps)} steps")
         ax.legend()
 
         return ax
@@ -356,10 +361,10 @@ class Scan:
                 multi-line string.
         """
         if compact:
-            return f"Scan over {self._name} with {len(self.steps)} steps"
+            return f"Scan over {self.name} with {len(self.steps)} steps"
 
         if len(self.steps) == 0:
-            return f"No steps detected for {self._name}"
+            return f"No steps detected for {self.name}"
 
         start_pos = self.positions[0]
         end_pos = self.positions[-1]
@@ -372,7 +377,7 @@ class Scan:
         end_train = self.positions_train_ids[-1][-1]
         scan_time = timedelta(seconds=round((end_train - start_train) / 10))
 
-        return f"Scan over {self._name} from {start_pos:.4f} to {end_pos:.4f}:\n" \
+        return f"Scan over {self.name} from {start_pos:.4f} to {end_pos:.4f}:\n" \
                f" Steps: {n_steps}\n" \
                f" Scan time: {scan_time}\n" \
                f" Average step length: {avg_step_length:.2f} trains ({avg_step_time:.2f}s)\n" \
