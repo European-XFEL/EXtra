@@ -146,7 +146,7 @@ class Scan:
         zoom in to check the individual steps.
 
         Example plot:
-        ![](images/scan-plot.png)
+        ![](../images/scan-plot.png)
 
         """
         if ax is None:
