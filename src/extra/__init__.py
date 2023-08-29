@@ -48,10 +48,7 @@ ureg = pint.UnitRegistry(cache_folder=":auto:")
 ureg.default_format = '~'
 
 def length_to_ev(ureg, x):
-    h = (ureg.planck_constant * 1).to_base_units().magnitude
-    c = (ureg.c * 1).to_base_units().magnitude
-    e = (ureg.e * 1).to_base_units().magnitude
-    numerator = h * c / e
+    numerator = (ureg.planck_constant * ureg.c / ureg.e * 1).to_base_units().magnitude
 
     return (numerator / x.to("m")).magnitude * ureg.eV
 

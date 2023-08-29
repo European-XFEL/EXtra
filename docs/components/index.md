@@ -3,6 +3,10 @@
 This module contains classes that abstract various Karabo devices to make access
 easier.
 
+Component index:
+
+- [Beam properties](beam-properties.md)
+    - [XGM][extra.components.XGM]
 - [Scans](scans.md)
     - [Scantool][extra.components.Scantool]
     - [Scan][extra.components.Scan]
