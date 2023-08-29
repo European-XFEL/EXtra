@@ -706,7 +706,7 @@ class XrayPulses(TimeserverPulses):
         else:
             raise ValueError('sources from multiple SASE branches {} found, '
                              'please pass the SASE beamline explicitly'.format(
-                                ', '.join(sases)))
+                                 ', '.join(map(str, sases))))
 
     def _mask_table(self, table):
         return is_sase(table, sase=self._sase)
