@@ -52,6 +52,22 @@ def test_scan(mock_spb_aux_run):
     motor += np.random.rand(len(motor)) * 0.1
     assert len(Scan(motor).steps) == 0
 
+    # Test an edge case with a motor that's jittering between two values (see
+    # the ZeroDivisionError check in Scan._guess_resolution()). This is somewhat
+    # finicky to test because we have to make sure that the *sum* of a bunch of
+    # floats is exactly 0, which is tricky because of floating point error. We
+    # force this to happen by summing only a few values to limit the error.
+    motor_slice = motor[:9]
+    # The length of the motor array must be odd, because then we'll have an even
+    # number of diffs to sum (to 0).
+    assert len(motor_slice) == 9
+    motor_slice[1::2] = -1
+    motor_slice[::2] = 1
+    # Make sure that the fake motor has the right values
+    assert np.sum(np.diff(motor_slice)) == 0
+    # This should not throw, and should not detect any steps
+    assert len(Scan(motor_slice).steps) == 0
+
     # Smoke tests
     s.plot()
     s._plot_resolution_data()

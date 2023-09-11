@@ -242,6 +242,15 @@ class Scan:
         if len(diff_filt) == 0:
             return None
 
+        # If all the diff's sum to 0 then taking the weighted average will fail
+        # later with a ZeroDivisionError. This only happens in very specific
+        # situations where the motor value is jittering between two values such
+        # that the diffs have a constant magnitude `C`and jump between +C and
+        # -C. And if there are equal counts of +C and -C then the total sum will
+        # be 0.
+        if np.sum(diff_filt) == 0:
+            return None
+
         # Take the average of the diffs, weighted by their value
         # to try to ignore jitter or drift within the steps, which
         # will show up as lots of little diffs.
