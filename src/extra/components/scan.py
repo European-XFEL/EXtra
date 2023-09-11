@@ -199,7 +199,7 @@ class Scan:
                          i * step_size)
                  for i in range(n_steps)]
 
-        motor = np.concatenate(steps)
+        motor = np.concatenate(steps, dtype=np.float64)
 
         from xarray import DataArray
         motor = DataArray(motor,
@@ -339,10 +339,11 @@ class Scan:
         # Detect backlash at the beginning by comparing the step direction of
         # the first and second steps. If there's backlash they're typically not
         # the same, so we remove the first step if so.
-        first_step = steps[1][0] - steps[0][0]
-        second_step = steps[2][0] - steps[1][0]
-        if np.sign(first_step) != np.sign(second_step):
-            del steps[0]
+        if len(steps) >= 3:
+            first_step = steps[1][0] - steps[0][0]
+            second_step = steps[2][0] - steps[1][0]
+            if np.sign(first_step) != np.sign(second_step):
+                del steps[0]
 
         return steps
 

@@ -46,6 +46,12 @@ def test_scan(mock_spb_aux_run):
     not_a_scan = Scan(motor)
     assert len(not_a_scan.positions) == 0
 
+    # Test behaviour with a noisy motor, which will initially be detected as
+    # having a single step, and that single step should be filtered out such
+    # that no steps are detected.
+    motor += np.random.rand(len(motor)) * 0.1
+    assert len(Scan(motor).steps) == 0
+
     # Smoke tests
     s.plot()
     s._plot_resolution_data()
