@@ -7,7 +7,7 @@ fonttools==4.42.1
 h5py==3.9.0
 karabo-bridge==0.7.0
 kiwisolver==1.4.5
-matplotlib==3.7.1
+matplotlib==3.7.3
 msgpack==1.0.5
 msgpack-numpy==0.4.8
 mypy-extensions==1.0.0
