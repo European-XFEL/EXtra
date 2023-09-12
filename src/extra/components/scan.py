@@ -199,7 +199,7 @@ class Scan:
                          i * step_size)
                  for i in range(n_steps)]
 
-        motor = np.concatenate(steps)
+        motor = np.concatenate(steps, dtype=np.float64)
 
         from xarray import DataArray
         motor = DataArray(motor,
@@ -240,6 +240,15 @@ class Scan:
         # If everything has been filtered out then the motor probably isn't
         # moving at all.
         if len(diff_filt) == 0:
+            return None
+
+        # If all the diff's sum to 0 then taking the weighted average will fail
+        # later with a ZeroDivisionError. This only happens in very specific
+        # situations where the motor value is jittering between two values such
+        # that the diffs have a constant magnitude `C`and jump between +C and
+        # -C. And if there are equal counts of +C and -C then the total sum will
+        # be 0.
+        if np.sum(diff_filt) == 0:
             return None
 
         # Take the average of the diffs, weighted by their value
@@ -339,10 +348,11 @@ class Scan:
         # Detect backlash at the beginning by comparing the step direction of
         # the first and second steps. If there's backlash they're typically not
         # the same, so we remove the first step if so.
-        first_step = steps[1][0] - steps[0][0]
-        second_step = steps[2][0] - steps[1][0]
-        if np.sign(first_step) != np.sign(second_step):
-            del steps[0]
+        if len(steps) >= 3:
+            first_step = steps[1][0] - steps[0][0]
+            second_step = steps[2][0] - steps[1][0]
+            if np.sign(first_step) != np.sign(second_step):
+                del steps[0]
 
         return steps
 
