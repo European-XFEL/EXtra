@@ -18,6 +18,7 @@ dependencies = [
     "extra_data>=1.13",
     "extra_geom",
     "karabo_bridge",
+    "pint",
 ]
 requires-python = ">=3.9"
 readme = "README.md"
