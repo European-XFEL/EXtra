@@ -41,19 +41,19 @@ def _find_ppu(run: DataCollection, device: str = None):
         raise KeyError("Could not find a PPU device in this data")
     elif len(available_ppus) == 1:
         return run[available_ppus[0]]
-    elif len(available_ppus) > 1:
+    else:  # len(available_ppus) > 1
         if device:
             # And unique substrings of available PPU
             matches = [name for name in available_ppus if device.upper() in name]
             if len(matches) == 1:
                 return run[matches[0]]
             elif len(matches) == 0:
-                KeyError(
-                    f"Couldn't identify an PPU from '{device}'; please pass a valid device name, alias, or unique substring"
+                raise KeyError(
+                    f"Couldn't identify a PPU from '{device}'; please pass a valid device name, alias, or unique substring"
                 )
             else:
-                KeyError(
-                    f"Multiple XGMs found matching '{device}', please be more specific: {matches}"
+                raise KeyError(
+                    f"Multiple PPUs found matching '{device}', please be more specific: {matches}"
                 )
         raise KeyError(f"Multiple PPU devices found in that data: {available_ppus}")
 
@@ -116,7 +116,7 @@ class PPU:
         for seq, train_id in enumerate(start_train_ids):
             n_trains = self.device["trainTrigger.numberOfTrains"]
             n_trains = n_trains.select_trains(by_id[[train_id]]).ndarray()[0]
-            train_ids.extend(list(range(train_id, train_id + n_trains)))
+            train_ids.extend(np.arange(train_id, train_id + n_trains).tolist())
             sequences.extend([seq] * n_trains)
         # drop train ids missing from the run
         train_ids = sorted(set(train_ids).intersection(self.device.train_ids))
