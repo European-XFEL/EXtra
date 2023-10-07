@@ -18,6 +18,7 @@
 
 Added:
 
+- The [Scantool.step_sizes][extra.components.Scantool.step_sizes] property (!58).
 - The [Scan][extra.components.Scan] component to automatically detect steps
   within a motor scan (!4).
 - [DldPulses][extra.components.DldPulses] to access pulse information saved during delay line detector event reconstruction (!42).

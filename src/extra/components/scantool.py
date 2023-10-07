@@ -88,6 +88,10 @@ class Scantool:
         self._stop_positions = dict(zip(self.motors,
                                         values["scanEnv.stopPoints.value"][:n_motors]))
 
+        # Calculate the step size
+        self._step_sizes = { motor: abs(self.start_positions[motor] - self.stop_positions[motor]) / self.steps[motor]
+                             for motor in self.motors }
+
     @property
     def source_name(self) -> str:
         """The name of the scantool device."""
@@ -139,6 +143,15 @@ class Scantool:
         """A dictionary mapping motor aliases to the number of steps they were
         scanned over."""
         return self._steps
+
+    @property
+    def step_sizes(self) -> dict:
+        """A dictionary mapping motor aliases to their step size.
+
+        Unlike most other properties, this is calculated from the step
+        information rather than being read from a property.
+        """
+        return self._step_sizes
 
     @property
     def start_positions(self) -> dict:
