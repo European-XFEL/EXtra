@@ -8,7 +8,7 @@ easier.
     - [XrayPulses][extra.components.XrayPulses]
     - [OpticalLaserPulses][extra.components.OpticalLaserPulses]
     - [DldPulses][extra.components.DldPulses]
-- [Pulse Picker Unit][extra.components.PPU]
+- [Pulse Picker Unit](pulse-picker-unit.md)
 - [Scans](scans.md)
     - [Scantool][extra.components.Scantool]
     - [Scan][extra.components.Scan]

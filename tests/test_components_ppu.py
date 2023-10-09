@@ -77,12 +77,10 @@ def test_trains(ppu_run):
     ppu = PPU(ppu_run, 'ppu-dipole')
     reduced_run = ppu.trains()
     assert isinstance(reduced_run, DataCollection)
-    assert len(reduced_run.train_ids) == 3
     assert reduced_run.train_ids == [10015, 10045, 10075]
 
     # split per sequence
     reduced_run = ppu.trains(split_sequence=True)
     assert isinstance(reduced_run, list)
     assert len(reduced_run) == 3
-    assert len(reduced_run[0].train_ids) == 1
     assert reduced_run[0].train_ids == [10015]

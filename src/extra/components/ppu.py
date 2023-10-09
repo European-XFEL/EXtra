@@ -59,9 +59,17 @@ def _find_ppu(run: DataCollection, device: str = None):
 
 
 class PPU:
-    """Interface to a PPU (Pulse Picker Unit).
+    """Interface to a Pulse Picker Unit (PPU).
 
-    Despite its name, the PPU picks trains, not pulses.
+    Despite its name, the PPU selects a bunch train from within the 10Hz
+    structure and block the remainder of the beam.
+
+    Technical description:
+        A motor-driven absorber rotor is rotated into the beam axis in order to
+        block the XFEL beam when triggered. The rotor is contained within a UHV
+        chamber. In terms of temporal structure, the beam pipe is blocked by an
+        absorbing rotor for up to 9/10ths of a second or vice versa,
+        synchronized to the facility clock/trigger.
     """
 
     _DEVICE_CLASSES = ["PulsePickerTrainTrigger", "PulsePickerTrainTriggerCopy"]
@@ -78,8 +86,8 @@ class PPU:
                 contains more than one PPU. This can be any of:
                   - The device name of the source.
                   - A `SourceData` or [KeyData][extra_data.KeyData] of the
-                    control source (e.g. `HED_XTD6_PPU/MDL/PPU_TRIGGER`) of an
-                    XGM.
+                    control source (e.g. `HED_XTD6_PPU/MDL/PPU_TRIGGER`) of a
+                    PPU.
                   - The alias name of either a `SourceData` or
                     [KeyData][extra_data.KeyData] belonging to a PPU.
                   - A unique (case-insensitive) substring of a PPU source name.
