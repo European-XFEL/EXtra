@@ -126,8 +126,6 @@ class PPU:
             n_trains = n_trains.select_trains(by_id[[train_id]]).ndarray()[0]
             train_ids.extend(np.arange(train_id, train_id + n_trains).tolist())
             sequences.extend([seq] * n_trains)
-        # drop train ids missing from the run
-        train_ids = sorted(set(train_ids).intersection(self.device.train_ids))
 
         log.info(
             f"PPU device {self.device.source} triggered for {len(train_ids)} train(s) across {len(sequences)} sequence(s)."
