@@ -1,4 +1,5 @@
 import logging
+from functools import lru_cache
 from typing import List, Union
 
 import numpy as np
@@ -36,6 +37,7 @@ def _find_ppu(run: DataCollection, device: str = None):
     ]
     if len(available_ppus) == 0:
         available_ppus = [s for s in run.control_sources if "MDL/PPU" in s]
+        available_ppus += [s for s in run.control_sources if "MDL/DIPOLE_PPU" in s]
 
     if len(available_ppus) == 0:
         raise KeyError("Could not find a PPU device in this data")
@@ -72,7 +74,11 @@ class PPU:
         synchronized to the facility clock/trigger.
     """
 
-    _DEVICE_CLASSES = ["PulsePickerTrainTrigger", "PulsePickerTrainTriggerCopy"]
+    _DEVICE_CLASSES = [
+        "PulsePickerTrainTrigger",  # PPU
+        "PulsePickerTrainTriggerCopy",
+        "StandardTrigger",  # DIPOLE PPU
+    ]
 
     def __init__(
         self, data: DataCollection, ppu: Union[KeyData, SourceData, str] = None
@@ -99,6 +105,20 @@ class PPU:
         self.data = data
         self.device = _find_ppu(data, ppu)
 
+    @lru_cache()
+    def number_of_trains(self, train_id: int) -> int:
+        """Number of trains picked for the sequence starting at train_id.
+
+        Args:
+            train_id (int): train ID of the sequence start.
+        """
+
+        # The Dipole PPU-like device does not allow to pick multiple trains
+        if "trainTrigger.numberOfTrains" not in self.device.keys():
+            return 1
+        n_trains = self.device["trainTrigger.numberOfTrains"]
+        return int(n_trains.select_trains(by_id[[train_id]]).ndarray()[0])
+
     def train_ids(
         self, offset: int = 0, labelled: bool = False
     ) -> Union[List[int], pd.Series]:
@@ -122,10 +142,9 @@ class PPU:
         train_ids = []
         sequences = []
         for seq, train_id in enumerate(start_train_ids):
-            n_trains = self.device["trainTrigger.numberOfTrains"]
-            n_trains = n_trains.select_trains(by_id[[train_id]]).ndarray()[0]
-            train_ids.extend(np.arange(train_id, train_id + n_trains).tolist())
-            sequences.extend([seq] * n_trains)
+            span = self.number_of_trains(train_id)
+            train_ids.extend(np.arange(train_id, train_id + span).tolist())
+            sequences.extend([seq] * span)
 
         log.info(
             f"PPU device {self.device.source} triggered for {len(train_ids)} train(s) across {len(sequences)} sequence(s)."
