@@ -155,11 +155,16 @@ class PPU:
         return train_ids
 
     def trains(
-        self, split_sequence: bool = False, offset: int = 0
+        self,
+        data: Union[DataCollection, SourceData, KeyData] = None,
+        *,
+        split_sequence: bool = False,
+        offset: int = 0,
     ) -> Union[DataCollection, List[DataCollection]]:
         """Returns a subset of the data only with Trains selected by the PPU.
 
         Args:
+            data: Data to filter. If set to None (defaut) use the data used at initialization.
             split_sequence (bool, optional): Split data per PPU trigger sequence. Defaults to False.
             offset (int, optional): offset to apply to train IDs to be selected. Defaults to 0.
 
@@ -167,10 +172,12 @@ class PPU:
             Union[DataCollection, List[DataCollection]]:
                 DataCollection(s) containing only trains triggered by the PPU
         """
+        data = data or self.data
+
         train_ids = self.train_ids(labelled=True, offset=offset)
         if split_sequence:
             return [
-                self.data.select_trains(by_id[seq.values])
+                data.select_trains(by_id[seq.values])
                 for _, seq in train_ids.groupby(train_ids.index)
             ]
-        return self.data.select_trains(by_id[train_ids.values])
+        return data.select_trains(by_id[train_ids.values])
