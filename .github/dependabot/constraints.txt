@@ -3,7 +3,7 @@ contourpy==1.2.0
 cycler==0.12.1
 EXtra-data==1.15.0
 EXtra-geom==1.11.0
-fonttools==4.44.1
+fonttools==4.44.3
 h5py==3.10.0
 karabo-bridge==0.7.0
 kiwisolver==1.4.5
