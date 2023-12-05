@@ -2,6 +2,7 @@
 
 
 from copy import copy
+from functools import wraps
 from typing import Optional
 import re
 
@@ -24,7 +25,7 @@ except ImportError:
         return zip(a, b)
 
 
-__all__ = ['XrayPulses', 'OpticalLaserPulses']
+__all__ = ['XrayPulses', 'OpticalLaserPulses', 'PumpProbePulses', 'DldPulses']
 
 
 def _drop_first_level(pd_val):
@@ -65,10 +66,10 @@ class PulsePattern:
         This method must be overriden by any implementation of this
         class. It is expected to return a pandas series with one entry
         per pulse ID labelled by a multi index of train ID and pulse
-        number. Its result will be cached externally.
+        index. Its result will be cached externally.
 
         Returns:
-            (pd.Series) Pulse IDs labelled by train ID and pulse number.
+            (pd.Series) Pulse IDs labelled by train ID and pulse index.
         """
         raise NotImplementedError('_get_pulse_ids')
 
@@ -143,7 +144,7 @@ class PulsePattern:
 
         Returns:
             (pandas.Series or numpy.ndarray): Pulse ID indexed by train
-                ID and pulse number if labelled is True.
+                ID and pulse index if labelled is True.
         """
 
         if self._pulse_ids is None:
@@ -256,7 +257,7 @@ class PulsePattern:
         """Get a multi-level index for pulse-resolved data.
 
         Args:
-            pulse_dim ({pulseId, pulseNumber, time}, optional): Label
+            pulse_dim ({pulseId, pulseIndex, time}, optional): Label
                 for pulse dimension, pulse ID by default.
             include_extra_dims (bool, optional): Whether to include any
                 additional dimensions of this particular implementation
@@ -264,7 +265,7 @@ class PulsePattern:
 
         Returns:
             (pandas.MultiIndex): Multi-level index covering train ID,
-                pulse ID or pulse number and potentially any additonal
+                pulse ID or pulse index and potentially any additonal
                 extra index dimensions.
         """
 
@@ -273,16 +274,16 @@ class PulsePattern:
 
         if pulse_dim == 'pulseId':
             index_levels[pulse_dim] = pulse_ids.to_numpy().copy()
-        elif pulse_dim == 'pulseNumber':
+        elif pulse_dim == 'pulseIndex':
             index_levels[pulse_dim] = pulse_ids.index.get_level_values(
-                'pulseNumber')
+                'pulseIndex')
         elif pulse_dim == 'time':
             index_levels[pulse_dim] = np.concatenate([
                 pids - pids.iloc[0] for _, pids
                 in pulse_ids.groupby(level=0)]) / self.bunch_repetition_rate
         else:
             raise ValueError('pulse_dim must be one of `pulseId`, '
-                             '`pulseNumber`, `time`')
+                             '`pulseIndex`, `time`')
 
         if include_extra_dims:
             index_levels.update({name: pulse_ids.index.get_level_values(name)
@@ -514,7 +515,7 @@ class TimeserverPulses(PulsePattern):
         index = pd.MultiIndex.from_arrays([
             np.repeat(self._key.train_id_coordinates(), counts),
             np.concatenate([np.arange(count) for count in counts])
-        ], names=['trainId', 'pulseNumber'])
+        ], names=['trainId', 'pulseIndex'])
 
         return pd.Series(data=np.concatenate(pids_by_train),
                          index=index, dtype=np.int32)
@@ -593,14 +594,12 @@ class XrayPulses(TimeserverPulses):
     exclusive use of X-rays or pump-probe experiments with congruent
     optical laser pulses.
 
-    For specific access to pulses from one of the optical laser sources,
-    please see the almost corresponding
-    [OpticalLaserPulses][extra.components.OpticalLaserPulses] component
-    with the same interface.
-
-    This class only deals with X-ray pulses of a particular SASE beamline,
-    please see [OpticalLaserPulses][extra.components.OpticalLaserPulses] to
-    access pulses of the optical laser sources.
+    This class only deals with X-ray pulses of a particular SASE
+    beamline. Please see
+    [OpticalLaserPulses][extra.components.OpticalLaserPulses] to access
+    pulses of the optical laser sources or
+    [PumpProbePulses][extra.components.PumpProbePulses] to combine both
+    into a single pattern.
 
     Args:
         data (extra.data.DataCollection): Data to access bunch pattern
@@ -687,7 +686,9 @@ class OpticalLaserPulses(TimeserverPulses):
 
     For experiments where all FEL and PPL laser pulses overlap, it is
     recommended to just use the [XrayPulses][extra.components.XrayPulses]
-    component.
+    component. In the case of more complex or non-overlapping patterns,
+    the [PumpProbePulses][extra.components.PumpProbePulses] allows to
+    combine both into a single pulse pattern.
 
     Args:
         data (extra.data.DataCollection): Data to access bunch pattern
@@ -780,6 +781,234 @@ class OpticalLaserPulses(TimeserverPulses):
         return self._ppl_seed
 
 
+class PumpProbePulses(XrayPulses, OpticalLaserPulses):
+    """An interface to combined FEL and PPL pulses.
+
+    This component offers support for arbitrary pulse relations between
+    X-ray FEL and optical laser pulses (PPL) in pump-probe experiments.
+    As the PPL pulse information in the bunch pattern table always
+    starts at offset 0 for technical reasons irrespective of its actual
+    temporal relation, it is corrected during initialization by exactly
+    one of three methods:
+
+    1) Offset all PPL pulses to a fixed bunch table position.
+    2) Offset all PPL pulses relative to the first FEL pulse in units of
+       the bunch pattern table.
+    3) Offset all PPL pulses relative to the first FEL pulse in units of
+       FEL pulses.
+
+    In cases where there are no FEL pulses (for method 2) or too few
+    (for method 3) to determine this offset, it may be extrapolated from
+    a previous train if enabled. If extrapolation is disabled, an
+    exception is raised.
+
+    Unlike [XrayPulses][extra.components.XrayPulses] and
+    [OpticalLaserPulses][extra.components.OpticalLaserPulses], this
+    component adds additional levels to the pulse index indicated
+    whether an FEL or PPL pulse is present in any particular position.
+    It will only consider a pattern equal if it is equal for both FEL
+    and PPL.
+
+    For experiments where all FEL and PPL laser pulses overlap, it is
+    recommended to just use the [XrayPulses][extra.components.XrayPulses]
+    component.
+
+    Args:
+        data (extra.data.DataCollection): Data to access bunch pattern
+            data from.
+        source (str, optional): Source name of a timeserver or pulse
+            pattern decoder, only needed if the data includes more than
+            one such device or none could not be detected automatically.
+        instrument (src or tuple, optional): Instrument to interpret FEL
+            and PPL pulses of, only needed if the data includes sources
+            from more than one instrument or it could not be detected
+            automatically. May also be a tuple of (sase, ppl_seed)
+            corresponding to arguments for
+            [XrayPulses][extra.components.XrayPulses] and
+            [OpticalLaserPulses][extra.components.OpticalLaserPulses].
+        bunch_table_position (int, optional): Absolute bunch table
+            position or pulse ID for the PPL pulse.
+        bunch_table_offset (int, optional): Offset to the first FEL
+            pulse in bunch table positions or pulse IDs.
+        pulse_offset (number, optional): Offset to the first FEL pulse
+            in units of the spacing between the first two FEL pulses,
+            i.e. in units of FEL pulses.
+        extrapolate (bool, optional): Whether FEL pulse IDs may be
+            extrapolated from past trains if missing, true by default.
+            An exception is raised if disabled and the PPL anchoring
+            method is missing the minimum number of required FEL pulses.
+    """
+
+    # This class inherits from two classes which both have the same
+    # parent in turn, thus forming a diamond-shaped inheritance diagram:
+    #
+    #               PulsePattern
+    #                    |
+    #             TimeserverPulses
+    #               /          \
+    #         XrayPulses   OpticalLaserPulses
+    #               \          /
+    #             PumpProbePulses
+    #
+    # To avoid ambiguities, all calls to super classes are thus explicit
+    # via their respective class object. The use of super() should be
+    # avoided!
+
+    def __init__(self, data, source=None, instrument=None, *,
+                 bunch_table_position=None, bunch_table_offset=None,
+                 pulse_offset=None, extrapolate=True):
+        self._bunch_table_position = None
+        self._bunch_table_offset = None
+        self._pulse_offset = None  # Allowed to be float!
+        self._extrapolate = extrapolate
+
+        if bunch_table_position is not None:
+            self._bunch_table_position = int(bunch_table_position)
+        elif bunch_table_offset is not None:
+            self._bunch_table_offset = int(bunch_table_offset)
+        elif pulse_offset is not None:
+            self._pulse_offset = pulse_offset  # Allowed to be float!
+        else:
+            raise ValueError('must specify one of bunch_table_position, '
+                             'bunch_table_offset, pulse_offset')
+
+        if instrument is None:
+            sase = None
+            ppl_seed = None
+        elif isinstance(instrument, tuple) and len(instrument) == 2:
+            sase = int(instrument[0])
+            ppl_seed = instrument[1]
+        elif isinstance(instrument, str):
+            sase = next(iter({
+                sase for sase, topics in XrayPulses._sase_topics.items()
+                if instrument.upper() in topics}), 0)
+
+            ppl_seed = instrument
+        else:
+            raise TypeError('instrument must be str, 2-tuple or None')
+
+        # Run the OpticalLaserPulses initializer to handle constraints
+        # with pulse pattern decoder.
+        OpticalLaserPulses.__init__(self, data, source, ppl_seed=ppl_seed)
+
+        # Run missing initialization for XrayPulses.
+        if sase is None:
+            sase = self._identify_sase(data)
+
+        self._sase = sase
+
+    def __repr__(self):
+        if self._bunch_table_position is not None:
+            offset_str = f'@{self._bunch_table_position}b'
+        elif self._bunch_table_offset is not None:
+            offset_str = f'@SA{self._sase}{self._bunch_table_offset:+d}b'
+        elif self._pulse_offset is not None:
+            offset_str = f'@SA{self._sase}{self._pulse_offset:+d}p'
+
+        if self._with_timeserver:
+            source_type = 'timeserver'
+        else:
+            source_type = 'ppdecoder'
+
+        return "<{} for SA{} / {}{} using {}={}>".format(
+                type(self).__name__, self._sase, self._ppl_seed.name,
+                offset_str, source_type, self._source.source)
+
+    def _get_ppl_offset(self, fel):
+        if self._bunch_table_position is not None:
+            return self._bunch_table_position
+        elif self._bunch_table_offset is not None:
+            return fel[0] + self._bunch_table_offset
+        elif self._pulse_offset is not None:
+            return fel[0] + int((fel[1] - fel[0]) * self._pulse_offset)
+
+    def _iter_timeserver_pids(self):
+        for row in self._key.ndarray():
+            yield np.flatnonzero(XrayPulses._mask_table(self, row)), \
+                np.flatnonzero(OpticalLaserPulses._mask_table(self, row))
+
+    def _iter_ppdecoder_pids(self):
+        fel_node = XrayPulses._get_ppdecoder_node(self)
+        ppl_node = OpticalLaserPulses._get_ppdecoder_node(self)
+
+        for (_, fel_ids), (_, fel_num), (_, ppl_ids), (_, ppl_num) in zip(
+            self._source[f'{fel_node}.pulseIds'].trains(),
+            self._source[f'{fel_node}.nPulses'].trains(),
+            self._source[f'{ppl_node}.pulseIds'].trains(),
+            self._source[f'{ppl_node}.nPulses'].trains()
+        ):
+            yield fel_ids[:fel_num], ppl_ids[:ppl_num]
+
+    def _get_pulse_ids(self):
+        iter_pulse_ids = self._iter_timeserver_pids() \
+            if self._with_timeserver else self._iter_ppdecoder_pids()
+
+        pids_by_train = []
+        fel_by_train = []
+        ppl_by_train = []
+        counts = []
+
+        train_ids = self._key.train_id_coordinates()
+        prev_fel_pids = None
+
+        for train_id, (fel_pids, ppl_pids) in zip(train_ids, iter_pulse_ids):
+            try:
+                ppl_pids += self._get_ppl_offset(fel_pids)
+            except IndexError:
+                if not self._extrapolate:
+                    raise ValueError(f'missing FEL pulses on train {train_id}')
+                elif prev_fel_pids is None:
+                    raise ValueError('cannot extrapolate missing FEL pulses '
+                                     'on start of data')
+
+                ppl_pids += self._get_ppl_offset(prev_fel_pids)
+            else:
+                prev_fel_pids = fel_pids
+
+            pids = np.union1d(fel_pids, ppl_pids)
+
+            pids_by_train.append(pids)
+            counts.append(len(pids))
+            fel_by_train.append(np.isin(pids, fel_pids))
+            ppl_by_train.append(np.isin(pids, ppl_pids))
+
+        import pandas as pd
+        index = pd.MultiIndex.from_arrays([
+            np.repeat(train_ids, counts),
+            np.concatenate([np.arange(count) for count in counts]),
+            np.concatenate(fel_by_train), np.concatenate(ppl_by_train)
+        ], names=['trainId', 'pulseIndex', 'fel', 'ppl'])
+
+        return pd.Series(data=np.concatenate(pids_by_train),
+                         index=index, dtype=np.int32)
+
+    def _get_pulse_mask(self, reduced=False):
+        # Actually returns flags instead of a mask.
+
+        pulse_ids = self.get_pulse_ids(copy=False)
+        pids_by_train = pulse_ids.groupby(level=0)
+
+        if reduced:
+            pid_offset = pulse_ids.min()
+            table_len = pulse_ids.max() - pid_offset + 1
+        else:
+            pid_offset = 0
+            table_len = self._bunch_pattern_table_len
+
+        flags = np.zeros((pids_by_train.ngroups, table_len), dtype=np.int8)
+
+        for i, (_, train_pids) in enumerate(pids_by_train):
+            flags[i, train_pids.loc[:, :, True, :] - pid_offset] |= 1
+            flags[i, train_pids.loc[:, :, :, True] - pid_offset] |= 2
+
+        return flags
+
+    @wraps(PulsePattern.get_pulse_mask)
+    def get_pulse_mask(self, labelled=True):
+        return TimeserverPulses.get_pulse_mask(
+            self, labelled=labelled).astype(bool)
+
+
 class DldPulses(PulsePattern):
     """An interface to pulses from DLD reconstruction.
 
@@ -819,7 +1048,7 @@ class DldPulses(PulsePattern):
 
         index_levels = {
             'trainId': self._key.train_id_coordinates(),
-            'pulseNumber': np.concatenate([
+            'pulseIndex': np.concatenate([
                 np.arange(count, dtype=np.int32) for count
                 in self._key.data_counts(labelled=False)]),
         }

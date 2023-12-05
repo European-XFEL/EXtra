@@ -7,8 +7,8 @@ import numpy as np
 import extra
 
 from euxfel_bunch_pattern import PPL_BITS
-from extra.data import SourceData, KeyData, by_id
-from extra.components import XrayPulses, OpticalLaserPulses, DldPulses
+from extra.data import RunDirectory, SourceData, KeyData, by_id
+from extra.components import XrayPulses, OpticalLaserPulses, PumpProbePulses, DldPulses
 
 
 pattern_sources = dict(
@@ -213,9 +213,9 @@ def test_get_pulse_index(mock_spb_aux_run, source):
     np.testing.assert_equal(
         pulse_ids[2500:], np.tile(np.r_[1000:1300:12], 50))
 
-    pulse_numbers = pulses.get_pulse_index('pulseNumber').get_level_values(1)
-    np.testing.assert_equal(pulse_numbers[:2500], np.tile(np.r_[:50], 50))
-    np.testing.assert_equal(pulse_numbers[2500:], np.tile(np.r_[:25], 50))
+    pulse_indices = pulses.get_pulse_index('pulseIndex').get_level_values(1)
+    np.testing.assert_equal(pulse_indices[:2500], np.tile(np.r_[:50], 50))
+    np.testing.assert_equal(pulse_indices[2500:], np.tile(np.r_[:25], 50))
 
     times = pulses.get_pulse_index('time').get_level_values(1)
     rate = pulses.bunch_repetition_rate
@@ -351,7 +351,7 @@ def test_dld_pulses(capsys):
     # Test regular.
     pulses = DldPulses(mock_source)
     pulse_ids = pulses.get_pulse_ids()
-    assert pulse_ids.index.names == ['trainId', 'pulseNumber', 'fel', 'ppl']
+    assert pulse_ids.index.names == ['trainId', 'pulseIndex', 'fel', 'ppl']
     np.testing.assert_equal(pulse_ids, triggers['pulse'])
 
     triggers_ = pulses.get_triggers()
@@ -363,7 +363,7 @@ def test_dld_pulses(capsys):
     # Test without fel/ppl fields.
     mock_key.ndarray.return_value = drop_fields(triggers, ['fel', 'ppl'])
     assert DldPulses(mock_source).get_pulse_ids().index.names == [
-        'trainId', 'pulseNumber']
+        'trainId', 'pulseIndex']
 
     # Test without pulse field and default settings.
     mock_key.ndarray.return_value = drop_fields(triggers, ['pulse'])
@@ -378,3 +378,52 @@ def test_dld_pulses(capsys):
     np.testing.assert_equal(pulses.get_pulse_ids(), np.r_[100:200:10])
     captured = capsys.readouterr()
     assert 'No actual pulse IDs available in data' in captured.err
+
+
+@pytest.mark.parametrize('source', **pattern_sources)
+def test_pump_probe_basic(mock_spb_aux_run, source):
+    run = mock_spb_aux_run
+    pulses = PumpProbePulses(run, source=source, pulse_offset=1)
+
+    assert pulses.sase == 1
+    assert pulses.ppl_seed == PPL_BITS.LP_SPB
+
+    # Pulse IDs
+    pids = pulses.get_pulse_ids()
+    assert pids.index.names == ['trainId', 'pulseIndex', 'fel', 'ppl']
+    np.testing.assert_equal(pids[run.train_ids[0]], np.r_[1000:1306:6])
+
+    fel = pids.index.get_level_values('fel')
+    assert fel[:50].all()
+    assert not fel[50]
+
+    ppl = pids.index.get_level_values('ppl')
+    assert not ppl[0]
+    assert ppl[1:51].all()
+
+    # Pulse mask
+    assert pulses.get_pulse_mask(labelled=False)[0, 1000:1306:6].all()
+
+    # Is constant pattern?
+    assert not pulses.is_constant_pattern()
+    assert pulses.select_trains(np.s_[:1]).is_constant_pattern()
+
+    # Search patterns
+    patterns = pulses.search_pulse_patterns()
+    assert len(patterns) == 2
+    assert patterns[0][0].value == by_id[10000:10049].value
+    np.testing.assert_equal(patterns[0][1], np.r_[1000:1306:6])
+    assert patterns[1][0].value == by_id[10050:10100].value
+    assert patterns[1][1].iloc[0] == 1000
+    np.testing.assert_equal(patterns[1][1][1:], np.r_[1012:1312:6])
+
+    with pytest.raises(ValueError):
+        # Should fail with any relation keyword.
+        pulses = PumpProbePulses(run, source=source)
+
+
+def test_pump_probe_defaults(mock_spb_aux_run):
+    run = mock_spb_aux_run.select('SPB*')
+    np.testing.assert_equal(
+        PumpProbePulses(run, pulse_offset=1).get_pulse_ids()[run.train_ids[0]],
+        np.r_[1000:1306:6])
