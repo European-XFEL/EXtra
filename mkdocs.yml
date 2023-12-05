@@ -22,8 +22,6 @@ nav:
   - detector-geometry.md
   - Components:
     - components/index.md
-    - components/scans.md
-    - components/pulse-patterns.md
   - karabo-bridge.md
   - utilities.md
   - changelog.md
