@@ -13,7 +13,7 @@ from .mockdata.timeserver import Timeserver, PulsePatternDecoder
 
 
 @pytest.fixture(scope='session')
-def mock_spb_aux_run():
+def mock_spb_aux_directory():
     sources = [
         Timeserver('SPB_RR_SYS/TSYS/TIMESERVER'),
         PulsePatternDecoder('SPB_RR_SYS/MDL/BUNCH_PATTERN'),
@@ -23,4 +23,9 @@ def mock_spb_aux_run():
 
     with TemporaryDirectory() as td:
         write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 100)
-        yield RunDirectory(td)
+        yield td
+
+
+@pytest.fixture(scope='function')
+def mock_spb_aux_run(mock_spb_aux_directory):
+    yield RunDirectory(mock_spb_aux_directory)
