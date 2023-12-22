@@ -9,6 +9,7 @@ from extra_data.tests.mockdata.motor import Motor
 from extra_data.tests.mockdata.base import DeviceBase
 
 from .mockdata.timeserver import Timeserver, PulsePatternDecoder
+from .mockdata.dld import ReconstructedDld
 
 
 # This is a more accurate representation of an XGM than the XGM class from the
@@ -113,3 +114,20 @@ def multi_xgm_run():
         aliases = {"sa2-xgm": "SA2_XTD1_XGM/XGM/DOOCS"}
         run = RunDirectory(td)
         yield run.with_aliases(aliases)
+
+@pytest.fixture(scope='session')
+def mock_sqs_remi_directory():
+    sources = [
+        Timeserver('SQS_RR_UTC/TSYS/TIMESERVER'),
+        XGM('SA3_XTD10_XGM/XGM/DOOCS'),
+        ReconstructedDld('SQS_REMI_DLD6/DET/TOP'),
+        ReconstructedDld('SQS_REMI_DLD6/DET/BOTTOM')]
+
+    with TemporaryDirectory() as td:
+        write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 100)
+        yield td
+
+
+@pytest.fixture(scope='function')
+def mock_sqs_remi_run(mock_sqs_remi_directory):
+    yield RunDirectory(mock_sqs_remi_directory)
