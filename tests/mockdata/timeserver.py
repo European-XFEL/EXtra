@@ -6,19 +6,19 @@ from euxfel_bunch_pattern import DESTINATION_T4D, DESTINATION_T5D, \
 from extra_data.tests.mockdata.base import DeviceBase
 
 
-def _fill_bunch_pattern_table(table, num_rows):
+def _fill_bunch_pattern_table(table, num_rows, offset=10):
     # SASE 1
-    table[:num_rows//2, 1000:1300:6] |= DESTINATION_T4D
-    table[num_rows//2:, 1000:1300:12] |= DESTINATION_T4D
+    table[offset:num_rows//2, 1000:1300:6] |= DESTINATION_T4D
+    table[num_rows//2-offset:, 1000:1300:12] |= DESTINATION_T4D
 
     # SASE 2
-    table[:, 1500:2000:8] |= DESTINATION_T5D
+    table[offset:, 1500:2000:8] |= DESTINATION_T5D
 
     # SASE 3
-    table[:, 200] |= (DESTINATION_T4D | PHOTON_LINE_DEFLECTION)
+    table[offset:, 200] |= (DESTINATION_T4D | PHOTON_LINE_DEFLECTION)
 
     # LP_SPB
-    table[:, 0:300:6] |= PPL_BITS.LP_SPB
+    table[offset:, 0:300:6] |= PPL_BITS.LP_SPB
 
 
 class Timeserver(DeviceBase):
@@ -41,10 +41,14 @@ class Timeserver(DeviceBase):
         ('classId', None, 'TimeServer')
     ]
 
+    def __init__(self, *args, no_pulses=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._no_pulses = no_pulses
+
     def write_control(self, f):
         super().write_control(f)
 
-        if self.ntrains > 0 and not self.no_ctrl_data:
+        if self.ntrains > 0 and not self.no_ctrl_data and not self._no_pulses:
             _fill_bunch_pattern_table(f[
                 f'CONTROL/{self.device_id}/bunchPatternTable/value'],
                 self.ntrains)
@@ -52,7 +56,7 @@ class Timeserver(DeviceBase):
     def write_instrument(self, f):
         super().write_instrument(f)
 
-        if self.nsamples > 0:
+        if self.nsamples > 0 and not self._no_pulses:
             _fill_bunch_pattern_table(f[
                 f'INSTRUMENT/{self.device_id}:outputBunchPattern/'
                 f'data/bunchPatternTable'], self.nsamples)
@@ -68,6 +72,9 @@ class PulsePatternDecoder(DeviceBase):
         ('classId', None, 'TimeServer2'),
         ('laserSource', None, 'LP_SPB')
     ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def write_control(self, f):
         super().write_control(f)

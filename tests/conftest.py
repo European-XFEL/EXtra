@@ -18,6 +18,9 @@ def mock_spb_aux_directory():
         Timeserver('SPB_RR_SYS/TSYS/TIMESERVER'),
         PulsePatternDecoder('SPB_RR_SYS/MDL/BUNCH_PATTERN'),
         Timeserver('ODD_TIMESERVER_NAME'),
+        PulsePatternDecoder('TRAIN_LESS_DECODER', no_ctrl_data=True),
+        Timeserver('TRAIN_LESS_TIMESERVER', no_ctrl_data=True, nsamples=0),
+        Timeserver('PULSE_LESS_TIMESERVER', no_pulses=True),
         XGM('SPB_XTD9_XGM/DOOCS/MAIN'),
         Motor("MOTOR/MCMOTORYFACE")]
 
