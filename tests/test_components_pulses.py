@@ -354,6 +354,9 @@ def test_dld_pulses(capsys):
     assert pulse_ids.index.names == ['trainId', 'pulseIndex', 'fel', 'ppl']
     np.testing.assert_equal(pulse_ids, triggers['pulse'])
 
+    counts = pulses.get_pulse_counts()
+    np.testing.assert_equal(counts, np.array([10]))
+
     triggers_ = pulses.get_triggers()
     assert triggers_.index.names == ['trainId', 'pulseId', 'fel', 'ppl']
     np.testing.assert_equal(triggers_['start'],  triggers['start'])
