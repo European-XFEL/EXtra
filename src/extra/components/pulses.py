@@ -56,6 +56,19 @@ class PulsePattern:
         self._pulse_ids = None
 
     def _get_train_ids(self):
+        """Low-level access to train IDs.
+
+        This method may be overriden by any implementation of this class
+        for either performance or if the underlying data may contain
+        train IDs that have no pulse IDs associated with it. The default
+        implementation draws train IDs from the series of pulse IDs, and
+        thus cannot contain trains without pulses. This is particularly
+        relevant when counting pulses.
+
+        Returns:
+            (np.ndarray) Train IDs, expected to be in order.
+        """
+
         # This method turned out to be the fastest to get just the
         # group labels.
         return self._get_pulse_ids().index.to_frame()['trainId'].unique()
@@ -74,22 +87,34 @@ class PulsePattern:
         raise NotImplementedError('_get_pulse_ids')
 
     def _get_pulse_mask(self, reduced=False):
-        """Default implementation using _get_pulse_ids."""
+        """Default implementation based on train and pulse IDs."""
 
+        train_ids = self._get_train_ids()
         pulse_ids = self.get_pulse_ids(copy=False)
-        pids_by_train = pulse_ids.groupby(level=0)
 
-        if reduced:
+        if reduced and pulse_ids.empty:
+            pid_offset = 0
+            table_len = 0
+        elif reduced:
             pid_offset = pulse_ids.min()
             table_len = pulse_ids.max() - pid_offset + 1
         else:
             pid_offset = 0
             table_len = self._bunch_pattern_table_len
 
-        mask = np.zeros((pids_by_train.ngroups, table_len), dtype=bool)
+        num_trains = len(train_ids)
+        mask = np.zeros((num_trains, table_len), dtype=bool)
+        train_idx = 0
 
-        for i, (_, train_pulses) in enumerate(pids_by_train):
-            mask[i, train_pulses - pid_offset] = True
+        for train_id, train_pulses in pulse_ids.groupby(level=0):
+            # Search the index for this train ID, starting from where
+            # the previous iteration left off.
+            for i in range(train_idx, num_trains):
+                if train_ids[i] == train_id:
+                    train_idx = i
+                    break
+
+            mask[train_idx, train_pulses - pid_offset] = True
 
         return mask
 
@@ -125,7 +150,10 @@ class PulsePattern:
             new_train_ids = res._key.train_ids
 
         if self._pulse_ids is not None and new_train_ids is not None:
-            res._pulse_ids = self._pulse_ids.loc[new_train_ids]
+            # Extract those entries from cached pulse IDs that intersect
+            # with the newly selected train IDs.
+            res._pulse_ids = self._pulse_ids.loc[np.intersect1d(
+                new_train_ids, self._pulse_ids.index.to_frame()['trainId'])]
         else:
             res._pulse_ids = None
 
@@ -157,8 +185,8 @@ class PulsePattern:
         """Get pulse IDs for the first train.
 
         This method may be significantly faster than to
-        `get_pulse_ids()` by only reading the bunch pattern table for
-        the very first train of this data.
+        `get_pulse_ids()` by only reading data for the very first train
+        of data.
 
         Args:
             labelled (bool, optional): Whether a labelled pandas Series
@@ -183,8 +211,12 @@ class PulsePattern:
             # Just get all pulse IDs.
             pulse_ids = self.get_pulse_ids(copy=False)
 
-        # Drop train ID dimensions.
-        pulse_ids = _drop_first_level(pulse_ids)
+        if not pulse_ids.empty:
+            # Drop train ID dimensions.
+            pulse_ids = _drop_first_level(pulse_ids)
+        else:
+            import pandas as pd
+            pulse_ids = pd.Series([], dtype=np.int32)
 
         return (pulse_ids if labelled else pulse_ids.to_numpy()).copy()
 
@@ -250,7 +282,18 @@ class PulsePattern:
                 train, indexed by train ID if labelled is True.
         """
 
-        counts = self.get_pulse_ids(copy=False).groupby(level=0).count()
+        import pandas as pd
+
+        # Initialize counts for all trains IDs, which may be more than
+        # the ones contained in actual pulse IDs.
+        train_ids = self._get_train_ids()
+        counts = pd.Series(np.zeros_like(train_ids, dtype=np.int32),
+                           index=pd.Index(train_ids, name='trainId'))
+
+        # Add in actual counts per train from pulse IDs.
+        act_counts = self.get_pulse_ids(copy=False).groupby(level=0).count()
+        counts[act_counts.index] = act_counts
+
         return counts if labelled else counts.to_numpy()
 
     def get_pulse_index(self, pulse_dim='pulseId', include_extra_dims=True):
@@ -332,8 +375,12 @@ class PulsePattern:
         pulse_ids = self.get_pulse_ids(copy=False)
 
         if labelled:
+            import pandas as pd
             def gen_pulse_ids(train_idx):
-                return pulse_ids.loc[tids[train_idx]].copy()
+                try:
+                    return pulse_ids.loc[tids[train_idx]].copy()
+                except KeyError:
+                    return pd.Series([], dtype=np.int32)
         else:
             pid_min = pulse_ids.min()
 
@@ -495,7 +542,6 @@ class TimeserverPulses(PulsePattern):
                          'one explicitly')
 
     def _get_train_ids(self):
-        # Faster version reading INDEX data directly.
         return self._key.train_id_coordinates()
 
     def _get_pulse_ids(self):
@@ -512,6 +558,11 @@ class TimeserverPulses(PulsePattern):
         counts = [len(pids) for pids in pids_by_train]
 
         import pandas as pd
+
+        if not counts:
+            # Immediately return an empty series if there is no data.
+            return pd.Series([], dtype=np.int32)
+
         index = pd.MultiIndex.from_arrays([
             np.repeat(self._key.train_id_coordinates(), counts),
             np.concatenate([np.arange(count) for count in counts])
@@ -1042,6 +1093,9 @@ class DldPulses(PulsePattern):
 
         self._clock_ratio = clock_ratio
         self._first_pulse_id = first_pulse_id
+
+    def _get_train_ids(self):
+        return np.unique(self._key.train_id_coordinates())
 
     def _get_pulse_ids(self):
         triggers = self._key.ndarray()
