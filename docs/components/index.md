@@ -16,3 +16,5 @@ Component index:
     - [PumpProbePulses][extra.components.PumpProbePulses]
     - [MachinePulses][extra.components.MachinePulses]
     - [DldPulses][extra.components.DldPulses]
+- [Delay Line Detectors](dld.md)
+    - [DelayLineDetector](extra.components.DelayLineDetector)

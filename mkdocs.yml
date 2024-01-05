@@ -25,6 +25,7 @@ nav:
     - components/beam-properties.md
     - components/scans.md
     - components/pulse-patterns.md
+    - components/dld.md
   - karabo-bridge.md
   - calibration.md
   - utilities.md
