@@ -105,8 +105,8 @@ def test_init(mock_spb_aux_run):
 def test_no_trains(mock_spb_aux_run, source):
     # Test with entirely empty data.
     pulses = XrayPulses(mock_spb_aux_run, source)
-    assert pulses.get_pulse_ids().empty
-    assert pulses.get_pulse_counts().empty
+    assert pulses.pulse_ids().empty
+    assert pulses.pulse_counts().empty
 
 
 def test_select_trains(mock_spb_aux_run):
@@ -129,11 +129,11 @@ def test_select_trains(mock_spb_aux_run):
 
 
 @pytest.mark.parametrize('source', **pattern_sources)
-def test_get_pulse_mask(mock_spb_aux_run, source):
+def test_pulse_mask(mock_spb_aux_run, source):
     run = mock_spb_aux_run
     pulses = XrayPulses(run, source=source)
 
-    mask = XrayPulses(run, source=source).get_pulse_mask()
+    mask = XrayPulses(run, source=source).pulse_mask()
     assert mask.dims == ('trainId', 'pulseId')
     assert (mask.coords['trainId'] == run.train_ids).all()
     assert (mask.coords['pulseId'] == np.arange(mask.shape[1])).all()
@@ -141,11 +141,15 @@ def test_get_pulse_mask(mock_spb_aux_run, source):
     assert mask[10:50, 1000:1300:6].all()
     assert mask[10:, 1000:1300:12].all()
 
-    mask = XrayPulses(run, source=source, sase=2).get_pulse_mask()
+    mask = XrayPulses(run, source=source, sase=2).pulse_mask()
     assert mask[10:, 1500:2000:8].all()
 
-    assert XrayPulses(run, source=source, sase=2).get_pulse_mask(
+    assert XrayPulses(run, source=source, sase=2).pulse_mask(
         labelled=False)[10:, 1500:2000:8].all()
+
+    # Test deprecated method
+    with pytest.warns():
+        assert pulses.get_pulse_mask().equals(pulses.pulse_mask())
 
 
 @pytest.mark.parametrize('source', **pattern_sources)
@@ -158,25 +162,29 @@ def test_is_constant_pattern(mock_spb_aux_run, source):
 
 
 @pytest.mark.parametrize('source', **pattern_sources)
-def test_get_pulse_counts(mock_spb_aux_run, source):
+def test_pulse_counts(mock_spb_aux_run, source):
     run = mock_spb_aux_run
     pulses = XrayPulses(run, source=source)
 
     # Test labelled.
-    counts = pulses.get_pulse_counts(labelled=True)
+    counts = pulses.pulse_counts(labelled=True)
     assert (counts.index == run.train_ids).all()
     assert (counts.iloc[:10] == 0).all()
     assert (counts.iloc[10:50] == 50).all()
     assert (counts.iloc[50:] == 25).all()
 
     # Test unlabelled.
-    np.testing.assert_equal(pulses.get_pulse_counts(labelled=False), counts)
+    np.testing.assert_equal(pulses.pulse_counts(labelled=False), counts)
 
     # Test different SASE.
-    counts = XrayPulses(run, source=source, sase=2).get_pulse_counts()
+    counts = XrayPulses(run, source=source, sase=2).pulse_counts()
     assert (counts.index == run.train_ids).all()
     assert (counts[:10] == 0).all()
     assert (counts[10:] == 63).all()
+
+    # Test deprecated method
+    with pytest.warns():
+        assert pulses.get_pulse_counts().equals(pulses.pulse_counts())
 
 
 @pytest.mark.parametrize('source', **pattern_sources)
@@ -203,12 +211,12 @@ def test_peek_pulse_ids(mock_spb_aux_run, source):
 
 
 @pytest.mark.parametrize('source', **pattern_sources)
-def test_get_pulse_ids(mock_spb_aux_run, source):
+def test_pulse_ids(mock_spb_aux_run, source):
     run = mock_spb_aux_run
     pulses = XrayPulses(run, source=source)
 
     # Test labelled.
-    pids = pulses.get_pulse_ids()
+    pids = pulses.pulse_ids()
     assert len(pids) == 3250
     np.testing.assert_equal(pids[:, 0].index, np.array(run.train_ids[10:]))
     np.testing.assert_equal(pids[run.train_ids[10], :].index, np.r_[:50])
@@ -216,15 +224,19 @@ def test_get_pulse_ids(mock_spb_aux_run, source):
     np.testing.assert_equal(pids[run.train_ids[50], :], np.r_[1000:1300:12])
 
     # Test unlabelled.
-    np.testing.assert_equal(pulses.get_pulse_ids(labelled=False), pids)
+    np.testing.assert_equal(pulses.pulse_ids(labelled=False), pids)
+
+    # Test deprecated method
+    with pytest.warns():
+        assert pulses.get_pulse_ids().equals(pulses.pulse_ids())
 
 
 @pytest.mark.parametrize('source', **pattern_sources)
-def test_get_pulse_index(mock_spb_aux_run, source):
+def test_build_pulse_index(mock_spb_aux_run, source):
     run = mock_spb_aux_run
     pulses = XrayPulses(run, source=source)
 
-    index = pulses.get_pulse_index()
+    index = pulses.build_pulse_index()
     assert index.names == ['trainId', 'pulseId']
 
     train_ids = index.get_level_values(0)
@@ -239,16 +251,20 @@ def test_get_pulse_index(mock_spb_aux_run, source):
     np.testing.assert_equal(
         pulse_ids[2000:], np.tile(np.r_[1000:1300:12], 50))
 
-    pulse_indices = pulses.get_pulse_index('pulseIndex').get_level_values(1)
+    pulse_indices = pulses.build_pulse_index('pulseIndex').get_level_values(1)
     np.testing.assert_equal(pulse_indices[:2000], np.tile(np.r_[:50], 40))
     np.testing.assert_equal(pulse_indices[2000:], np.tile(np.r_[:25], 50))
 
-    times = pulses.get_pulse_index('time').get_level_values(1)
+    times = pulses.build_pulse_index('time').get_level_values(1)
     rate = pulses.bunch_repetition_rate
     np.testing.assert_allclose(
         times[:2000], np.tile((np.r_[1000:1300:6] - 1000) / rate, 40))
     np.testing.assert_allclose(
         times[2000:], np.tile((np.r_[1000:1300:12] - 1000) / rate, 50))
+
+    # Test deprecated methods
+    with pytest.warns():
+        assert pulses.get_pulse_index().equals(pulses.build_pulse_index())
 
 
 @pytest.mark.parametrize('source', **pattern_sources)
@@ -298,8 +314,8 @@ def test_optical_laser_basic(mock_spb_aux_run, source):
     pulses = OpticalLaserPulses(run.select_trains(np.s_[10:]), source=source)
 
     assert pulses.ppl_seed == PPL_BITS.LP_SPB
-    assert (pulses.get_pulse_counts() == 50).all()
-    assert (pulses.get_pulse_ids(labelled=False)[:50] == np.r_[0:300:6]).all()
+    assert (pulses.pulse_counts() == 50).all()
+    assert (pulses.pulse_ids(labelled=False)[:50] == np.r_[0:300:6]).all()
 
 
 def test_optical_laser_specials(mock_spb_aux_run):
@@ -308,12 +324,12 @@ def test_optical_laser_specials(mock_spb_aux_run):
     # Different laser seed by enum
     pulses = OpticalLaserPulses(run, ppl_seed=PPL_BITS.LP_SQS)
     assert pulses.ppl_seed == PPL_BITS.LP_SQS
-    assert (pulses.get_pulse_counts() == 0).all()
+    assert (pulses.pulse_counts() == 0).all()
 
     # Different laser seed by string.
     pulses = OpticalLaserPulses(run, ppl_seed='MID')
     assert pulses.ppl_seed == PPL_BITS.LP_SASE2
-    assert (pulses.get_pulse_counts() == 0).all()
+    assert (pulses.pulse_counts() == 0).all()
 
     # Full run with two timeservers
     run = mock_spb_aux_run
@@ -379,14 +395,14 @@ def test_dld_pulses(capsys):
 
     # Test regular.
     pulses = DldPulses(mock_source)
-    pulse_ids = pulses.get_pulse_ids()
+    pulse_ids = pulses.pulse_ids()
     assert pulse_ids.index.names == ['trainId', 'pulseIndex', 'fel', 'ppl']
     np.testing.assert_equal(pulse_ids, triggers['pulse'])
 
-    counts = pulses.get_pulse_counts()
+    counts = pulses.pulse_counts()
     np.testing.assert_equal(counts, np.array([10]))
 
-    triggers_ = pulses.get_triggers()
+    triggers_ = pulses.triggers()
     assert triggers_.index.names == ['trainId', 'pulseId', 'fel', 'ppl']
     np.testing.assert_equal(triggers_['start'],  triggers['start'])
     np.testing.assert_equal(triggers_['stop'],  triggers['stop'])
@@ -394,12 +410,12 @@ def test_dld_pulses(capsys):
 
     # Test without fel/ppl fields.
     mock_key.ndarray.return_value = drop_fields(triggers, ['fel', 'ppl'])
-    assert DldPulses(mock_source).get_pulse_ids().index.names == [
+    assert DldPulses(mock_source).pulse_ids().index.names == [
         'trainId', 'pulseIndex']
 
     # Test without pulse field and default settings.
     mock_key.ndarray.return_value = drop_fields(triggers, ['pulse'])
-    np.testing.assert_equal(DldPulses(mock_source).get_pulse_ids(),
+    np.testing.assert_equal(DldPulses(mock_source).pulse_ids(),
                             np.r_[:50:5])
     captured = capsys.readouterr()
     assert 'No actual pulse IDs available in data' in captured.err
@@ -407,9 +423,13 @@ def test_dld_pulses(capsys):
     # Test without pulse field and custom settings.
     mock_key.ndarray.return_value = drop_fields(triggers, ['pulse'])
     pulses = DldPulses(mock_source, clock_ratio=196/1.97, first_pulse_id=100)
-    np.testing.assert_equal(pulses.get_pulse_ids(), np.r_[100:200:10])
+    np.testing.assert_equal(pulses.pulse_ids(), np.r_[100:200:10])
     captured = capsys.readouterr()
     assert 'No actual pulse IDs available in data' in captured.err
+
+    # Test the deprecated method
+    with pytest.warns():
+        assert pulses.get_triggers().equals(pulses.triggers())
 
 
 @pytest.mark.parametrize('source', **pattern_sources)
@@ -422,13 +442,13 @@ def test_pump_probe_basic(mock_spb_aux_run, source):
 
     with pytest.raises(ValueError):
         # Cannot extrapolate due to missing pulses in the beginning.
-        pids = pulses.get_pulse_ids()
+        pids = pulses.pulse_ids()
 
     pulses = PumpProbePulses(run.select_trains(np.s_[10:]),
                              source=source, pulse_offset=1)
 
     # Pulse IDs
-    pids = pulses.get_pulse_ids()
+    pids = pulses.pulse_ids()
     assert pids.index.names == ['trainId', 'pulseIndex', 'fel', 'ppl']
     np.testing.assert_equal(pids[run.train_ids[10]], np.r_[1000:1306:6])
 
@@ -441,7 +461,7 @@ def test_pump_probe_basic(mock_spb_aux_run, source):
     assert ppl[1:51].all()
 
     # Pulse mask
-    assert pulses.get_pulse_mask(labelled=False)[0, 1000:1306:6].all()
+    assert pulses.pulse_mask(labelled=False)[0, 1000:1306:6].all()
 
     # Is constant pattern?
     assert not pulses.is_constant_pattern()
@@ -464,5 +484,5 @@ def test_pump_probe_basic(mock_spb_aux_run, source):
 def test_pump_probe_defaults(mock_spb_aux_run):
     run = mock_spb_aux_run.select('SPB*').select_trains(np.s_[10:])
     np.testing.assert_equal(
-        PumpProbePulses(run, pulse_offset=1).get_pulse_ids()[run.train_ids[0]],
+        PumpProbePulses(run, pulse_offset=1).pulse_ids()[run.train_ids[0]],
         np.r_[1000:1306:6])

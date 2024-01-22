@@ -28,6 +28,8 @@ Added:
 
 Changed:
 
+- The `get_` prefix was deprecated for some method names in the [pulse pattern
+  components](components/pulse-patterns.md) (!106).
 - All methods in [XrayPulses][extra.components.XrayPulses] and
   [OpticalLaserPulses][extra.components.OpticalLaserPulses] now support labelled results
   and default to it (!40).
