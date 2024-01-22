@@ -11,6 +11,8 @@ import numpy as np
 from euxfel_bunch_pattern import PPL_BITS, is_sase, is_laser
 from extra_data import SourceData, KeyData, by_id
 
+from .utils import identify_sase
+
 
 try:
     from itertools import pairwise
@@ -664,18 +666,11 @@ class XrayPulses(TimeserverPulses):
 
     """
 
-    # Source prefixes in use at each SASE.
-    _sase_topics = {
-        1: {'SA1', 'LA1', 'SPB', 'FXE'},
-        2: {'SA2', 'LA2', 'MID', 'HED'},
-        3: {'SA3', 'LA3', 'SCS', 'SQS', 'SXP'}
-    }
-
     def __init__(self, data, source=None, sase=None):
         super().__init__(data, source)
 
         if sase not in {1, 2, 3}:
-            sase = self._identify_sase(data)
+            sase = identify_sase(data)
 
         self._sase = sase
 
@@ -687,26 +682,6 @@ class XrayPulses(TimeserverPulses):
 
         return "<{} for SA{} using {}={}>".format(
             type(self).__name__, self._sase, source_type, self._source.source)
-
-    @classmethod
-    def _identify_sase(cls, data):
-        """Try to identify which SASE this data belongs to."""
-
-        sases = {sase
-                 for src in data.all_sources
-                 for sase, topics in cls._sase_topics.items()
-                 if src[:src.find('_')] in topics}
-
-        if len(sases) == 1:
-            return sases.pop()
-        elif sases == {1, 3}:
-            # SA3 data often contains one or more SA1 sources
-            # from shared upstream components.
-            return 3
-        else:
-            raise ValueError('sources from multiple SASE branches {} found, '
-                             'please pass the SASE beamline explicitly'.format(
-                                ', '.join(sases)))
 
     def _mask_table(self, table):
         return is_sase(table, sase=self._sase)
@@ -944,7 +919,7 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
 
         # Run missing initialization for XrayPulses.
         if sase is None:
-            sase = self._identify_sase(data)
+            sase = identify_sase(data)
 
         self._sase = sase
 

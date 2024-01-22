@@ -22,6 +22,7 @@ nav:
   - detector-geometry.md
   - Components:
     - components/index.md
+    - components/beam-properties.md
     - components/scans.md
     - components/pulse-patterns.md
   - karabo-bridge.md
@@ -73,6 +74,7 @@ plugins:
           - https://pandas.pydata.org/docs/objects.inv
           - https://matplotlib.org/stable/objects.inv
           - https://docs.xarray.dev/en/stable/objects.inv
+          - https://pint.readthedocs.io/en/stable/objects.inv
           options:
             docstring_style: google
             separate_signature: yes

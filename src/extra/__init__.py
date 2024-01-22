@@ -40,3 +40,18 @@ except ImportError:
     __version__ = "unknown"
 
 __all__ = ["__version__"]
+
+# Create unit registry
+import pint
+
+ureg = pint.UnitRegistry(cache_folder=":auto:")
+ureg.default_format = '~'
+
+def length_to_ev(ureg, x):
+    numerator = (ureg.planck_constant * ureg.c / ureg.e * 1).to_base_units().magnitude
+
+    return (numerator / x.to("m")).magnitude * ureg.eV
+
+c = pint.Context("xfel")
+c.add_transformation("[length]", "[energy]", length_to_ev)
+ureg.add_context(c)
