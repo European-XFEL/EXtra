@@ -4,6 +4,7 @@
 from copy import copy
 from functools import wraps
 from typing import Optional
+from warnings import warn
 import re
 
 import numpy as np
@@ -92,7 +93,7 @@ class PulsePattern:
         """Default implementation based on train and pulse IDs."""
 
         train_ids = self._get_train_ids()
-        pulse_ids = self.get_pulse_ids(copy=False)
+        pulse_ids = self.pulse_ids(copy=False)
 
         if reduced and pulse_ids.empty:
             pid_offset = 0
@@ -161,7 +162,7 @@ class PulsePattern:
 
         return res
 
-    def get_pulse_ids(self, labelled=True, copy=True):
+    def pulse_ids(self, labelled=True, copy=True):
         """Get pulse IDs.
 
         Args:
@@ -183,11 +184,15 @@ class PulsePattern:
         pulse_ids = self._pulse_ids if labelled else self._pulse_ids.to_numpy()
         return pulse_ids.copy() if copy else pulse_ids
 
+    def get_pulse_ids(self, *args, **kwargs):
+        warn("Use pulse_ids() instead of get_pulse_ids()", DeprecationWarning, stacklevel=2)
+        return self.pulse_ids(*args, **kwargs)
+
     def peek_pulse_ids(self, labelled=True):
         """Get pulse IDs for the first train.
 
         This method may be significantly faster than to
-        `get_pulse_ids()` by only reading data for the very first train
+        `pulse_ids()` by only reading data for the very first train
         of data.
 
         Args:
@@ -208,10 +213,10 @@ class PulsePattern:
             # available.
             pulse_ids = self.select_trains(by_id[
                 [(self._key or self._source).data_counts().ne(0).idxmax()]
-            ]).get_pulse_ids(copy=False)
+            ]).pulse_ids(copy=False)
         else:
             # Just get all pulse IDs.
-            pulse_ids = self.get_pulse_ids(copy=False)
+            pulse_ids = self.pulse_ids(copy=False)
 
         if not pulse_ids.empty:
             # Drop train ID dimensions.
@@ -222,7 +227,7 @@ class PulsePattern:
 
         return (pulse_ids if labelled else pulse_ids.to_numpy()).copy()
 
-    def get_pulse_mask(self, labelled=True):
+    def pulse_mask(self, labelled=True):
         """Get boolean pulse mask.
 
         The returned mask has the same shape as the full bunch pattern
@@ -253,6 +258,10 @@ class PulsePattern:
         else:
             return mask
 
+    def get_pulse_mask(self, *args, **kwargs):
+        warn("Use pulse_mask() instead of get_pulse_mask()", DeprecationWarning, stacklevel=2)
+        return self.pulse_mask(*args, **kwargs)
+
     def is_constant_pattern(self):
         """Whether pulse IDs are constant in this data.
 
@@ -260,7 +269,7 @@ class PulsePattern:
             (bool): Whether pulse IDs are identical in every train.
         """
 
-        pulse_ids = self.get_pulse_ids(copy=False)
+        pulse_ids = self.pulse_ids(copy=False)
 
         # This two level check ends up being faster than comparing the
         # sets of pulse IDs for each train including their position.
@@ -272,7 +281,7 @@ class PulsePattern:
             all([len(x) == 1 for x in pulse_ids.groupby(level=1).unique()])
         )
 
-    def get_pulse_counts(self, labelled=True):
+    def pulse_counts(self, labelled=True):
         """Get number of pulses per train.
 
         Args:
@@ -293,12 +302,16 @@ class PulsePattern:
                            index=pd.Index(train_ids, name='trainId'))
 
         # Add in actual counts per train from pulse IDs.
-        act_counts = self.get_pulse_ids(copy=False).groupby(level=0).count()
+        act_counts = self.pulse_ids(copy=False).groupby(level=0).count()
         counts[act_counts.index] = act_counts
 
         return counts if labelled else counts.to_numpy()
 
-    def get_pulse_index(self, pulse_dim='pulseId', include_extra_dims=True):
+    def get_pulse_counts(self, *args, **kwargs):
+        warn("Use pulse_counts() instead of get_pulse_counts()", DeprecationWarning, stacklevel=2)
+        return self.pulse_counts(*args, **kwargs)
+
+    def build_pulse_index(self, pulse_dim='pulseId', include_extra_dims=True):
         """Get a multi-level index for pulse-resolved data.
 
         Args:
@@ -314,7 +327,7 @@ class PulsePattern:
                 extra index dimensions.
         """
 
-        pulse_ids = self.get_pulse_ids(copy=False)
+        pulse_ids = self.pulse_ids(copy=False)
         index_levels = {'trainId': pulse_ids.index.get_level_values('trainId')}
 
         if pulse_dim == 'pulseId':
@@ -337,6 +350,10 @@ class PulsePattern:
         import pandas as pd
         return pd.MultiIndex.from_arrays(
             list(index_levels.values()), names=list(index_levels.keys()))
+
+    def get_pulse_index(self, *args, **kwargs):
+        warn("Use build_pulse_index() instead of get_pulse_index()", DeprecationWarning, stacklevel=2)
+        return self.build_pulse_index(*args, **kwargs)
 
     def search_pulse_patterns(self, labelled=True):
         """Search identical pulse patterns in this data.
@@ -374,7 +391,7 @@ class PulsePattern:
         def gen_slice(start, stop):
             return by_id[tids[start]:tids[stop-1]+one]
 
-        pulse_ids = self.get_pulse_ids(copy=False)
+        pulse_ids = self.pulse_ids(copy=False)
 
         if labelled:
             import pandas as pd
@@ -407,8 +424,8 @@ class PulsePattern:
             (int, pd.Series or ndarray): Train ID and pulse IDs.
         """
 
-        # Generic version implemented on top of get_pulse_ids().
-        for train_id, row in self.get_pulse_ids().groupby(level=0):
+        # Generic version implemented on top of pulse_ids().
+        for train_id, row in self.pulse_ids().groupby(level=0):
             yield train_id, \
                 _drop_first_level(row) if labelled else row.to_numpy()
 
@@ -424,7 +441,7 @@ class TimeserverPulses(PulsePattern):
     Requires _mask_table() and _get_ppdecoder_node() to be implemented.
     """
 
-    # All methods are built on top of get_pulse_mask and trains(). Their
+    # All methods are built on top of pulse_mask and trains(). Their
     # default implementations require implementation of  _mask_table()
     # and _get_ppdecoder_node().
 
@@ -1011,7 +1028,7 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
     def _get_pulse_mask(self, reduced=False):
         # Actually returns flags instead of a mask.
 
-        pulse_ids = self.get_pulse_ids(copy=False)
+        pulse_ids = self.pulse_ids(copy=False)
         pids_by_train = pulse_ids.groupby(level=0)
 
         if reduced:
@@ -1029,9 +1046,9 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
 
         return flags
 
-    @wraps(PulsePattern.get_pulse_mask)
-    def get_pulse_mask(self, labelled=True):
-        return TimeserverPulses.get_pulse_mask(
+    @wraps(PulsePattern.pulse_mask)
+    def pulse_mask(self, labelled=True):
+        return TimeserverPulses.pulse_mask(
             self, labelled=labelled).astype(bool)
 
 
@@ -1105,7 +1122,7 @@ class DldPulses(PulsePattern):
 
         return pd.Series(data=pulse_ids, index=index, dtype=np.int32)
 
-    def get_triggers(self, labelled=True):
+    def triggers(self, labelled=True):
         """Get trigger information.
 
         Returns:
@@ -1117,6 +1134,10 @@ class DldPulses(PulsePattern):
 
         if labelled:
             import pandas as pd
-            return pd.DataFrame(data=triggers, index=self.get_pulse_index())
+            return pd.DataFrame(data=triggers, index=self.build_pulse_index())
         else:
             return triggers
+
+    def get_triggers(self, *args, **kwargs):
+        warn("Use triggers() instead of get_triggers()", DeprecationWarning, stacklevel=2)
+        return self.triggers(*args, **kwargs)
