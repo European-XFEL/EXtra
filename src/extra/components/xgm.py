@@ -139,7 +139,7 @@ class XGM:
                 working with XGMs on SASE 1 or SASE 3 and you're only interested
                 in data for a specific SASE. This setting applies to all the
                 SASE-specific methods of the class, such as
-                [XGM.intensity()][extra.components.XGM.intensity] and
+                [XGM.pulse_energy()][extra.components.XGM.pulse_energy] and
                 [XGM.npulses()][extra.components.XGM.npulses].
 
                 If it is not set the class will try to guess the SASE of the
@@ -189,7 +189,7 @@ class XGM:
         self._photon_energy_by_train = None
         self._photon_flux = None
         self._doocs_server = None
-        self._intensity = { }
+        self._pulse_energy = { }
         self._npulses = { }
         self._npulses_by_train = { }
         self._max_pulses = { }
@@ -299,14 +299,17 @@ class XGM:
 
         return PropertyGroup(sase) if sase is not None else self._default_pg
 
-    def intensity(self, sase=None):
-        """Return a 2D [DataArray][xarray.DataArray] of the pulse intensities in keV.
+    def pulse_energy(self, sase=None):
+        """Return a 2D [DataArray][xarray.DataArray] of the pulse energy in microjoules.
 
         This has dimensions of `(trainId, pulseIndex)`. For runs with a varying
         number of pulses, the data will be sliced to the *maximum number* of
         pulses. e.g. if a run has 100 trains with only one train containing 10
         pulses and all the others 0, the returned array will have a shape of
         `(100, 10)`.
+
+        Note:
+            This uses the `data.intensityTD` property of the XGM.
 
         Args:
             sase (int): Specify a SASE to retrieve data for. For XGMs from SASE
@@ -318,7 +321,7 @@ class XGM:
                 [constructor][extra.components.XGM].
         """
         pg = self._check_sase_arg(sase)
-        if pg not in self._intensity:
+        if pg not in self._pulse_energy:
             if pg == PropertyGroup.MAIN:
                 key = "data.intensityTD"
             else:
@@ -328,17 +331,17 @@ class XGM:
 
             # We could use .xarray(roi=...) here, but that fails because of h5py
             # when max_pulses is 0.
-            intensity = self.instrument_source[key].xarray()[:, :max_pulses]
+            pulse_energy = self.instrument_source[key].xarray()[:, :max_pulses]
             # Assign a pulseIndex dimension and coordinate
-            intensity = intensity.rename(dim_0="pulseIndex").assign_coords(pulseIndex=np.arange(max_pulses))
+            pulse_energy = pulse_energy.rename(dim_0="pulseIndex").assign_coords(pulseIndex=np.arange(max_pulses))
             # Replace the default fill value of 1 with 0
-            intensity.data[intensity.data == 1] = 0
+            pulse_energy.data[pulse_energy.data == 1] = 0
             # Add units
-            intensity.attrs["units"] = "µJ"
+            pulse_energy.attrs["units"] = "µJ"
 
-            self._intensity[pg] = intensity
+            self._pulse_energy[pg] = pulse_energy
 
-        return self._intensity[pg]
+        return self._pulse_energy[pg]
 
     def _get_main_nbunches_key(self):
         """Helper function to find the main key for the number of bunches.
@@ -369,7 +372,7 @@ class XGM:
 
         Args:
             sase (int): Same meaning as in
-                [XGM.intensity()][extra.components.XGM.intensity].
+                [XGM.pulse_energy()][extra.components.XGM.pulse_energy].
 
         Raises:
             ValueError: Will be thrown if the number of pulses is not constant.
@@ -392,7 +395,7 @@ class XGM:
 
         Args:
             sase (int): Same meaning as in
-                [XGM.intensity()][extra.components.XGM.intensity].
+                [XGM.pulse_energy()][extra.components.XGM.pulse_energy].
         """
         pg = self._check_sase_arg(sase)
         if pg not in self._npulses_by_train:
@@ -412,7 +415,7 @@ class XGM:
 
         Args:
             sase (int): Same meaning as in
-                [XGM.intensity()][extra.components.XGM.intensity].
+                [XGM.pulse_energy()][extra.components.XGM.pulse_energy].
         """
         pg = self._check_sase_arg(sase)
         if pg not in self._max_pulses:
@@ -428,7 +431,7 @@ class XGM:
 
         Args:
             sase (int): Same meaning as in
-                [XGM.intensity()][extra.components.XGM.intensity].
+                [XGM.pulse_energy()][extra.components.XGM.pulse_energy].
         """
         try:
             self.npulses(sase)
@@ -476,10 +479,10 @@ class XGM:
     def plot(self, sase=None, figsize=(9, 7)):
         """Plot an overview of data from the XGM.
 
-        This combines [XGM.plot_intensity()][extra.components.XGM.plot_intensity],
-        [XGM.plot_pulse_intensity()][extra.components.XGM.plot_pulse_intensity],
+        This combines [XGM.plot_pulse_energy()][extra.components.XGM.plot_pulse_energy],
+        [XGM.plot_energy_per_pulse()][extra.components.XGM.plot_energy_per_pulse],
         and
-        [XGM.plot_train_intensity()][extra.components.XGM.plot_train_intensity]
+        [XGM.plot_energy_per_train()][extra.components.XGM.plot_energy_per_train]
         in a single figure.
 
         Example plot:
@@ -487,7 +490,7 @@ class XGM:
 
         Args:
             sase (int): Same meaning as in
-                [XGM.intensity()][extra.components.XGM.intensity].
+                [XGM.pulse_energy()][extra.components.XGM.pulse_energy].
             figsize (tuple): The size of the [Figure][matplotlib.figure.Figure].
         """
         import matplotlib.pyplot as plt
@@ -499,9 +502,9 @@ class XGM:
         ax2 = fig.add_subplot(gs[1, 0])
         ax3 = fig.add_subplot(gs[1, 1])
 
-        self.plot_train_intensity(sase=sase, ax=ax1, minimal_title=True)
-        self.plot_intensity(sase=sase, ax=ax3, minimal_title=True)
-        self.plot_pulse_intensity(sase=sase, ax=ax2, minimal_title=True)
+        self.plot_energy_per_train(sase=sase, ax=ax1, minimal_title=True)
+        self.plot_pulse_energy(sase=sase, ax=ax3, minimal_title=True)
+        self.plot_energy_per_pulse(sase=sase, ax=ax2, minimal_title=True)
 
         run_prefix = self._get_run_prefix()
         device_label = self._get_device_label(sase)
@@ -511,15 +514,15 @@ class XGM:
 
         return fig.get_axes()[0]
 
-    def plot_intensity(self, sase=None, ax=None, minimal_title=False):
-        """Plot a heatmap of the pulse intensities.
+    def plot_pulse_energy(self, sase=None, ax=None, minimal_title=False):
+        """Plot a heatmap of the pulse energies.
 
         Example plot:
-        ![](../images/xgm-plot-intensity.png)
+        ![](../images/xgm-plot-pulse-energy.png)
 
         Args:
             sase (int): Same meaning as in
-                [XGM.intensity()][extra.components.XGM.intensity].
+                [XGM.pulse_energy()][extra.components.XGM.pulse_energy].
             ax (matplotlib.axes.Axes): The axis to plot in. This will default to
                 [plt][matplotlib.pyplot] if not provided.
             minimal_title (bool): Whether to include the proposal/run
@@ -531,47 +534,47 @@ class XGM:
         else:
             fig = ax.get_figure()
 
-        intensity = self.intensity(sase)
+        pulse_energy = self.pulse_energy(sase)
 
         from extra.utils import imshow2
-        im = imshow2(intensity, ax=ax, aspect="auto")
+        im = imshow2(pulse_energy, ax=ax, aspect="auto")
 
-        self._set_plot_title("XGM intensity heatmap", ax, sase, minimal_title)
+        self._set_plot_title("XGM pulse energy heatmap", ax, sase, minimal_title)
         ax.set_xlabel("Pulse")
         ax.set_ylabel("Train")
 
         colorbar = fig.colorbar(im)
-        colorbar.ax.set_ylabel("Intensity [μJ]")
+        colorbar.ax.set_ylabel("Energy [μJ]")
         fig.tight_layout()
 
         return ax
 
-    def plot_pulse_intensity(self, sase=None, ax=None, minimal_title=False):
-        """Plot the average pulse intensity.
+    def plot_energy_per_pulse(self, sase=None, ax=None, minimal_title=False):
+        """Plot the average pulse energy.
 
         Example plot:
-        ![](../images/xgm-plot-pulse-intensities.png)
+        ![](../images/xgm-plot-energy-per-pulse.png)
 
         Args:
             sase (int): Same meaning as in
-                [XGM.intensity()][extra.components.XGM.intensity].
+                [XGM.pulse_energy()][extra.components.XGM.pulse_energy].
             ax (matplotlib.axes.Axes): The axis to plot in. This will default to
                 [plt][matplotlib.pyplot] if not provided.
             minimal_title (bool): Whether to include the proposal/run
                 information and XGM device name in the title.
         """
-        return self._plot_axis_intensity("pulse", "train", sase, ax, fmt="o-",
+        return self._plot_axis_energy("pulse", "train", sase, ax, fmt="o-",
                                          markersize=3, minimal_title=minimal_title)
 
-    def plot_train_intensity(self, sase=None, window_trains=None, ax=None, minimal_title=False):
-        """Plot the average train intensity.
+    def plot_energy_per_train(self, sase=None, window_trains=None, ax=None, minimal_title=False):
+        """Plot the average train energy.
 
         Example plot:
-        ![](../images/xgm-plot-train-intensities.png)
+        ![](../images/xgm-plot-energy-per-train.png)
 
         Args:
             sase (int): Same meaning as in
-                [XGM.intensity()][extra.components.XGM.intensity].
+                [XGM.pulse_energy()][extra.components.XGM.pulse_energy].
             window_trains (int): The number of trains to use when plotting the
                 rolling average. By default this is chosen automatically based
                 on the number of trains in the run.
@@ -580,49 +583,49 @@ class XGM:
             minimal_title (bool): Whether to include the proposal/run
                 information and XGM device name in the title.
         """
-        intensity = self.intensity(sase)
+        pulse_energy = self.pulse_energy(sase)
 
         if window_trains is None:
             # Select a number of trains such that the number of points
             # will be about 500. The goal is to smooth the data just enough
             # to see something visually useful no matter how long the run is.
-            window_trains = max(1, int(intensity.shape[0] / 500 * 10))
+            window_trains = max(1, int(pulse_energy.shape[0] / 500 * 10))
 
-        ax = self._plot_axis_intensity("train", "pulse", sase, ax, minimal_title=minimal_title)
+        ax = self._plot_axis_energy("train", "pulse", sase, ax, minimal_title=minimal_title)
 
         if window_trains > 1 and len(self._control_source.train_ids) > 300:
-            rolling_mean = intensity.mean(dim="pulseIndex").rolling(trainId=window_trains, center=True).mean()
+            rolling_mean = pulse_energy.mean(dim="pulseIndex").rolling(trainId=window_trains, center=True).mean()
             ax.plot(rolling_mean, label=f"{window_trains / 10:.1f}s rolling average", linewidth=2)
 
         ax.legend()
 
         return ax
 
-    def _plot_axis_intensity(self, axis_name, other_axis_name, sase, ax, fmt="-", minimal_title=False, **kwargs):
+    def _plot_axis_energy(self, axis_name, other_axis_name, sase, ax, fmt="-", minimal_title=False, **kwargs):
         if ax is None:
             import matplotlib.pyplot as plt
             fig, ax = plt.subplots(figsize=(9, 5))
 
-        intensity = self.intensity(sase)
+        pulse_energy = self.pulse_energy(sase)
 
         get_dim = lambda x: "trainId" if x == "train" else "pulseIndex"
-        axis_intensity = intensity.mean(dim=get_dim(other_axis_name))
-        axis_std = intensity.std(dim=get_dim(other_axis_name))
-        xs = np.arange(len(axis_intensity))
+        axis_energy = pulse_energy.mean(dim=get_dim(other_axis_name))
+        axis_std = pulse_energy.std(dim=get_dim(other_axis_name))
+        xs = np.arange(len(axis_energy))
 
-        ax.plot(axis_intensity, fmt if len(xs) > 1 else "o", label="Raw data", **kwargs)
+        ax.plot(axis_energy, fmt if len(xs) > 1 else "o", label="Raw data", **kwargs)
 
         if len(xs) > 1:
             ax.fill_between(xs,
-                            axis_intensity - axis_std, axis_intensity + axis_std,
+                            axis_energy - axis_std, axis_energy + axis_std,
                             alpha=0.5)
         else:
-            ax.errorbar(xs, axis_intensity, yerr=axis_std, capsize=10, fmt="none")
+            ax.errorbar(xs, axis_energy, yerr=axis_std, capsize=10, fmt="none")
 
-        self._set_plot_title(f"Mean {axis_name} intensity (averaged over {other_axis_name}s)",
+        self._set_plot_title(f"Mean {axis_name} energy (averaged over {other_axis_name}s)",
                              ax, sase, minimal_title)
         ax.set_xlabel(axis_name.capitalize())
-        ax.set_ylabel("Intensity [μJ]")
+        ax.set_ylabel("Energy [μJ]")
         ax.grid()
 
         return ax
@@ -643,7 +646,7 @@ class XGM:
         {self.control_source.source} properties{run_str}:
           Avg. nominal wavelength:    {self.wavelength_by_train().mean().item():.3f} nm
           Avg. nominal photon energy: {self.photon_energy_by_train().mean().item():.2f} keV
-          Avg. pulse energy:          {self.intensity().mean().item():.2f} µJ
+          Avg. pulse energy:          {self.pulse_energy().mean().item():.2f} µJ
 
           Max pulses:                 {self.max_npulses()}
           Mean pulses:                {self.pulse_counts().mean().item():.3f}
