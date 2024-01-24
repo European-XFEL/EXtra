@@ -21,4 +21,4 @@ pytz==2023.3.post1
 pyzmq==25.1.2
 six==1.16.0
 tzdata==2023.4
-xarray==2024.1.0
+xarray==2024.1.1
