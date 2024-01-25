@@ -17,8 +17,12 @@ dependencies = [
     "euxfel_bunch_pattern",
     "extra_data>=1.13",
     "extra_geom",
+    "h5py",
     "karabo_bridge",
+    "oauth2-xfel-client >=6.1",
+    "pasha",
     "pint",
+    "requests",
 ]
 requires-python = ">=3.9"
 readme = "README.md"
