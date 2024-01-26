@@ -39,6 +39,7 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://github.com/European-XFEL/EXtra"
+Documentation = "https://extra.readthedocs.io/en/latest/"
 
 [project.optional-dependencies]
 test = [
