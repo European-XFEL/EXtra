@@ -338,7 +338,7 @@ class PulsePattern:
         the largest value encountered across other trains with more
         pulses.
 
-        The resulting series is casted to integer unless it contains
+        The resulting series is cast to integers unless it contains
         non-finite values as a result of fill values.
 
         Args:
