@@ -188,6 +188,98 @@ def test_pulse_counts(mock_spb_aux_run, source):
 
 
 @pytest.mark.parametrize('source', **pattern_sources)
+def test_pulse_periods(mock_spb_aux_run, source):
+    run = mock_spb_aux_run
+    pulses = XrayPulses(run, source=source)
+
+    # Test labelled.
+    periods = pulses.pulse_periods(labelled=True)
+    assert (periods.index == run.train_ids).all()
+    assert np.issubdtype(periods.dtype, np.integer)
+    assert (periods.iloc[:10] == 0).all()
+    assert (periods.iloc[10:50] == 6).all()
+    assert (periods.iloc[50:] == 12).all()
+
+    # Test unlabelled.
+    np.testing.assert_equal(pulses.pulse_periods(labelled=False), periods)
+
+    # Test different SASE with only one pulse.
+    pulses = XrayPulses(run, source=source, sase=3)
+
+    with pytest.raises(ValueError):
+        # Fails without explicit single_pulse_value.
+        periods = pulses.pulse_periods()
+
+    # Explicit (finite) single_pulse_value.
+    periods = pulses.pulse_periods(single_pulse_value=-1)
+    assert (periods.index == run.train_ids).all()
+    assert np.issubdtype(periods.dtype, np.integer)
+    assert (periods.iloc[:10] == 0).all()  # Should still be 0.
+    assert (periods.iloc[10:] == -1).all()
+
+    # Explicit (finite) single_pulse_value and no_pulse_value.
+    periods = pulses.pulse_periods(single_pulse_value=-1, no_pulse_value=-2)
+    assert (periods.index == run.train_ids).all()
+    assert np.issubdtype(periods.dtype, np.integer)
+    assert (periods.iloc[:10] == -2).all()
+    assert (periods.iloc[10:] == -1).all()
+
+    # Explicit (not finite) single_pulse_value and no_pulse_value.
+    periods = pulses.pulse_periods(
+        single_pulse_value=np.inf, no_pulse_value=42.2)
+    assert (periods.index == run.train_ids).all()
+    assert np.issubdtype(periods.dtype, np.floating)
+    assert (periods.iloc[:10] == 42.2).all()
+    assert (periods.iloc[10:] == np.inf).all()
+
+
+
+@pytest.mark.parametrize('source', **pattern_sources)
+def test_pulse_repetition_rates(mock_spb_aux_run, source):
+    run = mock_spb_aux_run
+    pulses = XrayPulses(run, source=source)
+
+    # Test labelled.
+    rates = pulses.pulse_repetition_rates(labelled=True)
+    assert (rates.index == run.train_ids).all()
+    assert rates.iloc[:10].isna().all()
+    np.testing.assert_allclose(rates.iloc[10:50], (1.3e9 / 288) / 6)
+    np.testing.assert_allclose(rates.iloc[50:], (1.3e9 / 288) / 12)
+
+    # Test unlabelled.
+    np.testing.assert_equal(
+        pulses.pulse_repetition_rates(labelled=False), rates)
+
+    # Test different SASE with only one pulse.
+    rates = XrayPulses(run, source=source, sase=3).pulse_repetition_rates()
+    assert (rates.index == run.train_ids).all()
+    assert rates[:10].isna().all()
+    np.testing.assert_allclose(rates[10:], 0.0)
+
+
+@pytest.mark.parametrize('source', **pattern_sources)
+def test_train_durations(mock_spb_aux_run, source):
+    run = mock_spb_aux_run
+    pulses = XrayPulses(run, source=source)
+
+    # Test labelled.
+    times = pulses.train_durations(labelled=True)
+    assert (times.index == run.train_ids).all()
+    assert times.iloc[:10].isna().all()
+    np.testing.assert_allclose(times.iloc[10:50], 294 / (1.3e9 / 288))
+    np.testing.assert_allclose(times.iloc[50:], 288 / (1.3e9 / 288))
+
+    # Test unlabelled.
+    np.testing.assert_equal(pulses.train_durations(labelled=False), times)
+
+    # Test different SASE with only one pulse.
+    times = XrayPulses(run, source=source, sase=3).train_durations()
+    assert (times.index == run.train_ids).all()
+    assert times[:10].isna().all()
+    np.testing.assert_allclose(times[10:], 0.0)
+
+
+@pytest.mark.parametrize('source', **pattern_sources)
 def test_peek_pulse_ids(mock_spb_aux_run, source):
     run_full = mock_spb_aux_run.select('SPB*')
     run_beam = mock_spb_aux_run.select('SPB*').select_trains(np.s_[10:])

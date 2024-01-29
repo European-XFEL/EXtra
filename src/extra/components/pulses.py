@@ -289,6 +289,8 @@ class PulsePattern:
     def is_constant_pattern(self):
         """Whether pulse IDs are constant in this data.
 
+        Trains without pulses at all are not considered.
+
         Returns:
             (bool): Whether pulse IDs are identical in every train.
         """
@@ -322,11 +324,111 @@ class PulsePattern:
 
         return counts if labelled else counts.to_numpy()
 
-        # Add in actual counts per train from pulse IDs.
-        act_counts = self.pulse_ids(copy=False).groupby(level=0).count()
-        counts[act_counts.index] = act_counts
+    def pulse_periods(self, labelled=True, single_pulse_value=None,
+                      no_pulse_value=None):
+        """Get pulse periods per train.
 
-        return counts if labelled else counts.to_numpy()
+        The pulse period is expressed in units of the fundamental bunch
+        repetition rate of 4.5 MHz. Its exact value can be accessed via
+        PulsePattern.bunch_repetition_rate.
+
+        In each train, the smallest period between consecutive pulses is
+        considered if the pulses do not have equal distances. For trains
+        with a single pulse, the value can be specified or is filled by
+        the largest value encountered across other trains with more
+        pulses.
+
+        The resulting series is casted to integer unless it contains
+        non-finite values as a result of fill values.
+
+        Args:
+            labelled (bool, optional): Whether a labelled pandas Series
+                (default) or unlabelled numpy array is returned.
+            single_pulse_value (number, optional): Fill value for trains
+                with a single pulse. If omitted the largest period
+                encountered in the data is used or an exception raised
+                if there are no trains with more than one pulse.
+            no_pulse_value (number, optional): Fill value for trains
+                without any pulse, 0 if omitted.
+
+        Returns:
+            (pandas.Series or numpy.ndarray): Pulse period per train
+                train, indexed by train ID if labelled is True.
+        """
+
+        # Minimum of difference between pulses in a train by train.
+        act_periods = (self.pulse_ids(copy=False)
+            .groupby(level=0).diff()  # Periods within each train.
+            .groupby(level=0).min()  # Minimal period in each train.
+        )
+
+        # Fill any NaN value with a fill value.
+        single_pulse_periods = act_periods.isna()
+
+        if single_pulse_periods.any():
+            if single_pulse_value is None:
+                if single_pulse_periods.all():
+                    raise ValueError('data contains no trains with more than '
+                                     'one pulse, explicit single_pulse_value '
+                                     'required')
+
+                single_pulse_value = int(act_periods.max())
+
+            act_periods.fillna(single_pulse_value, inplace=True)
+
+        # Extend to all trains, filling with 0(.0) or the passed value.
+        periods = self._extend_all_trains(act_periods, no_pulse_value)
+
+        # Cast to integer, if possible.
+        if np.isfinite(periods).all():
+            periods = periods.astype(int)
+
+        return periods if labelled else periods.to_numpy()
+
+    def pulse_repetition_rates(self, labelled=True):
+        """Get pulse repetition rate per train in Hz.
+
+        In each train, the highest repetition rate is used if the pulses
+        do not have equal distances.
+
+        For trains with a single pulse, 0.0 is returned while trains
+        without any pulse return NaN. If different fill values are
+        desired, PulsePattern.bunch_repetition_rate can be divided
+        manually by the result from PulsePattern.pulse_periods().
+
+        Args:
+            labelled (bool, optional): Whether a labelled pandas Series
+                (default) or unlabelled numpy array is returned.
+
+        Returns:
+            (pandas.Series or numpy.ndarray): Pulse repetition rate per
+                train, indexed by train ID if labelled is True.
+        """
+
+        return self.bunch_repetition_rate \
+            / self.pulse_periods(labelled, np.inf, np.nan)
+
+    def train_durations(self, labelled=True):
+        """Get durations of each train in seconds.
+
+        The duration is the time difference between the first and last
+        pulse in each train. For trains with no pulses, NaN is returned.
+
+        Args:
+            labelled (bool, optional): Whether a labelled pandas Series
+                (default) or unlabelled numpy array is returned.
+
+        Returns:
+            (pandas.Series or numpy.ndarray): Train duration in seconds
+                per train, indexed by train ID if labelled is True.
+        """
+
+        pids_by_train = self.pulse_ids(copy=False).groupby(level=0)
+        durations = self._extend_all_trains(
+            (pids_by_train.max() - pids_by_train.min())
+            / self.bunch_repetition_rate, np.nan)
+
+        return durations if labelled else durations.to_numpy()
 
     def get_pulse_counts(self, *args, **kwargs):
         warn("Use pulse_counts() instead of get_pulse_counts()",
