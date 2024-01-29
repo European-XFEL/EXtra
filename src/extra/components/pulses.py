@@ -121,6 +121,28 @@ class PulsePattern:
 
         return mask
 
+    def _extend_all_trains(self, act_entries, fill_value=None):
+        """Extend pd.Series to all trains."""
+
+        train_ids = self._get_train_ids()
+
+        if len(act_entries) == len(train_ids):
+            # Assume trains are always a subset of internal trains and
+            # thus are equal if length matches.
+            return act_entries
+
+        import pandas as pd
+        ext_entries = pd.Series(
+            np.zeros_like(train_ids, dtype=act_entries.dtype),
+            index=pd.Index(train_ids, name='trainId'))
+
+        if fill_value is not None:
+            ext_entries[:] = fill_value
+
+        ext_entries[act_entries.index] = act_entries
+
+        return ext_entries
+
     @property
     def master_clock(self) -> float:
         """European XFEL timing system master clock in Hz."""
@@ -295,13 +317,10 @@ class PulsePattern:
                 train, indexed by train ID if labelled is True.
         """
 
-        import pandas as pd
+        counts = self._extend_all_trains(
+            self.pulse_ids(copy=False).groupby(level=0).count())
 
-        # Initialize counts for all trains IDs, which may be more than
-        # the ones contained in actual pulse IDs.
-        train_ids = self._get_train_ids()
-        counts = pd.Series(np.zeros_like(train_ids, dtype=np.int32),
-                           index=pd.Index(train_ids, name='trainId'))
+        return counts if labelled else counts.to_numpy()
 
         # Add in actual counts per train from pulse IDs.
         act_counts = self.pulse_ids(copy=False).groupby(level=0).count()
