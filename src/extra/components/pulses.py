@@ -185,7 +185,8 @@ class PulsePattern:
         return pulse_ids.copy() if copy else pulse_ids
 
     def get_pulse_ids(self, *args, **kwargs):
-        warn("Use pulse_ids() instead of get_pulse_ids()", DeprecationWarning, stacklevel=2)
+        warn("Use pulse_ids() instead of get_pulse_ids()",
+             DeprecationWarning, stacklevel=2)
         return self.pulse_ids(*args, **kwargs)
 
     def peek_pulse_ids(self, labelled=True):
@@ -259,7 +260,8 @@ class PulsePattern:
             return mask
 
     def get_pulse_mask(self, *args, **kwargs):
-        warn("Use pulse_mask() instead of get_pulse_mask()", DeprecationWarning, stacklevel=2)
+        warn("Use pulse_mask() instead of get_pulse_mask()",
+             DeprecationWarning, stacklevel=2)
         return self.pulse_mask(*args, **kwargs)
 
     def is_constant_pattern(self):
@@ -308,7 +310,8 @@ class PulsePattern:
         return counts if labelled else counts.to_numpy()
 
     def get_pulse_counts(self, *args, **kwargs):
-        warn("Use pulse_counts() instead of get_pulse_counts()", DeprecationWarning, stacklevel=2)
+        warn("Use pulse_counts() instead of get_pulse_counts()",
+             DeprecationWarning, stacklevel=2)
         return self.pulse_counts(*args, **kwargs)
 
     def build_pulse_index(self, pulse_dim='pulseId', include_extra_dims=True):
@@ -352,7 +355,8 @@ class PulsePattern:
             list(index_levels.values()), names=list(index_levels.keys()))
 
     def get_pulse_index(self, *args, **kwargs):
-        warn("Use build_pulse_index() instead of get_pulse_index()", DeprecationWarning, stacklevel=2)
+        warn("Use build_pulse_index() instead of get_pulse_index()",
+             DeprecationWarning, stacklevel=2)
         return self.build_pulse_index(*args, **kwargs)
 
     def search_pulse_patterns(self, labelled=True):
@@ -1139,5 +1143,6 @@ class DldPulses(PulsePattern):
             return triggers
 
     def get_triggers(self, *args, **kwargs):
-        warn("Use triggers() instead of get_triggers()", DeprecationWarning, stacklevel=2)
+        warn("Use triggers() instead of get_triggers()",
+             DeprecationWarning, stacklevel=2)
         return self.triggers(*args, **kwargs)
