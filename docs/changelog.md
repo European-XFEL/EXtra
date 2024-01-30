@@ -5,7 +5,10 @@
 
 # Changelog
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+Added:
+
+- `pulse_periods()`, `pulse_repetition_rates()` and `train_durations()` methods to obtain statistics about the pulses in all `PulsePattern`-based components
 
 <!-- !!! note -->
 <!--     All of the changes here are deployed to our current environment, even though -->

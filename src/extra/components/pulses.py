@@ -121,6 +121,28 @@ class PulsePattern:
 
         return mask
 
+    def _extend_all_trains(self, act_entries, fill_value=None):
+        """Extend pd.Series to all trains."""
+
+        train_ids = self._get_train_ids()
+
+        if len(act_entries) == len(train_ids):
+            # Assume trains are always a subset of internal trains and
+            # thus are equal if length matches.
+            return act_entries
+
+        import pandas as pd
+        ext_entries = pd.Series(
+            np.zeros_like(train_ids, dtype=act_entries.dtype),
+            index=pd.Index(train_ids, name='trainId'))
+
+        if fill_value is not None:
+            ext_entries[:] = fill_value
+
+        ext_entries[act_entries.index] = act_entries
+
+        return ext_entries
+
     @property
     def master_clock(self) -> float:
         """European XFEL timing system master clock in Hz."""
@@ -185,7 +207,8 @@ class PulsePattern:
         return pulse_ids.copy() if copy else pulse_ids
 
     def get_pulse_ids(self, *args, **kwargs):
-        warn("Use pulse_ids() instead of get_pulse_ids()", DeprecationWarning, stacklevel=2)
+        warn("Use pulse_ids() instead of get_pulse_ids()",
+             DeprecationWarning, stacklevel=2)
         return self.pulse_ids(*args, **kwargs)
 
     def peek_pulse_ids(self, labelled=True):
@@ -259,11 +282,14 @@ class PulsePattern:
             return mask
 
     def get_pulse_mask(self, *args, **kwargs):
-        warn("Use pulse_mask() instead of get_pulse_mask()", DeprecationWarning, stacklevel=2)
+        warn("Use pulse_mask() instead of get_pulse_mask()",
+             DeprecationWarning, stacklevel=2)
         return self.pulse_mask(*args, **kwargs)
 
     def is_constant_pattern(self):
         """Whether pulse IDs are constant in this data.
+
+        Trains without pulses at all are not considered.
 
         Returns:
             (bool): Whether pulse IDs are identical in every train.
@@ -293,22 +319,120 @@ class PulsePattern:
                 train, indexed by train ID if labelled is True.
         """
 
-        import pandas as pd
-
-        # Initialize counts for all trains IDs, which may be more than
-        # the ones contained in actual pulse IDs.
-        train_ids = self._get_train_ids()
-        counts = pd.Series(np.zeros_like(train_ids, dtype=np.int32),
-                           index=pd.Index(train_ids, name='trainId'))
-
-        # Add in actual counts per train from pulse IDs.
-        act_counts = self.pulse_ids(copy=False).groupby(level=0).count()
-        counts[act_counts.index] = act_counts
+        counts = self._extend_all_trains(
+            self.pulse_ids(copy=False).groupby(level=0).count())
 
         return counts if labelled else counts.to_numpy()
 
+    def pulse_periods(self, labelled=True, single_pulse_value=None,
+                      no_pulse_value=None):
+        """Get pulse periods per train.
+
+        The pulse period is expressed in units of the fundamental bunch
+        repetition rate of 4.5 MHz. Its exact value can be accessed via
+        PulsePattern.bunch_repetition_rate.
+
+        In each train, the smallest period between consecutive pulses is
+        considered if the pulses do not have equal distances. For trains
+        with a single pulse, the value can be specified or is filled by
+        the largest value encountered across other trains with more
+        pulses.
+
+        The resulting series is cast to integers unless it contains
+        non-finite values as a result of fill values.
+
+        Args:
+            labelled (bool, optional): Whether a labelled pandas Series
+                (default) or unlabelled numpy array is returned.
+            single_pulse_value (number, optional): Fill value for trains
+                with a single pulse. If omitted the largest period
+                encountered in the data is used or an exception raised
+                if there are no trains with more than one pulse.
+            no_pulse_value (number, optional): Fill value for trains
+                without any pulse, 0 if omitted.
+
+        Returns:
+            (pandas.Series or numpy.ndarray): Pulse period per train
+                train, indexed by train ID if labelled is True.
+        """
+
+        # Minimum of difference between pulses in a train by train.
+        act_periods = (self.pulse_ids(copy=False)
+            .groupby(level=0).diff()  # Periods within each train.
+            .groupby(level=0).min()  # Minimal period in each train.
+        )
+
+        # Fill any NaN value with a fill value.
+        single_pulse_periods = act_periods.isna()
+
+        if single_pulse_periods.any():
+            if single_pulse_value is None:
+                if single_pulse_periods.all():
+                    raise ValueError('data contains no trains with more than '
+                                     'one pulse, explicit single_pulse_value '
+                                     'required')
+
+                single_pulse_value = int(act_periods.max())
+
+            act_periods.fillna(single_pulse_value, inplace=True)
+
+        # Extend to all trains, filling with 0(.0) or the passed value.
+        periods = self._extend_all_trains(act_periods, no_pulse_value)
+
+        # Cast to integer, if possible.
+        if np.isfinite(periods).all():
+            periods = periods.astype(int)
+
+        return periods if labelled else periods.to_numpy()
+
+    def pulse_repetition_rates(self, labelled=True):
+        """Get pulse repetition rate per train in Hz.
+
+        In each train, the highest repetition rate is used if the pulses
+        do not have equal distances.
+
+        For trains with a single pulse, 0.0 is returned while trains
+        without any pulse return NaN. If different fill values are
+        desired, PulsePattern.bunch_repetition_rate can be divided
+        manually by the result from PulsePattern.pulse_periods().
+
+        Args:
+            labelled (bool, optional): Whether a labelled pandas Series
+                (default) or unlabelled numpy array is returned.
+
+        Returns:
+            (pandas.Series or numpy.ndarray): Pulse repetition rate per
+                train, indexed by train ID if labelled is True.
+        """
+
+        return self.bunch_repetition_rate \
+            / self.pulse_periods(labelled, np.inf, np.nan)
+
+    def train_durations(self, labelled=True):
+        """Get durations of each train in seconds.
+
+        The duration is the time difference between the first and last
+        pulse in each train. For trains with no pulses, NaN is returned.
+
+        Args:
+            labelled (bool, optional): Whether a labelled pandas Series
+                (default) or unlabelled numpy array is returned.
+
+        Returns:
+            (pandas.Series or numpy.ndarray): Train duration in seconds
+                per train, indexed by train ID if labelled is True.
+        """
+
+        pids_by_train = self.pulse_ids(copy=False).groupby(level=0)
+        durations = self._extend_all_trains(
+            (pids_by_train.max() - pids_by_train.min())
+            / self.bunch_repetition_rate, np.nan)
+
+        return durations if labelled else durations.to_numpy()
+
     def get_pulse_counts(self, *args, **kwargs):
-        warn("Use pulse_counts() instead of get_pulse_counts()", DeprecationWarning, stacklevel=2)
+        warn("Use pulse_counts() instead of get_pulse_counts()",
+             DeprecationWarning, stacklevel=2)
         return self.pulse_counts(*args, **kwargs)
 
     def build_pulse_index(self, pulse_dim='pulseId', include_extra_dims=True):
@@ -352,7 +476,8 @@ class PulsePattern:
             list(index_levels.values()), names=list(index_levels.keys()))
 
     def get_pulse_index(self, *args, **kwargs):
-        warn("Use build_pulse_index() instead of get_pulse_index()", DeprecationWarning, stacklevel=2)
+        warn("Use build_pulse_index() instead of get_pulse_index()",
+             DeprecationWarning, stacklevel=2)
         return self.build_pulse_index(*args, **kwargs)
 
     def search_pulse_patterns(self, labelled=True):
@@ -1139,5 +1264,6 @@ class DldPulses(PulsePattern):
             return triggers
 
     def get_triggers(self, *args, **kwargs):
-        warn("Use triggers() instead of get_triggers()", DeprecationWarning, stacklevel=2)
+        warn("Use triggers() instead of get_triggers()",
+             DeprecationWarning, stacklevel=2)
         return self.triggers(*args, **kwargs)
