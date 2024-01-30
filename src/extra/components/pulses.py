@@ -607,6 +607,17 @@ class TimeserverPulses(PulsePattern):
 
         super().__init__(sd, kd)
 
+    def __repr__(self, location=None):
+        if self._with_timeserver:
+            source_type = 'timeserver'
+        else:
+            source_type = 'ppdecoder'
+
+        loc_str = ' ' + location if location is not None else ''
+
+        return "<{}{} using {}={}>".format(
+            type(self).__name__, loc_str, source_type, self._source.source)
+
     @classmethod
     def _find_pulsepattern_source(cls, data):
         """Try to find a pulse pattern source."""
@@ -817,13 +828,7 @@ class XrayPulses(TimeserverPulses):
         self._sase = sase
 
     def __repr__(self):
-        if self._with_timeserver:
-            source_type = 'timeserver'
-        else:
-            source_type = 'ppdecoder'
-
-        return "<{} for SA{} using {}={}>".format(
-            type(self).__name__, self._sase, source_type, self._source.source)
+        return super().__repr__(f'for SA{self._sase}')
 
     def _mask_table(self, table):
         return is_sase(table, sase=self._sase)
@@ -909,14 +914,7 @@ class OpticalLaserPulses(TimeserverPulses):
         self._ppl_seed = ppl_seed
 
     def __repr__(self):
-        if self._with_timeserver:
-            source_type = 'timeserver'
-        else:
-            source_type = 'ppdecoder'
-
-        return "<{} for {} using {}={}>".format(
-                type(self).__name__, self._ppl_seed.name, source_type,
-                self._source.source)
+        return super().__repr__(self._ppl_seed.name)
 
     @classmethod
     def _identify_ppl_seed(cls, data):
