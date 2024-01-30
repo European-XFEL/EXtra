@@ -563,12 +563,8 @@ class TimeserverPulses(PulsePattern):
     the shared interface to access pulse patterns encoded in the bunch
     pattern table.
 
-    Requires _mask_table() and _get_ppdecoder_node() to be implemented.
+    Requires _mask_table() and _get_ppdecoder_nodes() to be implemented.
     """
-
-    # All methods are built on top of pulse_mask and trains(). Their
-    # default implementations require implementation of  _mask_table()
-    # and _get_ppdecoder_node().
 
     # Timeserver class ID and regular expressions.
     _timeserver_class = 'TimeServer'
@@ -704,11 +700,33 @@ class TimeserverPulses(PulsePattern):
             pids_by_train = [np.flatnonzero(mask) for mask
                              in self._mask_table(self._key.ndarray())]
         else:
-            node = self._get_ppdecoder_node()
-            pids_by_train = [
-                pulse_ids[:num_pulses] for pulse_ids, num_pulses in zip(
-                    self._source[f'{node}.pulseIds'].ndarray(),
-                    self._source[f'{node}.nPulses'].ndarray())]
+            nodes = self._get_ppdecoder_nodes()
+
+            if len(nodes) == 1:
+                # Optimization when using only a single node, which is
+                # the most common case and the general path below is up
+                # to 70% slower.
+                node = nodes[0]
+                pids_by_train = [
+                    pulse_ids[:num_pulses] for pulse_ids, num_pulses in zip(
+                        self._source[f'{node}.pulseIds'].ndarray(),
+                        self._source[f'{node}.nPulses'].ndarray())]
+            else:
+                # Generalization of the comprehension above to combine
+                # multiple nodes into a single ordered list.
+                # The outer comprehension first loads and collects the
+                # pulseIds and nPulses datasets for each node, combining
+                # them into a single iterable by train.
+                # In its body, it then uses nPulses to index into the
+                # pulseIds dataset for every node, concatenates the
+                # resulting pulse IDs and finally sorts by train.
+                pids_by_train = [np.sort(np.concatenate([
+                    pulse_ids[:num_pulses] for pulse_ids, num_pulses
+                    in zip(per_train[0::2], per_train[1::2])]
+                )) for per_train in zip(*sum([
+                    [self._source[f'{node}.pulseIds'].ndarray(),
+                     self._source[f'{node}.nPulses'].ndarray()]
+                    for node in nodes], []))]
 
         counts = [len(pids) for pids in pids_by_train]
 
@@ -753,9 +771,9 @@ class TimeserverPulses(PulsePattern):
         """Mask bunch pattern table."""
         raise NotImplementedError('_mask_table')
 
-    def _get_ppdecoder_node(self):
-        """Get node in pulse pattern decoder device."""
-        raise NotImplementedError('_get_ppdecoder_node')
+    def _get_ppdecoder_nodes(self):
+        """Get nodes in pulse pattern decoder device."""
+        raise NotImplementedError('_get_ppdecoder_nodes')
 
     @property
     def timeserver(self) -> SourceData:
@@ -833,8 +851,8 @@ class XrayPulses(TimeserverPulses):
     def _mask_table(self, table):
         return is_sase(table, sase=self._sase)
 
-    def _get_ppdecoder_node(self):
-        return f'sase{self._sase}'
+    def _get_ppdecoder_nodes(self):
+        return [f'sase{self._sase}']
 
     @property
     def sase(self) -> int:
@@ -938,8 +956,8 @@ class OpticalLaserPulses(TimeserverPulses):
     def _mask_table(self, table):
         return is_laser(table, self._ppl_seed)
 
-    def _get_ppdecoder_node(self):
-        return 'laser'
+    def _get_ppdecoder_nodes(self):
+        return ['laser']
 
     @property
     def ppl_seed(self) -> Optional[PPL_BITS]:
@@ -1094,8 +1112,11 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
                 np.flatnonzero(OpticalLaserPulses._mask_table(self, row))
 
     def _iter_ppdecoder_pids(self):
-        fel_node = XrayPulses._get_ppdecoder_node(self)
-        ppl_node = OpticalLaserPulses._get_ppdecoder_node(self)
+        # XrayPulses and OpticalLaserPulses always return a single node,
+        # and there is no use case at the moment to correlate laser and
+        # machine pulses.
+        fel_node = XrayPulses._get_ppdecoder_nodes(self)[0]
+        ppl_node = OpticalLaserPulses._get_ppdecoder_nodes(self)[0]
 
         for (_, fel_ids), (_, fel_num), (_, ppl_ids), (_, ppl_num) in zip(
             self._source[f'{fel_node}.pulseIds'].trains(),
