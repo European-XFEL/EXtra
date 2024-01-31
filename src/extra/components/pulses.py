@@ -9,7 +9,9 @@ import re
 
 import numpy as np
 
-from euxfel_bunch_pattern import PPL_BITS, is_sase, is_laser
+from euxfel_bunch_pattern import is_sase, is_laser, \
+    PPL_BITS, DESTINATION_TLD, DESTINATION_T4D, DESTINATION_T5D, \
+    PHOTON_LINE_DEFLECTION
 from extra_data import SourceData, KeyData, by_id
 
 from .utils import identify_sase
@@ -28,7 +30,8 @@ except ImportError:
         return zip(a, b)
 
 
-__all__ = ['XrayPulses', 'OpticalLaserPulses', 'PumpProbePulses', 'DldPulses']
+__all__ = ['XrayPulses', 'OpticalLaserPulses', 'MachinePulses',
+           'PumpProbePulses', 'DldPulses']
 
 
 def _drop_first_level(pd_val):
@@ -963,6 +966,106 @@ class OpticalLaserPulses(TimeserverPulses):
     def ppl_seed(self) -> Optional[PPL_BITS]:
         """Used laser seed."""
         return self._ppl_seed
+
+
+class MachinePulses(TimeserverPulses):
+    """An interface to machine pulses and other bunch pattern data.
+
+    The bunch pattern table contains much more information than just the
+    pulses of each SASE beamline or the optical laser systems, in
+    particular about the upstream electron systems.
+
+    This component is configurable to extract any information from the
+    bunch pattern table beyond the X-ray or optical laser pulses. By
+    default, it considers all generated electron bunches by combining
+    the various electron dumps along the accelerator. Please consult the
+    XFEL Timing System Specification for the various mask bits used.
+
+    Note that the full range of bunch pattern table information is only
+    available when used with timeserver data. The pulse pattern decoder
+    data only contains information about those pulses in the main dump
+    and SASE dumps.
+
+    Args:
+        data (extra.data.DataCollection): Data to access bunch pattern
+            data from.
+        source (str, optional): Source name of a timeserver or pulse
+            pattern decoder, only needed if the data includes more than
+            one such device or none could not be detected automatically.
+        mask (int, optional): Custom mask into the bunch pattern table,
+            by default all electron dumps are used. When initialized
+            with ppdecoder data, only the main and SASE dumps are
+            supported.
+        require_all_bits (bool, optional): Whether to consider entries
+            having any or all of the bits specified by mask, False by
+            default. Only supported when initialized with timeserver data.
+    """
+
+    #                main              SA1/SA3           SA2
+    _all_dumps = DESTINATION_TLD | DESTINATION_T4D | DESTINATION_T5D
+
+    #                                     SA3 kicker
+    _ppdecoder_allowed = _all_dumps | PHOTON_LINE_DEFLECTION
+
+    def __init__(self, data, source=None, mask=_all_dumps,
+                 require_all_bits=False):
+        super().__init__(data, source)
+
+        self._require_all_bits = require_all_bits
+
+        if not self._with_timeserver:
+            # Support with ppdecoder data is limited.
+
+            if self._require_all_bits:
+                # TimeserverPulses hardcodes `or` for now.
+                raise ValueError('require_all_bits may be not be used with '
+                                 'ppdecoder data')
+
+            elif (mask | self._ppdecoder_allowed) != self._ppdecoder_allowed:
+                # Data only contains certain bits.
+                raise ValueError('mask may only contain main or SASE dumps'
+                                 'when initialized with ppdecoder data')
+
+        if isinstance(mask, np.integer):
+            # Avoid any of the numpy integer types, as some like uint64
+            # can do unexpected things.
+            mask = int(mask)
+        elif not isinstance(mask, int):
+            raise TypeError('mask must be an integer')
+
+        self._mask = mask
+
+    def __repr__(self):
+        active_bits = np.flatnonzero([(self._mask & (1 << i)) > 0
+                                      for i in range(32)])
+
+        if len(active_bits) == 1:
+            return super().__repr__(f'for bit {active_bits[0]}')
+        else:
+            return super().__repr__('for bits ' + (
+                '&' if self._require_all_bits else '|'
+            ).join(active_bits.astype(str)))
+
+    def _mask_table(self, table):
+        if not self._require_all_bits:
+            return (table & self._mask) > 0
+        else:
+            return (table & self._mask) == self._mask
+
+    def _get_ppdecoder_nodes(self):
+        nodes = []
+
+        if (self._mask & DESTINATION_TLD) == DESTINATION_TLD:
+            nodes.append('maindump')
+
+        if (self._mask & DESTINATION_T4D) == DESTINATION_T4D:
+            nodes.append('sase1')
+            nodes.append('sase3')
+
+        if (self._mask & DESTINATION_T5D) == DESTINATION_T5D:
+            nodes.append('sase2')
+
+        return nodes
 
 
 class PumpProbePulses(XrayPulses, OpticalLaserPulses):
