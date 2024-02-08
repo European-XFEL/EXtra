@@ -22,7 +22,7 @@ def calcat_client():
         'https://in.xfel.eu/calibration',
         client_id=client_id,
         client_secret=client_secret,
-        user_email='thomas.kluyver@xfel.eu'
+        user_email='readonly@example.com'
     )
 
 
