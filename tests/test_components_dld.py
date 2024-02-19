@@ -44,7 +44,7 @@ def test_dld_init(mock_sqs_remi_run):
                          ids=['channelIndex', 'channelColumn'])
 def test_dld_edges(mock_sqs_remi_run, pulse_dim, channel_index):
     dld = DelayLineDetector(mock_sqs_remi_run, 'SQS_REMI_DLD6/DET/TOP')
-    edges = dld.get_edges(channel_index=channel_index, pulse_dim=pulse_dim)
+    edges = dld.edges(channel_index=channel_index, pulse_dim=pulse_dim)
 
     # There should be 28 edges per pulse.
     assert np.all(edges.groupby(['trainId', pulse_dim]).count() == 28)
@@ -67,7 +67,7 @@ def test_dld_df(mock_sqs_remi_run, key, pulse_dim):
     dtype = getattr(dld_mockdata, f'{key}_dt')
 
     dld = DelayLineDetector(mock_sqs_remi_run, 'SQS_REMI_DLD6/DET/TOP')
-    df = getattr(dld, f'get_{key}s')(pulse_dim)
+    df = getattr(dld, f'{key}s')(pulse_dim)
 
     assert (df.columns == list(dtype.names)).all()
     assert df.index.names == [
@@ -82,20 +82,20 @@ def test_dld_df(mock_sqs_remi_run, key, pulse_dim):
 def test_dld_pulse_align(mock_sqs_remi_run):
     run = mock_sqs_remi_run.select('*/DET/TOP*')
     dld = DelayLineDetector(run)
-    pulses = dld.get_pulses()
-    all_hits = dld.get_hits()
+    pulses = dld.pulses()
+    all_hits = dld.hits()
 
     # Only trains with no pulses.
     dld = DelayLineDetector(run.select_trains(np.s_[:1]))
-    assert dld.get_hits().empty
-    assert dld.get_edges().empty
+    assert dld.hits().empty
+    assert dld.edges().empty
 
     # Less trains for pulse information.
     dld = DelayLineDetector(run, pulses=pulses.select_trains(np.s_[:50]))
     with pytest.raises(ValueError):
-        dld.get_hits()
+        dld.hits()
 
     # Less trains for detector data.
     dld = DelayLineDetector(run.select_trains(np.s_[:50]), pulses=pulses)
-    hits = dld.get_hits()
+    hits = dld.hits()
     pd.testing.assert_frame_equal(hits, all_hits.loc[np.r_[10002:10050], :])
