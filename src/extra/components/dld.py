@@ -40,7 +40,7 @@ class DelayLineDetector:
         self._pulses = pulses
 
         if self._pulses is None:
-            self._pulses = self.get_pulses()
+            self._pulses = self.pulses()
 
     def __repr__(self):
         return "<{} {}>".format(
@@ -107,7 +107,7 @@ class DelayLineDetector:
             empty_pd = pd_cls(np.zeros(0, dtype=kd.dtype))
             return [empty_pd] if split_axis is not None else empty_pd
 
-        pulse_counts = self._pulses.get_pulse_counts()
+        pulse_counts = self._pulses.pulse_counts()
 
         # Merge both counts in a dataframe joined over train ID.
         entry_counts = pd.merge(
@@ -135,7 +135,7 @@ class DelayLineDetector:
         else:
             pulses = self._pulses
 
-        pulse_index = pulses.get_pulse_index(pulse_dim)
+        pulse_index = pulses.build_pulse_index(pulse_dim)
         data = kd.ndarray()
 
         if split_axis is None:
@@ -215,7 +215,7 @@ class DelayLineDetector:
 
         return new_self
 
-    def get_pulses(self):
+    def pulses(self):
         """Get pulse object based on internal triggers.
 
         Returns:
@@ -230,7 +230,7 @@ class DelayLineDetector:
 
         return DldPulses(self._instrument_src)
 
-    def get_triggers(self):
+    def triggers(self):
         """Get triggers as dataframe.
 
         Returns:
@@ -238,9 +238,9 @@ class DelayLineDetector:
                 dataframe.
         """
 
-        return self.get_pulses().get_triggers()
+        return self.pulses().triggers()
 
-    def get_edges(self, channel_index=True, pulse_dim='pulseId'):
+    def edges(self, channel_index=True, pulse_dim='pulseId'):
         """Get raw edges as series or dataframe.
 
         Args:
@@ -275,7 +275,7 @@ class DelayLineDetector:
         else:
             return edges
 
-    def get_signals(self, pulse_dim='pulseId'):
+    def signals(self, pulse_dim='pulseId'):
         """Get reconstructed signals as dataframe.
 
         Args:
@@ -289,7 +289,7 @@ class DelayLineDetector:
         return self._get_reduced_pd(
             'rec.signals', pulse_dim, 'signalIndex', None)
 
-    def get_hits(self, pulse_dim='pulseId'):
+    def hits(self, pulse_dim='pulseId'):
         """Get reconstructed hits as dataframe.
 
         Args:
