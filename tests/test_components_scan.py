@@ -68,9 +68,32 @@ def test_scan(mock_spb_aux_run):
     # This should not throw, and should not detect any steps
     assert len(Scan(motor_slice).steps) == 0
 
+    # Test scan binning with some fake data
+    s, _ = Scan._mkscan(20)
+    data = xr.DataArray(np.random.rand(len(s._input_pos.trainId)),
+                        name="fake-data",
+                        dims=("trainId",),
+                        coords=dict(trainId=s._input_pos.trainId))
+
+    binned_data = s.bin_by_steps(data, uncertainty_method="stderr")
+    assert len(binned_data) == 20
+    assert set(binned_data.coords.keys()) == {"position", "uncertainty", "counts"}
+    assert binned_data.name == data.name
+    assert binned_data.attrs["motor"] == s.name
+
+    # Only 'std' and 'stderr' should be accepted as uncertainty methods
+    with pytest.raises(ValueError):
+        s.bin_by_steps(data, uncertainty_method="foo")
+
+    # Remove some trains from `data` to make sure they aren't used while binning
+    data_sel = data.sel(trainId=data.trainId[:-5])
+    # This should not throw an exception
+    s.bin_by_steps(data_sel)
+
     # Smoke tests
     s.plot()
     s._plot_resolution_data()
     repr(s)
     s.format()
     s.info()
+    s.plot_bin_by_steps(data)
