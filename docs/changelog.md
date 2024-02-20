@@ -6,37 +6,45 @@
 # Changelog
 
 ## [Unreleased]
+
+!!! note
+    All of the changes here are deployed to our current environment, even though
+    a release hasn't been made for them yet. If you want to have these updates
+    in a personal environment you'll need to install the package from git.
+
+    ```bash title="Installation command"
+    pip install git+https://github.com/European-XFEL/EXtra.git
+    ```
+
 Added:
 
-- `pulse_periods()`, `pulse_repetition_rates()` and `train_durations()` methods to obtain statistics about the pulses in all `PulsePattern`-based components
-
-<!-- !!! note -->
-<!--     All of the changes here are deployed to our current environment, even though -->
-<!--     a release hasn't been made for them yet. If you want to have these updates -->
-<!--     in a personal environment you'll need to install the package from git. -->
-
-<!--     ```bash title="Installation command" -->
-<!--     pip install git+https://github.com/European-XFEL/EXtra.git -->
-<!--     ``` -->
+- Implemented [Scan.bin_by_steps()][extra.components.Scan.bin_by_steps] and
+  [Scan.plot_bin_by_steps()][extra.components.Scan.plot_bin_by_steps] to help
+  with averaging data over scan steps (!124).
+- `pulse_periods()`, `pulse_repetition_rates()` and `train_durations()` methods
+  to obtain statistics about the pulses in all [pulse
+  pattern](components/pulse-patterns.md) components (!114).
 
 ## [2024.1]
 Added:
 
 - An [XGM][extra.components.XGM] component to access XGM devices (!53).
-- [PumpProbePulses][extra.components.PumpProbePulses] to combine X-ray and optical laser pulses in a single pattern (!24).
+- [PumpProbePulses][extra.components.PumpProbePulses] to combine X-ray and
+  optical laser pulses in a single pattern (!24).
 - The [Scan][extra.components.Scan] component to automatically detect steps
   within a motor scan (!4).
-- [DldPulses][extra.components.DldPulses] to access pulse information saved during delay line detector event reconstruction (!42).
-- The helper function [imshow2][extra.utils.imshow2] to provide good defaults when
-  plotting images (!38).
+- [DldPulses][extra.components.DldPulses] to access pulse information saved
+  during delay line detector event reconstruction (!42).
+- The helper function [imshow2][extra.utils.imshow2] to provide good defaults
+  when plotting images (!38).
 
 Changed:
 
 - The `get_` prefix was deprecated for some method names in the [pulse pattern
   components](components/pulse-patterns.md) (!106).
 - All methods in [XrayPulses][extra.components.XrayPulses] and
-  [OpticalLaserPulses][extra.components.OpticalLaserPulses] now support labelled results
-  and default to it (!40).
+  [OpticalLaserPulses][extra.components.OpticalLaserPulses] now support labelled
+  results and default to it (!40).
 - [Scantool][extra.components.Scantool]'s `__repr__()` functionality to print
   information was moved to [Scantool.info()][extra.components.Scantool.info]
   (!29).
