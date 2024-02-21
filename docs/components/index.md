@@ -13,4 +13,5 @@ Component index:
 - [Pulse patterns](pulse-patterns.md)
     - [XrayPulses][extra.components.XrayPulses]
     - [OpticalLaserPulses][extra.components.OpticalLaserPulses]
+    - [PumpProbePulses][extra.components.PumpProbePulses]
     - [DldPulses][extra.components.DldPulses]
