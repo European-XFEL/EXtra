@@ -3,7 +3,6 @@ import os
 import pytest
 
 from extra.calibration import (
-    setup_client,
     AGIPDConditions,
     CalibrationData,
     DSSCConditions,
@@ -13,21 +12,14 @@ from extra.calibration import (
 
 
 @pytest.fixture(scope="module")
-def calcat_client():
-    if not (oauth_creds := os.environ.get('CALCAT_OAUTH_CREDS')):
-        pytest.skip("no credentials to talk to CalCat")
-
-    client_id, client_secret = oauth_creds.split('//')
-    setup_client(
-        'https://in.xfel.eu/calibration',
-        client_id=client_id,
-        client_secret=client_secret,
-        user_email='readonly@example.com'
-    )
+def vcr_config():
+    # This shouldn't be necessary if we record requests to exflcalproxy,
+    # but it's here as an extra line of defence in case we record with Oauth.
+    return {"filter_headers": ["authorization"]}
 
 
-
-def test_AGIPD_CalibrationData_metadata(calcat_client):
+@pytest.mark.vcr
+def test_AGIPD_CalibrationData_metadata():
     """Test CalibrationData with AGIPD condition"""
     cond = AGIPDConditions(
         # From: https://in.xfel.eu/calibration/calibration_constants/5754#condition
@@ -52,7 +44,8 @@ def test_AGIPD_CalibrationData_metadata(calcat_client):
     assert agipd_cd["Offset", "Q1M2"] == agipd_cd["Offset", "AGIPD01"]
 
 
-def test_AGIPD_merge(calcat_client):
+@pytest.mark.vcr
+def test_AGIPD_merge():
     cond = AGIPDConditions(
         # From: https://in.xfel.eu/calibration/calibration_constants/5754#condition
         sensor_bias_voltage=300,  # V
@@ -86,7 +79,8 @@ def test_AGIPD_merge(calcat_client):
     assert merged_cals.module_nums == list(range(16))
 
 
-def test_AGIPD_CalibrationData_metadata_SPB(calcat_client):
+@pytest.mark.vcr
+def test_AGIPD_CalibrationData_metadata_SPB():
     """Test CalibrationData with AGIPD condition"""
     cond = AGIPDConditions(
         sensor_bias_voltage=300,
@@ -111,7 +105,8 @@ def test_AGIPD_CalibrationData_metadata_SPB(calcat_client):
     assert isinstance(agipd_cd["Offset", 0], SingleConstant)
 
 
-def test_DSSC_modules_missing(calcat_client):
+@pytest.mark.vcr
+def test_DSSC_modules_missing():
     dssc_cd = CalibrationData.from_condition(
         DSSCConditions(sensor_bias_voltage=100, memory_cells=600),
         "SQS_DET_DSSC1M-1",
@@ -140,7 +135,8 @@ def test_DSSC_modules_missing(calcat_client):
     assert dssc_cd.select_modules(qm_names=qm_q3).module_nums == modnos_q3
 
 
-def test_LPD_constant_missing(calcat_client):
+@pytest.mark.vcr
+def test_LPD_constant_missing():
     lpd_cd = CalibrationData.from_condition(
         LPDConditions(memory_cells=200, sensor_bias_voltage=250),
         "FXE_DET_LPD1M-1",
@@ -160,7 +156,8 @@ def test_LPD_constant_missing(calcat_client):
     assert lpd_cd.require_calibrations(["Offset"]).module_nums == modnos_w_constant
 
 
-def test_AGIPD_CalibrationData_report(calcat_client):
+@pytest.mark.vcr
+def test_AGIPD_CalibrationData_report():
     """Test CalibrationData with data from report"""
     # Report ID: https://in.xfel.eu/calibration/reports/3757
     agipd_cd = CalibrationData.from_report(3757)
