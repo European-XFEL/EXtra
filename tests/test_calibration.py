@@ -12,6 +12,10 @@ from extra.calibration import (
     SingleConstant,
 )
 
+# These tests all use saved HTTP responses by default (with pytest-recording).
+# To ignore these & use exflcalproxy, run pytest with the --disable-recording flag.
+# To update the saved cassettes from exflcalproxy, pass --record-mode=rewrite.
+
 
 def drop_cookie_header(response):
     response['headers'].pop('Set-Cookie', None)
