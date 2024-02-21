@@ -147,7 +147,6 @@ class Scan:
 
         Example plot:
         ![](../images/scan-plot.png)
-
         """
         if ax is None:
             import matplotlib.pyplot as plt
@@ -160,6 +159,107 @@ class Scan:
         ax.set_xlabel("Train ID")
         ax.set_title(f"Scan over {self.name} with {len(self.steps)} steps")
         ax.legend()
+
+        return ax
+
+    def bin_by_steps(self, data, uncertainty_method="std"):
+        """Average train-resolved data within each scan step.
+
+        This will return a [DataArray][xarray.DataArray] containing the averaged
+        value of `data` over each step in the scan, along with `position`,
+        `counts`, and `uncertainty` coordinates containing the
+        position/counts/uncertainty for each step. The `.name` property will be
+        set to `data.name`, and the following attributes will be set:
+
+        - `motor`: `scan.name`
+        - `uncertainty_method`: the `uncertainty_method` that was passed,
+          indicating either the standard deviation or standard error.
+
+        Args:
+            data (xarray.DataArray): A train-resolved (i.e. with a `trainId`
+                coordinate) array to bin.
+            uncertainty_method (str): Can be set to `std` to use the standard
+                deviation (i.e. the 1-sigma region) or `stderr` to use the
+                [standard error](https://en.wikipedia.org/wiki/Standard_error).
+        """
+        import xarray as xr
+        if not isinstance(data, xr.DataArray) or "trainId" not in data.coords:
+            raise TypeError("Input must be a DataArray with a `trainId` coordinate")
+        elif uncertainty_method != "std" and uncertainty_method != "stderr":
+            raise ValueError(f"`uncertainty_method` must be either 'std' or 'stderr', not: {uncertainty_method}")
+
+        common_tids = [np.intersect1d(tids, data.trainId)
+                       for tids in self.positions_train_ids]
+
+        counts = np.array([len(tids) for tids in common_tids])
+        signal = np.array([data.sel(trainId=tids).mean().item()
+                           for tids in common_tids])
+        uncertainty = np.array([data.sel(trainId=tids).std().item()
+                          for tids in common_tids])
+        if uncertainty_method == "stderr":
+            uncertainty /= np.sqrt(counts)
+
+        return xr.DataArray(signal, dims=("position",),
+                            coords={"position": ("position", self.positions),
+                                    "uncertainty": ("position", uncertainty),
+                                    "counts": ("position", counts)},
+                            name=data.name,
+                            attrs={
+                                "motor": self.name,
+                                "uncertainty_method": uncertainty_method
+                            })
+
+    def plot_bin_by_steps(self, data, uncertainty_method="std",
+                          title=None, xlabel=None, ylabel=None,
+                          ax=None, figsize=(9, 5)):
+        """Plot step-averaged data.
+
+        This calls [Scan.bin_by_steps()][extra.components.Scan.bin_by_steps] and
+        plots the result. Note that while it's possible to explicitly specify
+        the title/xlabel/ylabel, it's recommended to set `data.name` and
+        `scan.name` and let the plot settings be inferred automatically.
+
+        Example plot with `data.name == "ROI intensity"` and `scan.name ==
+        "Theta"`:
+        ![](../images/scan-plot-bin-by-steps.png)
+
+        Args:
+            data (xarray.DataArray): A train-resolved array to pass to
+                [Scan.bin_by_steps()][extra.components.Scan.bin_by_steps].
+            uncertainty_method (str): Same as in
+                [Scan.bin_by_steps()][extra.components.Scan.bin_by_steps].
+            title (str): The title of the plot.
+            xlabel (str): The xlabel of the plot.
+            ylabel (str): The ylabel of the plot.
+            ax (matplotlib.axes.Axes): The axes to plot on. A figure will be
+                created if this is not set.
+            figsize (tuple): The figure size. Only used if `ax=None`.
+
+        """
+        if ax is None:
+            import matplotlib.pyplot as plt
+            _, ax = plt.subplots(figsize=figsize)
+
+        binned_data = self.bin_by_steps(data)
+
+        uncertainty_label = "standard deviation" if uncertainty_method == "std" else "standard error"
+        ax.plot(binned_data.position, binned_data, "-o", markersize=4, label=f"Uncertainty: {uncertainty_label}")
+        ax.fill_between(binned_data.position,
+                        binned_data - binned_data.uncertainty,
+                        binned_data + binned_data.uncertainty,
+                        alpha=0.5)
+        ax.grid()
+        ax.set_xlabel(self.name)
+
+        if binned_data.name is not None:
+            ax.set_ylabel(binned_data.name)
+            yaxis = binned_data.name
+        else:
+            ax.set_ylabel("Signal [arb. u.]")
+            yaxis = "Signal"
+
+        ax.legend()
+        ax.set_title(f"{yaxis} vs {self.name}")
 
         return ax
 
