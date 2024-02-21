@@ -11,11 +11,19 @@ from extra.calibration import (
 )
 
 
+def drop_cookie_header(response):
+    response['headers'].pop('Set-Cookie', None)
+    return response
+
+
 @pytest.fixture(scope="module")
 def vcr_config():
-    # This shouldn't be necessary if we record requests to exflcalproxy,
-    # but it's here as an extra line of defence in case we record with Oauth.
-    return {"filter_headers": ["authorization"]}
+    # These shouldn't be necessary, but are here as an extra layer to prevent
+    # recording potential credentials.
+    return {
+        "filter_headers": ["authorization"],
+        "before_record_response": drop_cookie_header,
+    }
 
 
 @pytest.mark.vcr

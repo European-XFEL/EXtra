@@ -1,0 +1,614 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate, br
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.31.0
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/detectors?identifier=FXE_DET_LPD1M-1
+  response:
+    body:
+      string: '[{"id":7,"name":"FXE_DET_LPD1M-1","identifier":"FXE_DET_LPD1M-1","karabo_name":"FXE_DET_LPD1M-1","karabo_id_control":"NA","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":6,"detector_id":7},{"instrument_id":7,"detector_id":7}]}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '339'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 21 Feb 2024 16:40:41 GMT
+      Etag:
+      - W/"de3e8e6bee77b5815fc34cf417c7c179"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 492347ec-9be2-4cb3-9549-c6ee52ff1e27
+      X-Runtime:
+      - '0.029205'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate, br
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.31.0
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=7&pdu_snapshot_at=2022-05-22T02%3A00%3A00
+  response:
+    body:
+      string: '[{"id":78,"physical_name":"LPD_SIV1_LPDV2_SM015","karabo_da":"LPD00","virtual_device_name":"Q1M1","uuid":202001600000,"float_uuid":9.9802050965e-313,"detector_type_id":1,"detector_id":7,"module_number":null,"flg_available":true,"description":null,"detector":{"id":7,"name":"FXE_DET_LPD1M-1","identifier":"FXE_DET_LPD1M-1","karabo_name":"FXE_DET_LPD1M-1","karabo_id_control":"NA","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":1,"name":"LPD-Type","flg_available":true,"description":null}},{"id":75,"physical_name":"LPD_SIV1_LPDV2_SM012","karabo_da":"LPD01","virtual_device_name":"Q1M2","uuid":202001300000,"float_uuid":9.98019027453e-313,"detector_type_id":1,"detector_id":7,"module_number":null,"flg_available":true,"description":null,"detector":{"id":7,"name":"FXE_DET_LPD1M-1","identifier":"FXE_DET_LPD1M-1","karabo_name":"FXE_DET_LPD1M-1","karabo_id_control":"NA","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":1,"name":"LPD-Type","flg_available":true,"description":null}},{"id":74,"physical_name":"LPD_SIV1_LPDV2_SM011","karabo_da":"LPD02","virtual_device_name":"Q1M3","uuid":202001200000,"float_uuid":9.98018533387e-313,"detector_type_id":1,"detector_id":7,"module_number":null,"flg_available":true,"description":null,"detector":{"id":7,"name":"FXE_DET_LPD1M-1","identifier":"FXE_DET_LPD1M-1","karabo_name":"FXE_DET_LPD1M-1","karabo_id_control":"NA","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":1,"name":"LPD-Type","flg_available":true,"description":null}},{"id":77,"physical_name":"LPD_SIV1_LPDV2_SM014","karabo_da":"LPD03","virtual_device_name":"Q1M4","uuid":202001500000,"float_uuid":9.98020015584e-313,"detector_type_id":1,"detector_id":7,"module_number":null,"flg_available":true,"description":null,"detector":{"id":7,"name":"FXE_DET_LPD1M-1","identifier":"FXE_DET_LPD1M-1","karabo_name":"FXE_DET_LPD1M-1","karabo_id_control":"NA","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":1,"name":"LPD-Type","flg_available":true,"description":null}},{"id":170,"physical_name":"LPD_SM-2021-003","karabo_da":"LPD04","virtual_device_name":"Q2M1","uuid":202001800000,"float_uuid":9.9802149778e-313,"detector_type_id":1,"detector_id":7,"module_number":null,"flg_available":true,"description":null,"detector":{"id":7,"name":"FXE_DET_LPD1M-1","identifier":"FXE_DET_LPD1M-1","karabo_name":"FXE_DET_LPD1M-1","karabo_id_control":"NA","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":1,"name":"LPD-Type","flg_available":true,"description":null}},{"id":66,"physical_name":"LPD_SIV1_LPDV2_SM003","karabo_da":"LPD05","virtual_device_name":"Q2M2","uuid":202000400000,"float_uuid":9.9801458086e-313,"detector_type_id":1,"detector_id":7,"module_number":null,"flg_available":true,"description":null,"detector":{"id":7,"name":"FXE_DET_LPD1M-1","identifier":"FXE_DET_LPD1M-1","karabo_name":"FXE_DET_LPD1M-1","karabo_id_control":"NA","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":1,"name":"LPD-Type","flg_available":true,"description":null}},{"id":171,"physical_name":"LPD_SM-2021-002","karabo_da":"LPD06","virtual_device_name":"Q2M3","uuid":202001900000,"float_uuid":9.98021991847e-313,"detector_type_id":1,"detector_id":7,"module_number":null,"flg_available":true,"description":null,"detector":{"id":7,"name":"FXE_DET_LPD1M-1","identifier":"FXE_DET_LPD1M-1","karabo_name":"FXE_DET_LPD1M-1","karabo_id_control":"NA","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":1,"name":"LPD-Type","flg_available":true,"description":null}},{"id":65,"physical_name":"LPD_SIV1_LPDV2_SM002","karabo_da":"LPD07","virtual_device_name":"Q2M4","uuid":202000300000,"float_uuid":9.98014086796e-313,"detector_type_id":1,"detector_id":7,"module_number":null,"flg_available":true,"description":null,"detector":{"id":7,"name":"FXE_DET_LPD1M-1","identifier":"FXE_DET_LPD1M-1","karabo_name":"FXE_DET_LPD1M-1","karabo_id_control":"NA","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":1,"name":"LPD-Type","flg_available":true,"description":null}},{"id":72,"physical_name":"LPD_SIV1_LPDV2_SM009","karabo_da":"LPD08","virtual_device_name":"Q3M1","uuid":202001000000,"float_uuid":9.98017545256e-313,"detector_type_id":1,"detector_id":7,"module_number":null,"flg_available":true,"description":null,"detector":{"id":7,"name":"FXE_DET_LPD1M-1","identifier":"FXE_DET_LPD1M-1","karabo_name":"FXE_DET_LPD1M-1","karabo_id_control":"NA","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":1,"name":"LPD-Type","flg_available":true,"description":null}},{"id":69,"physical_name":"LPD_SIV1_LPDV2_SM006","karabo_da":"LPD09","virtual_device_name":"Q3M2","uuid":202000700000,"float_uuid":9.9801606306e-313,"detector_type_id":1,"detector_id":7,"module_number":null,"flg_available":true,"description":null,"detector":{"id":7,"name":"FXE_DET_LPD1M-1","identifier":"FXE_DET_LPD1M-1","karabo_name":"FXE_DET_LPD1M-1","karabo_id_control":"NA","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":1,"name":"LPD-Type","flg_available":true,"description":null}},{"id":70,"physical_name":"LPD_SIV1_LPDV2_SM007","karabo_da":"LPD10","virtual_device_name":"Q3M3","uuid":202000800000,"float_uuid":9.98016557124e-313,"detector_type_id":1,"detector_id":7,"module_number":null,"flg_available":true,"description":null,"detector":{"id":7,"name":"FXE_DET_LPD1M-1","identifier":"FXE_DET_LPD1M-1","karabo_name":"FXE_DET_LPD1M-1","karabo_id_control":"NA","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":1,"name":"LPD-Type","flg_available":true,"description":null}},{"id":68,"physical_name":"LPD_SIV1_LPDV2_SM005","karabo_da":"LPD11","virtual_device_name":"Q3M4","uuid":202000600000,"float_uuid":9.98015568993e-313,"detector_type_id":1,"detector_id":7,"module_number":null,"flg_available":true,"description":null,"detector":{"id":7,"name":"FXE_DET_LPD1M-1","identifier":"FXE_DET_LPD1M-1","karabo_name":"FXE_DET_LPD1M-1","karabo_id_control":"NA","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":1,"name":"LPD-Type","flg_available":true,"description":null}},{"id":76,"physical_name":"LPD_SIV1_LPDV2_SM013","karabo_da":"LPD12","virtual_device_name":"Q4M1","uuid":202001400000,"float_uuid":9.9801952152e-313,"detector_type_id":1,"detector_id":7,"module_number":null,"flg_available":true,"description":null,"detector":{"id":7,"name":"FXE_DET_LPD1M-1","identifier":"FXE_DET_LPD1M-1","karabo_name":"FXE_DET_LPD1M-1","karabo_id_control":"NA","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":1,"name":"LPD-Type","flg_available":true,"description":null}},{"id":73,"physical_name":"LPD_SIV1_LPDV2_SM010","karabo_da":"LPD13","virtual_device_name":"Q4M2","uuid":202001100000,"float_uuid":9.9801803932e-313,"detector_type_id":1,"detector_id":7,"module_number":null,"flg_available":true,"description":null,"detector":{"id":7,"name":"FXE_DET_LPD1M-1","identifier":"FXE_DET_LPD1M-1","karabo_name":"FXE_DET_LPD1M-1","karabo_id_control":"NA","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":1,"name":"LPD-Type","flg_available":true,"description":null}},{"id":71,"physical_name":"LPD_SIV1_LPDV2_SM008","karabo_da":"LPD14","virtual_device_name":"Q4M3","uuid":202000900000,"float_uuid":9.9801705119e-313,"detector_type_id":1,"detector_id":7,"module_number":null,"flg_available":true,"description":null,"detector":{"id":7,"name":"FXE_DET_LPD1M-1","identifier":"FXE_DET_LPD1M-1","karabo_name":"FXE_DET_LPD1M-1","karabo_id_control":"NA","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":1,"name":"LPD-Type","flg_available":true,"description":null}},{"id":169,"physical_name":"LPD_SM-2021-001","karabo_da":"LPD15","virtual_device_name":"Q4M4","uuid":202001700000,"float_uuid":9.98021003715e-313,"detector_type_id":1,"detector_id":7,"module_number":null,"flg_available":true,"description":null,"detector":{"id":7,"name":"FXE_DET_LPD1M-1","identifier":"FXE_DET_LPD1M-1","karabo_name":"FXE_DET_LPD1M-1","karabo_id_control":"NA","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":1,"name":"LPD-Type","flg_available":true,"description":null}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '9294'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 21 Feb 2024 16:40:41 GMT
+      Etag:
+      - W/"bbd70dd686080acec837ad246ccb0e34"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 2d0fb6ab-f6f8-48b9-b55a-ea9f24155abf
+      X-Runtime:
+      - '0.516516'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"parameters_conditions_attributes": [{"parameter_name": "Sensor Bias Voltage",
+      "value": "250"}, {"parameter_name": "Memory cells", "value": "200"}, {"parameter_name":
+      "Pixels X", "value": "256"}, {"parameter_name": "Pixels Y", "value": "256"},
+      {"parameter_name": "Feedback capacitor", "value": "5.0"}]}'
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate, br
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '303'
+      User-Agent:
+      - python-requests/2.31.0
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=FXE_DET_LPD1M-1&calibration_id=%5B1%2C+2%2C+14%5D&karabo_da=&event_at=2022-05-22T02%3A00%3A00&pdu_snapshot_at=2022-05-22T02%3A00%3A00
+  response:
+    body:
+      string: '[{"id":135686,"name":"20220628_113205_sIdx=0","file_name":"cal.1656415923.9900053.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm015/","data_set_name":"/LPD_SIV1_LPDV2_SM015/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:32:05.000+02:00","calibration_constant":{"id":19998,"name":"LPD-Type_Offset_LPD
+        DefoDBHQs2kECGASWjHykit+g==\n","detector_type_id":1,"calibration_id":1,"condition_id":6177,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-06-28T13:32:05.000+02:00","updated_at":"2022-06-28T13:32:05.000+02:00"},"physical_detector_unit":{"id":78,"physical_name":"LPD_SIV1_LPDV2_SM015","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:28:37.000+02:00","updated_at":"2021-01-12T10:33:12.000+01:00","karabo_da":"LPD00","detector_id":7,"virtual_device_name":"Q1M1","uuid":202001600000,"float_uuid":9.9802050965e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD00","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q1M1","module_number_at_ccv_begin_at":null}},{"id":135694,"name":"20220628_113212_sIdx=0","file_name":"cal.1656415931.3233728.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm015/","data_set_name":"/LPD_SIV1_LPDV2_SM015/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:32:12.000+02:00","calibration_constant":{"id":20006,"name":"LPD-Type_Noise_LPD
+        DefoDBHQs2kECGASWjHykit+g==\n","detector_type_id":1,"calibration_id":2,"condition_id":6177,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-06-28T13:32:12.000+02:00","updated_at":"2022-06-28T13:32:12.000+02:00"},"physical_detector_unit":{"id":78,"physical_name":"LPD_SIV1_LPDV2_SM015","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:28:37.000+02:00","updated_at":"2021-01-12T10:33:12.000+01:00","karabo_da":"LPD00","detector_id":7,"virtual_device_name":"Q1M1","uuid":202001600000,"float_uuid":9.9802050965e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD00","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q1M1","module_number_at_ccv_begin_at":null}},{"id":135701,"name":"20220628_113220_sIdx=0","file_name":"cal.1656415938.9427009.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm015/","data_set_name":"/LPD_SIV1_LPDV2_SM015/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:32:20.000+02:00","calibration_constant":{"id":20013,"name":"LPD-Type_BadPixelsDark_LPD
+        DefoDBHQs2kECGASWjHykit+g==\n","detector_type_id":1,"calibration_id":14,"condition_id":6177,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-06-28T13:32:20.000+02:00","updated_at":"2022-06-28T13:32:20.000+02:00"},"physical_detector_unit":{"id":78,"physical_name":"LPD_SIV1_LPDV2_SM015","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:28:37.000+02:00","updated_at":"2021-01-12T10:33:12.000+01:00","karabo_da":"LPD00","detector_id":7,"virtual_device_name":"Q1M1","uuid":202001600000,"float_uuid":9.9802050965e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD00","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q1M1","module_number_at_ccv_begin_at":null}},{"id":135683,"name":"20220628_113203_sIdx=0","file_name":"cal.1656415921.676667.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm012/","data_set_name":"/LPD_SIV1_LPDV2_SM012/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:32:03.000+02:00","calibration_constant":{"id":19995,"name":"LPD-Type_Offset_LPD
+        DefpO75aeBlilGlTaDyP/VAyg==\n","detector_type_id":1,"calibration_id":1,"condition_id":6174,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-06-28T13:32:03.000+02:00","updated_at":"2022-06-28T13:32:03.000+02:00"},"physical_detector_unit":{"id":75,"physical_name":"LPD_SIV1_LPDV2_SM012","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:28:18.000+02:00","updated_at":"2021-01-12T10:33:13.000+01:00","karabo_da":"LPD01","detector_id":7,"virtual_device_name":"Q1M2","uuid":202001300000,"float_uuid":9.98019027453e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD01","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q1M2","module_number_at_ccv_begin_at":null}},{"id":135691,"name":"20220628_113211_sIdx=0","file_name":"cal.1656415929.4701111.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm012/","data_set_name":"/LPD_SIV1_LPDV2_SM012/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:32:11.000+02:00","calibration_constant":{"id":20002,"name":"LPD-Type_Noise_LPD
+        DefpO75aeBlilGlTaDyP/VAyg==\n","detector_type_id":1,"calibration_id":2,"condition_id":6174,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-06-28T13:32:10.000+02:00","updated_at":"2022-06-28T13:32:10.000+02:00"},"physical_detector_unit":{"id":75,"physical_name":"LPD_SIV1_LPDV2_SM012","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:28:18.000+02:00","updated_at":"2021-01-12T10:33:13.000+01:00","karabo_da":"LPD01","detector_id":7,"virtual_device_name":"Q1M2","uuid":202001300000,"float_uuid":9.98019027453e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD01","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q1M2","module_number_at_ccv_begin_at":null}},{"id":135698,"name":"20220628_113219_sIdx=0","file_name":"cal.1656415937.7118363.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm012/","data_set_name":"/LPD_SIV1_LPDV2_SM012/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:32:19.000+02:00","calibration_constant":{"id":20010,"name":"LPD-Type_BadPixelsDark_LPD
+        DefpO75aeBlilGlTaDyP/VAyg==\n","detector_type_id":1,"calibration_id":14,"condition_id":6174,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-06-28T13:32:18.000+02:00","updated_at":"2022-06-28T13:32:18.000+02:00"},"physical_detector_unit":{"id":75,"physical_name":"LPD_SIV1_LPDV2_SM012","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:28:18.000+02:00","updated_at":"2021-01-12T10:33:13.000+01:00","karabo_da":"LPD01","detector_id":7,"virtual_device_name":"Q1M2","uuid":202001300000,"float_uuid":9.98019027453e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD01","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q1M2","module_number_at_ccv_begin_at":null}},{"id":135687,"name":"20220628_113205_sIdx=0","file_name":"cal.1656415924.0667198.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm011/","data_set_name":"/LPD_SIV1_LPDV2_SM011/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:32:05.000+02:00","calibration_constant":{"id":19999,"name":"LPD-Type_Offset_LPD
+        DefdBNBDHBWZm3mx5kO9GS99w==\n","detector_type_id":1,"calibration_id":1,"condition_id":6178,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-06-28T13:32:05.000+02:00","updated_at":"2022-06-28T13:32:05.000+02:00"},"physical_detector_unit":{"id":74,"physical_name":"LPD_SIV1_LPDV2_SM011","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:28:11.000+02:00","updated_at":"2021-01-12T10:33:13.000+01:00","karabo_da":"LPD02","detector_id":7,"virtual_device_name":"Q1M3","uuid":202001200000,"float_uuid":9.98018533387e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD02","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q1M3","module_number_at_ccv_begin_at":null}},{"id":135693,"name":"20220628_113212_sIdx=0","file_name":"cal.1656415931.292261.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm011/","data_set_name":"/LPD_SIV1_LPDV2_SM011/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:32:12.000+02:00","calibration_constant":{"id":20005,"name":"LPD-Type_Noise_LPD
+        DefdBNBDHBWZm3mx5kO9GS99w==\n","detector_type_id":1,"calibration_id":2,"condition_id":6178,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-06-28T13:32:12.000+02:00","updated_at":"2022-06-28T13:32:12.000+02:00"},"physical_detector_unit":{"id":74,"physical_name":"LPD_SIV1_LPDV2_SM011","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:28:11.000+02:00","updated_at":"2021-01-12T10:33:13.000+01:00","karabo_da":"LPD02","detector_id":7,"virtual_device_name":"Q1M3","uuid":202001200000,"float_uuid":9.98018533387e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD02","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q1M3","module_number_at_ccv_begin_at":null}},{"id":135700,"name":"20220628_113220_sIdx=0","file_name":"cal.1656415938.959011.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm011/","data_set_name":"/LPD_SIV1_LPDV2_SM011/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:32:20.000+02:00","calibration_constant":{"id":20012,"name":"LPD-Type_BadPixelsDark_LPD
+        DefdBNBDHBWZm3mx5kO9GS99w==\n","detector_type_id":1,"calibration_id":14,"condition_id":6178,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-06-28T13:32:20.000+02:00","updated_at":"2022-06-28T13:32:20.000+02:00"},"physical_detector_unit":{"id":74,"physical_name":"LPD_SIV1_LPDV2_SM011","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:28:11.000+02:00","updated_at":"2021-01-12T10:33:13.000+01:00","karabo_da":"LPD02","detector_id":7,"virtual_device_name":"Q1M3","uuid":202001200000,"float_uuid":9.98018533387e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD02","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q1M3","module_number_at_ccv_begin_at":null}},{"id":135684,"name":"20220628_113203_sIdx=0","file_name":"cal.1656415922.2471757.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm014/","data_set_name":"/LPD_SIV1_LPDV2_SM014/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:32:03.000+02:00","calibration_constant":{"id":19996,"name":"LPD-Type_Offset_LPD
+        DefhSbQncP71y2SnvMsPZRUXQ==\n","detector_type_id":1,"calibration_id":1,"condition_id":6175,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-06-28T13:32:03.000+02:00","updated_at":"2022-06-28T13:32:03.000+02:00"},"physical_detector_unit":{"id":77,"physical_name":"LPD_SIV1_LPDV2_SM014","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:28:30.000+02:00","updated_at":"2021-10-17T04:18:34.000+02:00","karabo_da":"LPD03","detector_id":7,"virtual_device_name":"Q1M4","uuid":202001500000,"float_uuid":9.98020015584e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD03","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q1M4","module_number_at_ccv_begin_at":null}},{"id":135690,"name":"20220628_113211_sIdx=0","file_name":"cal.1656415929.460053.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm014/","data_set_name":"/LPD_SIV1_LPDV2_SM014/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:32:11.000+02:00","calibration_constant":{"id":20003,"name":"LPD-Type_Noise_LPD
+        DefhSbQncP71y2SnvMsPZRUXQ==\n","detector_type_id":1,"calibration_id":2,"condition_id":6175,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-06-28T13:32:10.000+02:00","updated_at":"2022-06-28T13:32:10.000+02:00"},"physical_detector_unit":{"id":77,"physical_name":"LPD_SIV1_LPDV2_SM014","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:28:30.000+02:00","updated_at":"2021-10-17T04:18:34.000+02:00","karabo_da":"LPD03","detector_id":7,"virtual_device_name":"Q1M4","uuid":202001500000,"float_uuid":9.98020015584e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD03","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q1M4","module_number_at_ccv_begin_at":null}},{"id":135697,"name":"20220628_113218_sIdx=0","file_name":"cal.1656415936.864508.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm014/","data_set_name":"/LPD_SIV1_LPDV2_SM014/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:32:18.000+02:00","calibration_constant":{"id":20009,"name":"LPD-Type_BadPixelsDark_LPD
+        DefhSbQncP71y2SnvMsPZRUXQ==\n","detector_type_id":1,"calibration_id":14,"condition_id":6175,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-06-28T13:32:18.000+02:00","updated_at":"2022-06-28T13:32:18.000+02:00"},"physical_detector_unit":{"id":77,"physical_name":"LPD_SIV1_LPDV2_SM014","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:28:30.000+02:00","updated_at":"2021-10-17T04:18:34.000+02:00","karabo_da":"LPD03","detector_id":7,"virtual_device_name":"Q1M4","uuid":202001500000,"float_uuid":9.98020015584e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD03","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q1M4","module_number_at_ccv_begin_at":null}},{"id":135685,"name":"20220628_113204_sIdx=0","file_name":"cal.1656415923.0992877.h5","path_to_file":"xfel/cal/lpd-type/lpd_sm-2021-003/","data_set_name":"/LPD_SM-2021-003/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:32:04.000+02:00","calibration_constant":{"id":19997,"name":"LPD-Type_Offset_LPD
+        DefTH0a10MMpk4D2qYo7L4I3w==\n","detector_type_id":1,"calibration_id":1,"condition_id":6176,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-06-28T13:32:04.000+02:00","updated_at":"2022-06-28T13:32:04.000+02:00"},"physical_detector_unit":{"id":170,"physical_name":"LPD_SM-2021-003","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2021-08-10T13:41:02.000+02:00","updated_at":"2022-05-16T15:16:09.000+02:00","karabo_da":"LPD04","detector_id":7,"virtual_device_name":"Q2M1","uuid":202001800000,"float_uuid":9.9802149778e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD04","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q2M1","module_number_at_ccv_begin_at":null}},{"id":135692,"name":"20220628_113211_sIdx=0","file_name":"cal.1656415930.0107386.h5","path_to_file":"xfel/cal/lpd-type/lpd_sm-2021-003/","data_set_name":"/LPD_SM-2021-003/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:32:11.000+02:00","calibration_constant":{"id":20004,"name":"LPD-Type_Noise_LPD
+        DefTH0a10MMpk4D2qYo7L4I3w==\n","detector_type_id":1,"calibration_id":2,"condition_id":6176,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-06-28T13:32:11.000+02:00","updated_at":"2022-06-28T13:32:11.000+02:00"},"physical_detector_unit":{"id":170,"physical_name":"LPD_SM-2021-003","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2021-08-10T13:41:02.000+02:00","updated_at":"2022-05-16T15:16:09.000+02:00","karabo_da":"LPD04","detector_id":7,"virtual_device_name":"Q2M1","uuid":202001800000,"float_uuid":9.9802149778e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD04","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q2M1","module_number_at_ccv_begin_at":null}},{"id":135699,"name":"20220628_113219_sIdx=0","file_name":"cal.1656415938.1742744.h5","path_to_file":"xfel/cal/lpd-type/lpd_sm-2021-003/","data_set_name":"/LPD_SM-2021-003/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:32:19.000+02:00","calibration_constant":{"id":20011,"name":"LPD-Type_BadPixelsDark_LPD
+        DefTH0a10MMpk4D2qYo7L4I3w==\n","detector_type_id":1,"calibration_id":14,"condition_id":6176,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-06-28T13:32:19.000+02:00","updated_at":"2022-06-28T13:32:19.000+02:00"},"physical_detector_unit":{"id":170,"physical_name":"LPD_SM-2021-003","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2021-08-10T13:41:02.000+02:00","updated_at":"2022-05-16T15:16:09.000+02:00","karabo_da":"LPD04","detector_id":7,"virtual_device_name":"Q2M1","uuid":202001800000,"float_uuid":9.9802149778e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD04","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q2M1","module_number_at_ccv_begin_at":null}},{"id":135688,"name":"20220628_113207_sIdx=0","file_name":"cal.1656415925.5228007.h5","path_to_file":"xfel/cal/lpd-type/lpd_sm-2021-002/","data_set_name":"/LPD_SM-2021-002/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:32:07.000+02:00","calibration_constant":{"id":20000,"name":"LPD-Type_Offset_LPD
+        DefBBINknI2QylLBEHgBoI8aw==\n","detector_type_id":1,"calibration_id":1,"condition_id":6179,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-06-28T13:32:06.000+02:00","updated_at":"2022-06-28T13:32:06.000+02:00"},"physical_detector_unit":{"id":171,"physical_name":"LPD_SM-2021-002","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2021-08-10T13:42:46.000+02:00","updated_at":"2022-05-16T15:16:13.000+02:00","karabo_da":"LPD06","detector_id":7,"virtual_device_name":"Q2M3","uuid":202001900000,"float_uuid":9.98021991847e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD06","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q2M3","module_number_at_ccv_begin_at":null}},{"id":135695,"name":"20220628_113214_sIdx=0","file_name":"cal.1656415933.4532628.h5","path_to_file":"xfel/cal/lpd-type/lpd_sm-2021-002/","data_set_name":"/LPD_SM-2021-002/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:32:15.000+02:00","calibration_constant":{"id":20007,"name":"LPD-Type_Noise_LPD
+        DefBBINknI2QylLBEHgBoI8aw==\n","detector_type_id":1,"calibration_id":2,"condition_id":6179,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-06-28T13:32:14.000+02:00","updated_at":"2022-06-28T13:32:14.000+02:00"},"physical_detector_unit":{"id":171,"physical_name":"LPD_SM-2021-002","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2021-08-10T13:42:46.000+02:00","updated_at":"2022-05-16T15:16:13.000+02:00","karabo_da":"LPD06","detector_id":7,"virtual_device_name":"Q2M3","uuid":202001900000,"float_uuid":9.98021991847e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD06","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q2M3","module_number_at_ccv_begin_at":null}},{"id":135703,"name":"20220628_113222_sIdx=0","file_name":"cal.1656415941.377791.h5","path_to_file":"xfel/cal/lpd-type/lpd_sm-2021-002/","data_set_name":"/LPD_SM-2021-002/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:32:22.000+02:00","calibration_constant":{"id":20015,"name":"LPD-Type_BadPixelsDark_LPD
+        DefBBINknI2QylLBEHgBoI8aw==\n","detector_type_id":1,"calibration_id":14,"condition_id":6179,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-06-28T13:32:22.000+02:00","updated_at":"2022-06-28T13:32:22.000+02:00"},"physical_detector_unit":{"id":171,"physical_name":"LPD_SM-2021-002","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2021-08-10T13:42:46.000+02:00","updated_at":"2022-05-16T15:16:13.000+02:00","karabo_da":"LPD06","detector_id":7,"virtual_device_name":"Q2M3","uuid":202001900000,"float_uuid":9.98021991847e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD06","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q2M3","module_number_at_ccv_begin_at":null}},{"id":135662,"name":"20220628_113128_sIdx=0","file_name":"cal.1656415886.6900792.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm002/","data_set_name":"/LPD_SIV1_LPDV2_SM002/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:28.000+02:00","calibration_constant":{"id":19974,"name":"LPD-Type_Offset_LPD
+        Def54NSmeB+TpfZBEt8yj4Xtw==\n","detector_type_id":1,"calibration_id":1,"condition_id":6169,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-06-28T13:31:27.000+02:00","updated_at":"2022-06-28T13:31:27.000+02:00"},"physical_detector_unit":{"id":65,"physical_name":"LPD_SIV1_LPDV2_SM002","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:27:05.000+02:00","updated_at":"2021-01-12T10:33:13.000+01:00","karabo_da":"LPD07","detector_id":7,"virtual_device_name":"Q2M4","uuid":202000300000,"float_uuid":9.98014086796e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD07","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q2M4","module_number_at_ccv_begin_at":null}},{"id":135670,"name":"20220628_113134_sIdx=0","file_name":"cal.1656415893.541702.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm002/","data_set_name":"/LPD_SIV1_LPDV2_SM002/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:34.000+02:00","calibration_constant":{"id":19982,"name":"LPD-Type_Noise_LPD
+        Def54NSmeB+TpfZBEt8yj4Xtw==\n","detector_type_id":1,"calibration_id":2,"condition_id":6169,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-06-28T13:31:34.000+02:00","updated_at":"2022-06-28T13:31:34.000+02:00"},"physical_detector_unit":{"id":65,"physical_name":"LPD_SIV1_LPDV2_SM002","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:27:05.000+02:00","updated_at":"2021-01-12T10:33:13.000+01:00","karabo_da":"LPD07","detector_id":7,"virtual_device_name":"Q2M4","uuid":202000300000,"float_uuid":9.98014086796e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD07","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q2M4","module_number_at_ccv_begin_at":null}},{"id":135678,"name":"20220628_113141_sIdx=0","file_name":"cal.1656415900.1990042.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm002/","data_set_name":"/LPD_SIV1_LPDV2_SM002/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:41.000+02:00","calibration_constant":{"id":19990,"name":"LPD-Type_BadPixelsDark_LPD
+        Def54NSmeB+TpfZBEt8yj4Xtw==\n","detector_type_id":1,"calibration_id":14,"condition_id":6169,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-06-28T13:31:41.000+02:00","updated_at":"2022-06-28T13:31:41.000+02:00"},"physical_detector_unit":{"id":65,"physical_name":"LPD_SIV1_LPDV2_SM002","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:27:05.000+02:00","updated_at":"2021-01-12T10:33:13.000+01:00","karabo_da":"LPD07","detector_id":7,"virtual_device_name":"Q2M4","uuid":202000300000,"float_uuid":9.98014086796e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD07","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q2M4","module_number_at_ccv_begin_at":null}},{"id":135665,"name":"20220628_113130_sIdx=0","file_name":"cal.1656415889.209067.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm009/","data_set_name":"/LPD_SIV1_LPDV2_SM009/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:30.000+02:00","calibration_constant":{"id":19977,"name":"LPD-Type_Offset_LPD
+        DefHlYih4lvWCy2gcbFOIIe2Q==\n","detector_type_id":1,"calibration_id":1,"condition_id":6172,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-06-28T13:31:30.000+02:00","updated_at":"2022-06-28T13:31:30.000+02:00"},"physical_detector_unit":{"id":72,"physical_name":"LPD_SIV1_LPDV2_SM009","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:27:56.000+02:00","updated_at":"2021-01-12T10:33:12.000+01:00","karabo_da":"LPD08","detector_id":7,"virtual_device_name":"Q3M1","uuid":202001000000,"float_uuid":9.98017545256e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD08","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q3M1","module_number_at_ccv_begin_at":null}},{"id":135673,"name":"20220628_113138_sIdx=0","file_name":"cal.1656415896.711032.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm009/","data_set_name":"/LPD_SIV1_LPDV2_SM009/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:38.000+02:00","calibration_constant":{"id":19985,"name":"LPD-Type_Noise_LPD
+        DefHlYih4lvWCy2gcbFOIIe2Q==\n","detector_type_id":1,"calibration_id":2,"condition_id":6172,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-06-28T13:31:37.000+02:00","updated_at":"2022-06-28T13:31:37.000+02:00"},"physical_detector_unit":{"id":72,"physical_name":"LPD_SIV1_LPDV2_SM009","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:27:56.000+02:00","updated_at":"2021-01-12T10:33:12.000+01:00","karabo_da":"LPD08","detector_id":7,"virtual_device_name":"Q3M1","uuid":202001000000,"float_uuid":9.98017545256e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD08","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q3M1","module_number_at_ccv_begin_at":null}},{"id":135681,"name":"20220628_113145_sIdx=0","file_name":"cal.1656415904.1154842.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm009/","data_set_name":"/LPD_SIV1_LPDV2_SM009/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:45.000+02:00","calibration_constant":{"id":19993,"name":"LPD-Type_BadPixelsDark_LPD
+        DefHlYih4lvWCy2gcbFOIIe2Q==\n","detector_type_id":1,"calibration_id":14,"condition_id":6172,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-06-28T13:31:45.000+02:00","updated_at":"2022-06-28T13:31:45.000+02:00"},"physical_detector_unit":{"id":72,"physical_name":"LPD_SIV1_LPDV2_SM009","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:27:56.000+02:00","updated_at":"2021-01-12T10:33:12.000+01:00","karabo_da":"LPD08","detector_id":7,"virtual_device_name":"Q3M1","uuid":202001000000,"float_uuid":9.98017545256e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD08","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q3M1","module_number_at_ccv_begin_at":null}},{"id":135664,"name":"20220628_113130_sIdx=0","file_name":"cal.1656415888.4571648.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm006/","data_set_name":"/LPD_SIV1_LPDV2_SM006/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:30.000+02:00","calibration_constant":{"id":19976,"name":"LPD-Type_Offset_LPD
+        DefN+a8LckZowN1843xEIogCw==\n","detector_type_id":1,"calibration_id":1,"condition_id":6171,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-06-28T13:31:29.000+02:00","updated_at":"2022-06-28T13:31:29.000+02:00"},"physical_detector_unit":{"id":69,"physical_name":"LPD_SIV1_LPDV2_SM006","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:27:35.000+02:00","updated_at":"2021-01-12T10:33:12.000+01:00","karabo_da":"LPD09","detector_id":7,"virtual_device_name":"Q3M2","uuid":202000700000,"float_uuid":9.9801606306e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD09","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q3M2","module_number_at_ccv_begin_at":null}},{"id":135672,"name":"20220628_113137_sIdx=0","file_name":"cal.1656415895.9600654.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm006/","data_set_name":"/LPD_SIV1_LPDV2_SM006/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:37.000+02:00","calibration_constant":{"id":19984,"name":"LPD-Type_Noise_LPD
+        DefN+a8LckZowN1843xEIogCw==\n","detector_type_id":1,"calibration_id":2,"condition_id":6171,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-06-28T13:31:37.000+02:00","updated_at":"2022-06-28T13:31:37.000+02:00"},"physical_detector_unit":{"id":69,"physical_name":"LPD_SIV1_LPDV2_SM006","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:27:35.000+02:00","updated_at":"2021-01-12T10:33:12.000+01:00","karabo_da":"LPD09","detector_id":7,"virtual_device_name":"Q3M2","uuid":202000700000,"float_uuid":9.9801606306e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD09","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q3M2","module_number_at_ccv_begin_at":null}},{"id":135680,"name":"20220628_113144_sIdx=0","file_name":"cal.1656415903.1665037.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm006/","data_set_name":"/LPD_SIV1_LPDV2_SM006/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:44.000+02:00","calibration_constant":{"id":19992,"name":"LPD-Type_BadPixelsDark_LPD
+        DefN+a8LckZowN1843xEIogCw==\n","detector_type_id":1,"calibration_id":14,"condition_id":6171,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-06-28T13:31:44.000+02:00","updated_at":"2022-06-28T13:31:44.000+02:00"},"physical_detector_unit":{"id":69,"physical_name":"LPD_SIV1_LPDV2_SM006","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:27:35.000+02:00","updated_at":"2021-01-12T10:33:12.000+01:00","karabo_da":"LPD09","detector_id":7,"virtual_device_name":"Q3M2","uuid":202000700000,"float_uuid":9.9801606306e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD09","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q3M2","module_number_at_ccv_begin_at":null}},{"id":135659,"name":"20220628_113125_sIdx=0","file_name":"cal.1656415884.1734188.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm007/","data_set_name":"/LPD_SIV1_LPDV2_SM007/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:25.000+02:00","calibration_constant":{"id":19971,"name":"LPD-Type_Offset_LPD
+        DefVmWZrKFYDR9aDHSoabZ5SQ==\n","detector_type_id":1,"calibration_id":1,"condition_id":6166,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-06-28T13:31:25.000+02:00","updated_at":"2022-06-28T13:31:25.000+02:00"},"physical_detector_unit":{"id":70,"physical_name":"LPD_SIV1_LPDV2_SM007","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:27:41.000+02:00","updated_at":"2021-01-12T10:33:13.000+01:00","karabo_da":"LPD10","detector_id":7,"virtual_device_name":"Q3M3","uuid":202000800000,"float_uuid":9.98016557124e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD10","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q3M3","module_number_at_ccv_begin_at":null}},{"id":135667,"name":"20220628_113132_sIdx=0","file_name":"cal.1656415890.950078.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm007/","data_set_name":"/LPD_SIV1_LPDV2_SM007/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:32.000+02:00","calibration_constant":{"id":19979,"name":"LPD-Type_Noise_LPD
+        DefVmWZrKFYDR9aDHSoabZ5SQ==\n","detector_type_id":1,"calibration_id":2,"condition_id":6166,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-06-28T13:31:32.000+02:00","updated_at":"2022-06-28T13:31:32.000+02:00"},"physical_detector_unit":{"id":70,"physical_name":"LPD_SIV1_LPDV2_SM007","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:27:41.000+02:00","updated_at":"2021-01-12T10:33:13.000+01:00","karabo_da":"LPD10","detector_id":7,"virtual_device_name":"Q3M3","uuid":202000800000,"float_uuid":9.98016557124e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD10","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q3M3","module_number_at_ccv_begin_at":null}},{"id":135675,"name":"20220628_113139_sIdx=0","file_name":"cal.1656415898.1214516.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm007/","data_set_name":"/LPD_SIV1_LPDV2_SM007/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:39.000+02:00","calibration_constant":{"id":19987,"name":"LPD-Type_BadPixelsDark_LPD
+        DefVmWZrKFYDR9aDHSoabZ5SQ==\n","detector_type_id":1,"calibration_id":14,"condition_id":6166,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-06-28T13:31:39.000+02:00","updated_at":"2022-06-28T13:31:39.000+02:00"},"physical_detector_unit":{"id":70,"physical_name":"LPD_SIV1_LPDV2_SM007","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:27:41.000+02:00","updated_at":"2021-01-12T10:33:13.000+01:00","karabo_da":"LPD10","detector_id":7,"virtual_device_name":"Q3M3","uuid":202000800000,"float_uuid":9.98016557124e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD10","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q3M3","module_number_at_ccv_begin_at":null}},{"id":135660,"name":"20220628_113126_sIdx=0","file_name":"cal.1656415884.464672.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm005/","data_set_name":"/LPD_SIV1_LPDV2_SM005/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:26.000+02:00","calibration_constant":{"id":19972,"name":"LPD-Type_Offset_LPD
+        DefVHubaN+k5bwxdqlOpCotOQ==\n","detector_type_id":1,"calibration_id":1,"condition_id":6167,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-06-28T13:31:25.000+02:00","updated_at":"2022-06-28T13:31:25.000+02:00"},"physical_detector_unit":{"id":68,"physical_name":"LPD_SIV1_LPDV2_SM005","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:27:29.000+02:00","updated_at":"2021-01-12T10:33:13.000+01:00","karabo_da":"LPD11","detector_id":7,"virtual_device_name":"Q3M4","uuid":202000600000,"float_uuid":9.98015568993e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD11","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q3M4","module_number_at_ccv_begin_at":null}},{"id":135668,"name":"20220628_113133_sIdx=0","file_name":"cal.1656415891.7235923.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm005/","data_set_name":"/LPD_SIV1_LPDV2_SM005/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:33.000+02:00","calibration_constant":{"id":19980,"name":"LPD-Type_Noise_LPD
+        DefVHubaN+k5bwxdqlOpCotOQ==\n","detector_type_id":1,"calibration_id":2,"condition_id":6167,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-06-28T13:31:32.000+02:00","updated_at":"2022-06-28T13:31:32.000+02:00"},"physical_detector_unit":{"id":68,"physical_name":"LPD_SIV1_LPDV2_SM005","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:27:29.000+02:00","updated_at":"2021-01-12T10:33:13.000+01:00","karabo_da":"LPD11","detector_id":7,"virtual_device_name":"Q3M4","uuid":202000600000,"float_uuid":9.98015568993e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD11","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q3M4","module_number_at_ccv_begin_at":null}},{"id":135676,"name":"20220628_113140_sIdx=0","file_name":"cal.1656415898.9718342.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm005/","data_set_name":"/LPD_SIV1_LPDV2_SM005/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:40.000+02:00","calibration_constant":{"id":19988,"name":"LPD-Type_BadPixelsDark_LPD
+        DefVHubaN+k5bwxdqlOpCotOQ==\n","detector_type_id":1,"calibration_id":14,"condition_id":6167,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-06-28T13:31:40.000+02:00","updated_at":"2022-06-28T13:31:40.000+02:00"},"physical_detector_unit":{"id":68,"physical_name":"LPD_SIV1_LPDV2_SM005","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:27:29.000+02:00","updated_at":"2021-01-12T10:33:13.000+01:00","karabo_da":"LPD11","detector_id":7,"virtual_device_name":"Q3M4","uuid":202000600000,"float_uuid":9.98015568993e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD11","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q3M4","module_number_at_ccv_begin_at":null}},{"id":135666,"name":"20220628_113130_sIdx=0","file_name":"cal.1656415889.3711982.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm013/","data_set_name":"/LPD_SIV1_LPDV2_SM013/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:30.000+02:00","calibration_constant":{"id":19978,"name":"LPD-Type_Offset_LPD
+        DefFW3tkHQPsUnfCnV3eT24MA==\n","detector_type_id":1,"calibration_id":1,"condition_id":6173,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-06-28T13:31:30.000+02:00","updated_at":"2022-06-28T13:31:30.000+02:00"},"physical_detector_unit":{"id":76,"physical_name":"LPD_SIV1_LPDV2_SM013","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:28:24.000+02:00","updated_at":"2021-10-22T12:40:47.000+02:00","karabo_da":"LPD12","detector_id":7,"virtual_device_name":"Q4M1","uuid":202001400000,"float_uuid":9.9801952152e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD12","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q4M1","module_number_at_ccv_begin_at":null}},{"id":135674,"name":"20220628_113138_sIdx=0","file_name":"cal.1656415896.9370775.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm013/","data_set_name":"/LPD_SIV1_LPDV2_SM013/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:38.000+02:00","calibration_constant":{"id":19986,"name":"LPD-Type_Noise_LPD
+        DefFW3tkHQPsUnfCnV3eT24MA==\n","detector_type_id":1,"calibration_id":2,"condition_id":6173,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-06-28T13:31:38.000+02:00","updated_at":"2022-06-28T13:31:38.000+02:00"},"physical_detector_unit":{"id":76,"physical_name":"LPD_SIV1_LPDV2_SM013","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:28:24.000+02:00","updated_at":"2021-10-22T12:40:47.000+02:00","karabo_da":"LPD12","detector_id":7,"virtual_device_name":"Q4M1","uuid":202001400000,"float_uuid":9.9801952152e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD12","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q4M1","module_number_at_ccv_begin_at":null}},{"id":135682,"name":"20220628_113145_sIdx=0","file_name":"cal.1656415904.2101595.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm013/","data_set_name":"/LPD_SIV1_LPDV2_SM013/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:45.000+02:00","calibration_constant":{"id":19994,"name":"LPD-Type_BadPixelsDark_LPD
+        DefFW3tkHQPsUnfCnV3eT24MA==\n","detector_type_id":1,"calibration_id":14,"condition_id":6173,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-06-28T13:31:45.000+02:00","updated_at":"2022-06-28T13:31:45.000+02:00"},"physical_detector_unit":{"id":76,"physical_name":"LPD_SIV1_LPDV2_SM013","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:28:24.000+02:00","updated_at":"2021-10-22T12:40:47.000+02:00","karabo_da":"LPD12","detector_id":7,"virtual_device_name":"Q4M1","uuid":202001400000,"float_uuid":9.9801952152e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD12","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q4M1","module_number_at_ccv_begin_at":null}},{"id":135689,"name":"20220628_113209_sIdx=0","file_name":"cal.1656415927.2655776.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm010/","data_set_name":"/LPD_SIV1_LPDV2_SM010/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:32:09.000+02:00","calibration_constant":{"id":20001,"name":"LPD-Type_Offset_LPD
+        DefqRZdiI/Syw0BWCifoee3Ww==\n","detector_type_id":1,"calibration_id":1,"condition_id":6180,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-06-28T13:32:08.000+02:00","updated_at":"2022-06-28T13:32:08.000+02:00"},"physical_detector_unit":{"id":73,"physical_name":"LPD_SIV1_LPDV2_SM010","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:28:05.000+02:00","updated_at":"2021-01-12T10:33:13.000+01:00","karabo_da":"LPD13","detector_id":7,"virtual_device_name":"Q4M2","uuid":202001100000,"float_uuid":9.9801803932e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD13","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q4M2","module_number_at_ccv_begin_at":null}},{"id":135696,"name":"20220628_113215_sIdx=0","file_name":"cal.1656415934.4815717.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm010/","data_set_name":"/LPD_SIV1_LPDV2_SM010/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:32:16.000+02:00","calibration_constant":{"id":20008,"name":"LPD-Type_Noise_LPD
+        DefqRZdiI/Syw0BWCifoee3Ww==\n","detector_type_id":1,"calibration_id":2,"condition_id":6180,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-06-28T13:32:15.000+02:00","updated_at":"2022-06-28T13:32:15.000+02:00"},"physical_detector_unit":{"id":73,"physical_name":"LPD_SIV1_LPDV2_SM010","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:28:05.000+02:00","updated_at":"2021-01-12T10:33:13.000+01:00","karabo_da":"LPD13","detector_id":7,"virtual_device_name":"Q4M2","uuid":202001100000,"float_uuid":9.9801803932e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD13","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q4M2","module_number_at_ccv_begin_at":null}},{"id":135702,"name":"20220628_113222_sIdx=0","file_name":"cal.1656415941.2347524.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm010/","data_set_name":"/LPD_SIV1_LPDV2_SM010/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:32:22.000+02:00","calibration_constant":{"id":20014,"name":"LPD-Type_BadPixelsDark_LPD
+        DefqRZdiI/Syw0BWCifoee3Ww==\n","detector_type_id":1,"calibration_id":14,"condition_id":6180,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-06-28T13:32:22.000+02:00","updated_at":"2022-06-28T13:32:22.000+02:00"},"physical_detector_unit":{"id":73,"physical_name":"LPD_SIV1_LPDV2_SM010","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:28:05.000+02:00","updated_at":"2021-01-12T10:33:13.000+01:00","karabo_da":"LPD13","detector_id":7,"virtual_device_name":"Q4M2","uuid":202001100000,"float_uuid":9.9801803932e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD13","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q4M2","module_number_at_ccv_begin_at":null}},{"id":135661,"name":"20220628_113127_sIdx=0","file_name":"cal.1656415885.5843918.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm008/","data_set_name":"/LPD_SIV1_LPDV2_SM008/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:27.000+02:00","calibration_constant":{"id":19973,"name":"LPD-Type_Offset_LPD
+        Defu/rnT7CRha3UODgRFG4oTw==\n","detector_type_id":1,"calibration_id":1,"condition_id":6168,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-06-28T13:31:26.000+02:00","updated_at":"2022-06-28T13:31:26.000+02:00"},"physical_detector_unit":{"id":71,"physical_name":"LPD_SIV1_LPDV2_SM008","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:27:48.000+02:00","updated_at":"2021-01-12T10:33:12.000+01:00","karabo_da":"LPD14","detector_id":7,"virtual_device_name":"Q4M3","uuid":202000900000,"float_uuid":9.9801705119e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD14","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q4M3","module_number_at_ccv_begin_at":null}},{"id":135669,"name":"20220628_113133_sIdx=0","file_name":"cal.1656415892.5753257.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm008/","data_set_name":"/LPD_SIV1_LPDV2_SM008/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:34.000+02:00","calibration_constant":{"id":19981,"name":"LPD-Type_Noise_LPD
+        Defu/rnT7CRha3UODgRFG4oTw==\n","detector_type_id":1,"calibration_id":2,"condition_id":6168,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-06-28T13:31:33.000+02:00","updated_at":"2022-06-28T13:31:33.000+02:00"},"physical_detector_unit":{"id":71,"physical_name":"LPD_SIV1_LPDV2_SM008","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:27:48.000+02:00","updated_at":"2021-01-12T10:33:12.000+01:00","karabo_da":"LPD14","detector_id":7,"virtual_device_name":"Q4M3","uuid":202000900000,"float_uuid":9.9801705119e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD14","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q4M3","module_number_at_ccv_begin_at":null}},{"id":135677,"name":"20220628_113140_sIdx=0","file_name":"cal.1656415899.5968292.h5","path_to_file":"xfel/cal/lpd-type/lpd_siv1_lpdv2_sm008/","data_set_name":"/LPD_SIV1_LPDV2_SM008/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:41.000+02:00","calibration_constant":{"id":19989,"name":"LPD-Type_BadPixelsDark_LPD
+        Defu/rnT7CRha3UODgRFG4oTw==\n","detector_type_id":1,"calibration_id":14,"condition_id":6168,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-06-28T13:31:40.000+02:00","updated_at":"2022-06-28T13:31:40.000+02:00"},"physical_detector_unit":{"id":71,"physical_name":"LPD_SIV1_LPDV2_SM008","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2018-05-17T10:27:48.000+02:00","updated_at":"2021-01-12T10:33:12.000+01:00","karabo_da":"LPD14","detector_id":7,"virtual_device_name":"Q4M3","uuid":202000900000,"float_uuid":9.9801705119e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD14","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q4M3","module_number_at_ccv_begin_at":null}},{"id":135663,"name":"20220628_113129_sIdx=0","file_name":"cal.1656415887.631408.h5","path_to_file":"xfel/cal/lpd-type/lpd_sm-2021-001/","data_set_name":"/LPD_SM-2021-001/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:29.000+02:00","calibration_constant":{"id":19975,"name":"LPD-Type_Offset_LPD
+        DefLJ7qOxbZJzMaSG8yvmevTQ==\n","detector_type_id":1,"calibration_id":1,"condition_id":6170,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-06-28T13:31:28.000+02:00","updated_at":"2022-06-28T13:31:28.000+02:00"},"physical_detector_unit":{"id":169,"physical_name":"LPD_SM-2021-001","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2021-08-10T13:39:05.000+02:00","updated_at":"2022-05-16T15:16:09.000+02:00","karabo_da":"LPD15","detector_id":7,"virtual_device_name":"Q4M4","uuid":202001700000,"float_uuid":9.98021003715e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD15","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q4M4","module_number_at_ccv_begin_at":null}},{"id":135671,"name":"20220628_113135_sIdx=0","file_name":"cal.1656415894.494345.h5","path_to_file":"xfel/cal/lpd-type/lpd_sm-2021-001/","data_set_name":"/LPD_SM-2021-001/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:35.000+02:00","calibration_constant":{"id":19983,"name":"LPD-Type_Noise_LPD
+        DefLJ7qOxbZJzMaSG8yvmevTQ==\n","detector_type_id":1,"calibration_id":2,"condition_id":6170,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-06-28T13:31:35.000+02:00","updated_at":"2022-06-28T13:31:35.000+02:00"},"physical_detector_unit":{"id":169,"physical_name":"LPD_SM-2021-001","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2021-08-10T13:39:05.000+02:00","updated_at":"2022-05-16T15:16:09.000+02:00","karabo_da":"LPD15","detector_id":7,"virtual_device_name":"Q4M4","uuid":202001700000,"float_uuid":9.98021003715e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD15","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q4M4","module_number_at_ccv_begin_at":null}},{"id":135679,"name":"20220628_113142_sIdx=0","file_name":"cal.1656415901.2667725.h5","path_to_file":"xfel/cal/lpd-type/lpd_sm-2021-001/","data_set_name":"/LPD_SM-2021-001/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-05-22T00:12:28.000+02:00","end_validity_at":null,"begin_at":"2022-05-22T00:12:28.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p003073
+        runs:162 161 160","report_id":2370,"description":"","created_at":"2022-06-28T13:31:42.000+02:00","calibration_constant":{"id":19991,"name":"LPD-Type_BadPixelsDark_LPD
+        DefLJ7qOxbZJzMaSG8yvmevTQ==\n","detector_type_id":1,"calibration_id":14,"condition_id":6170,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-06-28T13:31:42.000+02:00","updated_at":"2022-06-28T13:31:42.000+02:00"},"physical_detector_unit":{"id":169,"physical_name":"LPD_SM-2021-001","detector_type_id":1,"flg_available":true,"description":null,"created_at":"2021-08-10T13:39:05.000+02:00","updated_at":"2022-05-16T15:16:09.000+02:00","karabo_da":"LPD15","detector_id":7,"virtual_device_name":"Q4M4","uuid":202001700000,"float_uuid":9.98021003715e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"LPD15","detector_id_at_ccv_begin_at":7,"virtual_device_name_at_ccv_begin_at":"Q4M4","module_number_at_ccv_begin_at":null}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '61914'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 21 Feb 2024 16:40:41 GMT
+      Etag:
+      - W/"439ed21baf8042bb865e162375f67677"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 39f8a0bd-0b29-4121-900d-876afc5e9201
+      X-Runtime:
+      - '0.969145'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate, br
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.31.0
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=RelativeGain
+  response:
+    body:
+      string: '[{"id":44,"name":"RelativeGain","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '124'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 21 Feb 2024 16:40:42 GMT
+      Etag:
+      - W/"094f27555a0cd731455610d18d5cc649"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - d496cef0-27a0-485a-9240-d9593c953f20
+      X-Runtime:
+      - '0.029599'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate, br
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.31.0
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=GainAmpMap
+  response:
+    body:
+      string: '[{"id":42,"name":"GainAmpMap","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '122'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 21 Feb 2024 16:40:43 GMT
+      Etag:
+      - W/"546277927cfe3a0b8623c120abe64e34"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - bbe03be0-b822-4f9d-b151-cfbe7591b44d
+      X-Runtime:
+      - '0.027916'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate, br
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.31.0
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=FFMap
+  response:
+    body:
+      string: '[{"id":43,"name":"FFMap","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '117'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 21 Feb 2024 16:40:43 GMT
+      Etag:
+      - W/"bac644b58dfc1cef85d9b1f8dbe2576f"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 8dbcf064-4145-49e6-ae16-d931d6f1c9a2
+      X-Runtime:
+      - '0.025635'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"parameters_conditions_attributes": [{"parameter_name": "Sensor Bias Voltage",
+      "value": "250"}, {"parameter_name": "Memory cells", "value": "200"}, {"parameter_name":
+      "Pixels X", "value": "256"}, {"parameter_name": "Pixels Y", "value": "256"},
+      {"parameter_name": "Feedback capacitor", "value": "5.0"}, {"parameter_name":
+      "Source Energy", "value": "9.2"}, {"parameter_name": "category", "value": "1"}]}'
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate, br
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '402'
+      User-Agent:
+      - python-requests/2.31.0
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=FXE_DET_LPD1M-1&calibration_id=%5B44%2C+42%2C+43%2C+20%5D&karabo_da=&event_at=2022-05-22T02%3A00%3A00&pdu_snapshot_at=2022-05-22T02%3A00%3A00
+  response:
+    body:
+      string: '[]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '2'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 21 Feb 2024 16:40:43 GMT
+      Etag:
+      - W/"4f53cda18c2baa0c0354bb5f9a3ecbe5"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - d041c61b-c06f-48c3-85b7-845412331bcd
+      X-Runtime:
+      - '0.499056'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+version: 1

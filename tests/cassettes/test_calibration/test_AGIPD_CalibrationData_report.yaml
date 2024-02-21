@@ -1,0 +1,587 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate, br
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.31.0
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions?page_size=500&report_id=3757
+  response:
+    body:
+      string: '[{"id":172384,"name":"20230729_175636_sIdx=0","file_name":"cal.1690653395.1169305.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m316/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M316/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:36.000+02:00","calibration_constant":{"id":21390,"name":"AGIPD-Type_Offset_AGIPD
+        Defq3KMmEuBoGi/XU95lEVObQ==\n","detector_type_id":2,"calibration_id":1,"condition_id":6653,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-11-06T01:39:37.000+01:00","updated_at":"2022-11-06T01:39:37.000+01:00"},"physical_detector_unit":{"id":59,"physical_name":"AGIPD_SIV1_AGIPDV11_M316","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:39:08.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101001300000,"float_uuid":4.99012725153e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD13","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M2","module_number_at_ccv_begin_at":null}},{"id":172385,"name":"20230729_175639_sIdx=0","file_name":"cal.1690653398.0811.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m316/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M316/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:39.000+02:00","calibration_constant":{"id":21399,"name":"AGIPD-Type_Noise_AGIPD
+        Defq3KMmEuBoGi/XU95lEVObQ==\n","detector_type_id":2,"calibration_id":2,"condition_id":6653,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-11-06T01:39:43.000+01:00","updated_at":"2022-11-06T01:39:43.000+01:00"},"physical_detector_unit":{"id":59,"physical_name":"AGIPD_SIV1_AGIPDV11_M316","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:39:08.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101001300000,"float_uuid":4.99012725153e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD13","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M2","module_number_at_ccv_begin_at":null}},{"id":172386,"name":"20230729_175643_sIdx=0","file_name":"cal.1690653400.2277164.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m309/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M309/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:44.000+02:00","calibration_constant":{"id":21391,"name":"AGIPD-Type_Offset_AGIPD
+        DefANY2ERyOWBHuwkh+JLEGRA==\n","detector_type_id":2,"calibration_id":1,"condition_id":6654,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-11-06T01:39:38.000+01:00","updated_at":"2022-11-06T01:39:38.000+01:00"},"physical_detector_unit":{"id":54,"physical_name":"AGIPD_SIV1_AGIPDV11_M309","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:38:30.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101000600000,"float_uuid":4.99009266694e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD07","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q2M4","module_number_at_ccv_begin_at":null}},{"id":172387,"name":"20230729_175643_sIdx=0","file_name":"cal.1690653400.3039563.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m316/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M316/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:44.000+02:00","calibration_constant":{"id":21405,"name":"AGIPD-Type_BadPixelsDark_AGIPD
+        Defq3KMmEuBoGi/XU95lEVObQ==\n","detector_type_id":2,"calibration_id":14,"condition_id":6653,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-11-06T01:39:47.000+01:00","updated_at":"2022-11-06T01:39:47.000+01:00"},"physical_detector_unit":{"id":59,"physical_name":"AGIPD_SIV1_AGIPDV11_M316","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:39:08.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101001300000,"float_uuid":4.99012725153e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD13","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M2","module_number_at_ccv_begin_at":null}},{"id":172388,"name":"20230729_175644_sIdx=0","file_name":"cal.1690653401.6114457.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m305/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M305/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:45.000+02:00","calibration_constant":{"id":21396,"name":"AGIPD-Type_Offset_AGIPD
+        DefuCuZYIPIEmXDGZyfMGdDHA==\n","detector_type_id":2,"calibration_id":1,"condition_id":6658,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-11-06T01:39:41.000+01:00","updated_at":"2022-11-06T01:39:41.000+01:00"},"physical_detector_unit":{"id":50,"physical_name":"AGIPD_SIV1_AGIPDV11_M305","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:38:00.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101000100000,"float_uuid":4.99006796365e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD02","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q1M3","module_number_at_ccv_begin_at":null}},{"id":172389,"name":"20230729_175645_sIdx=0","file_name":"cal.1690653402.3914707.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m535/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M535/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:45.000+02:00","calibration_constant":{"id":21398,"name":"AGIPD-Type_Offset_AGIPD
+        DefZwaepe92AvQ/pxJKEqIL0g==\n","detector_type_id":2,"calibration_id":1,"condition_id":6660,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-11-06T01:39:43.000+01:00","updated_at":"2022-11-06T01:39:43.000+01:00"},"physical_detector_unit":{"id":186,"physical_name":"AGIPD_SIV1_AGIPDV11_M535","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2022-06-22T13:13:20.000+02:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002800000,"float_uuid":4.9902013614e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD03","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q1M4","module_number_at_ccv_begin_at":null}},{"id":172390,"name":"20230729_175645_sIdx=0","file_name":"cal.1690653402.955609.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m315/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M315/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:45.000+02:00","calibration_constant":{"id":21400,"name":"AGIPD-Type_Offset_AGIPD
+        Defeyxw/SBydTObqlzemSPydg==\n","detector_type_id":2,"calibration_id":1,"condition_id":6661,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-11-06T01:39:43.000+01:00","updated_at":"2022-11-06T01:39:43.000+01:00"},"physical_detector_unit":{"id":58,"physical_name":"AGIPD_SIV1_AGIPDV11_M315","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:39:01.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101000200000,"float_uuid":4.9900729043e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD01","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q1M2","module_number_at_ccv_begin_at":null}},{"id":172391,"name":"20230729_175645_sIdx=0","file_name":"cal.1690653404.2045789.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m301/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M301/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:45.000+02:00","calibration_constant":{"id":21394,"name":"AGIPD-Type_Offset_AGIPD
+        DefUe6tvjCPtEXDxGwwi/xI0Q==\n","detector_type_id":2,"calibration_id":1,"condition_id":6656,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-11-06T01:39:41.000+01:00","updated_at":"2022-11-06T01:39:41.000+01:00"},"physical_detector_unit":{"id":49,"physical_name":"AGIPD_SIV1_AGIPDV11_M301","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:37:52.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101000900000,"float_uuid":4.9901074889e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD10","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M3","module_number_at_ccv_begin_at":null}},{"id":172392,"name":"20230729_175646_sIdx=0","file_name":"cal.1690653402.9877093.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m420/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M420/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:46.000+02:00","calibration_constant":{"id":21401,"name":"AGIPD-Type_Offset_AGIPD
+        DefKKJob0Q+6Q//RvpitaTxEQ==\n","detector_type_id":2,"calibration_id":1,"condition_id":6662,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-11-06T01:39:43.000+01:00","updated_at":"2022-11-06T01:39:43.000+01:00"},"physical_detector_unit":{"id":162,"physical_name":"AGIPD_SIV1_AGIPDV11_M420","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2021-02-26T16:04:57.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002400000,"float_uuid":4.99018159875e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD14","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M3","module_number_at_ccv_begin_at":null}},{"id":172393,"name":"20230729_175646_sIdx=0","file_name":"cal.1690653403.322571.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m322/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M322/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:46.000+02:00","calibration_constant":{"id":21424,"name":"AGIPD-Type_Offset_AGIPD
+        DefMWO8BtQjVsdq/O8fQ2RBHg==\n","detector_type_id":2,"calibration_id":1,"condition_id":6667,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-11-06T01:39:53.000+01:00","updated_at":"2022-11-06T01:39:53.000+01:00"},"physical_detector_unit":{"id":62,"physical_name":"AGIPD_SIV1_AGIPDV11_M322","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:39:35.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002200000,"float_uuid":4.99017171744e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD09","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M2","module_number_at_ccv_begin_at":null}},{"id":172394,"name":"20230729_175647_sIdx=0","file_name":"cal.1690653405.7932723.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m309/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M309/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:47.000+02:00","calibration_constant":{"id":21402,"name":"AGIPD-Type_Noise_AGIPD
+        DefANY2ERyOWBHuwkh+JLEGRA==\n","detector_type_id":2,"calibration_id":2,"condition_id":6654,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-11-06T01:39:43.000+01:00","updated_at":"2022-11-06T01:39:43.000+01:00"},"physical_detector_unit":{"id":54,"physical_name":"AGIPD_SIV1_AGIPDV11_M309","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:38:30.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101000600000,"float_uuid":4.99009266694e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD07","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q2M4","module_number_at_ccv_begin_at":null}},{"id":172395,"name":"20230729_175648_sIdx=0","file_name":"cal.1690653407.2229745.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m315/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M315/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:48.000+02:00","calibration_constant":{"id":21422,"name":"AGIPD-Type_Noise_AGIPD
+        Defeyxw/SBydTObqlzemSPydg==\n","detector_type_id":2,"calibration_id":2,"condition_id":6661,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-11-06T01:39:52.000+01:00","updated_at":"2022-11-06T01:39:52.000+01:00"},"physical_detector_unit":{"id":58,"physical_name":"AGIPD_SIV1_AGIPDV11_M315","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:39:01.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101000200000,"float_uuid":4.9900729043e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD01","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q1M2","module_number_at_ccv_begin_at":null}},{"id":172396,"name":"20230729_175648_sIdx=0","file_name":"cal.1690653407.002018.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m535/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M535/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:48.000+02:00","calibration_constant":{"id":21417,"name":"AGIPD-Type_Noise_AGIPD
+        DefZwaepe92AvQ/pxJKEqIL0g==\n","detector_type_id":2,"calibration_id":2,"condition_id":6660,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-11-06T01:39:50.000+01:00","updated_at":"2022-11-06T01:39:50.000+01:00"},"physical_detector_unit":{"id":186,"physical_name":"AGIPD_SIV1_AGIPDV11_M535","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2022-06-22T13:13:20.000+02:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002800000,"float_uuid":4.9902013614e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD03","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q1M4","module_number_at_ccv_begin_at":null}},{"id":172397,"name":"20230729_175648_sIdx=0","file_name":"cal.1690653407.305703.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m316/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M316/ThresholdsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:48.000+02:00","calibration_constant":{"id":21423,"name":"AGIPD-Type_ThresholdsDark_AGIPD
+        Defq3KMmEuBoGi/XU95lEVObQ==\n","detector_type_id":2,"calibration_id":11,"condition_id":6653,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) thresholds from dark runs","created_at":"2022-11-06T01:39:52.000+01:00","updated_at":"2022-11-06T01:39:52.000+01:00"},"physical_detector_unit":{"id":59,"physical_name":"AGIPD_SIV1_AGIPDV11_M316","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:39:08.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101001300000,"float_uuid":4.99012725153e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD13","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M2","module_number_at_ccv_begin_at":null}},{"id":172398,"name":"20230729_175649_sIdx=0","file_name":"cal.1690653408.5305617.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m322/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M322/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:49.000+02:00","calibration_constant":{"id":21441,"name":"AGIPD-Type_Noise_AGIPD
+        DefMWO8BtQjVsdq/O8fQ2RBHg==\n","detector_type_id":2,"calibration_id":2,"condition_id":6667,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-11-06T01:40:02.000+01:00","updated_at":"2022-11-06T01:40:02.000+01:00"},"physical_detector_unit":{"id":62,"physical_name":"AGIPD_SIV1_AGIPDV11_M322","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:39:35.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002200000,"float_uuid":4.99017171744e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD09","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M2","module_number_at_ccv_begin_at":null}},{"id":172399,"name":"20230729_175650_sIdx=0","file_name":"cal.1690653408.694534.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m420/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M420/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:50.000+02:00","calibration_constant":{"id":21415,"name":"AGIPD-Type_Noise_AGIPD
+        DefKKJob0Q+6Q//RvpitaTxEQ==\n","detector_type_id":2,"calibration_id":2,"condition_id":6662,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-11-06T01:39:49.000+01:00","updated_at":"2022-11-06T01:39:49.000+01:00"},"physical_detector_unit":{"id":162,"physical_name":"AGIPD_SIV1_AGIPDV11_M420","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2021-02-26T16:04:57.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002400000,"float_uuid":4.99018159875e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD14","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M3","module_number_at_ccv_begin_at":null}},{"id":172400,"name":"20230729_175650_sIdx=0","file_name":"cal.1690653408.63522.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m309/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M309/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:50.000+02:00","calibration_constant":{"id":21411,"name":"AGIPD-Type_BadPixelsDark_AGIPD
+        DefANY2ERyOWBHuwkh+JLEGRA==\n","detector_type_id":2,"calibration_id":14,"condition_id":6654,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-11-06T01:39:48.000+01:00","updated_at":"2022-11-06T01:39:48.000+01:00"},"physical_detector_unit":{"id":54,"physical_name":"AGIPD_SIV1_AGIPDV11_M309","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:38:30.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101000600000,"float_uuid":4.99009266694e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD07","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q2M4","module_number_at_ccv_begin_at":null}},{"id":172401,"name":"20230729_175650_sIdx=0","file_name":"cal.1690653409.5559363.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m300/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M300/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:51.000+02:00","calibration_constant":{"id":21408,"name":"AGIPD-Type_Offset_AGIPD
+        DefeVXakqGo4m7Hg3PP7GopyQ==\n","detector_type_id":2,"calibration_id":1,"condition_id":6663,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-11-06T01:39:47.000+01:00","updated_at":"2022-11-06T01:39:47.000+01:00"},"physical_detector_unit":{"id":48,"physical_name":"AGIPD_SIV1_AGIPDV11_M300","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:37:41.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101000700000,"float_uuid":4.9900976076e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD06","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q2M3","module_number_at_ccv_begin_at":null}},{"id":172402,"name":"20230729_175651_sIdx=0","file_name":"cal.1690653410.1444194.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m315/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M315/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:51.000+02:00","calibration_constant":{"id":21439,"name":"AGIPD-Type_BadPixelsDark_AGIPD
+        Defeyxw/SBydTObqlzemSPydg==\n","detector_type_id":2,"calibration_id":14,"condition_id":6661,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-11-06T01:40:00.000+01:00","updated_at":"2022-11-06T01:40:00.000+01:00"},"physical_detector_unit":{"id":58,"physical_name":"AGIPD_SIV1_AGIPDV11_M315","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:39:01.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101000200000,"float_uuid":4.9900729043e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD01","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q1M2","module_number_at_ccv_begin_at":null}},{"id":172403,"name":"20230729_175651_sIdx=0","file_name":"cal.1690653410.2140296.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m313/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M313/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:51.000+02:00","calibration_constant":{"id":21410,"name":"AGIPD-Type_Offset_AGIPD
+        Defzn+X7ZuMRON8PNSxXthgFw==\n","detector_type_id":2,"calibration_id":1,"condition_id":6664,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-11-06T01:39:48.000+01:00","updated_at":"2022-11-06T01:39:48.000+01:00"},"physical_detector_unit":{"id":56,"physical_name":"AGIPD_SIV1_AGIPDV11_M313","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:38:45.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101001200000,"float_uuid":4.99012231087e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD05","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q2M2","module_number_at_ccv_begin_at":null}},{"id":172404,"name":"20230729_175651_sIdx=0","file_name":"cal.1690653410.3492584.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m535/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M535/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:51.000+02:00","calibration_constant":{"id":21425,"name":"AGIPD-Type_BadPixelsDark_AGIPD
+        DefZwaepe92AvQ/pxJKEqIL0g==\n","detector_type_id":2,"calibration_id":14,"condition_id":6660,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-11-06T01:39:54.000+01:00","updated_at":"2022-11-06T01:39:54.000+01:00"},"physical_detector_unit":{"id":186,"physical_name":"AGIPD_SIV1_AGIPDV11_M535","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2022-06-22T13:13:20.000+02:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002800000,"float_uuid":4.9902013614e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD03","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q1M4","module_number_at_ccv_begin_at":null}},{"id":172405,"name":"20230729_175651_sIdx=0","file_name":"cal.1690653410.368879.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m546/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M546/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:51.000+02:00","calibration_constant":{"id":21416,"name":"AGIPD-Type_Offset_AGIPD
+        DefFSho7anbUyFM4+mB7jC/CA==\n","detector_type_id":2,"calibration_id":1,"condition_id":6666,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-11-06T01:39:49.000+01:00","updated_at":"2022-11-06T01:39:49.000+01:00"},"physical_detector_unit":{"id":187,"physical_name":"AGIPD_SIV1_AGIPDV11_M546","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2022-06-22T13:13:40.000+02:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002900000,"float_uuid":4.99020630203e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD08","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M1","module_number_at_ccv_begin_at":null}},{"id":172406,"name":"20230729_175652_sIdx=0","file_name":"cal.1690653410.4792662.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m523/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M523/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:52.000+02:00","calibration_constant":{"id":22690,"name":"AGIPD-Type_Offset_AGIPD
+        DefnNZD7iqoSnjIxc1QuIKc2g==\n","detector_type_id":2,"calibration_id":1,"condition_id":7066,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2023-03-30T00:26:05.000+02:00","updated_at":"2023-03-30T00:26:05.000+02:00"},"physical_detector_unit":{"id":198,"physical_name":"AGIPD_SIV1_AGIPDV11_M523","detector_type_id":2,"flg_available":true,"description":"24-11-2022\r\n\r\nThe
+        module installed on position Q4M4 (M503) was removed and inspected. There
+        is a crack on LTCC.\r\n\r\n- This new module is installed on position Q4M4
+        was installed","created_at":"2022-11-24T13:26:36.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101003100000,"float_uuid":4.99021618335e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD15","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M4","module_number_at_ccv_begin_at":null}},{"id":172407,"name":"20230729_175652_sIdx=0","file_name":"cal.1690653411.0387084.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m420/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M420/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:52.000+02:00","calibration_constant":{"id":21429,"name":"AGIPD-Type_BadPixelsDark_AGIPD
+        DefKKJob0Q+6Q//RvpitaTxEQ==\n","detector_type_id":2,"calibration_id":14,"condition_id":6662,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-11-06T01:39:55.000+01:00","updated_at":"2022-11-06T01:39:55.000+01:00"},"physical_detector_unit":{"id":162,"physical_name":"AGIPD_SIV1_AGIPDV11_M420","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2021-02-26T16:04:57.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002400000,"float_uuid":4.99018159875e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD14","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M3","module_number_at_ccv_begin_at":null}},{"id":172408,"name":"20230729_175652_sIdx=0","file_name":"cal.1690653411.6214938.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m215/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M215/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:52.000+02:00","calibration_constant":{"id":21412,"name":"AGIPD-Type_Offset_AGIPD
+        DefDNxvjVzPkWuZbUOj1Pg8iA==\n","detector_type_id":2,"calibration_id":1,"condition_id":6665,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-11-06T01:39:49.000+01:00","updated_at":"2022-11-06T01:39:49.000+01:00"},"physical_detector_unit":{"id":46,"physical_name":"AGIPD_SIV1_AGIPDV11_M215","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:37:22.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101001400000,"float_uuid":4.9901321922e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD11","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M4","module_number_at_ccv_begin_at":null}},{"id":172409,"name":"20230729_175653_sIdx=0","file_name":"cal.1690653412.2682462.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m448/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M448/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:53.000+02:00","calibration_constant":{"id":21389,"name":"AGIPD-Type_Offset_AGIPD
+        DefpUik5QPxNT6kiHcS9OVQew==\n","detector_type_id":2,"calibration_id":1,"condition_id":6652,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-11-06T01:39:35.000+01:00","updated_at":"2022-11-06T01:39:35.000+01:00"},"physical_detector_unit":{"id":161,"physical_name":"AGIPD_SIV1_AGIPDV11_M448","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2021-02-26T16:03:50.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002300000,"float_uuid":4.9901766581e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD00","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q1M1","module_number_at_ccv_begin_at":null}},{"id":172410,"name":"20230729_175654_sIdx=0","file_name":"cal.1690653412.6419191.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m305/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M305/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:54.000+02:00","calibration_constant":{"id":21409,"name":"AGIPD-Type_Noise_AGIPD
+        DefuCuZYIPIEmXDGZyfMGdDHA==\n","detector_type_id":2,"calibration_id":2,"condition_id":6658,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-11-06T01:39:47.000+01:00","updated_at":"2022-11-06T01:39:47.000+01:00"},"physical_detector_unit":{"id":50,"physical_name":"AGIPD_SIV1_AGIPDV11_M305","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:38:00.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101000100000,"float_uuid":4.99006796365e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD02","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q1M3","module_number_at_ccv_begin_at":null}},{"id":172411,"name":"20230729_175654_sIdx=0","file_name":"cal.1690653413.0623186.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m301/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M301/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:54.000+02:00","calibration_constant":{"id":21407,"name":"AGIPD-Type_Noise_AGIPD
+        DefUe6tvjCPtEXDxGwwi/xI0Q==\n","detector_type_id":2,"calibration_id":2,"condition_id":6656,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-11-06T01:39:47.000+01:00","updated_at":"2022-11-06T01:39:47.000+01:00"},"physical_detector_unit":{"id":49,"physical_name":"AGIPD_SIV1_AGIPDV11_M301","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:37:52.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101000900000,"float_uuid":4.9901074889e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD10","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M3","module_number_at_ccv_begin_at":null}},{"id":172412,"name":"20230729_175654_sIdx=0","file_name":"cal.1690653413.0292993.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m309/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M309/ThresholdsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:54.000+02:00","calibration_constant":{"id":21432,"name":"AGIPD-Type_ThresholdsDark_AGIPD
+        DefANY2ERyOWBHuwkh+JLEGRA==\n","detector_type_id":2,"calibration_id":11,"condition_id":6654,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) thresholds from dark runs","created_at":"2022-11-06T01:39:57.000+01:00","updated_at":"2022-11-06T01:39:57.000+01:00"},"physical_detector_unit":{"id":54,"physical_name":"AGIPD_SIV1_AGIPDV11_M309","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:38:30.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101000600000,"float_uuid":4.99009266694e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD07","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q2M4","module_number_at_ccv_begin_at":null}},{"id":172413,"name":"20230729_175654_sIdx=0","file_name":"cal.1690653413.0885248.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m300/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M300/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:54.000+02:00","calibration_constant":{"id":21426,"name":"AGIPD-Type_Noise_AGIPD
+        DefeVXakqGo4m7Hg3PP7GopyQ==\n","detector_type_id":2,"calibration_id":2,"condition_id":6663,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-11-06T01:39:55.000+01:00","updated_at":"2022-11-06T01:39:55.000+01:00"},"physical_detector_unit":{"id":48,"physical_name":"AGIPD_SIV1_AGIPDV11_M300","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:37:41.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101000700000,"float_uuid":4.9900976076e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD06","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q2M3","module_number_at_ccv_begin_at":null}},{"id":172414,"name":"20230729_175655_sIdx=0","file_name":"cal.1690653414.1713753.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m517/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M517/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:55.000+02:00","calibration_constant":{"id":21395,"name":"AGIPD-Type_Offset_AGIPD
+        DefEfv7/LtRqkd7YIVF32QqZw==\n","detector_type_id":2,"calibration_id":1,"condition_id":6657,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-11-06T01:39:41.000+01:00","updated_at":"2022-11-06T01:39:41.000+01:00"},"physical_detector_unit":{"id":188,"physical_name":"AGIPD_SIV1_AGIPDV11_M517","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2022-06-22T13:13:57.000+02:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101003000000,"float_uuid":4.9902112427e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD04","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q2M1","module_number_at_ccv_begin_at":null}},{"id":172415,"name":"20230729_175655_sIdx=0","file_name":"cal.1690653414.3106759.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m523/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M523/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:55.000+02:00","calibration_constant":{"id":22691,"name":"AGIPD-Type_Noise_AGIPD
+        DefnNZD7iqoSnjIxc1QuIKc2g==\n","detector_type_id":2,"calibration_id":2,"condition_id":7066,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2023-03-30T00:26:12.000+02:00","updated_at":"2023-03-30T00:26:12.000+02:00"},"physical_detector_unit":{"id":198,"physical_name":"AGIPD_SIV1_AGIPDV11_M523","detector_type_id":2,"flg_available":true,"description":"24-11-2022\r\n\r\nThe
+        module installed on position Q4M4 (M503) was removed and inspected. There
+        is a crack on LTCC.\r\n\r\n- This new module is installed on position Q4M4
+        was installed","created_at":"2022-11-24T13:26:36.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101003100000,"float_uuid":4.99021618335e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD15","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M4","module_number_at_ccv_begin_at":null}},{"id":172416,"name":"20230729_175655_sIdx=0","file_name":"cal.1690653414.542911.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m315/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M315/ThresholdsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:55.000+02:00","calibration_constant":{"id":21445,"name":"AGIPD-Type_ThresholdsDark_AGIPD
+        Defeyxw/SBydTObqlzemSPydg==\n","detector_type_id":2,"calibration_id":11,"condition_id":6661,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) thresholds from dark runs","created_at":"2022-11-06T01:40:07.000+01:00","updated_at":"2022-11-06T01:40:07.000+01:00"},"physical_detector_unit":{"id":58,"physical_name":"AGIPD_SIV1_AGIPDV11_M315","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:39:01.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101000200000,"float_uuid":4.9900729043e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD01","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q1M2","module_number_at_ccv_begin_at":null}},{"id":172417,"name":"20230729_175656_sIdx=0","file_name":"cal.1690653414.866934.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m535/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M535/ThresholdsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:56.000+02:00","calibration_constant":{"id":21442,"name":"AGIPD-Type_ThresholdsDark_AGIPD
+        DefZwaepe92AvQ/pxJKEqIL0g==\n","detector_type_id":2,"calibration_id":11,"condition_id":6660,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) thresholds from dark runs","created_at":"2022-11-06T01:40:02.000+01:00","updated_at":"2022-11-06T01:40:02.000+01:00"},"physical_detector_unit":{"id":186,"physical_name":"AGIPD_SIV1_AGIPDV11_M535","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2022-06-22T13:13:20.000+02:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002800000,"float_uuid":4.9902013614e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD03","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q1M4","module_number_at_ccv_begin_at":null}},{"id":172418,"name":"20230729_175656_sIdx=0","file_name":"cal.1690653415.1247253.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m420/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M420/ThresholdsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:56.000+02:00","calibration_constant":{"id":21440,"name":"AGIPD-Type_ThresholdsDark_AGIPD
+        DefKKJob0Q+6Q//RvpitaTxEQ==\n","detector_type_id":2,"calibration_id":11,"condition_id":6662,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) thresholds from dark runs","created_at":"2022-11-06T01:40:00.000+01:00","updated_at":"2022-11-06T01:40:00.000+01:00"},"physical_detector_unit":{"id":162,"physical_name":"AGIPD_SIV1_AGIPDV11_M420","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2021-02-26T16:04:57.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002400000,"float_uuid":4.99018159875e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD14","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M3","module_number_at_ccv_begin_at":null}},{"id":172419,"name":"20230729_175656_sIdx=0","file_name":"cal.1690653415.4254608.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m300/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M300/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:56.000+02:00","calibration_constant":{"id":21448,"name":"AGIPD-Type_BadPixelsDark_AGIPD
+        DefeVXakqGo4m7Hg3PP7GopyQ==\n","detector_type_id":2,"calibration_id":14,"condition_id":6663,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-11-06T01:40:10.000+01:00","updated_at":"2022-11-06T01:40:10.000+01:00"},"physical_detector_unit":{"id":48,"physical_name":"AGIPD_SIV1_AGIPDV11_M300","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:37:41.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101000700000,"float_uuid":4.9900976076e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD06","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q2M3","module_number_at_ccv_begin_at":null}},{"id":172420,"name":"20230729_175657_sIdx=0","file_name":"cal.1690653415.9886978.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m322/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M322/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:57.000+02:00","calibration_constant":{"id":21449,"name":"AGIPD-Type_BadPixelsDark_AGIPD
+        DefMWO8BtQjVsdq/O8fQ2RBHg==\n","detector_type_id":2,"calibration_id":14,"condition_id":6667,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-11-06T01:40:10.000+01:00","updated_at":"2022-11-06T01:40:10.000+01:00"},"physical_detector_unit":{"id":62,"physical_name":"AGIPD_SIV1_AGIPDV11_M322","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:39:35.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002200000,"float_uuid":4.99017171744e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD09","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M2","module_number_at_ccv_begin_at":null}},{"id":172421,"name":"20230729_175658_sIdx=0","file_name":"cal.1690653416.7789137.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m523/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M523/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:58.000+02:00","calibration_constant":{"id":22692,"name":"AGIPD-Type_BadPixelsDark_AGIPD
+        DefnNZD7iqoSnjIxc1QuIKc2g==\n","detector_type_id":2,"calibration_id":14,"condition_id":7066,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2023-03-30T00:26:17.000+02:00","updated_at":"2023-03-30T00:26:17.000+02:00"},"physical_detector_unit":{"id":198,"physical_name":"AGIPD_SIV1_AGIPDV11_M523","detector_type_id":2,"flg_available":true,"description":"24-11-2022\r\n\r\nThe
+        module installed on position Q4M4 (M503) was removed and inspected. There
+        is a crack on LTCC.\r\n\r\n- This new module is installed on position Q4M4
+        was installed","created_at":"2022-11-24T13:26:36.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101003100000,"float_uuid":4.99021618335e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD15","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M4","module_number_at_ccv_begin_at":null}},{"id":172422,"name":"20230729_175658_sIdx=0","file_name":"cal.1690653417.605189.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m434/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M434/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:56:58.000+02:00","calibration_constant":{"id":21393,"name":"AGIPD-Type_Offset_AGIPD
+        DefRPz43om1uGbqDwVQNrsmew==\n","detector_type_id":2,"calibration_id":1,"condition_id":6655,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-11-06T01:39:40.000+01:00","updated_at":"2022-11-06T01:39:40.000+01:00"},"physical_detector_unit":{"id":184,"physical_name":"AGIPD_SIV1_AGIPDV11_M434","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2022-06-22T13:12:24.000+02:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002600000,"float_uuid":4.99019148006e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD12","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M1","module_number_at_ccv_begin_at":null}},{"id":172423,"name":"20230729_175700_sIdx=0","file_name":"cal.1690653419.0837076.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m300/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M300/ThresholdsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:00.000+02:00","calibration_constant":{"id":21451,"name":"AGIPD-Type_ThresholdsDark_AGIPD
+        DefeVXakqGo4m7Hg3PP7GopyQ==\n","detector_type_id":2,"calibration_id":11,"condition_id":6663,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) thresholds from dark runs","created_at":"2022-11-06T01:40:16.000+01:00","updated_at":"2022-11-06T01:40:16.000+01:00"},"physical_detector_unit":{"id":48,"physical_name":"AGIPD_SIV1_AGIPDV11_M300","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:37:41.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101000700000,"float_uuid":4.9900976076e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD06","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q2M3","module_number_at_ccv_begin_at":null}},{"id":172424,"name":"20230729_175700_sIdx=0","file_name":"cal.1690653419.245266.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m448/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M448/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:00.000+02:00","calibration_constant":{"id":21392,"name":"AGIPD-Type_Noise_AGIPD
+        DefpUik5QPxNT6kiHcS9OVQew==\n","detector_type_id":2,"calibration_id":2,"condition_id":6652,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-11-06T01:39:40.000+01:00","updated_at":"2022-11-06T01:39:40.000+01:00"},"physical_detector_unit":{"id":161,"physical_name":"AGIPD_SIV1_AGIPDV11_M448","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2021-02-26T16:03:50.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002300000,"float_uuid":4.9901766581e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD00","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q1M1","module_number_at_ccv_begin_at":null}},{"id":172425,"name":"20230729_175701_sIdx=0","file_name":"cal.1690653419.7523031.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m305/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M305/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:01.000+02:00","calibration_constant":{"id":21421,"name":"AGIPD-Type_BadPixelsDark_AGIPD
+        DefuCuZYIPIEmXDGZyfMGdDHA==\n","detector_type_id":2,"calibration_id":14,"condition_id":6658,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-11-06T01:39:51.000+01:00","updated_at":"2022-11-06T01:39:51.000+01:00"},"physical_detector_unit":{"id":50,"physical_name":"AGIPD_SIV1_AGIPDV11_M305","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:38:00.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101000100000,"float_uuid":4.99006796365e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD02","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q1M3","module_number_at_ccv_begin_at":null}},{"id":172426,"name":"20230729_175701_sIdx=0","file_name":"cal.1690653419.9849896.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m301/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M301/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:01.000+02:00","calibration_constant":{"id":21420,"name":"AGIPD-Type_BadPixelsDark_AGIPD
+        DefUe6tvjCPtEXDxGwwi/xI0Q==\n","detector_type_id":2,"calibration_id":14,"condition_id":6656,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-11-06T01:39:51.000+01:00","updated_at":"2022-11-06T01:39:51.000+01:00"},"physical_detector_unit":{"id":49,"physical_name":"AGIPD_SIV1_AGIPDV11_M301","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:37:52.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101000900000,"float_uuid":4.9901074889e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD10","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M3","module_number_at_ccv_begin_at":null}},{"id":172427,"name":"20230729_175701_sIdx=0","file_name":"cal.1690653420.0040188.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m546/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M546/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:01.000+02:00","calibration_constant":{"id":21427,"name":"AGIPD-Type_Noise_AGIPD
+        DefFSho7anbUyFM4+mB7jC/CA==\n","detector_type_id":2,"calibration_id":2,"condition_id":6666,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-11-06T01:39:55.000+01:00","updated_at":"2022-11-06T01:39:55.000+01:00"},"physical_detector_unit":{"id":187,"physical_name":"AGIPD_SIV1_AGIPDV11_M546","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2022-06-22T13:13:40.000+02:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002900000,"float_uuid":4.99020630203e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD08","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M1","module_number_at_ccv_begin_at":null}},{"id":172428,"name":"20230729_175702_sIdx=0","file_name":"cal.1690653420.5796912.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m215/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M215/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:02.000+02:00","calibration_constant":{"id":21428,"name":"AGIPD-Type_Noise_AGIPD
+        DefDNxvjVzPkWuZbUOj1Pg8iA==\n","detector_type_id":2,"calibration_id":2,"condition_id":6665,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-11-06T01:39:55.000+01:00","updated_at":"2022-11-06T01:39:55.000+01:00"},"physical_detector_unit":{"id":46,"physical_name":"AGIPD_SIV1_AGIPDV11_M215","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:37:22.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101001400000,"float_uuid":4.9901321922e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD11","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M4","module_number_at_ccv_begin_at":null}},{"id":172429,"name":"20230729_175702_sIdx=0","file_name":"cal.1690653420.875166.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m523/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M523/ThresholdsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:02.000+02:00","calibration_constant":{"id":22693,"name":"AGIPD-Type_ThresholdsDark_AGIPD
+        DefnNZD7iqoSnjIxc1QuIKc2g==\n","detector_type_id":2,"calibration_id":11,"condition_id":7066,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) thresholds from dark runs","created_at":"2023-03-30T00:26:23.000+02:00","updated_at":"2023-03-30T00:26:23.000+02:00"},"physical_detector_unit":{"id":198,"physical_name":"AGIPD_SIV1_AGIPDV11_M523","detector_type_id":2,"flg_available":true,"description":"24-11-2022\r\n\r\nThe
+        module installed on position Q4M4 (M503) was removed and inspected. There
+        is a crack on LTCC.\r\n\r\n- This new module is installed on position Q4M4
+        was installed","created_at":"2022-11-24T13:26:36.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101003100000,"float_uuid":4.99021618335e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD15","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M4","module_number_at_ccv_begin_at":null}},{"id":172430,"name":"20230729_175702_sIdx=0","file_name":"cal.1690653421.0071251.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m517/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M517/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:02.000+02:00","calibration_constant":{"id":21406,"name":"AGIPD-Type_Noise_AGIPD
+        DefEfv7/LtRqkd7YIVF32QqZw==\n","detector_type_id":2,"calibration_id":2,"condition_id":6657,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-11-06T01:39:47.000+01:00","updated_at":"2022-11-06T01:39:47.000+01:00"},"physical_detector_unit":{"id":188,"physical_name":"AGIPD_SIV1_AGIPDV11_M517","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2022-06-22T13:13:57.000+02:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101003000000,"float_uuid":4.9902112427e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD04","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q2M1","module_number_at_ccv_begin_at":null}},{"id":172431,"name":"20230729_175704_sIdx=0","file_name":"cal.1690653422.8556252.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m313/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M313/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:04.000+02:00","calibration_constant":{"id":21430,"name":"AGIPD-Type_Noise_AGIPD
+        Defzn+X7ZuMRON8PNSxXthgFw==\n","detector_type_id":2,"calibration_id":2,"condition_id":6664,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-11-06T01:39:56.000+01:00","updated_at":"2022-11-06T01:39:56.000+01:00"},"physical_detector_unit":{"id":56,"physical_name":"AGIPD_SIV1_AGIPDV11_M313","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:38:45.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101001200000,"float_uuid":4.99012231087e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD05","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q2M2","module_number_at_ccv_begin_at":null}},{"id":172432,"name":"20230729_175706_sIdx=0","file_name":"cal.1690653424.8000963.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m322/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M322/ThresholdsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:06.000+02:00","calibration_constant":{"id":21452,"name":"AGIPD-Type_ThresholdsDark_AGIPD
+        DefMWO8BtQjVsdq/O8fQ2RBHg==\n","detector_type_id":2,"calibration_id":11,"condition_id":6667,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) thresholds from dark runs","created_at":"2022-11-06T01:40:24.000+01:00","updated_at":"2022-11-06T01:40:24.000+01:00"},"physical_detector_unit":{"id":62,"physical_name":"AGIPD_SIV1_AGIPDV11_M322","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:39:35.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002200000,"float_uuid":4.99017171744e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD09","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M2","module_number_at_ccv_begin_at":null}},{"id":172433,"name":"20230729_175707_sIdx=0","file_name":"cal.1690653426.4070606.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m448/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M448/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:07.000+02:00","calibration_constant":{"id":21403,"name":"AGIPD-Type_BadPixelsDark_AGIPD
+        DefpUik5QPxNT6kiHcS9OVQew==\n","detector_type_id":2,"calibration_id":14,"condition_id":6652,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-11-06T01:39:44.000+01:00","updated_at":"2022-11-06T01:39:44.000+01:00"},"physical_detector_unit":{"id":161,"physical_name":"AGIPD_SIV1_AGIPDV11_M448","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2021-02-26T16:03:50.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002300000,"float_uuid":4.9901766581e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD00","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q1M1","module_number_at_ccv_begin_at":null}},{"id":172434,"name":"20230729_175709_sIdx=0","file_name":"cal.1690653427.953059.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m517/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M517/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:09.000+02:00","calibration_constant":{"id":21418,"name":"AGIPD-Type_BadPixelsDark_AGIPD
+        DefEfv7/LtRqkd7YIVF32QqZw==\n","detector_type_id":2,"calibration_id":14,"condition_id":6657,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-11-06T01:39:51.000+01:00","updated_at":"2022-11-06T01:39:51.000+01:00"},"physical_detector_unit":{"id":188,"physical_name":"AGIPD_SIV1_AGIPDV11_M517","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2022-06-22T13:13:57.000+02:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101003000000,"float_uuid":4.9902112427e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD04","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q2M1","module_number_at_ccv_begin_at":null}},{"id":172435,"name":"20230729_175709_sIdx=0","file_name":"cal.1690653428.3590064.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m305/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M305/ThresholdsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:09.000+02:00","calibration_constant":{"id":21435,"name":"AGIPD-Type_ThresholdsDark_AGIPD
+        DefuCuZYIPIEmXDGZyfMGdDHA==\n","detector_type_id":2,"calibration_id":11,"condition_id":6658,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) thresholds from dark runs","created_at":"2022-11-06T01:39:59.000+01:00","updated_at":"2022-11-06T01:39:59.000+01:00"},"physical_detector_unit":{"id":50,"physical_name":"AGIPD_SIV1_AGIPDV11_M305","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:38:00.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101000100000,"float_uuid":4.99006796365e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD02","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q1M3","module_number_at_ccv_begin_at":null}},{"id":172436,"name":"20230729_175709_sIdx=0","file_name":"cal.1690653428.3777702.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m215/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M215/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:09.000+02:00","calibration_constant":{"id":21437,"name":"AGIPD-Type_BadPixelsDark_AGIPD
+        DefDNxvjVzPkWuZbUOj1Pg8iA==\n","detector_type_id":2,"calibration_id":14,"condition_id":6665,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-11-06T01:39:59.000+01:00","updated_at":"2022-11-06T01:39:59.000+01:00"},"physical_detector_unit":{"id":46,"physical_name":"AGIPD_SIV1_AGIPDV11_M215","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:37:22.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101001400000,"float_uuid":4.9901321922e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD11","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M4","module_number_at_ccv_begin_at":null}},{"id":172437,"name":"20230729_175709_sIdx=0","file_name":"cal.1690653428.4831376.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m301/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M301/ThresholdsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:09.000+02:00","calibration_constant":{"id":21438,"name":"AGIPD-Type_ThresholdsDark_AGIPD
+        DefUe6tvjCPtEXDxGwwi/xI0Q==\n","detector_type_id":2,"calibration_id":11,"condition_id":6656,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) thresholds from dark runs","created_at":"2022-11-06T01:40:00.000+01:00","updated_at":"2022-11-06T01:40:00.000+01:00"},"physical_detector_unit":{"id":49,"physical_name":"AGIPD_SIV1_AGIPDV11_M301","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:37:52.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101000900000,"float_uuid":4.9901074889e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD10","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M3","module_number_at_ccv_begin_at":null}},{"id":172438,"name":"20230729_175709_sIdx=0","file_name":"cal.1690653428.3430145.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m546/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M546/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:09.000+02:00","calibration_constant":{"id":21436,"name":"AGIPD-Type_BadPixelsDark_AGIPD
+        DefFSho7anbUyFM4+mB7jC/CA==\n","detector_type_id":2,"calibration_id":14,"condition_id":6666,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-11-06T01:39:59.000+01:00","updated_at":"2022-11-06T01:39:59.000+01:00"},"physical_detector_unit":{"id":187,"physical_name":"AGIPD_SIV1_AGIPDV11_M546","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2022-06-22T13:13:40.000+02:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002900000,"float_uuid":4.99020630203e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD08","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M1","module_number_at_ccv_begin_at":null}},{"id":172439,"name":"20230729_175711_sIdx=0","file_name":"cal.1690653429.8221397.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m434/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M434/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:11.000+02:00","calibration_constant":{"id":21404,"name":"AGIPD-Type_Noise_AGIPD
+        DefRPz43om1uGbqDwVQNrsmew==\n","detector_type_id":2,"calibration_id":2,"condition_id":6655,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-11-06T01:39:45.000+01:00","updated_at":"2022-11-06T01:39:45.000+01:00"},"physical_detector_unit":{"id":184,"physical_name":"AGIPD_SIV1_AGIPDV11_M434","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2022-06-22T13:12:24.000+02:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002600000,"float_uuid":4.99019148006e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD12","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M1","module_number_at_ccv_begin_at":null}},{"id":172440,"name":"20230729_175718_sIdx=0","file_name":"cal.1690653437.531306.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m215/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M215/ThresholdsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:19.000+02:00","calibration_constant":{"id":21444,"name":"AGIPD-Type_ThresholdsDark_AGIPD
+        DefDNxvjVzPkWuZbUOj1Pg8iA==\n","detector_type_id":2,"calibration_id":11,"condition_id":6665,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) thresholds from dark runs","created_at":"2022-11-06T01:40:07.000+01:00","updated_at":"2022-11-06T01:40:07.000+01:00"},"physical_detector_unit":{"id":46,"physical_name":"AGIPD_SIV1_AGIPDV11_M215","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:37:22.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101001400000,"float_uuid":4.9901321922e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD11","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M4","module_number_at_ccv_begin_at":null}},{"id":172441,"name":"20230729_175719_sIdx=0","file_name":"cal.1690653437.756239.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m546/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M546/ThresholdsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:19.000+02:00","calibration_constant":{"id":21447,"name":"AGIPD-Type_ThresholdsDark_AGIPD
+        DefFSho7anbUyFM4+mB7jC/CA==\n","detector_type_id":2,"calibration_id":11,"condition_id":6666,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) thresholds from dark runs","created_at":"2022-11-06T01:40:08.000+01:00","updated_at":"2022-11-06T01:40:08.000+01:00"},"physical_detector_unit":{"id":187,"physical_name":"AGIPD_SIV1_AGIPDV11_M546","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2022-06-22T13:13:40.000+02:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002900000,"float_uuid":4.99020630203e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD08","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M1","module_number_at_ccv_begin_at":null}},{"id":172442,"name":"20230729_175724_sIdx=0","file_name":"cal.1690653443.400899.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m448/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M448/ThresholdsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:24.000+02:00","calibration_constant":{"id":21419,"name":"AGIPD-Type_ThresholdsDark_AGIPD
+        DefpUik5QPxNT6kiHcS9OVQew==\n","detector_type_id":2,"calibration_id":11,"condition_id":6652,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) thresholds from dark runs","created_at":"2022-11-06T01:39:51.000+01:00","updated_at":"2022-11-06T01:39:51.000+01:00"},"physical_detector_unit":{"id":161,"physical_name":"AGIPD_SIV1_AGIPDV11_M448","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2021-02-26T16:03:50.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002300000,"float_uuid":4.9901766581e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD00","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q1M1","module_number_at_ccv_begin_at":null}},{"id":172443,"name":"20230729_175726_sIdx=0","file_name":"cal.1690653445.2184327.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m517/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M517/ThresholdsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:26.000+02:00","calibration_constant":{"id":21434,"name":"AGIPD-Type_ThresholdsDark_AGIPD
+        DefEfv7/LtRqkd7YIVF32QqZw==\n","detector_type_id":2,"calibration_id":11,"condition_id":6657,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) thresholds from dark runs","created_at":"2022-11-06T01:39:58.000+01:00","updated_at":"2022-11-06T01:39:58.000+01:00"},"physical_detector_unit":{"id":188,"physical_name":"AGIPD_SIV1_AGIPDV11_M517","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2022-06-22T13:13:57.000+02:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101003000000,"float_uuid":4.9902112427e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD04","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q2M1","module_number_at_ccv_begin_at":null}},{"id":172444,"name":"20230729_175728_sIdx=0","file_name":"cal.1690653446.8426683.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m313/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M313/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:28.000+02:00","calibration_constant":{"id":21443,"name":"AGIPD-Type_BadPixelsDark_AGIPD
+        Defzn+X7ZuMRON8PNSxXthgFw==\n","detector_type_id":2,"calibration_id":14,"condition_id":6664,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-11-06T01:40:02.000+01:00","updated_at":"2022-11-06T01:40:02.000+01:00"},"physical_detector_unit":{"id":56,"physical_name":"AGIPD_SIV1_AGIPDV11_M313","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:38:45.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101001200000,"float_uuid":4.99012231087e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD05","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q2M2","module_number_at_ccv_begin_at":null}},{"id":172445,"name":"20230729_175729_sIdx=0","file_name":"cal.1690653448.4285476.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m434/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M434/BadPixelsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:30.000+02:00","calibration_constant":{"id":21414,"name":"AGIPD-Type_BadPixelsDark_AGIPD
+        DefRPz43om1uGbqDwVQNrsmew==\n","detector_type_id":2,"calibration_id":14,"condition_id":6655,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from dark runs","created_at":"2022-11-06T01:39:49.000+01:00","updated_at":"2022-11-06T01:39:49.000+01:00"},"physical_detector_unit":{"id":184,"physical_name":"AGIPD_SIV1_AGIPDV11_M434","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2022-06-22T13:12:24.000+02:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002600000,"float_uuid":4.99019148006e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD12","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M1","module_number_at_ccv_begin_at":null}},{"id":172446,"name":"20230729_175750_sIdx=0","file_name":"cal.1690653469.3584445.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m313/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M313/ThresholdsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:50.000+02:00","calibration_constant":{"id":21450,"name":"AGIPD-Type_ThresholdsDark_AGIPD
+        Defzn+X7ZuMRON8PNSxXthgFw==\n","detector_type_id":2,"calibration_id":11,"condition_id":6664,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) thresholds from dark runs","created_at":"2022-11-06T01:40:11.000+01:00","updated_at":"2022-11-06T01:40:11.000+01:00"},"physical_detector_unit":{"id":56,"physical_name":"AGIPD_SIV1_AGIPDV11_M313","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2018-03-02T15:38:45.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101001200000,"float_uuid":4.99012231087e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD05","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q2M2","module_number_at_ccv_begin_at":null}},{"id":172447,"name":"20230729_175752_sIdx=0","file_name":"cal.1690653471.2237763.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m434/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M434/ThresholdsDark/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-29T19:34:53.000+02:00","end_validity_at":null,"begin_at":"2023-07-29T19:34:53.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900376
+        runs:17 16 15","report_id":3757,"description":"","created_at":"2023-07-29T19:57:52.000+02:00","calibration_constant":{"id":21433,"name":"AGIPD-Type_ThresholdsDark_AGIPD
+        DefRPz43om1uGbqDwVQNrsmew==\n","detector_type_id":2,"calibration_id":11,"condition_id":6655,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) thresholds from dark runs","created_at":"2022-11-06T01:39:57.000+01:00","updated_at":"2022-11-06T01:39:57.000+01:00"},"physical_detector_unit":{"id":184,"physical_name":"AGIPD_SIV1_AGIPDV11_M434","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2022-06-22T13:12:24.000+02:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"","detector_id":null,"virtual_device_name":"","uuid":101002600000,"float_uuid":4.99019148006e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD12","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M1","module_number_at_ccv_begin_at":null}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '90037'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 21 Feb 2024 16:40:43 GMT
+      Etag:
+      - W/"3121b4e6d3e944e964a5cd2fdd35971c"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '500'
+      X-Current-Page:
+      - '1'
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 0c634ba4-ed88-43c6-bd2b-00fdde657bde
+      X-Runtime:
+      - '0.261453'
+      X-Total-Count:
+      - '64'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate, br
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.31.0
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations/1
+  response:
+    body:
+      string: '{"id":1,"name":"Offset","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":""}'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '112'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 21 Feb 2024 16:40:44 GMT
+      Etag:
+      - W/"1486ae7c7b90255cd325a8bf120a5634"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - e751ab8c-ae91-47e9-a19c-0d607917967a
+      X-Runtime:
+      - '0.023472'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate, br
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.31.0
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations/2
+  response:
+    body:
+      string: '{"id":2,"name":"Noise","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":"In
+        terms of standard deviation"}'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '141'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 21 Feb 2024 16:40:44 GMT
+      Etag:
+      - W/"fb4aad03f13959d14489c4cecf77c676"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - ad841e66-2ea5-4369-ad53-30124123836f
+      X-Runtime:
+      - '0.026230'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate, br
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.31.0
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations/14
+  response:
+    body:
+      string: '{"id":14,"name":"BadPixelsDark","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":""}'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '120'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 21 Feb 2024 16:40:44 GMT
+      Etag:
+      - W/"b7d5a8ebd5887a7ad8de6b1b2844a690"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 018dee68-0ded-4ebc-80bb-65c57c542f9e
+      X-Runtime:
+      - '0.022991'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate, br
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.31.0
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations/11
+  response:
+    body:
+      string: '{"id":11,"name":"ThresholdsDark","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":""}'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '121'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 21 Feb 2024 16:40:44 GMT
+      Etag:
+      - W/"5827d9dd98b337b20f5f63123265da57"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 40896995-91f1-4414-8a8a-ddb8e945dcba
+      X-Runtime:
+      - '0.018382'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate, br
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.31.0
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/detectors/2
+  response:
+    body:
+      string: '{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":2},{"instrument_id":7,"detector_id":2}]}'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '357'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 21 Feb 2024 16:40:44 GMT
+      Etag:
+      - W/"bd6a60e0518d58933c8cd5f22bdb17c4"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - dae5fd55-c44b-4ea5-ae6c-34345f01db32
+      X-Runtime:
+      - '0.026873'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+version: 1
