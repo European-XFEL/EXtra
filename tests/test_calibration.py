@@ -1,6 +1,8 @@
 import os
 
+import numpy as np
 import pytest
+import xarray as xr
 
 from extra.calibration import (
     AGIPDConditions,
@@ -111,6 +113,34 @@ def test_AGIPD_CalibrationData_metadata_SPB():
         f"Q{(m // 4) + 1}M{(m % 4) + 1}" for m in range(16)
     ]
     assert isinstance(agipd_cd["Offset", 0], SingleConstant)
+
+
+@pytest.mark.skipif(not os.path.isdir("/gpfs/exfel/d"), reason="GPFS not available")
+@pytest.mark.vcr
+def test_AGIPD_load_data():
+    cond = AGIPDConditions(
+        sensor_bias_voltage=300,
+        memory_cells=352,
+        acquisition_rate=1.1,
+        integration_time=12,
+        source_energy=9.2,
+        gain_mode=0,
+        gain_setting=0,
+    )
+    agipd_cd = CalibrationData.from_condition(
+        cond,
+        "SPB_DET_AGIPD1M-1",
+        event_at="2020-01-07 13:26:48.00",
+    )
+    arr = agipd_cd["Offset"].select_modules(list(range(4))).xarray()
+    assert arr.shape == (4, 128, 512, 352, 3)
+    assert arr.dims[0] == "module"
+    np.testing.assert_array_equal(arr.coords["module"], np.arange(0, 4))
+    assert arr.dtype == np.float64
+
+    # Load parallel
+    arr_p = agipd_cd["Offset"].select_modules(list(range(4))).xarray(parallel=4)
+    xr.testing.assert_identical(arr_p, arr)
 
 
 @pytest.mark.vcr
