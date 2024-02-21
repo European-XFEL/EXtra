@@ -484,7 +484,7 @@ class CalibrationData(Mapping):
         )
         module_details = sorted(pdus, key=lambda d: d["karabo_da"])
         for mod in module_details:
-            if mod.get("module_number", -1) < 0:
+            if mod.get("module_number") is None:
                 mod["module_number"] = int(re.findall(r"\d+", mod["karabo_da"])[-1])
 
         constant_groups = {}
