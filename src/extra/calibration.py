@@ -57,10 +57,12 @@ class CalCatAPIClient:
         self.base_api_url = base_api_url.rstrip("/") + "/"
 
     def default_headers(self):
+        from . import __version__
         return {
             "content-type": "application/json",
             "Accept": "application/json; version=2",
             "X-User-Email": self.user_email,
+            "User-Agent": f"EXtra/{__version__}",
         }
 
     @classmethod
