@@ -1153,6 +1153,7 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
     def _get_pulse_mask(self, reduced=False):
         # Actually returns flags instead of a mask.
 
+        train_ids = self._get_train_ids()
         pulse_ids = self.pulse_ids(copy=False)
         pids_by_train = pulse_ids.groupby(level=0)
 
@@ -1163,11 +1164,28 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
             pid_offset = 0
             table_len = self._bunch_pattern_table_len
 
-        flags = np.zeros((pids_by_train.ngroups, table_len), dtype=np.int8)
+        num_trains = len(train_ids)
+        flags = np.zeros((num_trains, table_len), dtype=np.int8)
+        train_idx = 0
 
-        for i, (_, train_pids) in enumerate(pids_by_train):
-            flags[i, train_pids.loc[:, :, True, :] - pid_offset] |= 1
-            flags[i, train_pids.loc[:, :, :, True] - pid_offset] |= 2
+        for train_id, train_pids in pulse_ids.groupby(level=0):
+            # See PulsePattern._get_pulse_mask.
+            for i in range(train_idx, num_trains):
+                if train_ids[i] == train_id:
+                    train_idx = i
+                    break
+
+            try:
+                flags[train_idx, train_pids.loc[:, :, True, :] - pid_offset] |= 1
+            except KeyError:
+                # No FEL pulses in this train.
+                pass
+
+            try:
+                flags[train_idx, train_pids.loc[:, :, :, True] - pid_offset] |= 2
+            except KeyError:
+                # No PPL pulses in this train.
+                pass
 
         return flags
 
