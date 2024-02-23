@@ -1,0 +1,272 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate, br
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.31.0
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/detectors?identifier=SQS_DET_DSSC1M-1
+  response:
+    body:
+      string: '[{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":2,"detector_id":28},{"instrument_id":7,"detector_id":28}]}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '355'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 21 Feb 2024 16:40:39 GMT
+      Etag:
+      - W/"a8d2d9773c98d7aa08414d4272e23394"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 3104c7b9-851b-4c1e-88d9-1df9448ffa11
+      X-Runtime:
+      - '0.028952'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate, br
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.31.0
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=28&pdu_snapshot_at=2023-11-29+00%3A00%3A00
+  response:
+    body:
+      string: '[{"id":121,"physical_name":"DSSC_MiniSDDV1_F2_004","karabo_da":"DSSC00","virtual_device_name":"Q1M1","uuid":404000400000,"float_uuid":1.99602718546e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":120,"physical_name":"DSSC_MiniSDDV1_F2_003","karabo_da":"DSSC01","virtual_device_name":"Q1M2","uuid":404000300000,"float_uuid":1.996026691396e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":119,"physical_name":"DSSC_MiniSDDV1_F2_002","karabo_da":"DSSC02","virtual_device_name":"Q1M3","uuid":404000200000,"float_uuid":1.99602619733e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":118,"physical_name":"DSSC_MiniSDDV1_F2_001","karabo_da":"DSSC03","virtual_device_name":"Q1M4","uuid":404000100000,"float_uuid":1.996025703264e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":126,"physical_name":"DSSC_MiniSDDV1_F2_009","karabo_da":"DSSC08","virtual_device_name":"Q3M1","uuid":404000900000,"float_uuid":1.99602965579e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":127,"physical_name":"DSSC_MiniSDDV1_F2_010","karabo_da":"DSSC09","virtual_device_name":"Q3M2","uuid":404001000000,"float_uuid":1.996030149855e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":128,"physical_name":"DSSC_MiniSDDV1_F2_011","karabo_da":"DSSC10","virtual_device_name":"Q3M3","uuid":404001100000,"float_uuid":1.99603064392e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":129,"physical_name":"DSSC_MiniSDDV1_F2_012","karabo_da":"DSSC11","virtual_device_name":"Q3M4","uuid":404001200000,"float_uuid":1.996031137986e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":130,"physical_name":"DSSC_MiniSDDV1_F2_013","karabo_da":"DSSC12","virtual_device_name":"Q4M1","uuid":404001300000,"float_uuid":1.99603163205e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":131,"physical_name":"DSSC_MiniSDDV1_F2_014","karabo_da":"DSSC13","virtual_device_name":"Q4M2","uuid":404001400000,"float_uuid":1.99603212612e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":132,"physical_name":"DSSC_MiniSDDV1_F2_015","karabo_da":"DSSC14","virtual_device_name":"Q4M3","uuid":404001500000,"float_uuid":1.996032620183e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":133,"physical_name":"DSSC_MiniSDDV1_F2_016","karabo_da":"DSSC15","virtual_device_name":"Q4M4","uuid":404001600000,"float_uuid":1.99603311425e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '7218'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 21 Feb 2024 16:40:39 GMT
+      Etag:
+      - W/"8306e1d172eb64a33186dde32e2e7bba"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - fc412eba-3d9f-474e-9e7b-c79eba075584
+      X-Runtime:
+      - '0.403018'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"parameters_conditions_attributes": [{"parameter_name": "Sensor Bias Voltage",
+      "value": "100"}, {"parameter_name": "Memory cells", "value": "600"}, {"parameter_name":
+      "Pixels X", "value": "512"}, {"parameter_name": "Pixels Y", "value": "128"}]}'
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate, br
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '245'
+      User-Agent:
+      - python-requests/2.31.0
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=SQS_DET_DSSC1M-1&calibration_id=%5B1%2C+2%5D&karabo_da=&event_at=2023-11-29+00%3A00%3A00&pdu_snapshot_at=2023-11-29+00%3A00%3A00
+  response:
+    body:
+      string: '[{"id":190329,"name":"20231128_094249_sIdx=0","file_name":"cal.1701164568.7374022.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_004/","data_set_name":"/DSSC_MiniSDDV1_F2_004/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:49.000+01:00","calibration_constant":{"id":26100,"name":"DSSC-Type_Offset_DSSC
+        Defa6rg2DzTuH8YMI0tacDEdA==\n","detector_type_id":7,"calibration_id":1,"condition_id":8366,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2023-11-24T20:48:48.000+01:00","updated_at":"2023-11-24T20:48:48.000+01:00"},"physical_detector_unit":{"id":121,"physical_name":"DSSC_MiniSDDV1_F2_004","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:30:34.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC00","detector_id":28,"virtual_device_name":"Q1M1","uuid":404000400000,"float_uuid":1.99602718546e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC00","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q1M1","module_number_at_ccv_begin_at":null}},{"id":190340,"name":"20231128_094254_sIdx=0","file_name":"cal.1701164573.2958426.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_004/","data_set_name":"/DSSC_MiniSDDV1_F2_004/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:54.000+01:00","calibration_constant":{"id":26105,"name":"DSSC-Type_Noise_DSSC
+        Defa6rg2DzTuH8YMI0tacDEdA==\n","detector_type_id":7,"calibration_id":2,"condition_id":8366,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2023-11-24T20:48:51.000+01:00","updated_at":"2023-11-24T20:48:51.000+01:00"},"physical_detector_unit":{"id":121,"physical_name":"DSSC_MiniSDDV1_F2_004","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:30:34.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC00","detector_id":28,"virtual_device_name":"Q1M1","uuid":404000400000,"float_uuid":1.99602718546e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC00","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q1M1","module_number_at_ccv_begin_at":null}},{"id":190330,"name":"20231128_094249_sIdx=0","file_name":"cal.1701164568.855113.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_003/","data_set_name":"/DSSC_MiniSDDV1_F2_003/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:49.000+01:00","calibration_constant":{"id":26103,"name":"DSSC-Type_Offset_DSSC
+        Def9GCPfDTIN9oIEcVK6GlnVw==\n","detector_type_id":7,"calibration_id":1,"condition_id":8369,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2023-11-24T20:48:49.000+01:00","updated_at":"2023-11-24T20:48:49.000+01:00"},"physical_detector_unit":{"id":120,"physical_name":"DSSC_MiniSDDV1_F2_003","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:30:28.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC01","detector_id":28,"virtual_device_name":"Q1M2","uuid":404000300000,"float_uuid":1.996026691396e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC01","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q1M2","module_number_at_ccv_begin_at":null}},{"id":190339,"name":"20231128_094254_sIdx=0","file_name":"cal.1701164573.3607614.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_003/","data_set_name":"/DSSC_MiniSDDV1_F2_003/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:54.000+01:00","calibration_constant":{"id":26111,"name":"DSSC-Type_Noise_DSSC
+        Def9GCPfDTIN9oIEcVK6GlnVw==\n","detector_type_id":7,"calibration_id":2,"condition_id":8369,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2023-11-24T20:48:53.000+01:00","updated_at":"2023-11-24T20:48:53.000+01:00"},"physical_detector_unit":{"id":120,"physical_name":"DSSC_MiniSDDV1_F2_003","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:30:28.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC01","detector_id":28,"virtual_device_name":"Q1M2","uuid":404000300000,"float_uuid":1.996026691396e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC01","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q1M2","module_number_at_ccv_begin_at":null}},{"id":190328,"name":"20231128_094249_sIdx=0","file_name":"cal.1701164568.2654338.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_002/","data_set_name":"/DSSC_MiniSDDV1_F2_002/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:49.000+01:00","calibration_constant":{"id":26102,"name":"DSSC-Type_Offset_DSSC
+        Def+5y88z5MHkhK3elkfe7kEg==\n","detector_type_id":7,"calibration_id":1,"condition_id":8368,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2023-11-24T20:48:49.000+01:00","updated_at":"2023-11-24T20:48:49.000+01:00"},"physical_detector_unit":{"id":119,"physical_name":"DSSC_MiniSDDV1_F2_002","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:30:18.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC02","detector_id":28,"virtual_device_name":"Q1M3","uuid":404000200000,"float_uuid":1.99602619733e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC02","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q1M3","module_number_at_ccv_begin_at":null}},{"id":190334,"name":"20231128_094252_sIdx=0","file_name":"cal.1701164571.4270296.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_002/","data_set_name":"/DSSC_MiniSDDV1_F2_002/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:52.000+01:00","calibration_constant":{"id":26109,"name":"DSSC-Type_Noise_DSSC
+        Def+5y88z5MHkhK3elkfe7kEg==\n","detector_type_id":7,"calibration_id":2,"condition_id":8368,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2023-11-24T20:48:52.000+01:00","updated_at":"2023-11-24T20:48:52.000+01:00"},"physical_detector_unit":{"id":119,"physical_name":"DSSC_MiniSDDV1_F2_002","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:30:18.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC02","detector_id":28,"virtual_device_name":"Q1M3","uuid":404000200000,"float_uuid":1.99602619733e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC02","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q1M3","module_number_at_ccv_begin_at":null}},{"id":190338,"name":"20231128_094254_sIdx=0","file_name":"cal.1701164573.0282297.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_001/","data_set_name":"/DSSC_MiniSDDV1_F2_001/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:54.000+01:00","calibration_constant":{"id":26101,"name":"DSSC-Type_Offset_DSSC
+        DefZDfl4wNLM9UNTwgIxtYLAA==\n","detector_type_id":7,"calibration_id":1,"condition_id":8367,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2023-11-24T20:48:49.000+01:00","updated_at":"2023-11-24T20:48:49.000+01:00"},"physical_detector_unit":{"id":118,"physical_name":"DSSC_MiniSDDV1_F2_001","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:30:10.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC03","detector_id":28,"virtual_device_name":"Q1M4","uuid":404000100000,"float_uuid":1.996025703264e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC03","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q1M4","module_number_at_ccv_begin_at":null}},{"id":190350,"name":"20231128_094257_sIdx=0","file_name":"cal.1701164576.8719976.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_001/","data_set_name":"/DSSC_MiniSDDV1_F2_001/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:58.000+01:00","calibration_constant":{"id":26108,"name":"DSSC-Type_Noise_DSSC
+        DefZDfl4wNLM9UNTwgIxtYLAA==\n","detector_type_id":7,"calibration_id":2,"condition_id":8367,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2023-11-24T20:48:52.000+01:00","updated_at":"2023-11-24T20:48:52.000+01:00"},"physical_detector_unit":{"id":118,"physical_name":"DSSC_MiniSDDV1_F2_001","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:30:10.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC03","detector_id":28,"virtual_device_name":"Q1M4","uuid":404000100000,"float_uuid":1.996025703264e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC03","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q1M4","module_number_at_ccv_begin_at":null}},{"id":190337,"name":"20231128_094254_sIdx=0","file_name":"cal.1701164572.9913278.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_009/","data_set_name":"/DSSC_MiniSDDV1_F2_009/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:54.000+01:00","calibration_constant":{"id":26098,"name":"DSSC-Type_Offset_DSSC
+        DefUohi38Bq4bIlk3z7kmppLA==\n","detector_type_id":7,"calibration_id":1,"condition_id":8365,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2023-11-24T20:48:47.000+01:00","updated_at":"2023-11-24T20:48:47.000+01:00"},"physical_detector_unit":{"id":126,"physical_name":"DSSC_MiniSDDV1_F2_009","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:58:23.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC08","detector_id":28,"virtual_device_name":"Q3M1","uuid":404000900000,"float_uuid":1.99602965579e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC08","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q3M1","module_number_at_ccv_begin_at":null}},{"id":190349,"name":"20231128_094257_sIdx=0","file_name":"cal.1701164576.722111.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_009/","data_set_name":"/DSSC_MiniSDDV1_F2_009/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:57.000+01:00","calibration_constant":{"id":26104,"name":"DSSC-Type_Noise_DSSC
+        DefUohi38Bq4bIlk3z7kmppLA==\n","detector_type_id":7,"calibration_id":2,"condition_id":8365,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2023-11-24T20:48:50.000+01:00","updated_at":"2023-11-24T20:48:50.000+01:00"},"physical_detector_unit":{"id":126,"physical_name":"DSSC_MiniSDDV1_F2_009","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:58:23.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC08","detector_id":28,"virtual_device_name":"Q3M1","uuid":404000900000,"float_uuid":1.99602965579e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC08","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q3M1","module_number_at_ccv_begin_at":null}},{"id":190343,"name":"20231128_094255_sIdx=0","file_name":"cal.1701164574.4814236.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_010/","data_set_name":"/DSSC_MiniSDDV1_F2_010/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:55.000+01:00","calibration_constant":{"id":26113,"name":"DSSC-Type_Offset_DSSC
+        Def6YMB5Ynzsoy2IbS1zW0zHw==\n","detector_type_id":7,"calibration_id":1,"condition_id":8374,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2023-11-24T20:48:53.000+01:00","updated_at":"2023-11-24T20:48:53.000+01:00"},"physical_detector_unit":{"id":127,"physical_name":"DSSC_MiniSDDV1_F2_010","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:58:32.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC09","detector_id":28,"virtual_device_name":"Q3M2","uuid":404001000000,"float_uuid":1.996030149855e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC09","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q3M2","module_number_at_ccv_begin_at":null}},{"id":190358,"name":"20231128_094259_sIdx=0","file_name":"cal.1701164578.4650726.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_010/","data_set_name":"/DSSC_MiniSDDV1_F2_010/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:59.000+01:00","calibration_constant":{"id":26120,"name":"DSSC-Type_Noise_DSSC
+        Def6YMB5Ynzsoy2IbS1zW0zHw==\n","detector_type_id":7,"calibration_id":2,"condition_id":8374,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2023-11-24T20:48:56.000+01:00","updated_at":"2023-11-24T20:48:56.000+01:00"},"physical_detector_unit":{"id":127,"physical_name":"DSSC_MiniSDDV1_F2_010","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:58:32.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC09","detector_id":28,"virtual_device_name":"Q3M2","uuid":404001000000,"float_uuid":1.996030149855e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC09","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q3M2","module_number_at_ccv_begin_at":null}},{"id":190332,"name":"20231128_094252_sIdx=0","file_name":"cal.1701164571.259134.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_011/","data_set_name":"/DSSC_MiniSDDV1_F2_011/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:52.000+01:00","calibration_constant":{"id":26097,"name":"DSSC-Type_Offset_DSSC
+        DefsmOgdFFP2pbLf4U4rxoO0A==\n","detector_type_id":7,"calibration_id":1,"condition_id":8364,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2023-11-24T20:48:43.000+01:00","updated_at":"2023-11-24T20:48:43.000+01:00"},"physical_detector_unit":{"id":128,"physical_name":"DSSC_MiniSDDV1_F2_011","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:58:42.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC10","detector_id":28,"virtual_device_name":"Q3M3","uuid":404001100000,"float_uuid":1.99603064392e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC10","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q3M3","module_number_at_ccv_begin_at":null}},{"id":190345,"name":"20231128_094255_sIdx=0","file_name":"cal.1701164574.5203588.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_011/","data_set_name":"/DSSC_MiniSDDV1_F2_011/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:55.000+01:00","calibration_constant":{"id":26099,"name":"DSSC-Type_Noise_DSSC
+        DefsmOgdFFP2pbLf4U4rxoO0A==\n","detector_type_id":7,"calibration_id":2,"condition_id":8364,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2023-11-24T20:48:48.000+01:00","updated_at":"2023-11-24T20:48:48.000+01:00"},"physical_detector_unit":{"id":128,"physical_name":"DSSC_MiniSDDV1_F2_011","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:58:42.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC10","detector_id":28,"virtual_device_name":"Q3M3","uuid":404001100000,"float_uuid":1.99603064392e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC10","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q3M3","module_number_at_ccv_begin_at":null}},{"id":190335,"name":"20231128_094253_sIdx=0","file_name":"cal.1701164572.713047.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_012/","data_set_name":"/DSSC_MiniSDDV1_F2_012/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:53.000+01:00","calibration_constant":{"id":26137,"name":"DSSC-Type_Offset_DSSC
+        DefJRvW/yXFfquLo8wowuQd6w==\n","detector_type_id":7,"calibration_id":1,"condition_id":8384,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2023-11-24T20:49:33.000+01:00","updated_at":"2023-11-24T20:49:33.000+01:00"},"physical_detector_unit":{"id":129,"physical_name":"DSSC_MiniSDDV1_F2_012","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:58:49.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC11","detector_id":28,"virtual_device_name":"Q3M4","uuid":404001200000,"float_uuid":1.996031137986e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC11","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q3M4","module_number_at_ccv_begin_at":null}},{"id":190347,"name":"20231128_094256_sIdx=0","file_name":"cal.1701164575.7129579.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_012/","data_set_name":"/DSSC_MiniSDDV1_F2_012/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:56.000+01:00","calibration_constant":{"id":26139,"name":"DSSC-Type_Noise_DSSC
+        DefJRvW/yXFfquLo8wowuQd6w==\n","detector_type_id":7,"calibration_id":2,"condition_id":8384,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2023-11-24T20:49:36.000+01:00","updated_at":"2023-11-24T20:49:36.000+01:00"},"physical_detector_unit":{"id":129,"physical_name":"DSSC_MiniSDDV1_F2_012","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:58:49.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC11","detector_id":28,"virtual_device_name":"Q3M4","uuid":404001200000,"float_uuid":1.996031137986e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC11","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q3M4","module_number_at_ccv_begin_at":null}},{"id":190336,"name":"20231128_094254_sIdx=0","file_name":"cal.1701164572.9825668.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_013/","data_set_name":"/DSSC_MiniSDDV1_F2_013/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:54.000+01:00","calibration_constant":{"id":26133,"name":"DSSC-Type_Offset_DSSC
+        Def8aAeKhJsOFkU9YsgvE5/AQ==\n","detector_type_id":7,"calibration_id":1,"condition_id":8382,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2023-11-24T20:49:05.000+01:00","updated_at":"2023-11-24T20:49:05.000+01:00"},"physical_detector_unit":{"id":130,"physical_name":"DSSC_MiniSDDV1_F2_013","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:59:03.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC12","detector_id":28,"virtual_device_name":"Q4M1","uuid":404001300000,"float_uuid":1.99603163205e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC12","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q4M1","module_number_at_ccv_begin_at":null}},{"id":190348,"name":"20231128_094257_sIdx=0","file_name":"cal.1701164575.9539995.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_013/","data_set_name":"/DSSC_MiniSDDV1_F2_013/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:57.000+01:00","calibration_constant":{"id":26134,"name":"DSSC-Type_Noise_DSSC
+        Def8aAeKhJsOFkU9YsgvE5/AQ==\n","detector_type_id":7,"calibration_id":2,"condition_id":8382,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2023-11-24T20:49:07.000+01:00","updated_at":"2023-11-24T20:49:07.000+01:00"},"physical_detector_unit":{"id":130,"physical_name":"DSSC_MiniSDDV1_F2_013","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:59:03.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC12","detector_id":28,"virtual_device_name":"Q4M1","uuid":404001300000,"float_uuid":1.99603163205e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC12","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q4M1","module_number_at_ccv_begin_at":null}},{"id":190333,"name":"20231128_094252_sIdx=0","file_name":"cal.1701164571.2481573.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_014/","data_set_name":"/DSSC_MiniSDDV1_F2_014/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:52.000+01:00","calibration_constant":{"id":26110,"name":"DSSC-Type_Offset_DSSC
+        Def3iNK+H2dyKqMFSw3ZzW6vA==\n","detector_type_id":7,"calibration_id":1,"condition_id":8372,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2023-11-24T20:48:52.000+01:00","updated_at":"2023-11-24T20:48:52.000+01:00"},"physical_detector_unit":{"id":131,"physical_name":"DSSC_MiniSDDV1_F2_014","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:59:10.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC13","detector_id":28,"virtual_device_name":"Q4M2","uuid":404001400000,"float_uuid":1.99603212612e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC13","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q4M2","module_number_at_ccv_begin_at":null}},{"id":190342,"name":"20231128_094255_sIdx=0","file_name":"cal.1701164574.3568451.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_014/","data_set_name":"/DSSC_MiniSDDV1_F2_014/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:55.000+01:00","calibration_constant":{"id":26117,"name":"DSSC-Type_Noise_DSSC
+        Def3iNK+H2dyKqMFSw3ZzW6vA==\n","detector_type_id":7,"calibration_id":2,"condition_id":8372,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2023-11-24T20:48:55.000+01:00","updated_at":"2023-11-24T20:48:55.000+01:00"},"physical_detector_unit":{"id":131,"physical_name":"DSSC_MiniSDDV1_F2_014","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:59:10.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC13","detector_id":28,"virtual_device_name":"Q4M2","uuid":404001400000,"float_uuid":1.99603212612e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC13","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q4M2","module_number_at_ccv_begin_at":null}},{"id":190331,"name":"20231128_094251_sIdx=0","file_name":"cal.1701164570.5012336.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_015/","data_set_name":"/DSSC_MiniSDDV1_F2_015/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:51.000+01:00","calibration_constant":{"id":26107,"name":"DSSC-Type_Offset_DSSC
+        Def4c6sOabpkho4o/4U4bEFeQ==\n","detector_type_id":7,"calibration_id":1,"condition_id":8371,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2023-11-24T20:48:52.000+01:00","updated_at":"2023-11-24T20:48:52.000+01:00"},"physical_detector_unit":{"id":132,"physical_name":"DSSC_MiniSDDV1_F2_015","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:59:18.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC14","detector_id":28,"virtual_device_name":"Q4M3","uuid":404001500000,"float_uuid":1.996032620183e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC14","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q4M3","module_number_at_ccv_begin_at":null}},{"id":190341,"name":"20231128_094255_sIdx=0","file_name":"cal.1701164574.2405403.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_015/","data_set_name":"/DSSC_MiniSDDV1_F2_015/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:55.000+01:00","calibration_constant":{"id":26116,"name":"DSSC-Type_Noise_DSSC
+        Def4c6sOabpkho4o/4U4bEFeQ==\n","detector_type_id":7,"calibration_id":2,"condition_id":8371,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2023-11-24T20:48:55.000+01:00","updated_at":"2023-11-24T20:48:55.000+01:00"},"physical_detector_unit":{"id":132,"physical_name":"DSSC_MiniSDDV1_F2_015","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:59:18.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC14","detector_id":28,"virtual_device_name":"Q4M3","uuid":404001500000,"float_uuid":1.996032620183e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC14","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q4M3","module_number_at_ccv_begin_at":null}},{"id":190344,"name":"20231128_094255_sIdx=0","file_name":"cal.1701164574.4253519.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_016/","data_set_name":"/DSSC_MiniSDDV1_F2_016/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:55.000+01:00","calibration_constant":{"id":26138,"name":"DSSC-Type_Offset_DSSC
+        DefuBe2OK2XBpt1u91lg+5ZaQ==\n","detector_type_id":7,"calibration_id":1,"condition_id":8385,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2023-11-24T20:49:35.000+01:00","updated_at":"2023-11-24T20:49:35.000+01:00"},"physical_detector_unit":{"id":133,"physical_name":"DSSC_MiniSDDV1_F2_016","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:59:26.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC15","detector_id":28,"virtual_device_name":"Q4M4","uuid":404001600000,"float_uuid":1.99603311425e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC15","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q4M4","module_number_at_ccv_begin_at":null}},{"id":190357,"name":"20231128_094259_sIdx=0","file_name":"cal.1701164578.570841.h5","path_to_file":"xfel/cal/dssc-type/dssc_minisddv1_f2_016/","data_set_name":"/DSSC_MiniSDDV1_F2_016/Noise/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-11-28T10:40:01.000+01:00","end_validity_at":null,"begin_at":"2023-11-28T10:40:01.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900388
+        runs:9","report_id":4423,"description":"","created_at":"2023-11-28T10:42:59.000+01:00","calibration_constant":{"id":26141,"name":"DSSC-Type_Noise_DSSC
+        DefuBe2OK2XBpt1u91lg+5ZaQ==\n","detector_type_id":7,"calibration_id":2,"condition_id":8385,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2023-11-24T20:49:38.000+01:00","updated_at":"2023-11-24T20:49:38.000+01:00"},"physical_detector_unit":{"id":133,"physical_name":"DSSC_MiniSDDV1_F2_016","detector_type_id":7,"flg_available":true,"description":null,"created_at":"2019-05-24T09:59:26.000+02:00","updated_at":"2023-09-27T15:09:45.000+02:00","karabo_da":"DSSC15","detector_id":28,"virtual_device_name":"Q4M4","uuid":404001600000,"float_uuid":1.99603311425e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"DSSC15","detector_id_at_ccv_begin_at":28,"virtual_device_name_at_ccv_begin_at":"Q4M4","module_number_at_ccv_begin_at":null}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '32826'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 21 Feb 2024 16:40:40 GMT
+      Etag:
+      - W/"a6d0aa399f20c7d2546dbe3dcb8f2761"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 1b003f9c-2a57-4173-ae58-2594dcfd1e63
+      X-Runtime:
+      - '0.917969'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -44,6 +44,7 @@ Documentation = "https://extra.readthedocs.io/en/latest/"
 [project.optional-dependencies]
 test = [
     "pytest",
+    "pytest-recording",
 ]
 docs = [
     "black",

@@ -57,10 +57,12 @@ class CalCatAPIClient:
         self.base_api_url = base_api_url.rstrip("/") + "/"
 
     def default_headers(self):
+        from . import __version__
         return {
             "content-type": "application/json",
             "Accept": "application/json; version=2",
             "X-User-Email": self.user_email,
+            "User-Agent": f"EXtra/{__version__}",
         }
 
     @classmethod
@@ -484,7 +486,7 @@ class CalibrationData(Mapping):
         )
         module_details = sorted(pdus, key=lambda d: d["karabo_da"])
         for mod in module_details:
-            if mod.get("module_number", -1) < 0:
+            if mod.get("module_number") is None:
                 mod["module_number"] = int(re.findall(r"\d+", mod["karabo_da"])[-1])
 
         constant_groups = {}
