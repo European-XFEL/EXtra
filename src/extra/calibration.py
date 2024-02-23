@@ -256,6 +256,7 @@ class SingleConstant:
     dataset: str
     ccv_id: Optional[int]
     pdu_name: Optional[str]
+    _calcat_metadata: Optional[dict] = None
 
     @classmethod
     def from_response(cls, ccv: dict) -> "SingleConstant":
@@ -264,6 +265,7 @@ class SingleConstant:
             dataset=ccv["data_set_name"],
             ccv_id=ccv["id"],
             pdu_name=ccv["physical_detector_unit"]["physical_name"],
+            _calcat_metadata=ccv,
         )
 
     def dataset_obj(self, caldb_root=None) -> h5py.Dataset:
@@ -277,6 +279,17 @@ class SingleConstant:
 
     def ndarray(self, caldb_root=None):
         return self.dataset_obj(caldb_root)[:]
+
+    def calcat_metadata(self, client=None):
+        if self._calcat_metadata is None:
+            if self.ccv_id is None:
+                raise Exception("Unable to retrieve metadata without ccv_id")
+
+            client = client or get_client()
+            self._calcat_metadata = client.get(
+                f"calibration_constant_versions/{self.ccv_id}"
+            )
+        return self._calcat_metadata
 
 
 def prepare_selection(
