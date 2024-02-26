@@ -56,8 +56,11 @@ def test_AGIPD_CalibrationData_metadata():
     assert set(agipd_cd["Offset"].constants) == {f"AGIPD{m:02}" for m in range(16)}
     assert isinstance(agipd_cd["Offset", "AGIPD00"], SingleConstant)
     assert agipd_cd["Offset", "Q1M2"] == agipd_cd["Offset", "AGIPD01"]
-    bva = agipd_cd["Offset", "AGIPD00"].calcat_metadata()["begin_validity_at"]
+
+    bva = agipd_cd["Offset", "AGIPD00"].metadata("begin_validity_at")
     assert bva == "2022-09-02T07:42:33.000+02:00"
+    metadata = agipd_cd["Offset", "AGIPD00"].metadata_dict()
+    assert metadata["begin_validity_at"] == bva
 
 @pytest.mark.vcr
 def test_AGIPD_merge():
