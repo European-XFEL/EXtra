@@ -65,7 +65,7 @@ def mock_spb_aux_directory():
     """Mock run directory with SPB auxiliary sources.
 
     Pulse pattern per train:
-        - 0:10, no pulses
+        - 0:5, no pulses
         - SA1
             - 10:50, 50 pulses at 1000:1300:6
             - 50:100, 25 pulses at 1000:1300:12
@@ -74,7 +74,7 @@ def mock_spb_aux_directory():
         - SA3
             - 10:100, 1 pulse at 200
         - LP_SPB
-            - 10:100, 50 pulses at 0:300:6
+            - 5:100, 50 pulses at 0:300:6
     """
 
     sources = [

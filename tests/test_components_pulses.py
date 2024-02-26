@@ -8,7 +8,8 @@ import extra
 
 from euxfel_bunch_pattern import PPL_BITS
 from extra.data import RunDirectory, SourceData, KeyData, by_id
-from extra.components import XrayPulses, OpticalLaserPulses, PumpProbePulses, DldPulses
+from extra.components import XrayPulses, OpticalLaserPulses, PumpProbePulses, \
+    DldPulses
 
 
 pattern_sources = dict(
@@ -554,6 +555,22 @@ def test_pump_probe_basic(mock_spb_aux_run, source):
 
     # Pulse mask
     assert pulses.pulse_mask(labelled=False)[0, 1000:1306:6].all()
+
+    # Obtain a pulse mask for the entire run, including trains without
+    # any pulses and trains without FEL pulses.
+    # Requires use of bunch_table_position to avoid extrapolating FEL
+    # pulses at the beginning of the run.
+    mask = PumpProbePulses(
+        run, source=source, bunch_table_position=1001
+    ).pulse_mask(labelled=False)
+
+    assert not mask[:5].any()  # No pulses at all.
+
+    # No FEL pulses but PPL pulses.
+    assert not mask[5:10, 1000:1300:6].any() and mask[5:10, 1001:1301:6].all()
+
+    # FEL and PPL pulses.
+    assert mask[10, 1000:1300:6].all() and mask[10, 1001:1301:6].all()
 
     # Is constant pattern?
     assert not pulses.is_constant_pattern()
