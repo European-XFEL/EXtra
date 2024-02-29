@@ -23,6 +23,7 @@ dependencies = [
     "pasha",
     "pint",
     "requests",
+    "scipy",
 ]
 requires-python = ">=3.9"
 readme = "README.md"
