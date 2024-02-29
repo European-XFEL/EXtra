@@ -171,6 +171,11 @@ class PulsePattern:
         """
         return self.master_clock / self.bunch_clock_divider
 
+    @property
+    def source(self) -> SourceData:
+        """Source used for pulse information."""
+        return self._source
+
     def select_trains(self, trains):
         new_train_ids = None
         res = copy(self)
