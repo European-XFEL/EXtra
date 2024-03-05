@@ -32,6 +32,10 @@ agipd_cd = CalibrationData.from_report(3757)
 ## Found constants
 
 ::: extra.calibration.CalibrationData
+    options:
+      merge_init_into_class: false
+      members_order: source
+      group_by_category: false
 
 ::: extra.calibration.MultiModuleConstant
 

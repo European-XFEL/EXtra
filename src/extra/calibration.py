@@ -397,7 +397,7 @@ class MultiModuleConstant(Mapping):
     def select_modules(
             self, module_nums=None, *, aggregator_names=None, qm_names=None
     ) -> "MultiModuleConstant":
-        """Return a new MultiModuleConstant object with only the selected modules
+        """Return a new `MultiModuleConstant` object with only the selected modules
 
         One of `module_nums`, `aggregator_names` or `qm_names` must be specified.
         """
@@ -714,7 +714,7 @@ class CalibrationData(Mapping):
         May include missing modules."""
         return [m["physical_name"] for m in self.module_details]
 
-    def require_calibrations(self, calibrations):
+    def require_calibrations(self, calibrations) -> "CalibrationData":
         """Drop any modules missing the specified constant types"""
         mods = set(self.aggregator_names)
         for cal_type in calibrations:
@@ -724,7 +724,7 @@ class CalibrationData(Mapping):
     def select_modules(
             self, module_nums=None, *, aggregator_names=None, qm_names=None
     ) -> "CalibrationData":
-        """Return a new CalibrationData object with only the selected modules
+        """Return a new `CalibrationData` object with only the selected modules
 
         One of `module_nums`, `aggregator_names` or `qm_names` must be specified.
         """
@@ -746,12 +746,12 @@ class CalibrationData(Mapping):
         return type(self)(constant_groups, module_details, self.detector_name)
 
     def select_calibrations(self, calibrations) -> "CalibrationData":
-        """Return a new CalibrationData object with only the selected constant types"""
+        """Return a new `CalibrationData` object with only the selected constant types"""
         const_groups = {c: self.constant_groups[c] for c in calibrations}
         return type(self)(const_groups, self.module_details, self.detector_name)
 
     def merge(self, *others: "CalibrationData") -> "CalibrationData":
-        """Combine two or more CalibrationData objects for the same detector.
+        """Combine two or more `CalibrationData` objects for the same detector.
 
         Where the inputs have different constant types or different modules,
         the output will include all of them (set union). Where they overlap,
