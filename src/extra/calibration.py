@@ -850,3 +850,42 @@ class DSSCConditions(ConditionsBase):
         "Offset": _params,
         "Noise": _params,
     }
+
+
+@dataclass
+class JUNGFRAUConditions(ConditionsBase):
+    sensor_bias_voltage: float
+    memory_cells: int
+    integration_time: float
+    gain_setting: int
+    gain_mode: Optional[int] = None
+    sensor_temperature: float = 291
+    pixels_x: int = 1024
+    pixels_y: int = 512
+
+    _params = [
+        "Sensor Bias Voltage",
+        "Memory Cells",
+        "Pixels X",
+        "Pixels Y",
+        "Integration Time",
+        "Sensor temperature",
+        "Gain Setting",
+        "Gain mode",
+    ]
+    calibration_types = {
+        "Offset10Hz": _params,
+        "Noise10Hz": _params,
+        "BadPixelsDark10Hz": _params,
+        "RelativeGain10Hz": _params,
+        "BadPixelsFF10Hz": _params,
+    }
+
+    def make_dict(self, parameters):
+        cond = super().make_dict(parameters)
+
+        # Fix-up some database quirks.
+        if int(cond.get("Gain mode", -1)) == 0:
+            del cond["Gain mode"]
+
+        return cond
