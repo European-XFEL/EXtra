@@ -24,6 +24,7 @@ Added:
 - `pulse_periods()`, `pulse_repetition_rates()` and `train_durations()` methods
   to obtain statistics about the pulses in all [pulse
   pattern](components/pulse-patterns.md) components (!114).
+- `extra.calibration` module to find and load calibration constants.
 
 ## [2024.1]
 Added:
