@@ -26,6 +26,7 @@ nav:
     - components/scans.md
     - components/pulse-patterns.md
   - karabo-bridge.md
+  - calibration.md
   - utilities.md
   - changelog.md
 

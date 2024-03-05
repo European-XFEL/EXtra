@@ -172,6 +172,11 @@ global_client = None
 
 
 def get_client():
+    """Get the global CalCat API client.
+
+    The default assumes we're running in the DESY network; this is used unless
+    `setup_client()` has been called to specify otherwise.
+    """
     global global_client
     if global_client is None:
         setup_client(CALCAT_PROXY_URL, None, None, None)
@@ -189,6 +194,7 @@ def setup_client(
         oauth_timeout=12,
         ssl_verify=True,
 ):
+    """Configure the global CalCat API client."""
     global global_client
     if client_id is not None:
         oauth_client = Oauth2ClientBackend(
@@ -280,6 +286,7 @@ class SingleConstant:
         return f[self.dataset]["data"]
 
     def ndarray(self, caldb_root=None):
+        """Load the constant data as a Numpy array"""
         return self.dataset_obj(caldb_root)[:]
 
     def _load_calcat_metadata(self, client=None):
@@ -342,7 +349,13 @@ def prepare_selection(
 
 @dataclass
 class MultiModuleConstant(Mapping):
-    """A group of similar constants for several modules of one detector"""
+    """A group of similar constants for several modules of one detector.
+
+    This works as a mapping holding `SingleConstant` objects.
+    Keys can be module numbers (`offset[0]`), data aggregator names
+    (`offset['LPD00']`), QxMy names (`offset['Q1M1']`) or Physical Detector Unit
+    (PDU) names.
+    """
 
     constants: Dict[str, SingleConstant]  # Keys e.g. 'LPD00'
     module_details: List[Dict]
@@ -384,6 +397,10 @@ class MultiModuleConstant(Mapping):
     def select_modules(
             self, module_nums=None, *, aggregator_names=None, qm_names=None
     ) -> "MultiModuleConstant":
+        """Return a new MultiModuleConstant object with only the selected modules
+
+        One of `module_nums`, `aggregator_names` or `qm_names` must be specified.
+        """
         aggs = prepare_selection(
             self.module_details, module_nums, aggregator_names, qm_names
         )
@@ -395,10 +412,12 @@ class MultiModuleConstant(Mapping):
     # be a subset of what's in module_details
     @property
     def aggregator_names(self):
+        "Data aggregator names for the modules where we have this constant"
         return sorted(self.constants)
 
     @property
     def module_nums(self):
+        "Module numbers for the modules where we have this constant"
         return [
             m["module_number"]
             for m in self.module_details
@@ -407,6 +426,7 @@ class MultiModuleConstant(Mapping):
 
     @property
     def qm_names(self):
+        "Names like Q1M3 for the modules where we have this constant, if applicable"
         return [
             m["virtual_device_name"]
             for m in self.module_details
@@ -415,6 +435,9 @@ class MultiModuleConstant(Mapping):
 
     @property
     def pdu_names(self):
+        """Names of the specific detector units making up the detector.
+
+        Only includes modules where we have this constant."""
         return [
             m["physical_name"]
             for m in self.module_details
@@ -422,6 +445,11 @@ class MultiModuleConstant(Mapping):
         ]
 
     def ndarray(self, caldb_root=None, *, parallel=0):
+        """Load this constant as a Numpy array.
+
+        If `parallel` is specified, the per-module constants are loaded in
+        parallel using N worker processes.
+        """
         eg_dset = self.constants[self.aggregator_names[0]].dataset_obj(caldb_root)
         shape = (len(self.constants),) + eg_dset.shape
 
@@ -440,6 +468,14 @@ class MultiModuleConstant(Mapping):
         return arr
 
     def xarray(self, module_naming="modnum", caldb_root=None, *, parallel=0):
+        """Load this constant as an xarray DataArray.
+
+        `module_naming` may be "modnum", "aggregator" or "qm" to use different
+        styles of labelling for the modules dimension.
+
+        If `parallel` is specified, the per-module constants are loaded in
+        parallel using N worker processes.
+        """
         import xarray
 
         if module_naming == "aggregator":
@@ -464,7 +500,12 @@ class MultiModuleConstant(Mapping):
 
 
 class CalibrationData(Mapping):
-    """Collected constants for a given detector"""
+    """Collected constants for a given detector
+
+    This can represent multiple constant types (offset, gain, bad pixels, etc.)
+    across multiple modules. It works as a mapping keyed by constant type
+    (e.g. `cd["Offset"]`), giving you `MultiModuleConstant` objects.
+    """
 
     def __init__(self, constant_groups, module_details, detector_name):
         # {calibration: {karabo_da: SingleConstant}}
@@ -499,6 +540,11 @@ class CalibrationData(Mapping):
             event_at=None,
             pdu_snapshot_at=None,
     ):
+        """Look up constants for the given detector conditions & timestamp.
+
+        `condition` should be a conditions object for the relevant detector type,
+        e.g. `DSSCConditions`.
+        """
         if calibrations is None:
             calibrations = set(condition.calibration_types)
         if pdu_snapshot_at is None:
@@ -561,6 +607,12 @@ class CalibrationData(Mapping):
             report_id_or_path: Union[int, str],
             client=None,
     ):
+        """Look up constants by a report ID or path.
+
+        Constants produced together in the same characterisation are grouped
+        in CalCat by their report. This method accepts either the integer report
+        ID or the full filesystem path of the report.
+        """
         client = client or get_client()
 
         # Use max page size, hopefully always enough for CCVs from 1 report
@@ -642,18 +694,24 @@ class CalibrationData(Mapping):
     # the detector (at the specified time).
     @property
     def module_nums(self):
+        "Module numbers in the detector. May include missing modules."
         return [m["module_number"] for m in self.module_details]
 
     @property
     def aggregator_names(self):
+        "Data aggregator names for modules. May include missing modules."
         return [m["karabo_da"] for m in self.module_details]
 
     @property
     def qm_names(self):
+        "Module names like Q1M3, if present. May include missing modules."
         return [m["virtual_device_name"] for m in self.module_details]
 
     @property
     def pdu_names(self):
+        """Names of the specific detector units making up the detector.
+
+        May include missing modules."""
         return [m["physical_name"] for m in self.module_details]
 
     def require_calibrations(self, calibrations):
@@ -666,6 +724,10 @@ class CalibrationData(Mapping):
     def select_modules(
             self, module_nums=None, *, aggregator_names=None, qm_names=None
     ) -> "CalibrationData":
+        """Return a new CalibrationData object with only the selected modules
+
+        One of `module_nums`, `aggregator_names` or `qm_names` must be specified.
+        """
         # Validate the specified modules against those we know about.
         # Each specific constant type may have only a subset of these modules.
         aggs = prepare_selection(
@@ -684,10 +746,17 @@ class CalibrationData(Mapping):
         return type(self)(constant_groups, module_details, self.detector_name)
 
     def select_calibrations(self, calibrations) -> "CalibrationData":
+        """Return a new CalibrationData object with only the selected constant types"""
         const_groups = {c: self.constant_groups[c] for c in calibrations}
         return type(self)(const_groups, self.module_details, self.detector_name)
 
     def merge(self, *others: "CalibrationData") -> "CalibrationData":
+        """Combine two or more CalibrationData objects for the same detector.
+
+        Where the inputs have different constant types or different modules,
+        the output will include all of them (set union). Where they overlap,
+        later inputs override earlier ones.
+        """
         det_names = set(cd.detector_name for cd in (self,) + others)
         if len(det_names) > 1:
             raise Exception(
@@ -745,6 +814,7 @@ class ConditionsBase:
 
 @dataclass
 class AGIPDConditions(ConditionsBase):
+    """Conditions for AGIPD detectors"""
     sensor_bias_voltage: float
     memory_cells: int
     acquisition_rate: float
@@ -793,6 +863,7 @@ class AGIPDConditions(ConditionsBase):
 
 @dataclass
 class LPDConditions(ConditionsBase):
+    """Conditions for LPD detectors"""
     sensor_bias_voltage: float
     memory_cells: int
     memory_cell_order: Optional[str] = None
@@ -827,6 +898,7 @@ class LPDConditions(ConditionsBase):
 
 @dataclass
 class DSSCConditions(ConditionsBase):
+    """Conditions for DSSC detectors"""
     sensor_bias_voltage: float
     memory_cells: int
     pulse_id_checksum: Optional[float] = None
