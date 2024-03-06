@@ -926,6 +926,7 @@ class DSSCConditions(ConditionsBase):
 
 @dataclass
 class JUNGFRAUConditions(ConditionsBase):
+    """Conditions for JUNGFRAU detectors"""
     sensor_bias_voltage: float
     memory_cells: int
     integration_time: float

@@ -45,6 +45,8 @@ agipd_cd = CalibrationData.from_report(3757)
 
 ::: extra.calibration.AGIPDConditions
 
-::: extra.calibration.LPDConditions
-
 ::: extra.calibration.DSSCConditions
+
+::: extra.calibration.JUNGFRAUConditions
+
+::: extra.calibration.LPDConditions
