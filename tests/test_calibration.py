@@ -8,6 +8,7 @@ from extra.calibration import (
     AGIPDConditions,
     CalibrationData,
     DSSCConditions,
+    JUNGFRAUConditions,
     LPDConditions,
     SingleConstant,
 )
@@ -200,6 +201,24 @@ def test_LPD_constant_missing():
 
     # Test CalibrationData.require_constant()
     assert lpd_cd.require_calibrations(["Offset"]).module_nums == modnos_w_constant
+
+
+@pytest.mark.vcr
+def test_JUNGFRAU_constant():
+    cond = JUNGFRAUConditions(
+        sensor_bias_voltage=90.,
+        memory_cells=1,
+        integration_time=400.,
+        gain_setting=0,
+        sensor_temperature=291.,
+    )
+    jf_cd = CalibrationData.from_condition(
+        cond,
+        "FXE_XAD_JF1M",
+        event_at="2024-03-04 17:56:05.172132+00:00",
+    )
+    assert jf_cd.aggregator_names == ["JNGFR01", "JNGFR02"]
+    assert set(jf_cd) >= {"Offset10Hz", "BadPixelsDark10Hz", "RelativeGain10Hz"}
 
 
 @pytest.mark.vcr
