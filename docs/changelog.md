@@ -18,6 +18,8 @@
 
 Added:
 
+- [MachinePulses][extra.components.MachinePulses] to investigate pulse pattern
+  data beyond only X-rays and optical lasers (!138).
 - Implemented [Scan.bin_by_steps()][extra.components.Scan.bin_by_steps] and
   [Scan.plot_bin_by_steps()][extra.components.Scan.plot_bin_by_steps] to help
   with averaging data over scan steps (!124).
