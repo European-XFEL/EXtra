@@ -1,21 +1,33 @@
 
 import numpy as np
 
-from euxfel_bunch_pattern import DESTINATION_T4D, DESTINATION_T5D, \
-    PHOTON_LINE_DEFLECTION, PPL_BITS, is_sase, is_laser
+from euxfel_bunch_pattern import DESTINATION_TLD, DESTINATION_T4D, \
+    DESTINATION_T5D, PHOTON_LINE_DEFLECTION, PPL_BITS, \
+    is_destination, is_sase, is_laser
 from extra_data.tests.mockdata.base import DeviceBase
 
 
-def _fill_bunch_pattern_table(table, num_rows, offset=10):
+def _fill_bunch_pattern_table(table, N, offset=10):
+    # The path of electron bunches can be traced via the dump it ends up
+    # in. Generally all bunches end up in the main bunch, except those
+    # that are directed towards one of the beamlines.
+    # Hence the pattern is created by first filling all buckets with the
+    # main dump, and then unsetting that bit again for any bucket going
+    # to an actual SASE.
+
+    # Main dump
+    table[offset:, 0:2700:2] |= DESTINATION_TLD
+
     # SASE 1
-    table[offset:num_rows//2, 1000:1300:6] |= DESTINATION_T4D
-    table[num_rows//2-offset:, 1000:1300:12] |= DESTINATION_T4D
+    table[offset:N//2, 1000:1300:6] ^= (DESTINATION_T4D | DESTINATION_TLD)
+    table[N//2:, 1000:1300:12] ^= (DESTINATION_T4D | DESTINATION_TLD)
 
     # SASE 2
-    table[offset:, 1500:2000:8] |= DESTINATION_T5D
+    table[offset:, 1500:2000:8] ^= (DESTINATION_T5D | DESTINATION_TLD)
 
     # SASE 3
-    table[offset:, 200] |= (DESTINATION_T4D | PHOTON_LINE_DEFLECTION)
+    table[offset:, 200] ^= (
+        DESTINATION_T4D | PHOTON_LINE_DEFLECTION | DESTINATION_TLD)
 
     # LP_SPB
     table[offset//2:, 0:300:6] |= PPL_BITS.LP_SPB
@@ -86,6 +98,7 @@ class PulsePatternDecoder(DeviceBase):
             grp = f[f'CONTROL/{self.device_id}']
 
             for loc, pulse_mask in [
+                ('maindump', is_destination(table, DESTINATION_TLD)),
                 ('sase1', is_sase(table, sase=1)),
                 ('sase2', is_sase(table, sase=2)),
                 ('sase3', is_sase(table, sase=3)),

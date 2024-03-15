@@ -6,10 +6,11 @@ import numpy as np
 
 import extra
 
-from euxfel_bunch_pattern import PPL_BITS
+from euxfel_bunch_pattern import PPL_BITS, DESTINATION_TLD, DESTINATION_T5D, \
+    PHOTON_LINE_DEFLECTION
 from extra.data import RunDirectory, SourceData, KeyData, by_id
-from extra.components import XrayPulses, OpticalLaserPulses, PumpProbePulses, \
-    DldPulses
+from extra.components import XrayPulses, OpticalLaserPulses, MachinePulses, \
+    PumpProbePulses, DldPulses
 
 
 pattern_sources = dict(
@@ -148,7 +149,7 @@ def test_pulse_mask(mock_spb_aux_run, source):
     assert XrayPulses(run, source=source, sase=2).pulse_mask(
         labelled=False)[10:, 1500:2000:8].all()
 
-    # Test deprecated method
+    # Test deprecated method.
     with pytest.warns():
         assert pulses.get_pulse_mask().equals(pulses.pulse_mask())
 
@@ -183,7 +184,7 @@ def test_pulse_counts(mock_spb_aux_run, source):
     assert (counts[:10] == 0).all()
     assert (counts[10:] == 63).all()
 
-    # Test deprecated method
+    # Test deprecated method.
     with pytest.warns():
         assert pulses.get_pulse_counts().equals(pulses.pulse_counts())
 
@@ -319,7 +320,7 @@ def test_pulse_ids(mock_spb_aux_run, source):
     # Test unlabelled.
     np.testing.assert_equal(pulses.pulse_ids(labelled=False), pids)
 
-    # Test deprecated method
+    # Test deprecated method.
     with pytest.warns():
         assert pulses.get_pulse_ids().equals(pulses.pulse_ids())
 
@@ -355,7 +356,7 @@ def test_build_pulse_index(mock_spb_aux_run, source):
     np.testing.assert_allclose(
         times[2000:], np.tile((np.r_[1000:1300:12] - 1000) / rate, 50))
 
-    # Test deprecated methods
+    # Test deprecated methods.
     with pytest.warns():
         assert pulses.get_pulse_index().equals(pulses.build_pulse_index())
 
@@ -414,7 +415,7 @@ def test_optical_laser_basic(mock_spb_aux_run, source):
 def test_optical_laser_specials(mock_spb_aux_run):
     run = mock_spb_aux_run.select('SPB*')
 
-    # Different laser seed by enum
+    # Different laser seed by enum.
     pulses = OpticalLaserPulses(run, ppl_seed=PPL_BITS.LP_SQS)
     assert pulses.ppl_seed == PPL_BITS.LP_SQS
     assert (pulses.pulse_counts() == 0).all()
@@ -424,7 +425,7 @@ def test_optical_laser_specials(mock_spb_aux_run):
     assert pulses.ppl_seed == PPL_BITS.LP_SASE2
     assert (pulses.pulse_counts() == 0).all()
 
-    # Full run with two timeservers
+    # Full run with two timeservers.
     run = mock_spb_aux_run
 
     with pytest.raises(ValueError):
@@ -440,13 +441,62 @@ def test_optical_laser_specials(mock_spb_aux_run):
         OpticalLaserPulses(run, source='SPB_RR_SYS/MDL/BUNCH_PATTERN',
                            ppl_seed='FXE')
 
-    # Only odd timeserver now
+    # Only odd timeserver now.
     run = run.select('ODD_TIMESERVER_NAME*')
 
     with pytest.raises(ValueError):
         OpticalLaserPulses(run)
 
     OpticalLaserPulses(run, ppl_seed=PPL_BITS.LP_SPB)
+
+
+@pytest.mark.parametrize('source', **pattern_sources)
+def test_machine_pulses_default(mock_spb_aux_run, source):
+    ref_pulses = MachinePulses(mock_spb_aux_run, source=source)
+    np.testing.assert_equal(ref_pulses.pulse_ids().iloc[:1350], np.r_[:2700:2])
+
+    pulse_counts = ref_pulses.pulse_counts()
+    assert not pulse_counts[:10].any()
+    assert (pulse_counts[10:] == 1350).all()
+
+
+def test_machine_pulses_specials(mock_spb_aux_run):
+    timeserver_run = mock_spb_aux_run.select('*TSYS/TIMESERVER*')
+
+    # Make an odd combination of bits, here SASE2 or soft kick.
+    odd_pulses = MachinePulses(timeserver_run,
+                               mask=DESTINATION_T5D | PHOTON_LINE_DEFLECTION)
+    pids = odd_pulses.pulse_ids()
+    assert pids.iloc[0] == 200  # The one SASE3 pulse.
+    np.testing.assert_equal(pids.iloc[1:64], np.r_[1500:2000:8])  # SASE2.
+
+    # Main dump and SPB laser seed.
+    odd_pulses = MachinePulses(timeserver_run, require_all_bits=True,
+                               mask=DESTINATION_TLD | PPL_BITS.LP_SPB)
+    np.testing.assert_equal(odd_pulses.pulse_ids().iloc[:50], np.r_[:300:6])
+
+    # Main dump and SA2.
+    odd_pulses = MachinePulses(timeserver_run, require_all_bits=True,
+                               mask=DESTINATION_TLD | DESTINATION_T5D)
+    assert odd_pulses.pulse_ids().empty
+
+    # Works with problematic numpy integer types.
+    assert (MachinePulses(
+        timeserver_run, mask=np.uint64(PHOTON_LINE_DEFLECTION)
+    ).pulse_ids() == 200).all()
+
+    # Does not work with non-int types
+    with pytest.raises(TypeError):
+        MachinePulses(timeserver_run, mask='0')
+
+    # ppdecoder limitations
+    ppdec_run = mock_spb_aux_run.select('SPB_RR_SYS/MDL/BUNCH_PATTERN')
+
+    with pytest.raises(ValueError):
+        MachinePulses(ppdec_run, require_all_bits=True)
+
+    with pytest.raises(ValueError):
+        MachinePulses(ppdec_run, mask=1)
 
 
 def test_ppdecoder(mock_spb_aux_run):
@@ -520,7 +570,7 @@ def test_dld_pulses(capsys):
     captured = capsys.readouterr()
     assert 'No actual pulse IDs available in data' in captured.err
 
-    # Test the deprecated method
+    # Test the deprecated method.
     with pytest.warns():
         assert pulses.get_triggers().equals(pulses.triggers())
 
@@ -540,7 +590,7 @@ def test_pump_probe_basic(mock_spb_aux_run, source):
     pulses = PumpProbePulses(run.select_trains(np.s_[10:]),
                              source=source, pulse_offset=1)
 
-    # Pulse IDs
+    # Pulse IDs.
     pids = pulses.pulse_ids()
     assert pids.index.names == ['trainId', 'pulseIndex', 'fel', 'ppl']
     np.testing.assert_equal(pids[run.train_ids[10]], np.r_[1000:1306:6])
@@ -553,7 +603,7 @@ def test_pump_probe_basic(mock_spb_aux_run, source):
     assert not ppl[0]
     assert ppl[1:51].all()
 
-    # Pulse mask
+    # Pulse mask.
     assert pulses.pulse_mask(labelled=False)[0, 1000:1306:6].all()
 
     # Obtain a pulse mask for the entire run, including trains without
@@ -576,7 +626,7 @@ def test_pump_probe_basic(mock_spb_aux_run, source):
     assert not pulses.is_constant_pattern()
     assert pulses.select_trains(np.s_[:1]).is_constant_pattern()
 
-    # Search patterns
+    # Search patterns.
     patterns = pulses.search_pulse_patterns()
     assert len(patterns) == 2
     assert patterns[0][0].value == by_id[10010:10049].value

@@ -9,7 +9,9 @@ import re
 
 import numpy as np
 
-from euxfel_bunch_pattern import PPL_BITS, is_sase, is_laser
+from euxfel_bunch_pattern import is_sase, is_laser, \
+    PPL_BITS, DESTINATION_TLD, DESTINATION_T4D, DESTINATION_T5D, \
+    PHOTON_LINE_DEFLECTION
 from extra_data import SourceData, KeyData, by_id
 
 from .utils import identify_sase
@@ -28,7 +30,8 @@ except ImportError:
         return zip(a, b)
 
 
-__all__ = ['XrayPulses', 'OpticalLaserPulses', 'PumpProbePulses', 'DldPulses']
+__all__ = ['XrayPulses', 'OpticalLaserPulses', 'MachinePulses',
+           'PumpProbePulses', 'DldPulses']
 
 
 def _drop_first_level(pd_val):
@@ -563,12 +566,8 @@ class TimeserverPulses(PulsePattern):
     the shared interface to access pulse patterns encoded in the bunch
     pattern table.
 
-    Requires _mask_table() and _get_ppdecoder_node() to be implemented.
+    Requires _mask_table() and _get_ppdecoder_nodes() to be implemented.
     """
-
-    # All methods are built on top of pulse_mask and trains(). Their
-    # default implementations require implementation of  _mask_table()
-    # and _get_ppdecoder_node().
 
     # Timeserver class ID and regular expressions.
     _timeserver_class = 'TimeServer'
@@ -606,6 +605,17 @@ class TimeserverPulses(PulsePattern):
                 kd = sd['bunchPatternTable']
 
         super().__init__(sd, kd)
+
+    def __repr__(self, location=None):
+        if self._with_timeserver:
+            source_type = 'timeserver'
+        else:
+            source_type = 'ppdecoder'
+
+        loc_str = ' ' + location if location is not None else ''
+
+        return "<{}{} using {}={}>".format(
+            type(self).__name__, loc_str, source_type, self._source.source)
 
     @classmethod
     def _find_pulsepattern_source(cls, data):
@@ -693,11 +703,33 @@ class TimeserverPulses(PulsePattern):
             pids_by_train = [np.flatnonzero(mask) for mask
                              in self._mask_table(self._key.ndarray())]
         else:
-            node = self._get_ppdecoder_node()
-            pids_by_train = [
-                pulse_ids[:num_pulses] for pulse_ids, num_pulses in zip(
-                    self._source[f'{node}.pulseIds'].ndarray(),
-                    self._source[f'{node}.nPulses'].ndarray())]
+            nodes = self._get_ppdecoder_nodes()
+
+            if len(nodes) == 1:
+                # Optimization when using only a single node, which is
+                # the most common case and the general path below is up
+                # to 70% slower.
+                node = nodes[0]
+                pids_by_train = [
+                    pulse_ids[:num_pulses] for pulse_ids, num_pulses in zip(
+                        self._source[f'{node}.pulseIds'].ndarray(),
+                        self._source[f'{node}.nPulses'].ndarray())]
+            else:
+                # Generalization of the comprehension above to combine
+                # multiple nodes into a single ordered list.
+                # The outer comprehension first loads and collects the
+                # pulseIds and nPulses datasets for each node, combining
+                # them into a single iterable by train.
+                # In its body, it then uses nPulses to index into the
+                # pulseIds dataset for every node, concatenates the
+                # resulting pulse IDs and finally sorts by train.
+                pids_by_train = [np.sort(np.concatenate([
+                    pulse_ids[:num_pulses] for pulse_ids, num_pulses
+                    in zip(per_train[0::2], per_train[1::2])]
+                )) for per_train in zip(*sum([
+                    [self._source[f'{node}.pulseIds'].ndarray(),
+                     self._source[f'{node}.nPulses'].ndarray()]
+                    for node in nodes], []))]
 
         counts = [len(pids) for pids in pids_by_train]
 
@@ -742,9 +774,9 @@ class TimeserverPulses(PulsePattern):
         """Mask bunch pattern table."""
         raise NotImplementedError('_mask_table')
 
-    def _get_ppdecoder_node(self):
-        """Get node in pulse pattern decoder device."""
-        raise NotImplementedError('_get_ppdecoder_node')
+    def _get_ppdecoder_nodes(self):
+        """Get nodes in pulse pattern decoder device."""
+        raise NotImplementedError('_get_ppdecoder_nodes')
 
     @property
     def timeserver(self) -> SourceData:
@@ -817,19 +849,13 @@ class XrayPulses(TimeserverPulses):
         self._sase = sase
 
     def __repr__(self):
-        if self._with_timeserver:
-            source_type = 'timeserver'
-        else:
-            source_type = 'ppdecoder'
-
-        return "<{} for SA{} using {}={}>".format(
-            type(self).__name__, self._sase, source_type, self._source.source)
+        return super().__repr__(f'for SA{self._sase}')
 
     def _mask_table(self, table):
         return is_sase(table, sase=self._sase)
 
-    def _get_ppdecoder_node(self):
-        return f'sase{self._sase}'
+    def _get_ppdecoder_nodes(self):
+        return [f'sase{self._sase}']
 
     @property
     def sase(self) -> int:
@@ -909,14 +935,7 @@ class OpticalLaserPulses(TimeserverPulses):
         self._ppl_seed = ppl_seed
 
     def __repr__(self):
-        if self._with_timeserver:
-            source_type = 'timeserver'
-        else:
-            source_type = 'ppdecoder'
-
-        return "<{} for {} using {}={}>".format(
-                type(self).__name__, self._ppl_seed.name, source_type,
-                self._source.source)
+        return super().__repr__(self._ppl_seed.name)
 
     @classmethod
     def _identify_ppl_seed(cls, data):
@@ -940,13 +959,113 @@ class OpticalLaserPulses(TimeserverPulses):
     def _mask_table(self, table):
         return is_laser(table, self._ppl_seed)
 
-    def _get_ppdecoder_node(self):
-        return 'laser'
+    def _get_ppdecoder_nodes(self):
+        return ['laser']
 
     @property
     def ppl_seed(self) -> Optional[PPL_BITS]:
         """Used laser seed."""
         return self._ppl_seed
+
+
+class MachinePulses(TimeserverPulses):
+    """An interface to machine pulses and other bunch pattern data.
+
+    The bunch pattern table contains much more information than just the
+    pulses of each SASE beamline or the optical laser systems, in
+    particular about the upstream electron systems.
+
+    This component is configurable to extract any information from the
+    bunch pattern table beyond the X-ray or optical laser pulses. By
+    default, it considers all generated electron bunches by combining
+    the various electron dumps along the accelerator. Please consult the
+    XFEL Timing System Specification for the various mask bits used.
+
+    Note that the full range of bunch pattern table information is only
+    available when used with timeserver data. The pulse pattern decoder
+    data only contains information about those pulses in the main dump
+    and SASE dumps.
+
+    Args:
+        data (extra.data.DataCollection): Data to access bunch pattern
+            data from.
+        source (str, optional): Source name of a timeserver or pulse
+            pattern decoder, only needed if the data includes more than
+            one such device or none could not be detected automatically.
+        mask (int, optional): Custom mask into the bunch pattern table,
+            by default all electron dumps are used. When initialized
+            with ppdecoder data, only the main and SASE dumps are
+            supported.
+        require_all_bits (bool, optional): Whether to consider entries
+            having any or all of the bits specified by mask, False by
+            default. Only supported when initialized with timeserver data.
+    """
+
+    #                main              SA1/SA3           SA2
+    _all_dumps = DESTINATION_TLD | DESTINATION_T4D | DESTINATION_T5D
+
+    #                                     SA3 kicker
+    _ppdecoder_allowed = _all_dumps | PHOTON_LINE_DEFLECTION
+
+    def __init__(self, data, source=None, mask=_all_dumps,
+                 require_all_bits=False):
+        super().__init__(data, source)
+
+        self._require_all_bits = require_all_bits
+
+        if not self._with_timeserver:
+            # Support with ppdecoder data is limited.
+
+            if self._require_all_bits:
+                # TimeserverPulses hardcodes `or` for now.
+                raise ValueError('require_all_bits may be not be used with '
+                                 'ppdecoder data')
+
+            elif (mask | self._ppdecoder_allowed) != self._ppdecoder_allowed:
+                # Data only contains certain bits.
+                raise ValueError('mask may only contain main or SASE dumps'
+                                 'when initialized with ppdecoder data')
+
+        if isinstance(mask, np.integer):
+            # Avoid any of the numpy integer types, as some like uint64
+            # can do unexpected things.
+            mask = int(mask)
+        elif not isinstance(mask, int):
+            raise TypeError('mask must be an integer')
+
+        self._mask = mask
+
+    def __repr__(self):
+        active_bits = np.flatnonzero([(self._mask & (1 << i)) > 0
+                                      for i in range(32)])
+
+        if len(active_bits) == 1:
+            return super().__repr__(f'for bit {active_bits[0]}')
+        else:
+            return super().__repr__('for bits ' + (
+                '&' if self._require_all_bits else '|'
+            ).join(active_bits.astype(str)))
+
+    def _mask_table(self, table):
+        if not self._require_all_bits:
+            return (table & self._mask) > 0
+        else:
+            return (table & self._mask) == self._mask
+
+    def _get_ppdecoder_nodes(self):
+        nodes = []
+
+        if (self._mask & DESTINATION_TLD) == DESTINATION_TLD:
+            nodes.append('maindump')
+
+        if (self._mask & DESTINATION_T4D) == DESTINATION_T4D:
+            nodes.append('sase1')
+            nodes.append('sase3')
+
+        if (self._mask & DESTINATION_T5D) == DESTINATION_T5D:
+            nodes.append('sase2')
+
+        return nodes
 
 
 class PumpProbePulses(XrayPulses, OpticalLaserPulses):
@@ -1096,8 +1215,11 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
                 np.flatnonzero(OpticalLaserPulses._mask_table(self, row))
 
     def _iter_ppdecoder_pids(self):
-        fel_node = XrayPulses._get_ppdecoder_node(self)
-        ppl_node = OpticalLaserPulses._get_ppdecoder_node(self)
+        # XrayPulses and OpticalLaserPulses always return a single node,
+        # and there is no use case at the moment to correlate laser and
+        # machine pulses.
+        fel_node = XrayPulses._get_ppdecoder_nodes(self)[0]
+        ppl_node = OpticalLaserPulses._get_ppdecoder_nodes(self)[0]
 
         for (_, fel_ids), (_, fel_num), (_, ppl_ids), (_, ppl_num) in zip(
             self._source[f'{fel_node}.pulseIds'].trains(),

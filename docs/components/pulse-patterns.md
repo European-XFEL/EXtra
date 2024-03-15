@@ -4,4 +4,6 @@
 
 ::: extra.components.PumpProbePulses
 
+::: extra.components.MachinePulses
+
 ::: extra.components.DldPulses

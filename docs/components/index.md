@@ -14,4 +14,5 @@ Component index:
     - [XrayPulses][extra.components.XrayPulses]
     - [OpticalLaserPulses][extra.components.OpticalLaserPulses]
     - [PumpProbePulses][extra.components.PumpProbePulses]
+    - [MachinePulses][extra.components.MachinePulses]
     - [DldPulses][extra.components.DldPulses]
