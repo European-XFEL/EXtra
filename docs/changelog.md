@@ -16,6 +16,8 @@
     pip install git+https://github.com/European-XFEL/EXtra.git
     ```
 
+## [2024.1.1]
+
 Added:
 
 - [MachinePulses][extra.components.MachinePulses] to investigate pulse pattern
@@ -66,6 +68,7 @@ Added:
   [EXtra-geom](detector-geometry.md), and [karabo-bridge-py](karabo-bridge.md).
 
 
-[Unreleased]: https://github.com/European-XFEL/EXtra/compare/2024.1...master
+[Unreleased]: https://github.com/European-XFEL/EXtra/compare/2024.1.1...master
+[2024.1.1]: https://github.com/European-XFEL/EXtra/releases/tag/2024.1.1
 [2024.1]: https://github.com/European-XFEL/EXtra/releases/tag/2024.1
 [2023.2]: https://github.com/European-XFEL/EXtra/releases/tag/2023.2
