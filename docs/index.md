@@ -8,6 +8,8 @@ This is where you can find:
   and handling [detector geometry](detector-geometry.md)
 - Implementations of specific analysis techniques
 - High-level components that abstract low-level Karabo devices
+- Tools for [finding & loading detector calibration constants](calibration.md)
+  (if you prefer not to use already calibrated data)
 - Random useful things
 
 ## Installation
