@@ -15,6 +15,9 @@
     ```bash title="Installation command"
     pip install git+https://github.com/European-XFEL/EXtra.git
     ```
+Added:
+
+- A helper function named [fit_gaussian()][extra.utils.fit_gaussian] (!131).
 
 ## [2024.1.1]
 

@@ -19,3 +19,7 @@ else.
 ## Plotting functions
 
 ::: extra.utils.imshow2
+
+## Fitting functions
+
+::: extra.utils.fit_gaussian
