@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timezone
 
 import numpy as np
 import pytest
@@ -230,3 +231,29 @@ def test_AGIPD_CalibrationData_report():
     assert set(agipd_cd) == {"Offset", "Noise", "ThresholdsDark", "BadPixelsDark"}
     assert agipd_cd.aggregator_names == [f"AGIPD{n:02}" for n in range(16)]
     assert isinstance(agipd_cd["Offset", "AGIPD00"], SingleConstant)
+
+
+@pytest.mark.vcr
+def test_AGIPD_funky_numbering():
+    """Both karabo_da & the source name for HED_DET_AGIPD65K1 use number 8"""
+    cond = AGIPDConditions(
+        sensor_bias_voltage=200.0,
+        memory_cells=352,
+        acquisition_rate=1.1,
+        gain_setting=0,
+    )
+    agipd_cd = CalibrationData.from_condition(
+        cond,
+        'HED_DET_AGIPD65K1',
+        event_at=datetime(2024, 3, 22, 17, 19, 15, 965988, tzinfo=timezone.utc),
+    )
+    assert agipd_cd.aggregator_names == ['AGIPD08']
+    assert agipd_cd.module_nums == [0]
+    assert agipd_cd.source_names == ["HED_DET_AGIPD65K1/DET/8CH0:xtdf"]
+
+    # Need constants created after I set the module number to test from_report
+    # For this detector, that means darks newer than 2024-02-23
+    #agipd_cd2 = CalibrationData.from_report(4673)
+    #assert agipd_cd2.aggregator_names == ['AGIPD08']
+    #assert agipd_cd2.module_nums == [0]
+    #assert agipd_cd2.source_names == ["HED_DET_AGIPD65K1/DET/8CH0:xtdf"]

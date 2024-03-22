@@ -1,3 +1,4 @@
+import ast
 import json
 import re
 from collections.abc import Mapping
@@ -5,6 +6,7 @@ from dataclasses import dataclass, field, replace
 from datetime import date, datetime, time, timezone
 from functools import lru_cache
 from pathlib import Path
+from string import Formatter
 from typing import Dict, List, Optional, Union
 from urllib.parse import urljoin
 from warnings import warn
@@ -37,6 +39,21 @@ class ModuleNameError(KeyError):
         return f"No module named {self.name!r}"
 
 
+class SourceExprChecker(ast.NodeVisitor):
+    def visit_Call(self, node):
+        raise ValueError("Function calls not allowed in source name patterns")
+
+
+class SourceNameFormatter(Formatter):
+    """String formatter that evaluates simple operations like {modno + 2}"""
+
+    def get_field(self, field_name, args, kwargs):
+        node = ast.parse(field_name, "<source pattern>", "eval")
+        SourceExprChecker().visit(node)
+        obj = eval(compile(node, "<source pattern>", "eval"), kwargs)
+        return obj, 0
+
+
 class CalCatAPIError(requests.HTTPError):
     """Used when the response includes error details as JSON"""
 
@@ -58,6 +75,7 @@ class CalCatAPIClient:
 
     def default_headers(self):
         from . import __version__
+
         return {
             "content-type": "application/json",
             "Accept": "application/json; version=2",
@@ -297,7 +315,6 @@ class SingleConstant:
         self._metadata = calcat_meta | self._metadata
         self._have_calcat_metadata = True
 
-
     def metadata(self, key, client=None):
         """Get a specific metadata field, e.g. 'begin_validity_at'
 
@@ -444,6 +461,17 @@ class MultiModuleConstant(Mapping):
             if m["karabo_da"] in self.constants
         ]
 
+    @property
+    def source_names(self):
+        """Source names of the detector units making up the detector.
+
+        Only includes modules where we have this constant."""
+        return [
+            m["source_name"]
+            for m in self.module_details
+            if m["karabo_da"] in self.constants
+        ]
+
     def ndarray(self, caldb_root=None, *, parallel=0):
         """Load this constant as a Numpy array.
 
@@ -557,11 +585,11 @@ class CalibrationData(Mapping):
 
         client = client or get_client()
 
-        detector_id = client.detector_by_identifier(detector_name)["id"]
+        calcat_detector = client.detector_by_identifier(detector_name)
         pdus = client.get(
             "physical_detector_units/get_all_by_detector",
             {
-                "detector_id": detector_id,
+                "detector_id": calcat_detector["id"],
                 "pdu_snapshot_at": client.format_time(pdu_snapshot_at),
             },
         )
@@ -569,6 +597,10 @@ class CalibrationData(Mapping):
         for mod in module_details:
             if mod.get("module_number") is None:
                 mod["module_number"] = int(re.findall(r"\d+", mod["karabo_da"])[-1])
+            if (source_pat := calcat_detector["source_name_pattern"]) is not None:
+                mod["source_name"] = SourceNameFormatter().format(
+                    source_pat, modno=mod["module_number"]
+                )
 
         constant_groups = {}
 
@@ -658,7 +690,14 @@ class CalibrationData(Mapping):
         if len(det_ids) > 1:
             raise Exception(f"Found multiple detector IDs in report: {det_ids}")
         # The "identifier", "name" & "karabo_name" fields seem to have the same names
-        det_name = client.detector_by_id(det_ids.pop())["identifier"]
+        calcat_detector = client.detector_by_id(det_ids.pop())
+        det_name = calcat_detector["identifier"]
+
+        if (source_pat := calcat_detector["source_name_pattern"]) is not None:
+            for pdu in pdus.values():
+                pdu["source_name"] = SourceNameFormatter().format(
+                    source_pat, modno=pdu["module_number"]
+                )
 
         module_details = sorted(pdus.values(), key=lambda d: d["karabo_da"])
         return cls(constant_groups, module_details, det_name)
@@ -713,6 +752,11 @@ class CalibrationData(Mapping):
 
         May include missing modules."""
         return [m["physical_name"] for m in self.module_details]
+
+    @property
+    def source_names(self):
+        "Source names of the detector modules. May include missing modules."
+        return [m["source_name"] for m in self.module_details]
 
     def require_calibrations(self, calibrations) -> "CalibrationData":
         """Drop any modules missing the specified constant types"""
@@ -815,12 +859,13 @@ class ConditionsBase:
 @dataclass
 class AGIPDConditions(ConditionsBase):
     """Conditions for AGIPD detectors"""
+
     sensor_bias_voltage: float
     memory_cells: int
     acquisition_rate: float
-    gain_setting: Optional[int]
-    gain_mode: Optional[int]
-    source_energy: float
+    gain_setting: Optional[int] = None
+    gain_mode: Optional[int] = None
+    source_energy: Optional[float] = None
     integration_time: int = 12
     pixels_x: int = 512
     pixels_y: int = 128
@@ -864,6 +909,7 @@ class AGIPDConditions(ConditionsBase):
 @dataclass
 class LPDConditions(ConditionsBase):
     """Conditions for LPD detectors"""
+
     sensor_bias_voltage: float
     memory_cells: int
     memory_cell_order: Optional[str] = None
@@ -899,6 +945,7 @@ class LPDConditions(ConditionsBase):
 @dataclass
 class DSSCConditions(ConditionsBase):
     """Conditions for DSSC detectors"""
+
     sensor_bias_voltage: float
     memory_cells: int
     pulse_id_checksum: Optional[float] = None
@@ -927,6 +974,7 @@ class DSSCConditions(ConditionsBase):
 @dataclass
 class JUNGFRAUConditions(ConditionsBase):
     """Conditions for JUNGFRAU detectors"""
+
     sensor_bias_voltage: float
     memory_cells: int
     integration_time: float
