@@ -29,7 +29,7 @@ def fit_gaussian(ydata, xdata=None, p0=None, **kwargs):
     This uses [curve_fit()][scipy.optimize.curve_fit] to fit a Gaussian (from
     [gaussian()][extra.utils.gaussian]) to `ydata`. If `p0` is not passed the
     function will set them to reasonable defaults. It will return `None` if
-    fitting fails, or if there are no non-NaN values in `ydata`.
+    fitting fails, or if there are no finite values in `ydata`.
 
     !!! note
         By default this will only return the `popt` array from
@@ -37,8 +37,8 @@ def fit_gaussian(ydata, xdata=None, p0=None, **kwargs):
         output you must pass `full_output=True`.
 
     Args:
-        ydata (array_like): The data to fit. NaN's will automatically be masked
-            before fitting.
+        ydata (array_like): The data to fit. NaN's and infs will automatically
+            be masked before fitting.
         xdata (array_like): Optional x-values corresponding to `ydata`.
         p0 (list): A list of `[y0, A, μ, σ]` to match the arguments to
             [gaussian()][extra.utils.gaussian].
@@ -52,10 +52,10 @@ def fit_gaussian(ydata, xdata=None, p0=None, **kwargs):
 
     full_output_requested = kwargs.get("full_output", False)
 
-    # Filter nans
-    nan_mask = ~np.isnan(ydata)
-    xdata = xdata[nan_mask]
-    ydata = ydata[nan_mask]
+    # Filter nans and infs
+    finite_mask = np.isfinite(ydata)
+    xdata = xdata[finite_mask]
+    ydata = ydata[finite_mask]
 
     if len(ydata) == 0:
         return None
