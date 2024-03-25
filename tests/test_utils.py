@@ -9,10 +9,11 @@ def test_scaled_imshow():
     imshow2(image)
 
 def test_fit_gaussian():
-    # Test with auto-generated xdata and nans
+    # Test with auto-generated xdata and nans/infs
     params = [0, 1, 20, 5]
     data = gaussian(np.arange(100), *params)
     data[50] = np.nan
+    data[51] = np.inf
     popt = fit_gaussian(data)
     assert np.allclose(popt, params)
 
