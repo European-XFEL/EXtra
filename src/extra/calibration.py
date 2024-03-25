@@ -202,15 +202,15 @@ def get_client():
 
 
 def setup_client(
-        base_url,
-        client_id,
-        client_secret,
-        user_email,
-        scope="",
-        session_token=None,
-        oauth_retries=3,
-        oauth_timeout=12,
-        ssl_verify=True,
+    base_url,
+    client_id,
+    client_secret,
+    user_email,
+    scope="",
+    session_token=None,
+    oauth_retries=3,
+    oauth_timeout=12,
+    ssl_verify=True,
 ):
     """Configure the global CalCat API client."""
     global global_client
@@ -339,14 +339,25 @@ class SingleConstant:
 
 
 def prepare_selection(
-        module_details, module_nums=None, aggregator_names=None, qm_names=None
+    module_details,
+    module_nums=None,
+    aggregator_names=None,
+    qm_names=None,
+    source_names=None,
 ):
     aggs = aggregator_names  # Shorter name -> fewer multi-line statements
-    n_specified = sum([module_nums is not None, aggs is not None, qm_names is not None])
+    n_specified = sum(
+        [
+            module_nums is not None,
+            aggs is not None,
+            qm_names is not None,
+            source_names is not None,
+        ]
+    )
     if n_specified > 1:
         raise TypeError(
-            "select_modules() accepts only one of module_nums, aggregator_names "
-            "& qm_names"
+            "select_modules() accepts only one of module_nums, aggregator_names, "
+            "qm_names & source_names"
         )
 
     if module_nums is not None:
@@ -355,6 +366,11 @@ def prepare_selection(
     elif qm_names is not None:
         by_qm = {m["virtual_device_name"]: m for m in module_details}
         return [by_qm[s]["karabo_da"] for s in qm_names]
+    elif source_names is not None:
+        by_src = {m["source_name"]: m for m in module_details if m.get("source_name")}
+        if not by_src:
+            raise KeyError("No source names found for this detector")
+        return [by_src[s]["karabo_da"] for s in source_names]
     elif aggs is not None:
         miss = set(aggs) - {m["karabo_da"] for m in module_details}
         if miss:
@@ -404,7 +420,7 @@ class MultiModuleConstant(Mapping):
                 m["module_number"],
                 m["virtual_device_name"],
                 m["physical_name"],
-                m.get('source_name', None),
+                m.get("source_name", None),
             )
             if key in names and m["karabo_da"] in self.constants:
                 candidate_kdas.add(m["karabo_da"])
@@ -417,14 +433,19 @@ class MultiModuleConstant(Mapping):
         return self.constants[candidate_kdas.pop()]
 
     def select_modules(
-            self, module_nums=None, *, aggregator_names=None, qm_names=None
+        self,
+        module_nums=None,
+        *,
+        aggregator_names=None,
+        qm_names=None,
+        source_names=None,
     ) -> "MultiModuleConstant":
         """Return a new `MultiModuleConstant` object with only the selected modules
 
         One of `module_nums`, `aggregator_names` or `qm_names` must be specified.
         """
         aggs = prepare_selection(
-            self.module_details, module_nums, aggregator_names, qm_names
+            self.module_details, module_nums, aggregator_names, qm_names, source_names
         )
         d = {aggr: scv for (aggr, scv) in self.constants.items() if aggr in aggs}
         mods = [m for m in self.module_details if m["karabo_da"] in d]
@@ -565,13 +586,13 @@ class CalibrationData(Mapping):
 
     @classmethod
     def from_condition(
-            cls,
-            condition: "ConditionsBase",
-            detector_name,
-            calibrations=None,
-            client=None,
-            event_at=None,
-            pdu_snapshot_at=None,
+        cls,
+        condition: "ConditionsBase",
+        detector_name,
+        calibrations=None,
+        client=None,
+        event_at=None,
+        pdu_snapshot_at=None,
     ):
         """Look up constants for the given detector conditions & timestamp.
 
@@ -640,9 +661,9 @@ class CalibrationData(Mapping):
 
     @classmethod
     def from_report(
-            cls,
-            report_id_or_path: Union[int, str],
-            client=None,
+        cls,
+        report_id_or_path: Union[int, str],
+        client=None,
     ):
         """Look up constants by a report ID or path.
 
@@ -771,7 +792,12 @@ class CalibrationData(Mapping):
         return self.select_modules(aggregator_names=mods)
 
     def select_modules(
-            self, module_nums=None, *, aggregator_names=None, qm_names=None
+        self,
+        module_nums=None,
+        *,
+        aggregator_names=None,
+        qm_names=None,
+        source_names=None,
     ) -> "CalibrationData":
         """Return a new `CalibrationData` object with only the selected modules
 
@@ -780,7 +806,7 @@ class CalibrationData(Mapping):
         # Validate the specified modules against those we know about.
         # Each specific constant type may have only a subset of these modules.
         aggs = prepare_selection(
-            self.module_details, module_nums, aggregator_names, qm_names
+            self.module_details, module_nums, aggregator_names, qm_names, source_names
         )
         constant_groups = {}
         matched_aggregators = set()

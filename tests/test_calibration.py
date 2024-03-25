@@ -255,6 +255,9 @@ def test_AGIPD_funky_numbering():
     assert isinstance(
         agipd_cd["Offset"]["HED_DET_AGIPD65K1/DET/8CH0:xtdf"], SingleConstant
     )
+    assert agipd_cd.select_modules(
+        source_names=["HED_DET_AGIPD65K1/DET/8CH0:xtdf"]
+    ).module_nums == [0]
 
     # Need constants created after I set the module number to test from_report
     # For this detector, that means darks newer than 2024-02-23
