@@ -14,13 +14,14 @@ from extra.calibration import (
     SingleConstant,
 )
 
+
 # These tests all use saved HTTP responses by default (with pytest-recording).
 # To ignore these & use exflcalproxy, run pytest with the --disable-recording flag.
 # To update the saved cassettes from exflcalproxy, pass --record-mode=rewrite.
 
 
 def drop_cookie_header(response):
-    response['headers'].pop('Set-Cookie', None)
+    response["headers"].pop("Set-Cookie", None)
     return response
 
 
@@ -63,6 +64,7 @@ def test_AGIPD_CalibrationData_metadata():
     assert bva == "2022-09-02T07:42:33.000+02:00"
     metadata = agipd_cd["Offset", "AGIPD00"].metadata_dict()
     assert metadata["begin_validity_at"] == bva
+
 
 @pytest.mark.vcr
 def test_AGIPD_merge():
@@ -207,11 +209,11 @@ def test_LPD_constant_missing():
 @pytest.mark.vcr
 def test_JUNGFRAU_constant():
     cond = JUNGFRAUConditions(
-        sensor_bias_voltage=90.,
+        sensor_bias_voltage=90.0,
         memory_cells=1,
-        integration_time=400.,
+        integration_time=400.0,
         gain_setting=0,
-        sensor_temperature=291.,
+        sensor_temperature=291.0,
     )
     jf_cd = CalibrationData.from_condition(
         cond,
@@ -244,12 +246,15 @@ def test_AGIPD_funky_numbering():
     )
     agipd_cd = CalibrationData.from_condition(
         cond,
-        'HED_DET_AGIPD65K1',
+        "HED_DET_AGIPD65K1",
         event_at=datetime(2024, 3, 22, 17, 19, 15, 965988, tzinfo=timezone.utc),
     )
-    assert agipd_cd.aggregator_names == ['AGIPD08']
+    assert agipd_cd.aggregator_names == ["AGIPD08"]
     assert agipd_cd.module_nums == [0]
     assert agipd_cd.source_names == ["HED_DET_AGIPD65K1/DET/8CH0:xtdf"]
+    assert isinstance(
+        agipd_cd["Offset"]["HED_DET_AGIPD65K1/DET/8CH0:xtdf"], SingleConstant
+    )
 
     # Need constants created after I set the module number to test from_report
     # For this detector, that means darks newer than 2024-02-23

@@ -400,7 +400,12 @@ class MultiModuleConstant(Mapping):
             candidate_kdas.add(key)
 
         for m in self.module_details:
-            names = (m["module_number"], m["virtual_device_name"], m["physical_name"])
+            names = (
+                m["module_number"],
+                m["virtual_device_name"],
+                m["physical_name"],
+                m.get('source_name', None),
+            )
             if key in names and m["karabo_da"] in self.constants:
                 candidate_kdas.add(m["karabo_da"])
 
