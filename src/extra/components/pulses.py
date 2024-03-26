@@ -1,6 +1,7 @@
 """Interface and utilies to work with pulse-resolved data."""
 
 
+from __future__ import annotations  # to defer evaulation of annotations
 from copy import copy
 from functools import wraps
 from typing import Optional
@@ -824,6 +825,23 @@ class TimeserverPulses(PulsePattern):
                              'bunch pattern table not available')
 
         return self._key
+
+    def machine_pulses(self, **kwargs) -> MachinePulses:
+        """Get MachinePulses component for the same data.
+
+        Any additional keyword arguments are passed to the MachinePulses
+        initializer.
+
+        Returns:
+            (MachinePulses) Corresponding component using the same data
+                as this component.
+        """
+
+        return MachinePulses(None, self._source, **kwargs)
+
+    def machine_repetition_rate(self) -> float:
+        """Actual machine repetition rate."""
+        return self.machine_pulses().pulse_repetition_rates().min()
 
 
 class XrayPulses(TimeserverPulses):

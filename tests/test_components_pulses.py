@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 
 import pytest
 import numpy as np
+import pandas as pd
 
 import extra
 
@@ -281,6 +282,9 @@ def test_pulse_repetition_rates(mock_spb_aux_run, source):
     assert rates[:10].isna().all()
     np.testing.assert_allclose(rates[10:], 0.0)
 
+    # Test special method for machine repetition rate, should be 2.2 MHz.
+    assert np.isclose(pulses.machine_repetition_rate(), 2.2e6, atol=1e5)
+
 
 @pytest.mark.parametrize('source', **pattern_sources)
 def test_train_durations(mock_spb_aux_run, source):
@@ -475,12 +479,18 @@ def test_optical_laser_specials(mock_spb_aux_run):
 
 @pytest.mark.parametrize('source', **pattern_sources)
 def test_machine_pulses_default(mock_spb_aux_run, source):
-    ref_pulses = MachinePulses(mock_spb_aux_run, source=source)
-    np.testing.assert_equal(ref_pulses.pulse_ids().iloc[:1350], np.r_[:2700:2])
+    pulses = MachinePulses(mock_spb_aux_run, source=source)
+    np.testing.assert_equal(pulses.pulse_ids().iloc[:1350], np.r_[:2700:2])
 
-    pulse_counts = ref_pulses.pulse_counts()
+    pulse_counts = pulses.pulse_counts()
     assert not pulse_counts[:10].any()
     assert (pulse_counts[10:] == 1350).all()
+
+    # Get from other pulse components.
+    indirect_pulses = XrayPulses(
+        mock_spb_aux_run, source=source).machine_pulses()
+    pd.testing.assert_series_equal(
+        pulses.pulse_ids(), indirect_pulses.pulse_ids())
 
 
 def test_machine_pulses_specials(mock_spb_aux_run):
