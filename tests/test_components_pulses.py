@@ -87,6 +87,12 @@ def test_init(mock_spb_aux_run):
         pulses.timeserver['bunchPatternTable'])
     assert pulses.sase == 1
 
+    # Construct from SourceData.
+    pulses = XrayPulses(None, source=run['ODD_TIMESERVER_NAME'], sase=1)
+    assert_equal_sourcedata(
+        pulses.timeserver,
+        run['ODD_TIMESERVER_NAME'])
+
     # Remove all timeservers, should always raise exception.
     run_no_ts = run.select('*XGM*')
 

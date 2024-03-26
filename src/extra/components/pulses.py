@@ -604,7 +604,8 @@ class TimeserverPulses(PulsePattern):
         if source is None:
             source = self._find_pulsepattern_source(data)
 
-        sd = data[source]
+        # Also support SourceData objects for internal use.
+        sd = data[source] if not isinstance(source, SourceData) else source
 
         if 'maindump.pulseIds.value' in sd.keys():
             # PulsePatternDecoder source.
@@ -617,7 +618,7 @@ class TimeserverPulses(PulsePattern):
             # Timeserver source.
             self._with_timeserver = True
 
-            if ':' in source:
+            if ':' in sd.source:
                 kd = sd['data.bunchPatternTable']
             else:
                 kd = sd['bunchPatternTable']
