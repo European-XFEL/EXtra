@@ -333,6 +333,58 @@ class PulsePattern:
             return True
 
 
+    def is_interleaved_with(self, other: PulsePattern) -> Optional[bool]:
+        """Check whether pulses are interleaved with other pattern.
+
+        This method returns True if and only if it can safely determine
+        that the pulse pattern described by this component and the
+        passed component are interleaved, and False if and only if it is
+        clear they are not interleaved. In all other cases, the pulses
+        may or may not be interleaved and None is returned.
+
+        Returns:
+            (bool or None) Whether pulses are interleaved or None if the
+                pulse patterns do not allow the determination.
+        """
+
+        for (_, self_pids), (_, other_pids) in zip(
+            self.pulse_ids(copy=False).groupby(level=0),
+            other.pulse_ids(copy=False).groupby(level=0)
+        ):
+            self_num = len(self_pids)
+            other_num = len(other_pids)
+
+            if self_num == 0 or other_num == 0:
+                # No statement can be drawn from missing pulses.
+                continue
+
+            self_first_pulse = self_pids.min()
+            other_first_pulse = other_pids.min()
+
+            if self_num > 1 and other_num > 1:
+                # Multiple pulses in both self and other.
+
+                if self_first_pulse < other_first_pulse:
+                    # self early, interleaved <=> other starts within self
+                    return self_pids.max() > other_first_pulse
+                else:
+                    # other early, interleaved <=> self starts within other
+                    return other_pids.max() > self_first_pulse
+
+            elif self_num == 1 and other_num > 1:
+                # Single pulse in self, but multiple in other.
+                if other_first_pulse < self_first_pulse:
+                    # other early, interleaved <=> self is within other
+                    return other_pids.max() > self_first_pulse
+
+            elif self_num > 1 and other_num == 1:
+                # Multiple pulses in self, but single in other.
+                if self_first_pulse < other_first_pulse:
+                    # self early, interleaved <=> other is within self
+                    return self_pids.max() > other_first_pulse
+
+        return  # Reached in case of *maybe*
+
     def pulse_counts(self, labelled=True):
         """Get number of pulses per train.
 
@@ -847,6 +899,34 @@ class TimeserverPulses(PulsePattern):
     def machine_repetition_rate(self) -> float:
         """Actual machine repetition rate."""
         return self.machine_pulses().pulse_repetition_rates().min()
+
+    @lru_cache
+    def is_sa1_interleaved_with_sa3(self) -> Optional[bool]:
+        """Check whether SASE1 and SASE3 pulses are interleaved.
+
+        Due to their unique geometry, the pulses of the SASE1 and SASE3
+        beamlines can either occur after each other on the pulse train
+        or be interleaved. Here, each beamline generally receives their
+        first pulse directly after each other, with their relative pulse
+        patterns following afterwards in a back-and-forth fashion.
+
+        This method returns True if and only if it can be safely
+        determined the SA1 and SA3 pulses are intereavled, and False if
+        and only if it is clear they are not interleaved. In all other
+        cases, the pulses may or may not be interleaved and None is
+        returned.
+
+        Returns:
+            (bool or None) Whether SA1 and SA3 are interleaved or None
+                if the pulse patterns do not allow the determination.
+        """
+
+        sa1_pulses = XrayPulses(None, self._source, sase=1) \
+            if self._sase != 1 else self
+        sa3_pulses = XrayPulses(None, self._source, sase=3) \
+            if self._sase != 3 else self
+
+        return sa1_pulses.is_interleaved_with(sa3_pulses)
 
 
 class XrayPulses(TimeserverPulses):

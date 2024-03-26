@@ -163,8 +163,7 @@ def test_pulse_mask(mock_spb_aux_run, source):
 
 @pytest.mark.parametrize('source', **pattern_sources)
 def test_is_constant_pattern(mock_spb_aux_run, source):
-    run = mock_spb_aux_run
-    pulses = XrayPulses(run, source=source)
+    pulses = XrayPulses(mock_spb_aux_run, source=source)
 
     # Default arguments (empty trains are ignored).
     assert not pulses.is_constant_pattern()
@@ -185,6 +184,16 @@ def test_is_constant_pattern(mock_spb_aux_run, source):
 
     with pytest.raises(TypeError):
         pulses.is_constant_pattern(True)
+
+
+@pytest.mark.parametrize('source', **pattern_sources)
+def test_is_interleaved(mock_spb_aux_run, source):
+    pulses = XrayPulses(mock_spb_aux_run, source=source, sase=1)
+
+    assert pulses.is_interleaved_with(pulses.machine_pulses())
+    assert not pulses.is_interleaved_with(
+        XrayPulses(mock_spb_aux_run, source=source, sase=2))
+    assert not pulses.is_sa1_interleaved_with_sa3()
 
 
 @pytest.mark.parametrize('source', **pattern_sources)
