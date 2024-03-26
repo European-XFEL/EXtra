@@ -3,7 +3,7 @@
 
 from __future__ import annotations  # to defer evaulation of annotations
 from copy import copy
-from functools import wraps
+from functools import wraps, lru_cache
 from typing import Optional
 from warnings import warn
 import re
@@ -46,6 +46,11 @@ class PulsePattern:
     This class should not be instantiated directly, but one of its
     implementationsd `XrayPulses` or `OpticalLaserPulses`. It provides
     the shared interface to access any pulse pattern.
+
+    Instances of this class are assumed to be immutable, which is
+    exploited in various methods for caching purposes. An implementation
+    should not allow altering its internal object state in a way that
+    causes return values of public APIs to change.
 
     Requires to implement _get_pulse_ids().
     """
@@ -300,7 +305,6 @@ class PulsePattern:
             include_empty_trains (bool, optional): Whether trains
                 without any pulses cause a pulse pattern to not be
                 considered constant, False by default.
-
 
         Returns:
             (bool): Whether pulse IDs are identical in every train.
@@ -839,6 +843,7 @@ class TimeserverPulses(PulsePattern):
 
         return MachinePulses(None, self._source, **kwargs)
 
+    @lru_cache
     def machine_repetition_rate(self) -> float:
         """Actual machine repetition rate."""
         return self.machine_pulses().pulse_repetition_rates().min()
