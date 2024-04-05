@@ -327,11 +327,23 @@ class XGM:
             else:
                 key = f"data.intensitySa{pg.value}TD"
 
-            max_pulses = self.max_npulses(sase)
+            pulse_energy = self.instrument_source[key].xarray()
 
-            # We could use .xarray(roi=...) here, but that fails because of h5py
-            # when max_pulses is 0.
-            pulse_energy = self.instrument_source[key].xarray()[:, :max_pulses]
+            # Find the maximum number of pulses as recorded in the fast data. We
+            # do this instead of trusting .max_npulses() because that can save
+            # the wrong number sometimes.
+            empty_indices = np.where(pulse_energy.mean("trainId") == 1)[0]
+            if len(empty_indices) == 0:
+                # If there are no empty indices then apparently there were 1000
+                # pulses (only needed for the tests).
+                max_pulses = pulse_energy.shape[1]
+            else:
+                # Otherwise we select the index of the first empty element, and
+                # that's our number of pulses.
+                max_pulses = empty_indices[0]
+
+            pulse_energy = pulse_energy[:, :max_pulses]
+
             # Assign a pulseIndex dimension and coordinate
             pulse_energy = pulse_energy.rename(dim_0="pulseIndex").assign_coords(pulseIndex=np.arange(max_pulses))
             # Replace the default fill value of 1 with 0
