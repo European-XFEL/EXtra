@@ -159,8 +159,25 @@ def test_is_constant_pattern(mock_spb_aux_run, source):
     run = mock_spb_aux_run
     pulses = XrayPulses(run, source=source)
 
+    # Default arguments (empty trains are ignored).
     assert not pulses.is_constant_pattern()
     assert pulses.select_trains(np.s_[:50]).is_constant_pattern()
+
+    # Explicit handling of empty trains.
+    assert not pulses.is_constant_pattern(
+        include_empty_trains=False)
+    assert pulses.select_trains(np.s_[:50]).is_constant_pattern(
+        include_empty_trains=False)
+
+    assert not pulses.is_constant_pattern(
+        include_empty_trains=True)
+    assert not pulses.select_trains(np.s_[:50]).is_constant_pattern(
+        include_empty_trains=True)
+    assert pulses.select_trains(np.s_[10:50]).is_constant_pattern(
+        include_empty_trains=True)
+
+    with pytest.raises(TypeError):
+        pulses.is_constant_pattern(True)
 
 
 @pytest.mark.parametrize('source', **pattern_sources)

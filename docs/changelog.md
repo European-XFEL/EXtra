@@ -17,6 +17,7 @@
     ```
 Added:
 
+- Empty trains can now optionally be included when determining constant pulse patterns via [XrayPulses.is_constant_pattern()][extra.components.XrayPulses.is_constant_pattern] (!156).
 - A helper function named [fit_gaussian()][extra.utils.fit_gaussian] (!131).
 
 Fixed:
