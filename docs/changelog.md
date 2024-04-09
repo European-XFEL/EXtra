@@ -18,6 +18,7 @@
 Added:
 
 - A helper function named [fit_gaussian()][extra.utils.fit_gaussian] (!131).
+- Support for module source names in `extra.calibration` (!146).
 
 Fixed:
 
