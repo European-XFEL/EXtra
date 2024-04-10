@@ -1,7 +1,7 @@
 cfelpyutils==2.0.6
 contourpy==1.2.1
 cycler==0.12.1
-EXtra-data==1.16.0
+EXtra-data==1.17.0
 EXtra-geom==1.11.0
 fonttools==4.51.0
 h5py==3.10.0
