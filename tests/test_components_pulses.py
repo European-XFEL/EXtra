@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 
 import pytest
 import numpy as np
+import pandas as pd
 
 import extra
 
@@ -87,6 +88,12 @@ def test_init(mock_spb_aux_run):
         pulses.timeserver['bunchPatternTable'])
     assert pulses.sase == 1
 
+    # Construct from SourceData.
+    pulses = XrayPulses(None, source=run['ODD_TIMESERVER_NAME'], sase=1)
+    assert_equal_sourcedata(
+        pulses.timeserver,
+        run['ODD_TIMESERVER_NAME'])
+
     # Remove all timeservers, should always raise exception.
     run_no_ts = run.select('*XGM*')
 
@@ -156,8 +163,7 @@ def test_pulse_mask(mock_spb_aux_run, source):
 
 @pytest.mark.parametrize('source', **pattern_sources)
 def test_is_constant_pattern(mock_spb_aux_run, source):
-    run = mock_spb_aux_run
-    pulses = XrayPulses(run, source=source)
+    pulses = XrayPulses(mock_spb_aux_run, source=source)
 
     # Default arguments (empty trains are ignored).
     assert not pulses.is_constant_pattern()
@@ -178,6 +184,16 @@ def test_is_constant_pattern(mock_spb_aux_run, source):
 
     with pytest.raises(TypeError):
         pulses.is_constant_pattern(True)
+
+
+@pytest.mark.parametrize('source', **pattern_sources)
+def test_is_interleaved(mock_spb_aux_run, source):
+    pulses = XrayPulses(mock_spb_aux_run, source=source, sase=1)
+
+    assert pulses.is_interleaved_with(pulses.machine_pulses())
+    assert not pulses.is_interleaved_with(
+        XrayPulses(mock_spb_aux_run, source=source, sase=2))
+    assert not pulses.is_sa1_interleaved_with_sa3()
 
 
 @pytest.mark.parametrize('source', **pattern_sources)
@@ -274,6 +290,9 @@ def test_pulse_repetition_rates(mock_spb_aux_run, source):
     assert (rates.index == run.train_ids).all()
     assert rates[:10].isna().all()
     np.testing.assert_allclose(rates[10:], 0.0)
+
+    # Test special method for machine repetition rate, should be 2.2 MHz.
+    assert np.isclose(pulses.machine_repetition_rate(), 2.2e6, atol=1e5)
 
 
 @pytest.mark.parametrize('source', **pattern_sources)
@@ -469,12 +488,18 @@ def test_optical_laser_specials(mock_spb_aux_run):
 
 @pytest.mark.parametrize('source', **pattern_sources)
 def test_machine_pulses_default(mock_spb_aux_run, source):
-    ref_pulses = MachinePulses(mock_spb_aux_run, source=source)
-    np.testing.assert_equal(ref_pulses.pulse_ids().iloc[:1350], np.r_[:2700:2])
+    pulses = MachinePulses(mock_spb_aux_run, source=source)
+    np.testing.assert_equal(pulses.pulse_ids().iloc[:1350], np.r_[:2700:2])
 
-    pulse_counts = ref_pulses.pulse_counts()
+    pulse_counts = pulses.pulse_counts()
     assert not pulse_counts[:10].any()
     assert (pulse_counts[10:] == 1350).all()
+
+    # Get from other pulse components.
+    indirect_pulses = XrayPulses(
+        mock_spb_aux_run, source=source).machine_pulses()
+    pd.testing.assert_series_equal(
+        pulses.pulse_ids(), indirect_pulses.pulse_ids())
 
 
 def test_machine_pulses_specials(mock_spb_aux_run):
