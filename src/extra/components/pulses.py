@@ -180,6 +180,9 @@ class PulsePattern:
         if self._pulse_ids is not None and new_train_ids is not None:
             # Extract those entries from cached pulse IDs that intersect
             # with the newly selected train IDs.
+            # Note that this does NOT slice the underlying index's data!
+            # Direct access to it via .index.levels[0] will reveal the
+            # original train IDs.
             res._pulse_ids = self._pulse_ids.loc[np.intersect1d(
                 new_train_ids, self._pulse_ids.index.to_frame()['trainId'])]
         else:
@@ -289,10 +292,14 @@ class PulsePattern:
              DeprecationWarning, stacklevel=2)
         return self.pulse_mask(*args, **kwargs)
 
-    def is_constant_pattern(self):
+    def is_constant_pattern(self, *, include_empty_trains=False):
         """Whether pulse IDs are constant in this data.
 
-        Trains without pulses at all are not considered.
+        Args:
+            include_empty_trains (bool, optional): Whether trains
+                without any pulses cause a pulse pattern to not be
+                considered constant, False by default.
+
 
         Returns:
             (bool): Whether pulse IDs are identical in every train.
@@ -300,15 +307,26 @@ class PulsePattern:
 
         pulse_ids = self.pulse_ids(copy=False)
 
-        # This two level check ends up being faster than comparing the
-        # sets of pulse IDs for each train including their position.
-        return (
-            # Do all trains have the same number of pulses?
-            pulse_ids.groupby(level=0).count().unique().size == 1 and
+        # These checks end up being faster than comparing the sets of
+        # pulse IDs for each train including their position.
 
-            # Are the pulse IDs in each pulse position identical?
-            all([len(x) == 1 for x in pulse_ids.groupby(level=1).unique()])
-        )
+        # Do all trains have the same number of pulses?
+        pids_by_train = pulse_ids.groupby(level=0)
+        if pids_by_train.count().unique().size > 1:
+            return False
+
+        # Are the pulse IDs in each pulse position identical?
+        if any([len(x) > 1 for x in pulse_ids.groupby(level=1).unique()]):
+            return False
+
+        if include_empty_trains:
+            # If empty trains are considered, are the pulses' train IDs
+            # identical to the global train IDs?
+            return np.array_equal(pids_by_train.first().index,
+                                  self._get_train_ids())
+        else:
+            return True
+
 
     def pulse_counts(self, labelled=True):
         """Get number of pulses per train.
