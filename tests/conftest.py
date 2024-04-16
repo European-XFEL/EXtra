@@ -28,6 +28,7 @@ class XGM(DeviceBase):
 
     def __init__(self, device_id, main_nbunches_property="numberOfBunchesActual"):
         self.control_keys = [
+            ("controlData/slowTrain", "f4", ()),
             (f"pulseEnergy/{main_nbunches_property}", "f4", ()),
             ('pulseEnergy/photonFlux', 'f4', ()),
             ('pulseEnergy/wavelengthUsed', 'f4', ())
@@ -41,6 +42,9 @@ class XGMD(DeviceBase):
     ]
 
     control_keys = [
+        ("controlData/slowTrain", "f4", ()),
+        ("controlData/slowTrainSa1", "f4", ()),
+        ("controlData/slowTrainSa3", "f4", ()),
         ("pulseEnergy/numberOfBunchesActual", "f4", ()),
         ('pulseEnergy/photonFlux', 'f4', ()),
         ('pulseEnergy/wavelengthUsed', 'f4', ()),

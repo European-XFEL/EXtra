@@ -190,6 +190,7 @@ class XGM:
         self._photon_flux = None
         self._doocs_server = None
         self._pulse_energy = { }
+        self._slow_train_energy = { }
         self._npulses = { }
         self._npulses_by_train = { }
         self._max_pulses = { }
@@ -368,6 +369,29 @@ class XGM:
             pulse_energy.attrs["units"] = self._pulse_energy[pg].attrs["units"]
 
         return pulse_energy
+
+    def slow_train_energy(self, sase=None):
+        """Return the slow train energy from the XGM in microjoules.
+
+        This is an average pulse energy, averaged over all pulses for 10-20s.
+
+        Args:
+            sase (int): Same meaning as in
+                [XGM.pulse_energy()][extra.components.XGM.pulse_energy].
+        """
+        pg = self._check_sase_arg(sase)
+        if pg not in self._slow_train_energy:
+            if pg == PropertyGroup.MAIN:
+                key = "controlData.slowTrain"
+            else:
+                key = f"controlData.slowTrainSa{pg.value}"
+
+            energy = self.control_source[key].xarray()
+            energy.attrs["units"] = self.control_source[key].units or "µJ"
+
+            self._slow_train_energy[pg] = energy
+
+        return self._slow_train_energy[pg]
 
     def _get_main_nbunches_key(self):
         """Helper function to find the main key for the number of bunches.

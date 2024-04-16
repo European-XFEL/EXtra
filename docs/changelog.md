@@ -17,7 +17,9 @@
     ```
 Added:
 
-- [XGM.pulse_energy()][extra.components.xgm.pulse_energy] can now take a
+- The `slowTrains` XGM property is available through
+  [XGM.slow_train_energy()][extra.components.XGM.slow_train_energy] (!162).
+- [XGM.pulse_energy()][extra.components.XGM.pulse_energy] can now take a
   `series=True` argument to return a 1D [Series][pandas.Series] instead of a 2D
   [DataArray][xarray.DataArray] (!162).
 - Data indexed by pulse can now be aligned with and added as additional columns to sparse DLD data (!166).
