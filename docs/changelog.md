@@ -29,6 +29,11 @@ Added:
 
 Changed:
 - [Timepix3.spatial_bins()] is now a static method.
+- The [XGM][extra.components.XGM] component will now emit warnings when it
+  detects the wrong number of pulses have been saved in the slow data
+  property. There is also a new `force_slow_data` argument to
+  [XGM.pulse_counts()][extra.XGM.pulse_counts] to always return whatever was
+  saved in the slow data (!161).
 
 Fixed:
 
