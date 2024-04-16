@@ -17,6 +17,9 @@
     ```
 Added:
 
+- [XGM.pulse_energy()][extra.components.xgm.pulse_energy] can now take a
+  `series=True` argument to return a 1D [Series][pandas.Series] instead of a 2D
+  [DataArray][xarray.DataArray] (!162).
 - Data indexed by pulse can now be aligned with and added as additional columns to sparse DLD data (!166).
 - Empty trains can now optionally be included when determining constant pulse patterns via [XrayPulses.is_constant_pattern()][extra.components.XrayPulses.is_constant_pattern] (!156).
 - Check whether any pulse patterns are interleaved with `is_interleaved_with()` or directly SA1/SA3 with `is_sa1_interleaved_with_sa3()` (!155).

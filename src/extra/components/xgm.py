@@ -299,14 +299,19 @@ class XGM:
 
         return PropertyGroup(sase) if sase is not None else self._default_pg
 
-    def pulse_energy(self, sase=None):
-        """Return a 2D [DataArray][xarray.DataArray] of the pulse energy in microjoules.
+    def pulse_energy(self, sase=None, series=False):
+        """Returns the energy per-pulse and per-train in microjoules.
 
-        This has dimensions of `(trainId, pulseIndex)`. For runs with a varying
-        number of pulses, the data will be sliced to the *maximum number* of
-        pulses. e.g. if a run has 100 trains with only one train containing 10
-        pulses and all the others 0, the returned array will have a shape of
-        `(100, 10)`.
+        If `series=False` (the default) this will return a 2D
+        [DataArray][xarray.DataArray] with dimensions of `(trainId,
+        pulseIndex)`. For runs with a varying number of pulses, the data will be
+        sliced to the *maximum number* of pulses. e.g. if a run has 100 trains
+        with only one train containing 10 pulses and all the others 0, the
+        returned array will have a shape of `(100, 10)`.
+
+        If `series=True` this will return a 1D [Series][pandas.Series] where all
+        entries with 0 pulses have been dropped, indexed by `trainId` and
+        `pulseIndex`.
 
         Note:
             This uses the `data.intensityTD` property of the XGM.
@@ -319,6 +324,8 @@ class XGM:
                 `data.intensitySa1TD` with `sase=1`. This setting overrides the
                 `default_sase` argument to the
                 [constructor][extra.components.XGM].
+            series (bool): Whether to return a 2D [DataArray][xarray.DataArray]
+                or 1D [Series][pandas.Series].
         """
         pg = self._check_sase_arg(sase)
         if pg not in self._pulse_energy:
@@ -349,11 +356,18 @@ class XGM:
             # Replace the default fill value of 1 with 0
             pulse_energy.data[pulse_energy.data == 1] = 0
             # Add units
-            pulse_energy.attrs["units"] = "µJ"
+            pulse_energy.attrs["units"] = self.instrument_source[key].units or "µJ"
 
             self._pulse_energy[pg] = pulse_energy
 
-        return self._pulse_energy[pg]
+        pulse_energy = self._pulse_energy[pg]
+        if series:
+            # Use .where() to convert 0's to nans, then convert to a Series,
+            # then drop the nan entries.
+            pulse_energy = pulse_energy.where(pulse_energy != 0).to_series().dropna()
+            pulse_energy.attrs["units"] = self._pulse_energy[pg].attrs["units"]
+
+        return pulse_energy
 
     def _get_main_nbunches_key(self):
         """Helper function to find the main key for the number of bunches.

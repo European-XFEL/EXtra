@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pint
 import pytest
 import numpy as np
+import pandas as pd
 import xarray as xr
 
 from extra.components import XGM
@@ -58,6 +59,7 @@ def test_xgm_getters(multi_xgm_run, source_sase):
     xgm.photon_energy_by_train()
     xgm.doocs_server()
     xgm.pulse_energy()
+    xgm.slow_train_energy()
     xgm.npulses()
     xgm.pulse_counts()
     xgm.max_npulses()
@@ -117,3 +119,27 @@ def test_run_union(multi_xgm_run, mock_spb_aux_run):
 
     # Smoke test to check that non-RUN values work
     xgm.pulse_energy()
+
+def test_xgm_pulse_energy_series(mock_spb_aux_run):
+    run = mock_spb_aux_run
+    xgm = XGM(run)
+
+    energy_series = xgm.pulse_energy(series=True)
+    assert isinstance(energy_series, pd.Series)
+    assert energy_series.attrs["units"] == "µJ"
+
+    # By default the tests write zeros, so the Series should be empty
+    assert len(energy_series) == 0
+
+    # Fill the first 10 pulses of the first 10 trains with fake data
+    xgm._pulse_energy[xgm._default_pg][:10, :10] = 800
+    energy_series = xgm.pulse_energy(series=True)
+
+    # We should only have 100 pulses with data
+    assert len(energy_series) == 100
+
+    # Check their index values
+    assert np.array_equal(energy_series.index.get_level_values(0).unique(),
+                          run.train_ids[:10])
+    assert np.array_equal(energy_series.index.get_level_values(1).unique(),
+                          np.arange(10))
