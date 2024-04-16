@@ -32,8 +32,10 @@ Fixed:
 
 - Sometimes an XGM will record the wrong number of pulses in its slow data
   property, which would cause the pulse energy to not be retrieved properly. Now
-  the XGM will rely only on the fast data to find the number of pulses in
-  `.pulse_energy()` (!153).
+  the [XGM][extra.components.XGM] component will rely only on the fast data to
+  find the number of pulses in `.pulse_energy()` and will emit warnings when it
+  detects the wrong number of pulses have been saved in the slow data property
+  (!153, !161).
 
 ## [2024.1.1]
 

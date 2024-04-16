@@ -1,4 +1,5 @@
 from enum import Enum
+from warnings import warn
 from textwrap import dedent
 
 import numpy as np
@@ -415,10 +416,12 @@ class XGM:
         internally, which means it will throw an exception if the number of
         pulses is not constant.
 
-        Note that this returns the number of pulses recorded by the XGM, which
-        can be unreliable. Use something like the
-        [XrayPulses][extra.components.XrayPulses] component to find the real
-        number of pulses from the bunch pattern table.
+        Warning:
+            This returns the number of pulses recorded by the XGM in the
+            `pulseEnergy.numberOf[SAx]BunchesActual` property, which can be
+            unreliable. Use something like the
+            [XrayPulses][extra.components.XrayPulses] component to find the real
+            number of pulses from the bunch pattern table.
 
         Args:
             sase (int): Same meaning as in
@@ -429,19 +432,21 @@ class XGM:
         """
         pg = self._check_sase_arg(sase)
         if pg not in self._npulses:
-            if pg == PropertyGroup.MAIN:
-                key = self._get_main_nbunches_key()
-            else:
-                key = f"pulseEnergy.numberOfSa{pg.value}BunchesActual"
-            self._npulses[pg] = int(self.control_source[key].as_single_value())
+            pulse_counts = self.pulse_counts(sase=sase)
+            if not np.allclose(pulse_counts[0], pulse_counts):
+                raise ValueError("Number of pulses is changing, there is no nominal number.")
+
+            self._npulses[pg] = int(pulse_counts[0])
 
         return self._npulses[pg]
 
     def pulse_counts(self, sase=None):
         """Return a 1D [DataArray][xarray.DataArray] of the number of pulses in each train.
 
-        See the docs for [XGM.npulses()][extra.components.XGM.npulses]
-        for information on retrieving the true number of pulses.
+        Warning:
+            This can be unreliable, see the docs for
+            [XGM.npulses()][extra.components.XGM.npulses] for information on
+            retrieving the true number of pulses.
 
         Args:
             sase (int): Same meaning as in
@@ -455,13 +460,24 @@ class XGM:
                 key = f"pulseEnergy.numberOfSa{pg.value}BunchesActual"
             self._npulses_by_train[pg] = self._control_source[key].xarray()
 
+            slow_counts = self._npulses_by_train[pg]
+            pulse_energy = self.pulse_energy(sase=sase)
+            common_tids = np.intersect1d(pulse_energy.trainId, slow_counts.trainId)
+            fast_counts = np.count_nonzero(pulse_energy.sel(trainId=common_tids), axis=1)
+
+            counts_match = np.allclose(fast_counts, slow_counts.sel(trainId=common_tids))
+            if not counts_match:
+                warn(f"Slow data pulse counts ({key}) don't match the counts from fast data (data.intensityTD), data may be invalid!")
+
         return self._npulses_by_train[pg]
 
     def max_npulses(self, sase=None) -> int:
         """The maximum number of pulses.
 
-        See the docs for [XGM.npulses()][extra.components.XGM.npulses]
-        for information on retrieving the true number of pulses.
+        Warning:
+            This can be unreliable, see the docs for
+            [XGM.npulses()][extra.components.XGM.npulses] for information on
+            retrieving the true number of pulses.
 
         Args:
             sase (int): Same meaning as in
@@ -476,8 +492,10 @@ class XGM:
     def is_constant_pulse_count(self, sase=None) -> bool:
         """Return whether or not the number of pulses is constant.
 
-        See the docs for [XGM.npulses()][extra.components.XGM.npulses]
-        for information on retrieving the true number of pulses.
+        Warning:
+            This can be unreliable, see the docs for
+            [XGM.npulses()][extra.components.XGM.npulses] for information on
+            retrieving the true number of pulses.
 
         Args:
             sase (int): Same meaning as in
