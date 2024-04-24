@@ -20,6 +20,7 @@ nav:
   - index.md
   - reading-data.md
   - detector-geometry.md
+  - damnit.md
   - Components:
     - components/index.md
     - components/beam-properties.md
