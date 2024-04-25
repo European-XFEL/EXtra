@@ -13,6 +13,8 @@ from extra.data import RunDirectory, SourceData, KeyData, by_id
 from extra.components import XrayPulses, OpticalLaserPulses, MachinePulses, \
     PumpProbePulses, DldPulses
 
+from .mockdata import assert_equal_sourcedata, assert_equal_keydata
+
 
 pattern_sources = dict(
     argvalues=['SPB_RR_SYS/TSYS/TIMESERVER',
@@ -20,21 +22,6 @@ pattern_sources = dict(
                'SPB_RR_SYS/MDL/BUNCH_PATTERN'],
     ids=['timeserver-control', 'timeserver-instrument', 'ppdecoder']
 )
-
-
-def assert_equal_sourcedata(sd1, sd2):
-    assert isinstance(sd1, SourceData)
-    assert isinstance(sd2, SourceData)
-    assert sd1.source == sd2.source
-    assert sd1.train_ids == sd2.train_ids
-
-
-def assert_equal_keydata(kd1, kd2):
-    assert isinstance(kd1, KeyData)
-    assert isinstance(kd2, KeyData)
-    assert kd1.source == kd2.source
-    assert kd1.key == kd2.key
-    assert kd1.train_ids == kd2.train_ids
 
 
 def test_definitions(mock_spb_aux_run):

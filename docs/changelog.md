@@ -46,6 +46,7 @@ Added:
 ## [2024.1]
 Added:
 
+- [DelayLineDetector][extra.components.DelayLineDetector] to access raw and reconstructed results from the offline delay line detector processing pipeline (!103).
 - An [XGM][extra.components.XGM] component to access XGM devices (!53).
 - [PumpProbePulses][extra.components.PumpProbePulses] to combine X-ray and
   optical laser pulses in a single pattern (!24).
