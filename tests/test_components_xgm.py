@@ -156,7 +156,8 @@ def test_wrong_pulse_counts(mock_spb_aux_run):
     n_trains = len(run.train_ids)
     mock_pulse_counts = xr.DataArray(np.ones(n_trains),
                                      dims=("trainId",),
-                                     coords={"trainId": run.train_ids})
+                                     coords={"trainId": run.train_ids},
+                                     name="slow_counts")
 
     # And a mock pulse_energy array with a different number of pulses
     mock_pulse_energy = xr.DataArray(np.ones((n_trains, 100)),
@@ -166,6 +167,14 @@ def test_wrong_pulse_counts(mock_spb_aux_run):
     with patch("extra.components.xgm.KeyData.xarray", return_value=mock_pulse_counts), \
          patch.object(xgm, "pulse_energy", return_value=mock_pulse_energy):
         with pytest.warns():
-            # npulses() should still return the slow data value, but it will
-            # call pulse_counts() internally which should emit a warning.
-            assert xgm.npulses() == 1
+            # npulses() will call pulse_counts() internally which should emit a
+            # warning when the number of pulses differ.
+            assert xgm.npulses() == 100
+
+            # pulse_counts() should use the fast data array by default, which
+            # will not have a name.
+            assert xgm.pulse_counts().name == None
+
+            # Otherwise it should return the slow data counts which should have
+            # a name.
+            assert xgm.pulse_counts(force_slow_data=True).name == mock_pulse_counts.name
