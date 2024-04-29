@@ -99,3 +99,17 @@ def test_dld_pulse_align(mock_sqs_remi_run):
     dld = DelayLineDetector(run.select_trains(np.s_[:50]), pulses=pulses)
     hits = dld.hits()
     pd.testing.assert_frame_equal(hits, all_hits.loc[np.r_[10002:10050], :])
+
+
+def test_dld_extra_columns(mock_sqs_remi_run):
+    dld = DelayLineDetector(mock_sqs_remi_run.select('*TOP*'))
+
+    # Build some data with DLD's pulse index.
+    index = dld.pulses().build_pulse_index()
+    extra = pd.Series(np.arange(len(index)), index=index)
+
+    # Get hits with extra column.
+    hits = dld.hits(extra_columns={'foo': extra})
+
+    # Check that the hit count pattern emerges.
+    assert np.all(hits['foo'][:12] == [1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 6, 7])

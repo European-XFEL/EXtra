@@ -168,6 +168,31 @@ class DelayLineDetector:
 
         return pd_cls(raw[finite_mask], pd.MultiIndex.from_frame(index_df))
 
+    def _insert_aligned_columns(self, df, columns):
+        """Add pulse-indexed data to reduced dataframe.
+
+        Args:
+            df (pandas.DataFrame): Frame to insert columns into.
+            columns (dict): Mapping of column name to pulse-indexed data
+                to insert. Must be re-indexable by internal pulse index
+                and data is repeated for multiple entries in a pulse.
+
+        Returns:
+            None
+        """
+
+        num_per_pulse = df[df.columns[0]].groupby(
+            level=df.index.names[:-1]).count()
+        dld_index = self.pulses().build_pulse_index()
+
+        for col_name, col_data in columns.items():
+            df[col_name] = (col_data
+                .reindex(dld_index)
+                .loc[num_per_pulse.index]
+                .repeat(num_per_pulse)
+                .to_numpy()
+            )
+
     @property
     def detector_name(self):
         return self._detector_name
@@ -269,32 +294,50 @@ class DelayLineDetector:
         else:
             return edges
 
-    def signals(self, pulse_dim='pulseId'):
+    def signals(self, pulse_dim='pulseId', extra_columns={}):
         """Get reconstructed signals as dataframe.
 
         Args:
             pulse_dim ({pulseId, pulseIndex, time}, optional): Label
                 for pulse dimension, pulse ID by default.
+            extra_columns (dict, optional): Mapping of column name to
+                pulse-indexed series to align and insert into dataframe,
+                must be re-indexable to internal pulse index. Data is
+                repeated for multiple entries of a single pulse.
 
         Returns:
             (pandas.DataFrame) Detector signals.
         """
 
-        return self._build_reduced_pd(
+        df = self._build_reduced_pd(
             (kd := self._instrument_src['rec.signals']).ndarray(),
             self._align_pulse_index(kd, pulse_dim), 'signalIndex')
 
-    def hits(self, pulse_dim='pulseId'):
+        if extra_columns:
+            self._insert_aligned_columns(df, extra_columns)
+
+        return df
+
+    def hits(self, pulse_dim='pulseId', extra_columns={}):
         """Get reconstructed hits as dataframe.
 
         Args:
             pulse_dim ({pulseId, pulseIndex, time}, optional): Label
                 for pulse dimension, pulse ID by default.
+            extra_columns (dict, optional): Mapping of column name to
+                pulse-indexed series to align and insert into dataframe,
+                must be re-indexable to internal pulse index.  Data is
+                repeated for multiple entries of a single pulse.
 
         Returns:
             (pandas.DataFrame) Detector hits.
         """
 
-        return self._build_reduced_pd(
+        df = self._build_reduced_pd(
             (kd := self._instrument_src['rec.hits']).ndarray(),
             self._align_pulse_index(kd, pulse_dim), 'hitIndex')
+
+        if extra_columns:
+            self._insert_aligned_columns(df, extra_columns)
+
+        return df
