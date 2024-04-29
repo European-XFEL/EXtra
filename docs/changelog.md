@@ -17,6 +17,7 @@
     ```
 Added:
 
+- Data indexed by pulse can now be aligned with and added as additional columns to sparse DLD data (!166).
 - Empty trains can now optionally be included when determining constant pulse patterns via [XrayPulses.is_constant_pattern()][extra.components.XrayPulses.is_constant_pattern] (!156).
 - Check whether any pulse patterns are interleaved with `is_interleaved_with()` or directly SA1/SA3 with `is_sa1_interleaved_with_sa3()` (!155).
 - Obtain [MachinePulses][extra.components.MachinePulses] from any other timeserver-based pulse components directly via `machine_pulses()` or get machine repetition rate directly from `machine_repetition_rate()` (!155).
