@@ -444,9 +444,11 @@ class XGM:
         """Return a 1D [DataArray][xarray.DataArray] of the number of pulses in each train.
 
         Warning:
-            This can be unreliable, see the docs for
-            [XGM.npulses()][extra.components.XGM.npulses] for information on
-            retrieving the true number of pulses.
+            This returns the number of pulses recorded by the XGM in the
+            `pulseEnergy.numberOf[SAx]BunchesActual` property, which can be
+            unreliable. Use something like the
+            [XrayPulses][extra.components.XrayPulses] component to find the real
+            number of pulses from the bunch pattern table.
 
         Args:
             sase (int): Same meaning as in
@@ -475,9 +477,11 @@ class XGM:
         """The maximum number of pulses.
 
         Warning:
-            This can be unreliable, see the docs for
-            [XGM.npulses()][extra.components.XGM.npulses] for information on
-            retrieving the true number of pulses.
+            This returns the number of pulses recorded by the XGM in the
+            `pulseEnergy.numberOf[SAx]BunchesActual` property, which can be
+            unreliable. Use something like the
+            [XrayPulses][extra.components.XrayPulses] component to find the real
+            number of pulses from the bunch pattern table.
 
         Args:
             sase (int): Same meaning as in
@@ -493,9 +497,11 @@ class XGM:
         """Return whether or not the number of pulses is constant.
 
         Warning:
-            This can be unreliable, see the docs for
-            [XGM.npulses()][extra.components.XGM.npulses] for information on
-            retrieving the true number of pulses.
+            This returns the number of pulses recorded by the XGM in the
+            `pulseEnergy.numberOf[SAx]BunchesActual` property, which can be
+            unreliable. Use something like the
+            [XrayPulses][extra.components.XrayPulses] component to find the real
+            number of pulses from the bunch pattern table.
 
         Args:
             sase (int): Same meaning as in
