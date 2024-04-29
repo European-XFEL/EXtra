@@ -412,17 +412,7 @@ class XGM:
     def npulses(self, sase=None) -> int:
         """The nominal number of pulses.
 
-        This calls
-        [KeyData.as_single_value()][extra_data.KeyData.as_single_value]
-        internally, which means it will throw an exception if the number of
-        pulses is not constant.
-
-        Warning:
-            This returns the number of pulses recorded by the XGM in the
-            `pulseEnergy.numberOf[SAx]BunchesActual` property, which can be
-            unreliable. Use something like the
-            [XrayPulses][extra.components.XrayPulses] component to find the real
-            number of pulses from the bunch pattern table.
+        This will throw an exception if the number of pulses is not constant.
 
         Args:
             sase (int): Same meaning as in
@@ -491,13 +481,6 @@ class XGM:
     def max_npulses(self, sase=None) -> int:
         """The maximum number of pulses.
 
-        Warning:
-            This returns the number of pulses recorded by the XGM in the
-            `pulseEnergy.numberOf[SAx]BunchesActual` property, which can be
-            unreliable. Use something like the
-            [XrayPulses][extra.components.XrayPulses] component to find the real
-            number of pulses from the bunch pattern table.
-
         Args:
             sase (int): Same meaning as in
                 [XGM.pulse_energy()][extra.components.XGM.pulse_energy].
@@ -510,13 +493,6 @@ class XGM:
 
     def is_constant_pulse_count(self, sase=None) -> bool:
         """Return whether or not the number of pulses is constant.
-
-        Warning:
-            This returns the number of pulses recorded by the XGM in the
-            `pulseEnergy.numberOf[SAx]BunchesActual` property, which can be
-            unreliable. Use something like the
-            [XrayPulses][extra.components.XrayPulses] component to find the real
-            number of pulses from the bunch pattern table.
 
         Args:
             sase (int): Same meaning as in
