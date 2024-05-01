@@ -15,12 +15,13 @@ class DelayLineDetector:
             needed if the data includes more than one.
         pulses (extra.components.pulses.PulsePattern, optional): Pulse
             component to pull pulse information. If omitted, it is
-            constructed from the internal trigger information.
+            constructed from the internal trigger information using any
+            remaining additional keyword argument.
     """
 
     _instrument_re = re.compile(r'^(\w{3}_\w+_DLD\d\/DET\/\w+):output?$')
 
-    def __init__(self, data, detector=None, pulses=None):
+    def __init__(self, data, detector=None, pulses=None, **kwargs):
         if detector is None:
             # Try to find detector automatically.
             detector = self._find_detector(data)
@@ -40,7 +41,7 @@ class DelayLineDetector:
         self._pulses = pulses
 
         if self._pulses is None:
-            self._pulses = self.pulses()
+            self._pulses = self.pulses(**kwargs)
 
     def __repr__(self):
         return "<{} {}>".format(
@@ -230,8 +231,10 @@ class DelayLineDetector:
 
         return new_self
 
-    def pulses(self):
+    def pulses(self, **kwargs):
         """Get pulse object based on internal triggers.
+
+        Any keyword arguments are passed to the underlying DldPulses.
 
         Returns:
             (extra.components.DldPulses): Pulse object based on
@@ -240,10 +243,10 @@ class DelayLineDetector:
 
         from .pulses import DldPulses
 
-        if isinstance(self._pulses, DldPulses):
+        if isinstance(self._pulses, DldPulses) and not kwargs:
             return self._pulses
 
-        return DldPulses(self._instrument_src)
+        return DldPulses(self._instrument_src, **kwargs)
 
     def triggers(self):
         """Get triggers as dataframe.
