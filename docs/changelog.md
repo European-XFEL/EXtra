@@ -17,6 +17,7 @@
     ```
 Added:
 
+- [DldPulses](extra.components.DldPulses) can optionally enumerate PPL-only pulses using negative indices to stay compatible with PPL-unaware data.
 - The `slowTrains` XGM property is available through
   [XGM.slow_train_energy()][extra.components.XGM.slow_train_energy] (!162).
 - [XGM.pulse_energy()][extra.components.XGM.pulse_energy] can now take a

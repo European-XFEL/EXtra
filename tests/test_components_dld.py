@@ -113,3 +113,10 @@ def test_dld_extra_columns(mock_sqs_remi_run):
 
     # Check that the hit count pattern emerges.
     assert np.all(hits['foo'][:12] == [1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 6, 7])
+
+    # Try with wrong index.
+    index = dld.pulses().build_pulse_index(pulse_dim='pulseIndex')
+    extra = pd.Series(np.arange(len(index)), index=index)
+
+    with pytest.raises(ValueError):
+        dld.hits(extra_columns={'foo': extra})

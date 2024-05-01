@@ -184,12 +184,14 @@ class DelayLineDetector:
 
         num_per_pulse = df[df.columns[0]].groupby(
             level=df.index.names[:-1]).count()
-        dld_index = self.pulses().build_pulse_index()
+        req_index = num_per_pulse.index.names
 
         for col_name, col_data in columns.items():
+            if col_data.index.names != req_index[:len(col_data.index.names)]:
+                raise ValueError('index incompatible with dataframe')
+
             df[col_name] = (col_data
-                .reindex(dld_index)
-                .loc[num_per_pulse.index]
+                .reindex(num_per_pulse.index)
                 .repeat(num_per_pulse)
                 .to_numpy()
             )
