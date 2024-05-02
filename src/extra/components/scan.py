@@ -2,7 +2,8 @@ from datetime import timedelta
 
 import numpy as np
 
-from extra_data import SourceData, KeyData
+from extra_data import SourceData, KeyData, by_id
+from .utils import _isinstance_no_import
 
 class Scan:
     """Detect steps in a motor scan.
@@ -188,14 +189,11 @@ class Scan:
         elif uncertainty_method != "std" and uncertainty_method != "stderr":
             raise ValueError(f"`uncertainty_method` must be either 'std' or 'stderr', not: {uncertainty_method}")
 
-        common_tids = [np.intersect1d(tids, data.trainId)
-                       for tids in self.positions_train_ids]
+        chunks = self.split_by_steps(data)
 
-        counts = np.array([len(tids) for tids in common_tids])
-        signal = np.array([data.sel(trainId=tids).mean().item()
-                           for tids in common_tids])
-        uncertainty = np.array([data.sel(trainId=tids).std().item()
-                          for tids in common_tids])
+        counts = np.array([len(c.coords['trainId']) for c in chunks])
+        signal = np.array([c.mean().item() for c in chunks])
+        uncertainty = np.array([c.std().item() for c in chunks])
         if uncertainty_method == "stderr":
             uncertainty /= np.sqrt(counts)
 
@@ -262,6 +260,26 @@ class Scan:
         ax.set_title(f"{yaxis} vs {self.name}")
 
         return ax
+
+    def split_by_steps(self, data):
+        """Split an EXtra or EXtra-data object, or a DataArray, into scan steps.
+
+        This will yield one shorter object of the same type for each step.
+        It should work for any object with a ``.select_trains()`` method, and
+        for xarray DataArray objects with a 'trainId' coordinate.
+        """
+        if _isinstance_no_import(data, 'xarray', 'DataArray') and "trainId" in data.coords:
+            return [
+                data.sel(trainId=np.intersect1d(tids, data.coords['trainId']))
+                for tids in self.positions_train_ids
+            ]
+        elif hasattr(data, 'select_trains'):
+            return [
+                data.select_trains(by_id[tids]) for tids in self.positions_train_ids
+            ]
+        else:
+            raise TypeError("Input must either have a select_trains method, or "
+                            "be a DataArray with a `trainId` coordinate")
 
     def _plot_resolution_data(self):
         """Plot the data points that used to guess the resolution.

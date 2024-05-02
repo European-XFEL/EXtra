@@ -4,6 +4,8 @@ import pytest
 import numpy as np
 import xarray as xr
 
+import extra_data
+
 
 def test_scan(mock_spb_aux_run):
     motor = mock_spb_aux_run["MOTOR/MCMOTORYFACE"]
@@ -23,6 +25,12 @@ def test_scan(mock_spb_aux_run):
     # And an unsupported type
     with pytest.raises(TypeError):
         Scan(motor["actualPosition"].ndarray())
+
+    # Test splitting a DataCollection by scan steps
+    # TODO: generate some motor data, scan is empty at present
+    steps_data = s.split_by_steps(mock_spb_aux_run)
+    assert len(steps_data) == len(s.steps)
+    assert all(isinstance(dc, extra_data.DataCollection) for dc in steps_data)
 
     # Create fake scan to test detection
     s, steps = Scan._mkscan(20, step_length_rnd=0.5)
