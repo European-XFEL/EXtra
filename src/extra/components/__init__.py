@@ -5,3 +5,4 @@ from .pulses import XrayPulses, OpticalLaserPulses, MachinePulses, \
 from .scan import Scan  # noqa
 from .xgm import XGM  # noqa
 from .dld import DelayLineDetector  # noqa
+from .las import OpticalLaserDelay  # noqa

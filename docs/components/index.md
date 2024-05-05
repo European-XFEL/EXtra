@@ -18,3 +18,5 @@ Component index:
     - [DldPulses][extra.components.DldPulses]
 - [Delay Line Detectors](dld.md)
     - [DelayLineDetector](extra.components.DelayLineDetector)
+- [Optical Lasers](las.md)
+    - [OpticalLaserDelay](extra.components.OpticalLaserDelay)

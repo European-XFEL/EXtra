@@ -125,7 +125,8 @@ def mock_sqs_remi_directory():
         Timeserver('SQS_RR_UTC/TSYS/TIMESERVER'),
         XGM('SA3_XTD10_XGM/XGM/DOOCS'),
         ReconstructedDld('SQS_REMI_DLD6/DET/TOP'),
-        ReconstructedDld('SQS_REMI_DLD6/DET/BOTTOM')]
+        ReconstructedDld('SQS_REMI_DLD6/DET/BOTTOM'),
+        Motor('SQS_ILH_LAS/MOTOR/DELAY_AX_800')]
 
     with TemporaryDirectory() as td:
         write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 100)
