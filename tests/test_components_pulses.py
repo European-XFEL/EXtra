@@ -603,6 +603,18 @@ def test_dld_pulses(capsys):
     with pytest.warns():
         assert pulses.get_triggers().equals(pulses.triggers())
 
+    # Test with negative PPL indices.
+    mock_key.ndarray.return_value = triggers
+    mock_key.ndarray.return_value[:2]['ppl'] = True
+    mock_key.ndarray.return_value[:2]['fel'] = False
+    mock_key.ndarray.return_value[-2:]['ppl'] = True
+    mock_key.ndarray.return_value[-2:]['fel'] = False
+
+    pids = DldPulses(mock_source, negative_ppl_indices=True).pulse_ids()
+    np.testing.assert_equal(
+        pids.index.get_level_values('pulseIndex'),
+        np.array([-1, -2, 0, 1, 2, 3, 4, 5, -3, -4]))
+
 
 @pytest.mark.parametrize('source', **pattern_sources)
 def test_pump_probe_basic(mock_spb_aux_run, source):

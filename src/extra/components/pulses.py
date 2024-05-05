@@ -1470,25 +1470,56 @@ class DldPulses(PulsePattern):
         first_pulse_id (int, optional): Pulse ID for the first pulse,
             only used in case of missing pulse ID information in data
             and 0 by default.
+        negative_ppl_indices (bool, optional): Whether to enumerate
+            PPL-only pulses with negative indices (while keeping
+            non-negative indices for FEL-only or pumped pulses) or
+            interleave all pulses with positive indices (default).
     """
 
-    def __init__(self, detector, *, clock_ratio=None, first_pulse_id=None):
+    def __init__(self, detector, *, clock_ratio=None, first_pulse_id=None,
+                 negative_ppl_indices=False):
         super().__init__(detector, detector['raw.triggers'])
 
         self._clock_ratio = clock_ratio
         self._first_pulse_id = first_pulse_id
+        self._negative_ppl_indices = negative_ppl_indices
 
     def _get_train_ids(self):
         return np.unique(self._key.train_id_coordinates())
 
     def _get_pulse_ids(self):
         triggers = self._key.ndarray()
+        train_ids = self._key.train_id_coordinates()
+
+        if self._negative_ppl_indices:
+            if 'ppl' not in triggers.dtype.fields:
+                raise ValueError('negative PPL indices only available '
+                                 'with PPL information')
+
+            pulse_indices = np.zeros(len(triggers), dtype=int)
+            prev_tid = -1
+
+            for i, tid, row in zip(range(len(triggers)), train_ids, triggers):
+                if tid != prev_tid:
+                    prev_tid = tid
+                    only_ppl_index = -1
+                    with_fel_index = 0
+
+                if row['ppl'] and not row['fel']:
+                    pulse_indices[i] = only_ppl_index
+                    only_ppl_index -= 1
+                else:
+                    pulse_indices[i] = with_fel_index
+                    with_fel_index += 1
+
+        else:
+            pulse_indices = np.concatenate([
+                np.arange(count, dtype=np.int32) for count
+                in self._key.data_counts(labelled=False)])
 
         index_levels = {
-            'trainId': self._key.train_id_coordinates(),
-            'pulseIndex': np.concatenate([
-                np.arange(count, dtype=np.int32) for count
-                in self._key.data_counts(labelled=False)]),
+            'trainId': train_ids,
+            'pulseIndex': pulse_indices,
         }
 
         if 'fel' in triggers.dtype.fields:
