@@ -269,7 +269,7 @@ class OpticalLaserDelay:
             type(self).__name__, '\n  '.join(use_labels))
 
     @property
-    def stage_to_time(self) -> float:
+    def _stage_to_time(self) -> float:
         """millimeter to seconds"""
         return -2e-3 / speed_of_light
 
@@ -277,60 +277,6 @@ class OpticalLaserDelay:
     def time_scale(self) -> float:
         """seconds to internal time unit."""
         return self._time_scales[self._time_unit]
-
-    @property
-    def trigger_delay_source(self) -> SourceData:
-        """Used trigger delay source."""
-        if self._trigger_src is None:
-            raise ValueError('component is not initialized with a trigger '
-                             'delay source')
-
-        return self._trigger_src
-
-    @property
-    def trigger_delay_key(self) -> KeyData:
-        """Used trigger delay data key."""
-        if self._trigger_src is None:
-            raise ValueError('component is not initialized with a trigger '
-                             'delay source')
-
-        return self._trigger_delay_key
-
-    @property
-    def stage_delay_source(self) -> SourceData:
-        """Used stage delay source."""
-        if self._stage_src is None:
-            raise ValueError('component is not initialized with a stage '
-                             'delay source')
-
-        return self._stage_src
-
-    @property
-    def stage_delay_key(self) -> KeyData:
-        """Used stage delay data key."""
-        if self._stage_src is None:
-            raise ValueError('component is not initialized with a stage '
-                             'delay source')
-
-        return self._stage_delay_key
-
-    @property
-    def bam_delay_source(self) -> SourceData:
-        """Used BAM delay source."""
-        if self._bam_src is None:
-            raise ValueError('component is not initialized with a BAM '
-                             'delay source')
-
-        return self._bam_src
-
-    @property
-    def bam_delay_key(self) -> KeyData:
-        """Used BAM delay data key."""
-        if self._bam_src is None:
-            raise ValueError('component is not initialized with a BAM '
-                             'delay source')
-
-        return self._bam_delay_key
 
     def select_trains(self, trains):
         return _select_subcomponent_trains(self, [
@@ -340,8 +286,8 @@ class OpticalLaserDelay:
             '_pulses'
         ])
 
-    def trigger_delays(self, labelled=True, by_pulse=False,
-                       pulse_dim='pulseId'):
+    def _trigger_delays(self, labelled=True, by_pulse=False,
+                        pulse_dim='pulseId'):
         """Get time delay from electronic trigger.
 
         Args:
@@ -361,9 +307,9 @@ class OpticalLaserDelay:
 
         return self._get_train_delays(
             labelled, by_pulse, pulse_dim,
-            self.trigger_delay_key, self._trigger_ref, 1e-12*self.time_scale)
+            self._trigger_delay_key, self._trigger_ref, 1e-12*self.time_scale)
 
-    def stage_delays(self, labelled=True, by_pulse=False, pulse_dim='pulseId'):
+    def _stage_delays(self, labelled=True, by_pulse=False, pulse_dim='pulseId'):
         """Get time delay from delay line motor.
 
         Args:
@@ -383,10 +329,10 @@ class OpticalLaserDelay:
 
         return self._get_train_delays(
             labelled, by_pulse, pulse_dim,
-            self.stage_delay_key, self._stage_ref,
-            self.time_scale * self.stage_to_time)
+            self._stage_delay_key, self._stage_ref,
+            self.time_scale * self._stage_to_time)
 
-    def bam_delays(self, labelled=True, by_pulse=True, pulse_dim='pulseId'):
+    def _bam_delays(self, labelled=True, by_pulse=True, pulse_dim='pulseId'):
         """Get time delay from BAM correction.
 
         Args:
@@ -404,7 +350,7 @@ class OpticalLaserDelay:
                 labelled.
         """
 
-        bam = self.bam_delay_key.ndarray()
+        bam = self._bam_delay_key.ndarray()
         pids = self._pulses.pulse_ids()  # BAM requires pulses.
         delays = np.zeros_like(pids, dtype=np.float32)
 
@@ -453,13 +399,13 @@ class OpticalLaserDelay:
             by_pulse = self._bam_src is not None
 
         if self._stage_src is not None:
-            delays += self.stage_delays(labelled, by_pulse, pulse_dim)
+            delays += self._stage_delays(labelled, by_pulse, pulse_dim)
 
         if self._trigger_src is not None:
-            delays -= self.trigger_delays(labelled, by_pulse, pulse_dim)
+            delays -= self._trigger_delays(labelled, by_pulse, pulse_dim)
 
         if self._bam_src is not None:
-            delays += self.bam_delays(labelled, by_pulse, pulse_dim)
+            delays += self._bam_delays(labelled, by_pulse, pulse_dim)
 
         return delays
 
@@ -484,12 +430,12 @@ class OpticalLaserDelay:
             by_pulse = self._bam_src is not None
 
         if self._trigger_src is not None:
-            columns['trigger'] = self.trigger_delays(True, by_pulse, pulse_dim)
+            columns['trigger'] = self._trigger_delays(True, by_pulse, pulse_dim)
 
         if self._stage_src is not None:
-            columns['stage'] = self.stage_delays(True, by_pulse, pulse_dim)
+            columns['stage'] = self._stage_delays(True, by_pulse, pulse_dim)
 
         if self._bam_src is not None:
-            columns['bam'] = self.bam_delays(True, by_pulse, pulse_dim)
+            columns['bam'] = self._bam_delays(True, by_pulse, pulse_dim)
 
         return pd.DataFrame(columns)
