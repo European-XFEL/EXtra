@@ -167,7 +167,8 @@ class DelayLineDetector:
         if entry_level is not None:
             index_df[entry_level] = np.flatnonzero(finite_mask) % num_rows
 
-        return pd_cls(raw[finite_mask], pd.MultiIndex.from_frame(index_df))
+        return pd_cls(np.ascontiguousarray(raw[finite_mask]),
+                      pd.MultiIndex.from_frame(index_df))
 
     def _insert_aligned_columns(self, df, columns):
         """Add pulse-indexed data to reduced dataframe.
