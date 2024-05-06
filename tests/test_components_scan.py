@@ -27,10 +27,11 @@ def test_scan(mock_spb_aux_run):
         Scan(motor["actualPosition"].ndarray())
 
     # Test splitting a DataCollection by scan steps
-    # TODO: generate some motor data, scan is empty at present
     steps_data = s.split_by_steps(mock_spb_aux_run)
+    assert len(s.steps) == 10
     assert len(steps_data) == len(s.steps)
     assert all(isinstance(dc, extra_data.DataCollection) for dc in steps_data)
+    assert {len(dc.train_ids) for dc in steps_data} == {9, 10}
 
     # Create fake scan to test detection
     s, steps = Scan._mkscan(20, step_length_rnd=0.5)
