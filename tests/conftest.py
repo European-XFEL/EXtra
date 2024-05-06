@@ -1,6 +1,8 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import h5py
+import numpy as np
 import pytest
 
 from extra_data import RunDirectory
@@ -93,7 +95,15 @@ def mock_spb_aux_directory():
         Motor("MOTOR/MCMOTORYFACE")]
 
     with TemporaryDirectory() as td:
-        write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 100)
+        path = Path(td) / 'RAW-R0001-DA01-S00000.h5'
+        write_file(path, sources, 100)
+        with h5py.File(path, 'a') as f:
+            motor_ds = f['CONTROL/MOTOR/MCMOTORYFACE/actualPosition/value']
+            # Simulate a scan of 10 steps, with intermediate positions for
+            # 1 train at each transition between steps.
+            motor_ds[:] = np.repeat(np.arange(10), 10)
+            motor_ds[10::10] = np.arange(9) + 0.5
+
         yield td
 
 @pytest.fixture(scope='function')

@@ -1,3 +1,5 @@
+import sys
+
 # Source prefixes in use at each SASE.
 SASE_TOPICS = {
     1: {'SA1', 'LA1', 'SPB', 'FXE'},
@@ -23,3 +25,12 @@ def identify_sase(run):
         raise ValueError('sources from multiple SASE branches {} found, '
                          'please pass the SASE beamline explicitly'.format(
                              ', '.join(map(str, sases))))
+
+
+def _isinstance_no_import(obj, mod: str, cls: str):
+    """Check if isinstance(obj, mod.cls) without loading mod"""
+    m = sys.modules.get(mod)
+    if m is None:
+        return False
+
+    return isinstance(obj, getattr(m, cls))
