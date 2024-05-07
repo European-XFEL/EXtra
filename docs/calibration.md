@@ -59,3 +59,5 @@ represent good pixels, while any other value indicates one or more reasons to
 consider the corresponding data dubious:
 
 ::: extra.calibration.BadPixels
+    options:
+      show_if_no_docstring: true
