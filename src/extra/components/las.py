@@ -242,8 +242,10 @@ class OpticalLaserDelay:
                     delays, index=self._pulses.build_pulse_index(pulse_dim))
 
         elif labelled:
-            # Labelled series, but not by train.
-            delays = pd.Series(delays, index=kd.train_id_coordinates())
+            # Labelled series, but not by pulse.
+            delays = pd.Series(
+                delays,
+                index=pd.Index(kd.train_id_coordinates(), name='trainId'))
 
         return delays
 
