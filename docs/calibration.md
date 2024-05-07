@@ -50,3 +50,12 @@ agipd_cd = CalibrationData.from_report(3757)
 ::: extra.calibration.JUNGFRAUConditions
 
 ::: extra.calibration.LPDConditions
+
+## Bad pixel values
+
+The calibration pipeline produces masks along with corrected data, in keys
+called `image.mask` or `data.mask` depending on the detector. Zeros in the mask
+represent good pixels, while any other value indicates one or more reasons to
+consider the corresponding data dubious:
+
+::: extra.calibration.BadPixels
