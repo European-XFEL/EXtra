@@ -133,6 +133,7 @@ def multi_xgm_run():
 def mock_sqs_remi_directory():
     sources = [
         Timeserver('SQS_RR_UTC/TSYS/TIMESERVER'),
+        PulsePatternDecoder('SQS_RR_UTC/TSYS/PP_DECODER'),
         XGM('SA3_XTD10_XGM/XGM/DOOCS'),
         ReconstructedDld('SQS_REMI_DLD6/DET/TOP'),
         ReconstructedDld('SQS_REMI_DLD6/DET/BOTTOM'),

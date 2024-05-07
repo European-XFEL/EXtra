@@ -103,16 +103,24 @@ def test_dld_pulse_align(mock_sqs_remi_run):
 
 def test_dld_extra_columns(mock_sqs_remi_run):
     dld = DelayLineDetector(mock_sqs_remi_run.select('*TOP*'))
-
-    # Build some data with DLD's pulse index.
     index = dld.pulses().build_pulse_index()
-    extra = pd.Series(np.arange(len(index)), index=index)
 
-    # Get hits with extra column.
-    hits = dld.hits(extra_columns={'foo': extra})
+    kd = mock_sqs_remi_run['SQS_RR_UTC/TSYS/PP_DECODER', 'laser.nPulses']
 
-    # Check that the hit count pattern emerges.
-    assert np.all(hits['foo'][:12] == [1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 6, 7])
+    # Get hits with additional extra column of different kinds.
+    hits = dld.hits(extra_columns={
+        'per_pulse': pd.Series(np.arange(len(index)), index=index),
+        'per_train': pd.Series(kd.ndarray(), index=pd.Index(
+            kd.train_id_coordinates(), name='trainId')),
+        'xarray': kd.xarray(),
+        'keydata': kd})
+
+    assert np.all(
+        hits['per_pulse'][:12] == [1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 6, 7])
+    pd.testing.assert_series_equal(hits['per_train'], hits['xarray'],
+                                   check_names=False)
+    pd.testing.assert_series_equal(hits['per_train'], hits['keydata'],
+                                   check_names=False)
 
     # Try with wrong index.
     index = dld.pulses().build_pulse_index(pulse_dim='pulseIndex')

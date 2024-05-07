@@ -5,6 +5,9 @@ import re
 import numpy as np
 import pandas as pd
 
+from extra.data import KeyData
+from .utils import _isinstance_no_import
+
 
 class DelayLineDetector:
     """Interface for processed delay line detector data.
@@ -186,32 +189,64 @@ class DelayLineDetector:
         return pd_cls(np.ascontiguousarray(raw[finite_mask]),
                       pd.MultiIndex.from_frame(index_df))
 
-    def _insert_aligned_columns(self, df, columns):
+    @staticmethod
+    def insert_aligned_columns(df, columns):
         """Add pulse-indexed data to reduced dataframe.
 
         Args:
             df (pandas.DataFrame): Frame to insert columns into.
-            columns (dict): Mapping of column name to pulse-indexed data
-                to insert. Must be re-indexable by internal pulse index
-                and data is repeated for multiple entries in a pulse.
+            columns (dict): Mapping of column name to labeled 1D data to
+                insert, may be pandas series, xarray DataArray or
+                KeyData. Must be re-indexable by internal train or pulse
+                index and data is repeated accordingly.
 
         Returns:
             None
         """
 
-        num_per_pulse = df[df.columns[0]].groupby(
-            level=df.index.names[:-1]).count()
-        req_index = num_per_pulse.index.names
+        # Compute these lazily.
+        num_per_pulse = None
+        num_per_train = None
 
-        for col_name, col_data in columns.items():
-            if col_data.index.names != req_index[:len(col_data.index.names)]:
+        for name, data in columns.items():
+            if isinstance(data, KeyData):
+                data = data.series()
+
+            elif _isinstance_no_import(data, 'xarray', 'DataArray'):
+                data = data.to_series()
+
+            elif not isinstance(data, pd.Series):
+                raise ValueError('columns must be given as KeyData or '
+                                 'xarray.DataArray or pandas.Series')
+
+            if data.ndim > 1:
+                raise ValueError('only 1D data can be aligned to frame')
+
+
+            shared_index = [data_level for data_level, df_level
+                            in zip(data.index.names, df.index.names)
+                            if data_level == df_level]
+
+            if shared_index[:2] == df.index.names[:2]:
+                # Same pulse dimensions as the dataframe.
+                if num_per_pulse is None:
+                    num_per_pulse = df[df.columns[0]].groupby(
+                        level=df.index.names[:-1]).count()
+
+                align = num_per_pulse
+
+            elif shared_index == ['trainId']:
+                # Same train ID dimension as the dataframe.
+                if num_per_train is None:
+                    num_per_train = df[df.columns[0]].groupby(
+                        level=df.index.names[0]).count()
+
+                align = num_per_train
+
+            else:
                 raise ValueError('index incompatible with dataframe')
 
-            df[col_name] = (col_data
-                .reindex(num_per_pulse.index)
-                .repeat(num_per_pulse)
-                .to_numpy()
-            )
+            df[name] = data.reindex(align.index).repeat(align).to_numpy()
 
     @property
     def detector_name(self):
@@ -327,10 +362,10 @@ class DelayLineDetector:
         Args:
             pulse_dim ({pulseId, pulseIndex, time}, optional): Label
                 for pulse dimension, pulse ID by default.
-            extra_columns (dict, optional): Mapping of column name to
-                pulse-indexed series to align and insert into dataframe,
-                must be re-indexable to internal pulse index. Data is
-                repeated for multiple entries of a single pulse.
+            extra_columns (dict): Mapping of column name to labeled 1D
+                data to insert, may be pandas series, xarray DataArray
+                or KeyData. Must be re-indexable by internal train or
+                pulse index and data is repeated accordingly.
             max_method (int, optional): Maximal reconstruction method to
                 include in the result, by default all hits are included.
                 Generally methods up to and including 10 can be
@@ -354,7 +389,7 @@ class DelayLineDetector:
             mask_func)
 
         if extra_columns:
-            self._insert_aligned_columns(df, extra_columns)
+            self.insert_aligned_columns(df, extra_columns)
 
         return df
 
@@ -369,10 +404,10 @@ class DelayLineDetector:
         Args:
             pulse_dim ({pulseId, pulseIndex, time}, optional): Label
                 for pulse dimension, pulse ID by default.
-            extra_columns (dict, optional): Mapping of column name to
-                pulse-indexed series to align and insert into dataframe,
-                must be re-indexable to internal pulse index.  Data is
-                repeated for multiple entries of a single pulse.
+            extra_columns (dict): Mapping of column name to labeled 1D
+                data to insert, may be pandas series, xarray DataArray
+                or KeyData. Must be re-indexable by internal train or
+                pulse index and data is repeated accordingly.
             max_method (int, optional): Maximal reconstruction method to
                 include in the result, by default all hits are included.
                 Generally methods up to and including 10 can be
@@ -395,6 +430,6 @@ class DelayLineDetector:
             mask_func)
 
         if extra_columns:
-            self._insert_aligned_columns(df, extra_columns)
+            self.insert_aligned_columns(df, extra_columns)
 
         return df
