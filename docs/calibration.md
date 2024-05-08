@@ -55,8 +55,12 @@ agipd_cd = CalibrationData.from_report(3757)
 
 The calibration pipeline produces masks along with corrected data, in keys
 called `image.mask` or `data.mask` depending on the detector. Zeros in the mask
-represent good pixels, while any other value indicates one or more reasons to
-consider the corresponding data dubious:
+represent normal, good pixels, while any other value indicates one or more
+reasons why the data may be atypical.
+
+Most of these values indicate different kinds of 'bad' data. But it also
+includes values like `NON_STANDARD_SIZE` for pixels, usually at sensor edges,
+which are intentionally larger than most, and thus capture more photons.
 
 ::: extra.calibration.BadPixels
     options:
