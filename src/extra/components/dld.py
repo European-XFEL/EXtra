@@ -9,6 +9,15 @@ import pandas as pd
 class DelayLineDetector:
     """Interface for processed delay line detector data.
 
+    Raw analog data from quad and hex delay line detectors acquired with
+    GHz digitizers can be reconstructed into hits by the European XFEL
+    offline processing machinery. This component allows convenient
+    access to the resulting sparse data as pulse-labeled pandas series
+    and dataframes.
+
+    Note that this component is not able to access data saved by the
+    proprietary SurfaceConcepts TDC integration.
+
     Args:
         data (extra_data.DataCollection): Data to access DLD data from.
         detector (str, optional): Source name of the detector, only
