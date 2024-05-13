@@ -644,6 +644,18 @@ def test_pump_probe_basic(mock_spb_aux_run, source):
     assert not ppl[0]
     assert ppl[1:51].all()
 
+    # Laser & FEL status at each pulse
+    masks = pulses.pattern_mask()
+    assert masks.index.names == ['trainId', 'pulseId']
+
+    assert masks['fel'].iloc[:50].all()
+    assert not masks['fel'].iloc[50]
+
+    assert not masks['ppl'].iloc[0]
+    assert masks['ppl'].iloc[1:51].all()
+
+    assert len(pulses.peek_pattern_mask()) == 51
+
     # Pulse mask.
     assert pulses.pulse_mask(labelled=False)[0, 1000:1306:6].all()
 

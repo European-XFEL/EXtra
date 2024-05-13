@@ -1443,6 +1443,33 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
         return TimeserverPulses.pulse_mask(
             self, labelled=labelled).astype(bool)
 
+    def pattern_mask(self):
+        """Get a table of FEL & optical laser status in each pulse"""
+        import pandas as pd
+        pids = self.pulse_ids()
+        # This contains the same information as .pulse_ids but rearranged
+        return pd.DataFrame({
+            'fel': pids.index.get_level_values('fel'),
+            'ppl': pids.index.get_level_values('ppl'),
+        }, index=[
+            pids.index.get_level_values('trainId'),
+            pd.Index(pids, name='pulseId')
+        ])
+
+    def peek_pattern_mask(self):
+        """Get a table of FEL & optical laser status for the first train
+
+        This may be faster than getting `.pattern_mask()` for all trains.
+        """
+        import pandas as pd
+        pids = self.peek_pulse_ids()
+        return pd.DataFrame({
+            'fel': pids.index.get_level_values('fel'),
+            'ppl': pids.index.get_level_values('ppl'),
+        }, index=[
+            pd.Index(pids, name='pulseId')
+        ])
+
 
 class DldPulses(PulsePattern):
     """An interface to pulses from DLD reconstruction.
