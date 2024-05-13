@@ -1438,10 +1438,36 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
 
         return flags
 
-    @wraps(PulsePattern.pulse_mask)
-    def pulse_mask(self, labelled=True):
-        return TimeserverPulses.pulse_mask(
-            self, labelled=labelled).astype(bool)
+    def pulse_mask(self, labelled=True, field=None):
+        """Get boolean pulse mask.
+
+        The returned mask has the same shape as the full bunch pattern
+        table but only contains boolean flags whether a given pulse
+        was present in this pattern.
+
+        Args:
+            labelled (bool, optional): Whether a labelled xarray
+                DataArray (default) or unlabelled numpy array is
+                returned.
+            field (str, optional): 'fel'/'ppl' to mark only FEL or only pump
+                laser pulses in the returned array. By default, pulses are True
+                whether either an FEL pulse or a PPL pulse occured.
+
+        Returns:
+            (xarray.DataArray or numpy.ndarray):
+
+        Returns:
+            (numpy.ndarray or pandas.Series):
+        """
+        bitfield = TimeserverPulses.pulse_mask(self, labelled=labelled)
+        if field is None:
+            return bitfield.astype(bool)
+        elif field == 'fel':
+            return (bitfield & 1).astype(bool)
+        elif field == 'ppl':
+            return (bitfield & 2).astype(bool)
+        else:
+            raise ValueError(f"{field=!r} parameter was not 'fel'/'ppl'/None")
 
 
 class DldPulses(PulsePattern):

@@ -651,17 +651,26 @@ def test_pump_probe_basic(mock_spb_aux_run, source):
     # any pulses and trains without FEL pulses.
     # Requires use of bunch_table_position to avoid extrapolating FEL
     # pulses at the beginning of the run.
-    mask = PumpProbePulses(
+    pulses2 = PumpProbePulses(
         run, source=source, bunch_table_position=1001
-    ).pulse_mask(labelled=False)
+    )
+    mask = pulses2.pulse_mask(labelled=False)
+    fel_mask = pulses2.pulse_mask(labelled=False, field='fel')
+    ppl_mask = pulses2.pulse_mask(labelled=False, field='ppl')
 
     assert not mask[:5].any()  # No pulses at all.
+    assert not fel_mask[:5].any()
+    assert not ppl_mask[:5].any()
 
     # No FEL pulses but PPL pulses.
     assert not mask[5:10, 1000:1300:6].any() and mask[5:10, 1001:1301:6].all()
+    assert not fel_mask[5:10, 1000:1301].any()
+    assert ppl_mask[5:10, 1001:1301:6].all()
 
     # FEL and PPL pulses.
     assert mask[10, 1000:1300:6].all() and mask[10, 1001:1301:6].all()
+    assert fel_mask[10, 1000:1300:6].all() and not fel_mask[10, 1001:1301:6].any()
+    assert not ppl_mask[10, 1000:1300:6].any() and ppl_mask[10, 1001:1301:6].all()
 
     # Is constant pattern?
     assert not pulses.is_constant_pattern()
