@@ -281,9 +281,6 @@ class PulsePattern:
 
         Returns:
             (xarray.DataArray or numpy.ndarray):
-
-        Returns:
-            (numpy.ndarray or pandas.Series):
         """
 
         mask = self._get_pulse_mask()
@@ -1445,6 +1442,16 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
         table but only contains boolean flags whether a given pulse
         was present in this pattern.
 
+        For instance, to see whether each FEL pulse has a corresponding pump
+        laser pulse in a consistent pulse pattern:
+
+        ```python
+        ppl_on = ppp.select_trains(0).pulse_mask(field='ppl').squeeze()
+        fel_on = ppp.select_trains(0).pulse_mask(field='fel').squeeze()
+
+        fel_pulse_is_pumped = ppl_on[fel_on]
+        ```
+
         Args:
             labelled (bool, optional): Whether a labelled xarray
                 DataArray (default) or unlabelled numpy array is
@@ -1455,9 +1462,6 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
 
         Returns:
             (xarray.DataArray or numpy.ndarray):
-
-        Returns:
-            (numpy.ndarray or pandas.Series):
         """
         bitfield = TimeserverPulses.pulse_mask(self, labelled=labelled)
         if field is None:
