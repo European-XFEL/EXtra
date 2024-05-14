@@ -9,6 +9,15 @@ import pandas as pd
 class DelayLineDetector:
     """Interface for processed delay line detector data.
 
+    Raw analog data from quad and hex delay line detectors acquired with
+    GHz digitizers can be reconstructed into hits by the European XFEL
+    offline processing machinery. This component allows convenient
+    access to the resulting sparse data as pulse-labeled pandas series
+    and dataframes.
+
+    Note that this component is not able to access data saved by the
+    proprietary SurfaceConcepts TDC integration.
+
     Args:
         data (extra_data.DataCollection): Data to access DLD data from.
         detector (str, optional): Source name of the detector, only
@@ -112,7 +121,7 @@ class DelayLineDetector:
 
         return pulses.build_pulse_index(pulse_dim)
 
-    def _build_reduced_pd(self, data, index, entry_level):
+    def _build_reduced_pd(self, data, index, entry_level=None, mask_func=None):
         """Get variable-length data as series or dataframe.
 
         Reduce data with a variable number of actual entries among a
@@ -131,6 +140,10 @@ class DelayLineDetector:
                 or None to indicate no valid entries.
             entry_level (str or None): Additional index level inserted
                 for each entry or omitted if None.
+            mask_func (Callable or None): Additional mask applied to
+                data before reduction, must be a callable taking the
+                raveled input data as an argument and return an equal-
+                length boolean array.
 
         Returns:
             (pandas.Series or pandas.DataFrame): Series objects are
@@ -155,6 +168,9 @@ class DelayLineDetector:
         else:
             raise TypeError(data.dtype)
 
+        if mask_func is not None:
+            finite_mask &= mask_func(raw)
+
         if data.size == 0 or index is None:
             return pd_cls(np.zeros(0, dtype=data.dtype))
 
@@ -167,7 +183,8 @@ class DelayLineDetector:
         if entry_level is not None:
             index_df[entry_level] = np.flatnonzero(finite_mask) % num_rows
 
-        return pd_cls(raw[finite_mask], pd.MultiIndex.from_frame(index_df))
+        return pd_cls(np.ascontiguousarray(raw[finite_mask]),
+                      pd.MultiIndex.from_frame(index_df))
 
     def _insert_aligned_columns(self, df, columns):
         """Add pulse-indexed data to reduced dataframe.
@@ -279,7 +296,7 @@ class DelayLineDetector:
         kd = self._instrument_src['raw.edges']
         index = self._align_pulse_index(kd, pulse_dim)
         data = kd.ndarray()
-        raw_edges = [self._build_reduced_pd(data[:, i, :], index, None)
+        raw_edges = [self._build_reduced_pd(data[:, i, :], index)
                      for i in range(data.shape[1])]
 
         index = pd.MultiIndex.from_frame(
@@ -299,8 +316,13 @@ class DelayLineDetector:
         else:
             return edges
 
-    def signals(self, pulse_dim='pulseId', extra_columns={}):
+    def signals(self, pulse_dim='pulseId', extra_columns={}, max_method=None):
         """Get reconstructed signals as dataframe.
+
+        This data is primarily for detector diagnostics purposes and
+        should generally not be used for scientific data analysis,
+        please refer instead to reconstructed x, y, t data obtained from
+        [hits()](extra.components.DelayLineDetector.hits()).
 
         Args:
             pulse_dim ({pulseId, pulseIndex, time}, optional): Label
@@ -309,22 +331,40 @@ class DelayLineDetector:
                 pulse-indexed series to align and insert into dataframe,
                 must be re-indexable to internal pulse index. Data is
                 repeated for multiple entries of a single pulse.
+            max_method (int, optional): Maximal reconstruction method to
+                include in the result, by default all hits are included.
+                Generally methods up to and including 10 can be
+                considered safe and > 14 should be treated as risky,
+                please consult processing reports for more details.
 
         Returns:
             (pandas.DataFrame) Detector signals.
         """
 
+        if max_method is not None:
+            # rec.hits is needed to obtain the method mask.
+            hits_raw = self._instrument_src['rec.hits'].ndarray().ravel()
+            mask_func = lambda _: hits_raw['m'] <= max_method
+        else:
+            mask_func = None
+
         df = self._build_reduced_pd(
             (kd := self._instrument_src['rec.signals']).ndarray(),
-            self._align_pulse_index(kd, pulse_dim), 'signalIndex')
+            self._align_pulse_index(kd, pulse_dim), 'signalIndex',
+            mask_func)
 
         if extra_columns:
             self._insert_aligned_columns(df, extra_columns)
 
         return df
 
-    def hits(self, pulse_dim='pulseId', extra_columns={}):
+    def hits(self, pulse_dim='pulseId', extra_columns={}, max_method=None):
         """Get reconstructed hits as dataframe.
+
+        By default, this method only includes non-risky hit
+        reconstructions in the returned dataset. Please refer to the
+        `max_method` argument and the correspondig processing reports
+        for more information
 
         Args:
             pulse_dim ({pulseId, pulseIndex, time}, optional): Label
@@ -333,14 +373,26 @@ class DelayLineDetector:
                 pulse-indexed series to align and insert into dataframe,
                 must be re-indexable to internal pulse index.  Data is
                 repeated for multiple entries of a single pulse.
+            max_method (int, optional): Maximal reconstruction method to
+                include in the result, by default all hits are included.
+                Generally methods up to and including 10 can be
+                considered safe and > 14 should be treated as risky,
+                please consult processing reports for more details.
 
         Returns:
             (pandas.DataFrame) Detector hits.
         """
 
+        if max_method is not None:
+            max_method = int(max_method)
+            mask_func = lambda rows: rows['m'] <= max_method
+        else:
+            mask_func = None
+
         df = self._build_reduced_pd(
             (kd := self._instrument_src['rec.hits']).ndarray(),
-            self._align_pulse_index(kd, pulse_dim), 'hitIndex')
+            self._align_pulse_index(kd, pulse_dim), 'hitIndex',
+            mask_func)
 
         if extra_columns:
             self._insert_aligned_columns(df, extra_columns)
