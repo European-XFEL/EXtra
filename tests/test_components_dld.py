@@ -120,3 +120,16 @@ def test_dld_extra_columns(mock_sqs_remi_run):
 
     with pytest.raises(ValueError):
         dld.hits(extra_columns={'foo': extra})
+
+
+def test_dld_max_method(mock_sqs_remi_run):
+    dld = DelayLineDetector(mock_sqs_remi_run.select('*TOP*'))
+    all_hits = dld.hits(max_method=None)
+    all_signals = dld.signals(max_method=None)
+
+    for m in range(20):
+        mask = all_hits['m'] <= m
+        pd.testing.assert_frame_equal(
+            all_hits[mask], dld.hits(max_method=m))
+        pd.testing.assert_frame_equal(
+            all_signals[mask], dld.signals(max_method=m))
