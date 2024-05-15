@@ -31,6 +31,8 @@ Added:
 - Obtain [MachinePulses][extra.components.MachinePulses] from any other timeserver-based pulse components directly via `machine_pulses()` or get machine repetition rate directly from `machine_repetition_rate()` (!155).
 - A helper function named [fit_gaussian()][extra.utils.fit_gaussian] (!131).
 - A new method [Scan.split_by_steps()][extra.components.Scan.split_by_steps] (!169).
+- [BadPixels](extra.calibration.BadPixels) flag values for interpreting masks
+  in corrected detector data (!172).
 
 Fixed:
 
