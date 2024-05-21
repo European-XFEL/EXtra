@@ -52,10 +52,10 @@ cdef int _cfd_fast_pos(
 
         j = i + 1
 
-        cfd_i = signal[i] - fraction * signal[i - delay]
-        cfd_j = signal[j] - fraction * signal[j - delay]
+        cfd_i = signal[i - delay] - fraction * signal[i]
+        cfd_j = signal[j - delay] - fraction * signal[j]
 
-        if cfd_i > walk and cfd_j < walk and i > next_edge:
+        if cfd_i < walk and cfd_j > walk and i > next_edge:
             if interp == EdgeInterpolation.NEAREST:
                 edge_pos = i if fabs(cfd_j - walk) > fabs(cfd_i - walk) else j
             elif interp == EdgeInterpolation.LINEAR:
@@ -94,10 +94,10 @@ cdef int _cfd_fast_neg(
 
         j = i + 1
 
-        cfd_i = signal[i] - fraction * signal[i - delay]
-        cfd_j = signal[j] - fraction * signal[j - delay]
+        cfd_i = signal[i - delay] - fraction * signal[i]
+        cfd_j = signal[j - delay] - fraction * signal[j]
 
-        if cfd_i < walk and cfd_j > walk and i > next_edge:
+        if cfd_i > walk and cfd_j < walk and i > next_edge:
             if interp == EdgeInterpolation.NEAREST:
                 edge_pos = i if fabs(cfd_j - walk) > fabs(cfd_i - walk) else j
             elif interp == EdgeInterpolation.LINEAR:
@@ -206,13 +206,13 @@ def cfd_unified_loop(
             j = i + 1
 
             if negative:
-                cfd_i = fraction * signal[i - delay] - signal[i]
-                cfd_j = fraction * signal[j - delay] - signal[j]
+                cfd_i = fraction * signal[i] - signal[i - delay]
+                cfd_j = fraction * signal[j] - signal[j - delay]
             else:
-                cfd_i = signal[i] - fraction * signal[i - delay]
-                cfd_j = signal[j] - fraction * signal[j - delay]
+                cfd_i = signal[i - delay] - fraction * signal[i]
+                cfd_j = signal[j - delay] - fraction * signal[j]
 
-            if cfd_i > walk and cfd_j < walk and i > next_edge:
+            if cfd_i < walk and cfd_j > walk and i > next_edge:
                 if interp == EdgeInterpolation.NEAREST:
                     edge_pos = i if fabs(cfd_j - walk) > fabs(cfd_i - walk) \
                         else j
@@ -293,10 +293,10 @@ def cfd_dual_loop_call(
 
                 j = i + 1
 
-                cfd_i = signal[i] - fraction * signal[i - delay]
-                cfd_j = signal[j] - fraction * signal[j - delay]
+                cfd_i = signal[i - delay] - fraction * signal[i]
+                cfd_j = signal[j - delay] - fraction * signal[j]
 
-                if cfd_i > walk and cfd_j < walk and i > next_edge:
+                if cfd_i < walk and cfd_j > walk and i > next_edge:
                     edges[edge_idx] = _cfd_interp_edge(
                         signal, i, j, cfd_i, cfd_j, walk, interp)
                     next_edge = i + width
@@ -312,10 +312,10 @@ def cfd_dual_loop_call(
 
                 j = i + 1
 
-                cfd_i = signal[i] - fraction * signal[i - delay]
-                cfd_j = signal[j] - fraction * signal[j - delay]
+                cfd_i = signal[i - delay] - fraction * signal[i]
+                cfd_j = signal[j - delay] - fraction * signal[j]
 
-                if cfd_i < walk and cfd_j > walk and i > next_edge:
+                if cfd_i > walk and cfd_j < walk and i > next_edge:
                     edges[edge_idx] = _cfd_interp_edge(
                         signal, i, j, -cfd_i, -cfd_j, -walk, interp)
                     next_edge = i + width
@@ -358,10 +358,10 @@ def cfd_dual_loop_inline(
 
                 j = i + 1
 
-                cfd_i = signal[i] - fraction * signal[i - delay]
-                cfd_j = signal[j] - fraction * signal[j - delay]
+                cfd_i = signal[i - delay] - fraction * signal[i]
+                cfd_j = signal[j - delay] - fraction * signal[j]
 
-                if cfd_i > walk and cfd_j < walk and i > next_edge:
+                if cfd_i < walk and cfd_j > walk and i > next_edge:
                     if interp == EdgeInterpolation.NEAREST:
                         edges[edge_idx] = i \
                             if fabs(cfd_j - walk) > fabs(cfd_i - walk) else j
@@ -387,10 +387,10 @@ def cfd_dual_loop_inline(
 
                 j = i + 1
 
-                cfd_i = signal[i] - fraction * signal[i - delay]
-                cfd_j = signal[j] - fraction * signal[j - delay]
+                cfd_i = signal[i - delay] - fraction * signal[i]
+                cfd_j = signal[j - delay] - fraction * signal[j]
 
-                if cfd_i < walk and cfd_j > walk and i > next_edge:
+                if cfd_i > walk and cfd_j < walk and i > next_edge:
                     if interp == EdgeInterpolation.NEAREST:
                         edges[edge_idx] = i \
                             if fabs(cfd_j - walk) > fabs(cfd_i - walk) else j
