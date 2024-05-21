@@ -10,20 +10,83 @@ recording of a continguous analog signal.
 
 from cython cimport floating
 from cython.view cimport contiguous
-from libc.math cimport M_PI, sin, fabs, floor, ceil
+from libc.math cimport M_PI, sin, fabs, floor, ceil, round
+from libc.stdlib cimport malloc, free
 
 import numpy as np
 
 
-"""Edge interpolation method."""
+ctypedef floating data_t
+ctypedef floating[::contiguous] data_array_t
+
 cpdef enum EdgeInterpolation:
+    # Interpolation method to find edge position.
+
     NEAREST = 0
     LINEAR = 1
     SPLINE = 2
     SINC = 3
 
-ctypedef floating data_t
-ctypedef floating[::contiguous] data_array_t
+"""Sinc interpolation parameters."""
+cdef int sinc_window = 200
+cdef int sinc_search_iterations = 10
+
+
+def config_sinc_interpolation(window=None, search_iterations=None):
+    """Configure sinc interpolation.
+
+    As a consequence of the Nyquist theorem, sinc interpolation allows
+    to reconstruct a continuous-time function $x(t)$ up to a certain
+    bandwidth $1/T$ from a sequence of real numbers $x[n]$:
+
+    $$
+    x(t) = \sum_{n=-\infty}^{\infty} x[n] \, {\rm sinc}\left(\frac{t - nT}{T}\right)
+    $$
+
+    This can be used to find the optimal edge position between samples
+    with the fast timing discriminators in this module. In particular
+    for fast slopes consisting of only a few sample points, this will
+    generally yield significantly better results than linear
+    interpolation, which tends to shift points towards the middle. For
+    the constant fraction discriminator specifically, this can also
+    be used to enable the use of real delay values.
+
+    This method has generally a large performance impact, but can be
+    somewhat tuned by parameters:
+
+    * `window` specifies the number of samples before and after the
+        interpolation points actually used to evaluate $x(t), i.e. the
+        finite boundaries to approximate the infinite sum above. By
+        default, up to 200 samples in each direction are used.
+
+    * `search_iterations` specifies the number of binary search steps
+        taken to find the optimal edge position from interpolated values
+        in between two samples. The maximal resolution in samples the
+        interpolation can therefore achieve is $2^-{\rm search_iterations}$.
+
+    When set, these parameters apply to all discriminator
+    implementations and all their use of sinc interpolation.
+
+    Args:
+        window (int, optional): Sample window used around the
+            interpolated point, unchanged if omitted.
+        search_iterations (int, optional): Number of iterations used in
+            binary search for closest function argument, unchanged if
+            omitted.
+
+    Returns
+        (window, search_iterations) Tuple of current values.
+    """
+
+    global sinc_window, sinc_search_iterations
+
+    if window is not None:
+        sinc_window = <int>window
+
+    if search_iterations is not None:
+        sinc_search_iterations = <int>search_iterations
+
+    return dict(window=sinc_window, search_iterations=sinc_search_iterations)
 
 
 cdef inline double _sinc(double x) nogil:
@@ -35,109 +98,78 @@ cdef inline double _sinc(double x) nogil:
         return 1.0
 
 
-cdef int _cfd_fast_pos(
-    data_array_t signal, data_array_t edges, data_array_t amplitudes,
-    data_t threshold, int delay, int width, data_t fraction, data_t walk,
-    int interp
-) nogil:
-    """Fast constant fraction discriminator for positive signals."""
+cdef double _sinc_interp(data_t[::contiguous] y_sampled, double x_interp) nogil:
+    cdef int k, \
+        sampling_start = max(<int>floor(x_interp) - sinc_window, 0), \
+        sampling_end = min(<int>ceil(x_interp) + sinc_window, y_sampled.shape[0])
 
-    cdef int i, j, edge_idx = 0, next_edge = -1, \
-        max_edge = min(edges.shape[0], amplitudes.shape[0])
-    cdef data_t cfd_i, cfd_j, edge_pos
+    cdef double y_interp = 0.0
 
-    for i in range(delay, signal.shape[0] - 1):
-        if signal[i] <= threshold:
-            continue
+    for k in range(sampling_start, sampling_end):
+        y_interp += <double>y_sampled[k] * _sinc(k - x_interp)
 
-        j = i + 1
-
-        cfd_i = signal[i - delay] - fraction * signal[i]
-        cfd_j = signal[j - delay] - fraction * signal[j]
-
-        if cfd_i < walk and cfd_j > walk and i > next_edge:
-            if interp == EdgeInterpolation.NEAREST:
-                edge_pos = i if fabs(cfd_j - walk) > fabs(cfd_i - walk) else j
-            elif interp == EdgeInterpolation.LINEAR:
-                edge_pos = i + (cfd_i - walk) / (cfd_i - cfd_j)
-            elif interp == EdgeInterpolation.SPLINE:
-                raise NotImplementedError('spline interpolation')
-            elif interp == EdgeInterpolation.SINC:
-                raise NotImplementedError('sinc interpolation')
-            else:
-                raise ValueError('invalid interpolation mode')
-
-            edges[edge_idx] = edge_pos
-            next_edge = i + width
-            edge_idx += 1
-
-            if edge_idx == max_edge:
-                break
-
-    return edge_idx
+    return y_interp
 
 
-cdef int _cfd_fast_neg(
-    data_array_t signal, data_array_t edges, data_array_t amplitudes,
-    data_t threshold, int delay, int width, data_t fraction, data_t walk,
-    int interp
-) nogil:
-    """Fast constant fraction discriminator for negative signals."""
-
-    cdef int i, j, edge_idx = 0, next_edge = -1, \
-        max_edge = min(edges.shape[0], amplitudes.shape[0])
-    cdef data_t cfd_i, cfd_j, edge_pos
-
-    for i in range(delay, signal.shape[0] - 1):
-        if signal[i] >= threshold:
-            continue
-
-        j = i + 1
-
-        cfd_i = signal[i - delay] - fraction * signal[i]
-        cfd_j = signal[j - delay] - fraction * signal[j]
-
-        if cfd_i > walk and cfd_j < walk and i > next_edge:
-            if interp == EdgeInterpolation.NEAREST:
-                edge_pos = i if fabs(cfd_j - walk) > fabs(cfd_i - walk) else j
-            elif interp == EdgeInterpolation.LINEAR:
-                edge_pos = i + (walk - cfd_i) / (cfd_j - cfd_i)
-            elif interp == EdgeInterpolation.SPLINE:
-                raise NotImplementedError('spline interpolation')
-            elif interp == EdgeInterpolation.SINC:
-                raise NotImplementedError('sinc interpolation')
-            else:
-                raise ValueError('invalid interpolation mode')
-
-            edges[edge_idx] = edge_pos
-            next_edge = i + width
-            edge_idx += 1
-
-            if edge_idx == max_edge:
-                break
-
-    return edge_idx
-
-
-cdef inline data_t _cfd_interp_edge(
+cdef data_t _cfd_sinc_interp(
     data_array_t signal, int i, int j,
-    data_t cfd_i, data_t cfd_j, data_t walk, int interp
+    data_t delay, data_t fraction, data_t walk
 ) nogil:
-    if interp == EdgeInterpolation.NEAREST:
-        return i if fabs(cfd_j - walk) > fabs(cfd_i - walk) else j
-    elif interp == EdgeInterpolation.LINEAR:
-        return i + (cfd_i - walk) / (cfd_i - cfd_j)
-    elif interp == EdgeInterpolation.SPLINE:
-        raise NotImplementedError('spline interpolation')
-    elif interp == EdgeInterpolation.SINC:
-        raise NotImplementedError('sinc interpolation')
-    else:
-        raise ValueError('invalid interpolation mode')
+    cdef int int_delay = <int>ceil(delay)
+    cdef bint is_integer_delay = int_delay == delay
+
+    cdef int k, \
+        sampling_start = max(i - sinc_window, 0), \
+        sampling_end = min(j + sinc_window, signal.shape[0])
+
+    # Interpolation is always done on double precision, as single
+    # precision is almost certain to cause rounding errors in the sum.
+    cdef double left_pos = <double>i, right_pos = <double>j, \
+        middle_pos = 0.0, middle_value
+
+    cdef data_t *interp_buf = NULL
+
+    if not is_integer_delay:
+        # For non-integer delays, the sinc interpolation includes
+        # the same interpolated values in its own summation for every
+        # iteration. Computing these values only once and keep them in
+        # a small buffer significantly increases performance.
+        interp_buf = <data_t*>malloc(sizeof(delay) * (2 * sinc_window + 1))
+
+        for k in range(sampling_start, sampling_end):
+            interp_buf[k - sampling_start] = _sinc_interp(signal, k - delay)
+
+    for _ in range(1, sinc_search_iterations+1):
+        middle_pos = (left_pos + right_pos) / 2
+
+        middle_value = 0.0
+
+        if is_integer_delay:
+            for k in range(sampling_start, sampling_end):
+                middle_value += (
+                    (signal[k - int_delay] - fraction * signal[k])
+                    * _sinc(k - middle_pos)
+                )
+        else:
+            for k in range(sampling_start, sampling_end):
+                middle_value += (
+                    (interp_buf[k - sampling_start] - fraction * signal[k])
+                    * _sinc(k - middle_pos)
+                )
+
+        if middle_value > walk:
+            left_pos = middle_pos
+        else:
+            right_pos = middle_pos
+
+    if not is_integer_delay:
+        free(interp_buf)
+
+    return <data_t>middle_pos
 
 
-cdef double _dled_sinc_interp(
+cdef data_t _dled_sinc_interp(
     data_array_t signal, bint negative, int ratio_idx, data_t ratio_value,
-    int sinc_window, int sinc_iterations
 ) nogil:
     cdef int k, \
         sampling_start = max(ratio_idx - sinc_window, 0), \
@@ -146,11 +178,13 @@ cdef double _dled_sinc_interp(
     if negative:
         ratio_value = -ratio_value  # Invert for negative traces.
 
+    # Interpolation is always done on double precision, see above in the
+    # implementation for CFD.
     cdef double cmp_value = <double>ratio_value, \
         middle_value, middle_pos = 0.0, \
         left_pos = <double>ratio_idx, right_pos = <double>(ratio_idx + 1)
 
-    for _ in range(1, sinc_iterations+1):
+    for _ in range(1, sinc_search_iterations+1):
         middle_pos = (left_pos + right_pos) / 2
 
         middle_value = 0.0
@@ -165,18 +199,49 @@ cdef double _dled_sinc_interp(
         else:
             right_pos = middle_pos
 
-    return middle_pos
+    return <data_t>middle_pos
 
 
-def cfd_unified_loop(
-    data_array_t signal, data_t threshold, int delay,
+def cfd(
+    data_array_t signal, data_t threshold, data_t delay,
     int width=0, data_t fraction=1.0, data_t walk=0.0,
-    int interp = EdgeInterpolation.LINEAR,
+    int interp=EdgeInterpolation.LINEAR,
     data_array_t edges = None,
     data_array_t amplitudes = None
 ):
-    # CFD implementation with a single loop for both signs, branching
-    # as necessary.
+    """Constant fraction discriminator.
+
+    The pulse shape is assumed to always grow away from zero, i.e. the
+    rising slope of positive pulses is positive and that of negative
+    pulses is negative. Correspondigly, a positive threshold implies the
+    pulse to peak at its largest value while a negative threshold
+    implies the pulse to peak at its smallest value.
+
+    Args:
+        signal (array_like): 1D input array with analog signal.
+        threshold (data-type): Trigger threshold, positive values imply
+            a positive pulse slope while negative values correspondingly
+            imply a negative pulse slope.
+        delay (int): Delay between the raw and inverted signal.
+        width (int, optional): Minimal distance between found edges,
+            none by default.
+        fraction (data-type, optional): Fraction of the inverted signal,
+            1.0 by default.
+        walk (data-type, optional): Point of intersection in the
+            inverted signal, 0.0 by default.
+        interp (EdgeInterpolation, optional): Interpolation mode to
+            locate the edge position, linear by default.
+        edges (ArrayLike, optional): 1D output array to hold the
+            positions of found edges, a new one is allocated if None is
+            passed.
+        amplitudes (ArrayLike, optional): 1D output array to hold the
+            pulse amplitudes corresponding to found edges, a new one is
+            allocated if None is passed.
+
+    Returns:
+        (ArrayLike, ArrayLike, int) 1D arrays containing the edge
+            positions and amplitudes, number of found edges.
+    """
 
     if edges is None:
         edges = np.zeros(
@@ -190,13 +255,28 @@ def cfd_unified_loop(
         max_edge = min(edges.shape[0], amplitudes.shape[0])
     cdef data_t cfd_i, cfd_j, edge_pos
 
+    # Negative thresholds require inverted inequality relations when
+    # comparing those to signals. For optimal performance without
+    # duplicating most of the function body, only the first operations
+    # per iteration are handled separately, while they shape their
+    # output in such a way to assume the signal is always positive.
     cdef bint negative = threshold < 0
 
+    # For "positive" comparisons to work with a negative-turned-positive
+    # signal, the walk must be inverted.
+    cdef data_t orig_walk = walk
     if negative:
-        walk = (<data_t>-1) * walk
+        walk = -walk
+
+    # A rounded-up delay is required to control various loops, and also
+    # used instead of the floating delay if its value is actually an
+    # integer. Omitting sinc interpolation in these cases is a huge
+    # performance increase.
+    cdef int int_delay = <int>ceil(delay)
+    cdef bint is_integer_delay = int_delay == delay
 
     with nogil:
-        for i in range(delay, signal.shape[0] - 1):
+        for i in range(int_delay, signal.shape[0] - 1):
             if negative:
                 if signal[i] >= threshold:
                     continue
@@ -205,12 +285,26 @@ def cfd_unified_loop(
 
             j = i + 1
 
-            if negative:
-                cfd_i = fraction * signal[i] - signal[i - delay]
-                cfd_j = fraction * signal[j] - signal[j - delay]
+            if not is_integer_delay:
+                if negative:
+                    cfd_i = fraction * signal[i] - _sinc_interp(
+                        signal, <data_t>i - delay)
+                    cfd_j = fraction * signal[j] - _sinc_interp(
+                        signal, <data_t>j - delay)
+                else:
+                    cfd_i = _sinc_interp(
+                        signal, <data_t>i - delay) - fraction * signal[i]
+                    cfd_j = _sinc_interp(
+                        signal, <data_t>j - delay) - fraction * signal[j]
+            elif negative:
+                cfd_i = fraction * signal[i] - signal[i - int_delay]
+                cfd_j = fraction * signal[j] - signal[j - int_delay]
             else:
-                cfd_i = signal[i - delay] - fraction * signal[i]
-                cfd_j = signal[j - delay] - fraction * signal[j]
+                cfd_i = signal[i - int_delay] - fraction * signal[i]
+                cfd_j = signal[j - int_delay] - fraction * signal[j]
+
+            # From this point on, the CFD values are computed in such a
+            # way as if the signal and threshold would be positive.
 
             if cfd_i < walk and cfd_j > walk and i > next_edge:
                 if interp == EdgeInterpolation.NEAREST:
@@ -221,7 +315,11 @@ def cfd_unified_loop(
                 elif interp == EdgeInterpolation.SPLINE:
                     raise NotImplementedError('spline interpolation')
                 elif interp == EdgeInterpolation.SINC:
-                    raise NotImplementedError('sinc interpolation')
+                    # As sinc interpolation still makes use of the
+                    # original (possibly negative!) signal, it also
+                    # requires the original walk value for comparions.
+                    edge_pos = _cfd_sinc_interp(signal, i, j, delay, fraction,
+                                                orig_walk)
                 else:
                     raise ValueError('invalid interpolation mode')
 
@@ -236,231 +334,24 @@ def cfd_unified_loop(
         edge_idx
 
 
-def cfd_dual_loop_call(
-    data_array_t signal, data_t threshold, int delay,
-    int width=0, data_t fraction=1.0, data_t walk=0.0,
-    int interp = EdgeInterpolation.LINEAR,
-    data_array_t edges = None,
-    data_array_t amplitudes = None
-):
-    """Constant fraction discriminator.
-
-    Args:
-        signal (array_like): 1D input array with analog signal.
-        threshold (data-type): Trigger threshold.
-        delay (int): Delay between the raw and inverted signal.
-        width (int, optional): Minimal distance between found edges,
-            none by default.
-        fraction (data-type, optional): Fraction of the inverted signal,
-            1.0 by default.
-        walk (data-type, optional): Point of intersection in the
-            inverted signal, 0.0 by default.
-        interp (EdgeInterpolation, optional): Interpolation mode to
-            locate the edge position, linear by default.
-            TODO: Always linear at the moment.
-        edges (ArrayLike, optional): 1D output array to hold the
-            positions of found edges, a new one is allocated if None is
-            passed.
-        amplitudes (ArrayLike, optional): 1D output array to hold the
-            pulse amplitudes corresponding to found edges, a new one is
-            allocated if None is passed.
-
-    Returns:
-        (ArrayLike, ArrayLike, int) 1D arrays containing the edge
-            positions and amplitudes, number of found edges.
-    """
-
-
-    if edges is None:
-        edges = np.zeros(
-            len(amplitudes) if amplitudes is not None else len(signal) // 100,
-            dtype=np.asarray(signal).dtype)
-
-    if amplitudes is None:
-        amplitudes = np.zeros_like(edges, dtype=np.asarray(signal).dtype)
-
-    cdef int i, j, edge_idx = 0, next_edge = -1, \
-        max_edge = min(edges.shape[0], amplitudes.shape[0])
-    cdef data_t cfd_i, cfd_j, edge_pos
-
-    cdef bint negative = threshold < 0
-
-    with nogil:
-        if threshold > 0:
-            for i in range(delay, signal.shape[0] - 1):
-                if signal[i] <= threshold:
-                    continue
-
-                j = i + 1
-
-                cfd_i = signal[i - delay] - fraction * signal[i]
-                cfd_j = signal[j - delay] - fraction * signal[j]
-
-                if cfd_i < walk and cfd_j > walk and i > next_edge:
-                    edges[edge_idx] = _cfd_interp_edge(
-                        signal, i, j, cfd_i, cfd_j, walk, interp)
-                    next_edge = i + width
-                    edge_idx += 1
-
-                    if edge_idx == max_edge:
-                        break
-
-        else:
-            for i in range(delay, signal.shape[0] - 1):
-                if signal[i] >= threshold:
-                    continue
-
-                j = i + 1
-
-                cfd_i = signal[i - delay] - fraction * signal[i]
-                cfd_j = signal[j - delay] - fraction * signal[j]
-
-                if cfd_i > walk and cfd_j < walk and i > next_edge:
-                    edges[edge_idx] = _cfd_interp_edge(
-                        signal, i, j, -cfd_i, -cfd_j, -walk, interp)
-                    next_edge = i + width
-                    edge_idx += 1
-
-                    if edge_idx == max_edge:
-                        break
-
-    return np.asarray(edges)[:edge_idx], np.asarray(amplitudes)[:edge_idx], \
-        edge_idx
-
-
-def cfd_dual_loop_inline(
-    data_array_t signal, data_t threshold, int delay,
-    int width=0, data_t fraction=1.0, data_t walk=0.0,
-    int interp = EdgeInterpolation.LINEAR,
-    data_array_t edges = None,
-    data_array_t amplitudes = None
-):
-    # CFD implementation with separate loops per sign and inlined
-    # interpolation for position.
-
-    if edges is None:
-        edges = np.zeros(
-            len(amplitudes) if amplitudes is not None else len(signal) // 100,
-            dtype=np.asarray(signal).dtype)
-
-    if amplitudes is None:
-        amplitudes = np.zeros_like(edges, dtype=np.asarray(signal).dtype)
-
-    cdef int i, j, edge_idx = 0, next_edge = -1, \
-        max_edge = min(edges.shape[0], amplitudes.shape[0])
-    cdef data_t cfd_i, cfd_j
-
-    with nogil:
-        if threshold > 0:
-            for i in range(delay, signal.shape[0] - 1):
-                if signal[i] <= threshold:
-                    continue
-
-                j = i + 1
-
-                cfd_i = signal[i - delay] - fraction * signal[i]
-                cfd_j = signal[j - delay] - fraction * signal[j]
-
-                if cfd_i < walk and cfd_j > walk and i > next_edge:
-                    if interp == EdgeInterpolation.NEAREST:
-                        edges[edge_idx] = i \
-                            if fabs(cfd_j - walk) > fabs(cfd_i - walk) else j
-                    elif interp == EdgeInterpolation.LINEAR:
-                        edges[edge_idx] = i + (cfd_i - walk) / (cfd_i - cfd_j)
-                    elif interp == EdgeInterpolation.SPLINE:
-                        raise NotImplementedError('spline interpolation')
-                    elif interp == EdgeInterpolation.SINC:
-                        raise NotImplementedError('sinc interpolation')
-                    else:
-                        raise ValueError('invalid interpolation mode')
-
-                    next_edge = i + width
-                    edge_idx += 1
-
-                    if edge_idx == max_edge:
-                        break
-
-        else:
-            for i in range(delay, signal.shape[0] - 1):
-                if signal[i] >= threshold:
-                    continue
-
-                j = i + 1
-
-                cfd_i = signal[i - delay] - fraction * signal[i]
-                cfd_j = signal[j - delay] - fraction * signal[j]
-
-                if cfd_i > walk and cfd_j < walk and i > next_edge:
-                    if interp == EdgeInterpolation.NEAREST:
-                        edges[edge_idx] = i \
-                            if fabs(cfd_j - walk) > fabs(cfd_i - walk) else j
-                    elif interp == EdgeInterpolation.LINEAR:
-                        edges[edge_idx] = i + (walk - cfd_i) / (cfd_j - cfd_i)
-                    elif interp == EdgeInterpolation.SPLINE:
-                        raise NotImplementedError('spline interpolation')
-                    elif interp == EdgeInterpolation.SINC:
-                        raise NotImplementedError('sinc interpolation')
-                    else:
-                        raise ValueError('invalid interpolation mode')
-
-                    next_edge = i + width
-                    edge_idx += 1
-
-                    if edge_idx == max_edge:
-                        break
-
-    return np.asarray(edges)[:edge_idx], np.asarray(amplitudes)[:edge_idx], \
-        edge_idx
-
-
-def cfd_redirect_call(
-    data_array_t signal, data_t threshold, int delay,
-    int width=0, data_t fraction=1.0, data_t walk=0.0,
-    int interp = EdgeInterpolation.LINEAR,
-    data_array_t edges = None,
-    data_array_t amplitudes = None
-):
-    # Original CFD implementation calling into two separate functions
-    # per sign.
-
-    if edges is None:
-        edges = np.zeros(
-            len(amplitudes) if amplitudes is not None else len(signal) // 100,
-            dtype=np.asarray(signal).dtype)
-
-    if amplitudes is None:
-        amplitudes = np.zeros_like(edges, dtype=np.asarray(signal).dtype)
-
-    with nogil:
-        if threshold > 0:
-            num_edges = _cfd_fast_pos(signal, edges, amplitudes,
-                                      threshold, delay, width, fraction, walk,
-                                      interp)
-        elif threshold < 0:
-            num_edges = _cfd_fast_neg(signal, edges, amplitudes,
-                                      threshold, delay, width, fraction, walk,
-                                      interp)
-        else:
-            raise ValueError('threshold must be non-zero')
-
-    return np.asarray(edges)[:num_edges], np.asarray(amplitudes)[:num_edges], \
-        num_edges
-
-
 def dled(
-    data_array_t signal, data_t threshold, data_t ratio_max, data_t width,
+    data_array_t signal, data_t threshold, data_t ratio_max=0.6, data_t width=0,
     int interp = EdgeInterpolation.LINEAR,
-    data_array_t edges = None, data_array_t amplitudes = None,
-    int sinc_window=200, int sinc_iterations=15
+    data_array_t edges = None, data_array_t amplitudes = None
 ):
     """Dynamic leading edge discriminator.
 
     This algorithm finds the leading edge of pulses in a 1D signal
     located at a certain ratio to the pulse's peak value.
 
+    As with the constant fraction discriminator, it is assumed the
+    rising pulse slope points away from zero.
+
     Args:
         signal (ArrayLike): 1D input array with analog signal.
-        threshold (data-type): Trigger threshold.
+        threshold (data-type): Trigger threshold, positive values imply
+            a positive pulse slope while negative values correspondingly
+            imply a negative pulse slope.
         ratio_max (data-type, optional): Ratio of leading edge to peak
             value, 0.6 by default.
         width (data-type, optional): Minimal distance between found
@@ -473,7 +364,6 @@ def dled(
         amplitudes (ArrayLike, optional): 1D output array to hold the
             pulse amplitudes corresponding to found edges, a new one is
             allocated if None is passed.
-
     Returns:
         (ArrayLike, ArrayLike, int) 1D arrays containing the edge
             positions and amplitudes, number of found edges.
@@ -582,8 +472,7 @@ def dled(
 
                     elif interp == EdgeInterpolation.SINC:
                         ratio_pos = <data_t>_dled_sinc_interp(
-                            signal, negative, ratio_idx, ratio_value,
-                            sinc_window, sinc_iterations)
+                            signal, negative, ratio_idx, ratio_value)
 
                     else:
                         raise ValueError('invalid interpolation mode')
@@ -607,7 +496,7 @@ def dled(
 
 
 def sinc_interpolate(
-    double[::contiguous] y_sampled, double[::contiguous] x_interp,
+    data_t[::contiguous] y_sampled, data_t[::contiguous] x_interp,
     double[::contiguous] y_interp = None, int window=100
 ):
     # TODO: Useful function that should go somewhere, but doesn't
