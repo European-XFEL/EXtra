@@ -6,3 +6,6 @@ from .scan import Scan  # noqa
 from .xgm import XGM  # noqa
 from .dld import DelayLineDetector  # noqa
 from .las import OpticalLaserDelay  # noqa
+
+# Also expose extra_data's components for multi-module detectors here
+from extra_data.components import *
