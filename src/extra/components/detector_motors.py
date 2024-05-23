@@ -65,21 +65,20 @@ class DetectorMotors:
     def __init__(self, dc, detector_id="", groups=None, motors_per_group=None,
                  motor_pattern=None, data_selector=None):
         """
-        Parameters
-        ----------
-        dc: extra_data.DataCollection
-            The data
-        detector_id: str
-            The detector ID, e.g. SPB_IRU_AGIPD1M or SPB_IRU_AGIPD1M
-        groups: int
-            The number of movable groups
-        motors_per_group: int
-            The number of motors per movable group
-        motor_patter: str
-            The pattern to generate motor IDs, expected to have fields:
-            detector_id, q, m
-        data_selector: str
-            The data selector ID
+        Args:
+            dc (extra_data.DataCollection):
+                The data
+            detector_id (str):
+                The detector ID, e.g. SPB_IRU_AGIPD1M or SPB_IRU_AGIPD1M
+            groups (int):
+                The number of movable groups
+            motors_per_group (int):
+                The number of motors per movable group
+            motor_patter (str):
+                The pattern to generate motor IDs, expected to have fields:
+                detector_id, q, m
+            data_selector (str):
+                The data selector ID
         """
         self.detector_id = detector_id
 
@@ -153,16 +152,14 @@ class DetectorMotors:
     def positions(self, labelled=True):
         """Returns the motor positions for all trains.
 
-        Parameters
-        ----------
-        labelled: bool
-            If True, returns the xarray with labelled dimensions,
-            overwise returns numpy.ndarray
+        Args:
+            labelled (bool):
+                If True, returns the xarray with labelled dimensions,
+                overwise returns numpy.ndarray
 
-        Returns
-        -------
-        positions: numpy.ndarray or xarray.DataArray
-            The motor positions
+        Returns:
+            positions (numpy.ndarray or xarray.DataArray):
+                The motor positions
         """
         if not hasattr(self, "_positions"):
             values = np.zeros((self.num_trains, self.num_sources), dtype=float)
@@ -200,16 +197,14 @@ class DetectorMotors:
     def unique_pos(self, labelled=True):
         """Returns the unique motor positions and corresponding train IDs.
 
-        Parameters
-        ----------
-        labelled: bool
-            If True, returns the xarray with labelled dimensions,
-            overwise returns tuple of numpy.ndarrays
+        Args:
+            labelled (bool):
+                If True, returns the xarray with labelled dimensions,
+                overwise returns tuple of numpy.ndarrays
 
-        Returns
-        -------
-        positions: tuple of two numpy.ndarray or xarray.DataArray
-            The motor positions
+        Returns:
+            positions (tuple of two numpy.ndarray or xarray.DataArray):
+                The motor positions
         """
         trainId, values, _ = self._get_unique_pos()
         if labelled:
@@ -227,15 +222,13 @@ class DetectorMotors:
     def positions_at(self, tid):
         """Returns motor positions at given train.
 
-        Parameters
-        ----------
-        tid: int
-            Train ID
+        Args:
+            tid (int):
+                Train ID
 
-        Returns
-        -------
-        postions: numpy.ndarray
-            Then motor positions
+        Returns:
+            postions (numpy.ndarray):
+                The motor positions
         """
         trainId, values, _ = self._get_unique_pos()
         i = np.searchsorted(trainId, tid)
