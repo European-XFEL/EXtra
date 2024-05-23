@@ -29,8 +29,8 @@ class DetectorMotors:
     Example usage in a Jupyter notebook:
     ```python
             -----------------------------------------------------------
-    In [1]: |motors = DetectorMotors(run)                             |
-            |xgm                                                      |
+    In [1]: |motors = DetectorMotors(run, "SPB_IRU_AGIPD1M")          |
+            |motors                                                   |
             -----------------------------------------------------------
     Out[1]: <DetectorMotors SPB_IRU_AGIPD1M/MOTOR/Q{1..4}M{1..2} at
             2023-04-04T17:44:46.844869000>
@@ -92,10 +92,17 @@ class DetectorMotors:
         args = (self.num_groups, self.num_motors, self.motor_pattern)
         if any(arg is None for arg in args):
             raise ValueError(
-                "You need specify all parameters for custom detector")
+                "You need to specify all parameters for custom detector")
 
         self.num_sources = self.num_groups * self.num_motors
-
+        self.motor_ids = [
+            self.motor_pattern.format(
+                detector_id=self.detector_id,
+                q=i // self.num_motors + 1,
+                m=i % self.num_motors + 1,
+            )
+            for i in range(self.num_sources)
+        ]
         try:
             self.dc = dc.select(
                 [(source_id, "*") for source_id in self.motor_ids],
@@ -133,27 +140,9 @@ class DetectorMotors:
         return self.dc[self.data_selector, data_selector_key]
 
     @property
-    def motor_ids(self):
-        """The list of motor device IDs."""
-        if not hasattr(self, "_motor_ids"):
-            self._motor_ids = [
-                self.motor_pattern.format(
-                    detector_id=self.detector_id,
-                    q=i // self.num_motors + 1,
-                    m=i % self.num_motors + 1,
-                )
-                for i in range(self.num_sources)
-            ]
-        return self._motor_ids
-
-    @property
     def train_ids(self):
         """The list of train IDs."""
         return self.dc.train_ids
-
-    def train_id_coordinates(self):
-        """Returns the array of train IDs."""
-        return np.asarray(self.dc.train_ids)
 
     @property
     def motor_labels(self):
@@ -188,7 +177,7 @@ class DetectorMotors:
         if labelled:
             dims = ["trainId", "groupId", "motorId"]
             coords = {
-                "trainId": self.train_id_coordinates(),
+                "trainId": self.train_ids,
                 "groupId": range(1, self.num_groups + 1),
                 "motorId": range(1, self.num_motors + 1),
             }
