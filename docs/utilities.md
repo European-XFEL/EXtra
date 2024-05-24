@@ -26,8 +26,8 @@ else.
 
 ## Fast timing discrimination
 
-::: extra.utils.ftd.dled
-
 ::: extra.utils.ftd.cfd
+
+::: extra.utils.ftd.dled
 
 ::: extra.utils.ftd.config_sinc_interpolation
