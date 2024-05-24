@@ -23,4 +23,4 @@ Component index:
 - [ADQ Digitizers](adq-digitizers.md)
     - [AdqRawChannel][extra.components.AdqRawChannel]
 - [Detector motors](detector-motors.md)
-    - [DetectorMotors][extra.components.DetectorMotors]
+    - [AGIPD1MQuadrantMotors][extra.components.AGIPD1MQuadrantMotors]

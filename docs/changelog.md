@@ -17,7 +17,7 @@
     ```
 Added:
 
-- [DetectorMotors][extra.components.DetectorMotors] to access positions of motors moving groups of detector modules, e.g. quadrants in case of AGIPD 1M (!148).
+- [AGIPD1MQuadrantMotors][extra.components.AGIPD1MQuadrantMotors] to access positions of motors moving quadrants of AGIPD1M detector (!148).
 - A module to expose the [DAMNIT API](damnit.md).
 - [AdqRawChannel][extra.components.AdqRawChannel] to access and process raw traces saved by fast ADQ digitizers (!35).
 - Hits obtained via [DelayLineDetector.hits()][extra.components.DelayLineDetector.hits] can now optionally be restricted to hits reconstructed with a certain method. (!170).

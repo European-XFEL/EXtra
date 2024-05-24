@@ -1,1 +1,1 @@
-::: extra.components.DetectorMotors
+::: extra.components.AGIPD1MQuadrantMotors
