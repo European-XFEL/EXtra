@@ -519,8 +519,8 @@ class PulsePattern:
         """Get a multi-level index for pulse-resolved data.
 
         Args:
-            pulse_dim ({pulseId, pulseIndex, time}, optional): Label
-                for pulse dimension, pulse ID by default.
+            pulse_dim ({pulseId, pulseIndex, pulseTime}, optional):
+                Label for pulse dimension, pulse ID by default.
             include_extra_dims (bool, optional): Whether to include any
                 additional dimensions of this particular implementation
                 beyond train ID and pulse dimension.
@@ -539,13 +539,17 @@ class PulsePattern:
         elif pulse_dim == 'pulseIndex':
             index_levels[pulse_dim] = pulse_ids.index.get_level_values(
                 'pulseIndex')
-        elif pulse_dim == 'time':
+        elif pulse_dim in {'time', 'pulseTime'}:
+            if pulse_dim == 'time':
+                warn('Use `pulseTime` instead of `time`',
+                     DeprecationWarning, stacklevel=2)
+
             index_levels[pulse_dim] = np.concatenate([
                 pids - pids.iloc[0] for _, pids
                 in pulse_ids.groupby(level=0)]) / self.bunch_repetition_rate
         else:
             raise ValueError('pulse_dim must be one of `pulseId`, '
-                             '`pulseIndex`, `time`')
+                             '`pulseIndex`, `pulseTime`')
 
         if include_extra_dims:
             index_levels.update({name: pulse_ids.index.get_level_values(name)

@@ -299,8 +299,8 @@ class OpticalLaserDelay:
                 or not (default). As the trigger delay is only recorded
                 by train, identical values are returned for every pulse
                 if enabled.
-            pulse_dim ({pulseId, pulseIndex, time}, optional): Label
-                for pulse dimension, pulse ID by default.
+            pulse_dim ({pulseId, pulseIndex, pulseTime}, optional):
+                Label for pulse dimension, pulse ID by default.
 
         Returns:
             (pandas.Series or numpy.ndarray): Time delay from electronic
@@ -321,8 +321,8 @@ class OpticalLaserDelay:
                 or not (default). As the stage delay is only recorded
                 by train, identical values are returned for every pulse
                 if enabled.
-            pulse_dim ({pulseId, pulseIndex, time}, optional): Label
-                for pulse dimension, pulse ID by default.
+            pulse_dim ({pulseId, pulseIndex, pulseTime}, optional):
+                Label for pulse dimension, pulse ID by default.
 
         Returns:
             (pandas.Series or numpy.ndarray): Time delay from delay line
@@ -343,8 +343,8 @@ class OpticalLaserDelay:
             by_pulse (bool, optional): Whether data is returned by pulse
                 (default) or not. If disabled, the train value is the
                 average over all pulses.
-            pulse_dim ({pulseId, pulseIndex, time}, optional): Label
-                for pulse dimension, pulse ID by default.
+            pulse_dim ({pulseId, pulseIndex, pulseTime}, optional):
+                Label for pulse dimension, pulse ID by default.
 
         Returns:
             (pandas.Series or numpy.ndarray): Time delay from BAM
@@ -387,8 +387,8 @@ class OpticalLaserDelay:
             by_pulse (bool, optional): Whether data is returned by pulse
                 or not. By default, it is returned by pulse whenever BAM
                 data is enabled and by train otherwise.
-            pulse_dim ({pulseId, pulseIndex, time}, optional): Label
-                for pulse dimension, pulse ID by default.
+            pulse_dim ({pulseId, pulseIndex, pulseTime}, optional):
+                Label for pulse dimension, pulse ID by default.
 
         Returns:
             (pandas.Series or numpy.ndarray): Total time delay, indexed
@@ -418,8 +418,8 @@ class OpticalLaserDelay:
             by_pulse (bool, optional): Whether data is returned by pulse
                 or not. By default, it is returned by pulse whenever BAM
                 data is enabled and by train otherwise.
-            pulse_dim ({pulseId, pulseIndex, time}, optional): Label
-                for pulse dimension, pulse ID by default.
+            pulse_dim ({pulseId, pulseIndex, pulseTime}, optional):
+                Label for pulse dimension, pulse ID by default.
 
         Returns:
             (pandas.DataFrame): Time delay by source, indexed by train
