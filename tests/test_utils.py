@@ -1,12 +1,14 @@
 import numpy as np
 
 from extra.utils import imshow2, fit_gaussian, gaussian
+from extra.utils.ftd import cfd, dled, config_sinc_interpolation
 
 
 def test_scaled_imshow():
     # Smoke test
     image = np.random.rand(100, 100)
     imshow2(image)
+
 
 def test_fit_gaussian():
     # Test with auto-generated xdata and nans/infs
@@ -23,3 +25,20 @@ def test_fit_gaussian():
     data = gaussian(xdata, *params)
     popt = fit_gaussian(data, xdata=xdata)
     assert np.allclose(popt, params)
+
+
+def test_ftd_sinc_interpolation():
+    assert config_sinc_interpolation() == {
+        'search_iterations': 10, 'window': 200}
+
+    assert config_sinc_interpolation(window=100) == {
+        'search_iterations': 10, 'window': 100}
+
+    assert config_sinc_interpolation(search_iterations=15) == {
+        'search_iterations': 15, 'window': 100}
+
+    assert config_sinc_interpolation(search_iterations=5, window=150) == {
+        'search_iterations': 5, 'window': 150}
+
+    assert config_sinc_interpolation() == {
+        'search_iterations': 5, 'window': 150}
