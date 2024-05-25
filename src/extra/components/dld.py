@@ -83,8 +83,8 @@ class DelayLineDetector:
 
         Args:
             kd (extra_data.KeyData): KeyData object to align to.
-            pulse_dim ({pulseId, pulseIndex, time}, optional): Label
-                for pulse dimension, pulse ID by default.
+            pulse_dim ({pulseId, pulseIndex, pulseTime}, optional):
+                Label for pulse dimension, pulse ID by default.
 
         Returns:
             (pandas.Index or None): Index from internal pulses component
@@ -319,8 +319,8 @@ class DelayLineDetector:
             channel_index (bool, optional): Whether to insert the edge
                 channel as index level and return Series object
                 (default), or as column and return DataFrame object.
-            pulse_dim ({pulseId, pulseIndex, time}, optional): Label
-                for pulse dimension, pulse ID by default.
+            pulse_dim ({pulseId, pulseIndex, pulseTime}, optional):
+                Label for pulse dimension, pulse ID by default.
 
         Returns:
             (pd.Series or pd.DataFrame): Raw edge positions as Series
@@ -360,8 +360,8 @@ class DelayLineDetector:
         [hits()](extra.components.DelayLineDetector.hits()).
 
         Args:
-            pulse_dim ({pulseId, pulseIndex, time}, optional): Label
-                for pulse dimension, pulse ID by default.
+            pulse_dim ({pulseId, pulseIndex, pulseTime}, optional):
+                Label for pulse dimension, pulse ID by default.
             extra_columns (dict): Mapping of column name to labeled 1D
                 data to insert, may be pandas series, xarray DataArray
                 or KeyData. Must be re-indexable by internal train or
@@ -402,8 +402,8 @@ class DelayLineDetector:
         for more information
 
         Args:
-            pulse_dim ({pulseId, pulseIndex, time}, optional): Label
-                for pulse dimension, pulse ID by default.
+            pulse_dim ({pulseId, pulseIndex, pulseTime}, optional):
+                Label for pulse dimension, pulse ID by default.
             extra_columns (dict): Mapping of column name to labeled 1D
                 data to insert, may be pandas series, xarray DataArray
                 or KeyData. Must be re-indexable by internal train or

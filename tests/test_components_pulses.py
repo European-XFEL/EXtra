@@ -372,7 +372,7 @@ def test_build_pulse_index(mock_spb_aux_run, source):
     np.testing.assert_equal(pulse_indices[:2000], np.tile(np.r_[:50], 40))
     np.testing.assert_equal(pulse_indices[2000:], np.tile(np.r_[:25], 50))
 
-    times = pulses.build_pulse_index('time').get_level_values(1)
+    times = pulses.build_pulse_index('pulseTime').get_level_values(1)
     rate = pulses.bunch_repetition_rate
     np.testing.assert_allclose(
         times[:2000], np.tile((np.r_[1000:1300:6] - 1000) / rate, 40))

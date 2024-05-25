@@ -35,6 +35,7 @@ Added:
   has an option to give a mask for only FEL or only pump laser pulses (!174).
 - [BadPixels](extra.calibration.BadPixels) flag values for interpreting masks
   in corrected detector data (!172).
+- Deprecate pulse dimension `time` in favor of `pulseTime` (!178).
 
 Fixed:
 
