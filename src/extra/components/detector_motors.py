@@ -408,6 +408,7 @@ class AGIPD1MQuadrantMotors(DetectorMotors):
             pattern = pattern.format(detector_id=detector_id, q="{q}", m="{m}")
             device_ptrn, key_ptrn = find_motors(
                 dc, pattern, self._position_key, q=groups, m=motors)
+            device_id = detector_id
 
         super().__init__(dc, device_id, device_ptrn, key_ptrn,
                          q=groups, m=motors)
