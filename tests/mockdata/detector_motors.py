@@ -45,14 +45,13 @@ class DetectorMotorDataSelector(DeviceBase):
         ('classId', None, 'SlowDataSelector'),
     ]
 
-    def __init__(self, device_id, detector_id,
-                 nsamples=None, no_ctrl_data=False):
+    def __init__(self, device_id, detector_id, nsamples=None):
         self.detector_id = detector_id
-        self.control_keys += [
+        self.control_keys = [
             (mangle_device_id_camelcase(src_name) + "/actualPosition", "f4", ())  # noqa
             for src_name in get_motor_sourcenames(detector_id)
         ]
-        super().__init__(device_id)
+        super().__init__(device_id, nsamples=nsamples)
 
     def write_control(self, f):
         super().write_control(f)
