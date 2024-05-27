@@ -1,11 +1,25 @@
 import numpy as np
+import pytest
 import xarray as xa
 from extra.components import AGIPD1MQuadrantMotors
 
+testdata = [
+    ("SPB_IRU_AGIPD1M", "SPB_IRU_AGIPD1M/MOTOR/Q{q}M{m}", "actualPosition"),
+    ("SPB_EXP_AGIPD1M2", "SPB_EXP_AGIPD1M2/DS", "spbExpAgipd1M2MotorQ{q}M{m}.actualPosition"),  # noqa
+]
 
-def test_detector_motors(mock_spb_aux_run):
+
+@pytest.mark.parametrize(["detector_id", "src_ptrn", "key_ptrn"], testdata,
+                         ids=["motors", "data_selector"])
+def test_detector_motors(mock_spb_aux_run, detector_id, src_ptrn, key_ptrn):
     nparts = 3
-    motors = AGIPD1MQuadrantMotors(mock_spb_aux_run)
+    with pytest.raises(ValueError):
+        AGIPD1MQuadrantMotors(mock_spb_aux_run)
+
+    with pytest.raises(ValueError):
+        AGIPD1MQuadrantMotors(mock_spb_aux_run, "DETECTOR_WITHOUT_MOTORS")
+
+    motors = AGIPD1MQuadrantMotors(mock_spb_aux_run, detector_id)
 
     ntrains = len(mock_spb_aux_run.train_ids)
     trains = np.array(mock_spb_aux_run.train_ids)
@@ -17,9 +31,9 @@ def test_detector_motors(mock_spb_aux_run):
     for i in range(nparts):
         unique_pos[i] = quad_pos + i * 2.0
 
-    assert motors.detector_id == "SPB_IRU_AGIPD1M"
-    assert motors.src_ptrn == "SPB_IRU_AGIPD1M/MOTOR/Q{q}M{m}"
-    assert motors.key_ptrn == "actualPosition"
+    assert motors.detector_id == detector_id
+    assert motors.src_ptrn == src_ptrn
+    assert motors.key_ptrn == key_ptrn
 
     p = motors.positions()
     assert isinstance(p, xa.DataArray)

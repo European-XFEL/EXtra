@@ -9,7 +9,9 @@ from extra_data.tests.mockdata import write_file
 from extra_data.tests.mockdata.base import DeviceBase
 from extra_data.tests.mockdata.motor import Motor
 
-from .mockdata.detector_motors import get_motor_sources, write_motor_positions
+from .mockdata.detector_motors import (DetectorMotorDataSelector,
+                                       get_motor_sources,
+                                       write_motor_positions)
 from .mockdata.dld import ReconstructedDld
 from .mockdata.timeserver import PulsePatternDecoder, Timeserver
 
@@ -95,8 +97,10 @@ def mock_spb_aux_directory():
         Timeserver('TRAIN_LESS_TIMESERVER', no_ctrl_data=True, nsamples=0),
         Timeserver('PULSE_LESS_TIMESERVER', no_pulses=True),
         XGM('SPB_XTD9_XGM/DOOCS/MAIN'),
-        Motor("MOTOR/MCMOTORYFACE")]
-
+        Motor("MOTOR/MCMOTORYFACE"),
+        DetectorMotorDataSelector("SPB_IRU_AGIPD1M/DS", "SPB_IRU_AGIPD1M"),
+        DetectorMotorDataSelector("SPB_EXP_AGIPD1M2/DS", "SPB_EXP_AGIPD1M2"),
+    ]
     sources += get_motor_sources("SPB_IRU_AGIPD1M")
 
     with TemporaryDirectory() as td:
