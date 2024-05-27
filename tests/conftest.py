@@ -4,14 +4,14 @@ from tempfile import TemporaryDirectory
 import h5py
 import numpy as np
 import pytest
-
 from extra_data import RunDirectory
 from extra_data.tests.mockdata import write_file
-from extra_data.tests.mockdata.motor import Motor
 from extra_data.tests.mockdata.base import DeviceBase
+from extra_data.tests.mockdata.motor import Motor
 
-from .mockdata.timeserver import Timeserver, PulsePatternDecoder
+from .mockdata.detector_motors import get_motor_sources, write_motor_positions
 from .mockdata.dld import ReconstructedDld
+from .mockdata.timeserver import PulsePatternDecoder, Timeserver
 
 
 # This is a more accurate representation of an XGM than the XGM class from the
@@ -37,6 +37,7 @@ class XGM(DeviceBase):
         ]
         super().__init__(device_id)
 
+
 class XGMD(DeviceBase):
     extra_run_values = [
         ("classId", None, "DoocsXGMD"),
@@ -61,11 +62,13 @@ class XGMD(DeviceBase):
         ("intensitySa3TD", "f4", (1000,))
     ]
 
+
 class XGMReduced(XGMD):
     extra_run_values = [
         ("classId", None, "DoocsXGMReduced"),
         ("location", None, "XGM.3356.SQS")
     ]
+
 
 @pytest.fixture(scope='session')
 def mock_spb_aux_directory():
@@ -94,6 +97,8 @@ def mock_spb_aux_directory():
         XGM('SPB_XTD9_XGM/DOOCS/MAIN'),
         Motor("MOTOR/MCMOTORYFACE")]
 
+    sources += get_motor_sources("SPB_IRU_AGIPD1M")
+
     with TemporaryDirectory() as td:
         path = Path(td) / 'RAW-R0001-DA01-S00000.h5'
         write_file(path, sources, 100)
@@ -103,12 +108,16 @@ def mock_spb_aux_directory():
             # 1 train at each transition between steps.
             motor_ds[:] = np.repeat(np.arange(10), 10)
             motor_ds[10::10] = np.arange(9) + 0.5
+            # write agipd quadrand motor positions
+            write_motor_positions(f, "SPB_IRU_AGIPD1M")
 
         yield td
+
 
 @pytest.fixture(scope='function')
 def mock_spb_aux_run(mock_spb_aux_directory):
     yield RunDirectory(mock_spb_aux_directory)
+
 
 @pytest.fixture(scope="session")
 def multi_xgm_run():
@@ -128,6 +137,7 @@ def multi_xgm_run():
         aliases = {"sa2-xgm": "SA2_XTD1_XGM/XGM/DOOCS"}
         run = RunDirectory(td)
         yield run.with_aliases(aliases)
+
 
 @pytest.fixture(scope='session')
 def mock_sqs_remi_directory():
