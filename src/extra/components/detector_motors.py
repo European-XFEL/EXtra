@@ -92,10 +92,10 @@ class DetectorMotors:
         for src, key in self.motor_ids:
             self.keys.append(self.dc[src, key])
 
-    @property
-    def train_ids(self):
-        """The list of train IDs."""
-        return self.dc.train_ids
+        # add train_ids
+        self.train_ids = np.arange(
+            self.dc.train_ids[0], self.dc.train_ids[-1] + np.uint64(1),
+            dtype=np.uint64)
 
     def positions(self, labelled=True):
         """Returns the motor positions for all trains.
@@ -109,36 +109,44 @@ class DetectorMotors:
             positions (numpy.ndarray or xarray.DataArray):
                 The motor positions
         """
-        if not hasattr(self, "_positions"):
-            values = np.zeros((self.num_trains, self.num_sources), dtype=float)
-            for source_no, key_data in enumerate(self.keys):
-                values[:, source_no] = key_data.ndarray()
-            values = values.reshape(-1, *self.shape)
-            self._positions = values
-        else:
-            values = self._positions
+        train_ids, pos, counts = self._read_positions()
+        pos = np.repeat(pos, counts, axis=0)
 
         if labelled:
             dims = ["trainId"] + list(self.dims.keys())
             coords = {"trainId": self.train_ids}
             coords.update({name: values for name, values in self.dims.items()})
             return xarray.DataArray(
-                values, dims=dims, coords=coords, name=self._position_key)
+                pos, dims=dims, coords=coords, name=self._position_key)
         else:
-            return values
+            return pos
 
-    def _get_unique_pos(self):
-        """Returns unique motor positions."""
-        if not hasattr(self, "_unique_positions"):
-            values, index, counts = np.unique(
-                self.positions(labelled=False),
-                return_index=True, return_counts=True, axis=0)
-            trainId = np.asarray(self.train_ids)[index]
-            self._unique_positions = trainId, values, counts
+    def _read_positions(self):
+        """Reads and compresses motor positions."""
+        if hasattr(self, "_positions"):
+            return self._positions
 
-        return self._unique_positions
+        # read positions
+        pos = np.zeros((self.num_trains, self.num_sources), dtype=float)
+        for source_no, key_data in enumerate(self.keys):
+            pos[:, source_no] = key_data.ndarray()
+        pos = pos.reshape(-1, *self.shape)
 
-    def unique_pos(self, labelled=True):
+        # compress
+        axes = tuple(range(1, pos.ndim))
+        ix = np.flatnonzero(
+            np.insert(np.any(np.diff(pos, axis=0), axis=axes), 0, True))
+
+        # train ids when positions are changed
+        train_ids = np.asarray(self.dc.train_ids)[ix]
+        # count of trains at every position
+        counts = np.diff(np.append(train_ids.astype(int),
+                                   int(self.dc.train_ids[-1]) + 1))
+
+        self._positions = train_ids, pos[ix], counts
+        return self._positions
+
+    def compressed_positions(self, labelled=True):
         """Returns the unique motor positions and corresponding train IDs.
 
         Args:
@@ -150,15 +158,15 @@ class DetectorMotors:
             positions (tuple of two numpy.ndarray or xarray.DataArray):
                 The motor positions
         """
-        trainId, values, _ = self._get_unique_pos()
+        train_ids, values, _ = self._read_positions()
         if labelled:
             dims = ["trainId"] + list(self.dims.keys())
-            coords = {"trainId": trainId}
+            coords = {"trainId": train_ids}
             coords.update({name: values for name, values in self.dims.items()})
             return xarray.DataArray(
                 values, dims=dims, coords=coords, name=self._position_key)
         else:
-            return trainId, values
+            return train_ids, values
 
     def positions_at(self, tid):
         """Returns motor positions at given train.
@@ -171,14 +179,14 @@ class DetectorMotors:
             postions (numpy.ndarray):
                 The motor positions
         """
-        trainId, values, _ = self._get_unique_pos()
-        i = np.searchsorted(trainId, tid, side="right")
+        train_ids, values, _ = self._read_positions()
+        i = np.searchsorted(train_ids, tid, side="right")
         return values[max(i - 1, 0)]
 
     @property
     def most_frequent_positions(self):
         """Returns most frequent motor positions."""
-        trainId, values, counts = self._get_unique_pos()
+        _, values, counts = self._read_positions()
         return values[np.argmax(counts)]
 
     @property
@@ -211,6 +219,7 @@ def count_sources(collection, pattern, **dims):
 
 
 def _make_motor_placeholders(**dims):
+    """Makes placeholders for different methods of substitution."""
     placeholders = {}
     re_args = {}
     frm_args = {}
@@ -235,7 +244,7 @@ def _make_motor_placeholders(**dims):
 
 
 def find_detectors_and_motors(dc, pattern, position_key, **dims):
-    """Looks for motors in data collection."""
+    """Looks for motors related to any detector in data collection."""
     num_motors, frm_args, re_args, placeholders = (
         _make_motor_placeholders(**dims))
 
@@ -305,6 +314,7 @@ def find_detectors_and_motors(dc, pattern, position_key, **dims):
 
 
 def find_motors(dc, pattern, position_key, **dims):
+    """Looks for motors related to given detector in data collection."""
     num_motors, frm_args, _, placeholders = _make_motor_placeholders(**dims)
 
     pattern_camelcase = mangle_pattern(
