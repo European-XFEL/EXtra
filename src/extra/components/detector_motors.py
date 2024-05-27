@@ -5,6 +5,7 @@ from itertools import product
 
 import numpy as np
 import xarray
+from extra.data import PropertyNameError
 
 
 def mangle_device_id_underscore(device_id):
@@ -257,10 +258,15 @@ def find_detectors_and_motors(dc, pattern, position_key, **dims):
         if num_sources == num_motors:
             detectors[detector_id] = (src_ptrn, position_key)
 
-    sources = ((src, dc.get_run_value(src, "classId"))
-               for src in dc.control_sources)
-    data_selectors = [src for src, class_id in sources
-                      if class_id == "SlowDataSelector"]
+    data_selectors = []
+    for src in dc.control_sources:
+        try:
+            class_id = dc.get_run_value(src, "classId")
+            if class_id == "SlowDataSelector":
+                data_selectors.append(src)
+        except PropertyNameError:
+            # class id is unknown, skip source
+            pass
 
     suffix = f".{position_key}.value"
     for data_selector_id in data_selectors:
@@ -311,10 +317,15 @@ def find_motors(dc, pattern, position_key, **dims):
     if num_sources == num_motors:
         return src_ptrn, position_key
 
-    sources = ((src, dc.get_run_value(src, "classId"))
-               for src in dc.control_sources)
-    data_selectors = [src for src, class_id in sources
-                      if class_id == "SlowDataSelector"]
+    data_selectors = []
+    for src in dc.control_sources:
+        try:
+            class_id = dc.get_run_value(src, "classId")
+            if class_id == "SlowDataSelector":
+                data_selectors.append(src)
+        except PropertyNameError:
+            # class id is unknown, skip source
+            pass
 
     suffix = f".{position_key}.value"
     for data_selector_id in data_selectors:
