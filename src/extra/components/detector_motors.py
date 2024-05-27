@@ -172,8 +172,8 @@ class DetectorMotors:
                 The motor positions
         """
         trainId, values, _ = self._get_unique_pos()
-        i = np.searchsorted(trainId, tid)
-        return values[i if i < len(trainId) else -1]
+        i = np.searchsorted(trainId, tid, side="right")
+        return values[max(i - 1, 0)]
 
     @property
     def most_frequent_positions(self):
