@@ -11,15 +11,19 @@ import numpy as np
 from Cython.Build import cythonize
 from setuptools import Extension, setup
 
+cython_ext_kw = dict(
+    include_dirs=[np.get_include()],
+    compile_args = ['-g0', '-O3', '-fpic', '-frename-registers',
+                    '-ftree-vectorize']
+)
 
 setup(
     package_dir={'': 'src'},
     ext_modules=cythonize([
-        Extension('extra.utils.ftd',
-                  ['src/extra/utils/ftd.pyx'],
-                  include_dirs=[np.get_include()],
-                  extra_compile_args=[
-                      '-g0', '-O3', '-fpic', '-frename-registers',
-                      '-ftree-vectorize']),
+        Extension('extra.signal._ftd', ['src/extra/signal/_ftd.pyx'],
+                  **cython_ext_kw),
+        Extension('extra.signal._interpolation',
+                  ['src/extra/signal/_interpolation.pyx'],
+                  **cython_ext_kw),
     ], language_level=3),
 )

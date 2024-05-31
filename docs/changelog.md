@@ -37,6 +37,7 @@ Added:
   in corrected detector data (!172).
 - Deprecate pulse dimension `time` in favor of `pulseTime` (!178).
 - Constant fraction and dynamic leading edge discriminators to determine arrival time of fast pulses on an analog signal (!25).
+- Sinc interpolation method (!25).
 
 Fixed:
 

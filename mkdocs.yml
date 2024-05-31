@@ -28,6 +28,7 @@ nav:
     - components/dld.md
   - karabo-bridge.md
   - calibration.md
+  - signal.md
   - utilities.md
   - changelog.md
 

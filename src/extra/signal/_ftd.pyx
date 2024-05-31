@@ -28,66 +28,56 @@ cpdef enum EdgeInterpolation:
     SINC = 3
 
 """Sinc interpolation parameters."""
-cdef int sinc_window = 200
-cdef int sinc_search_iterations = 10
+cdef int _sinc_window = 200
+cdef int _sinc_search_iterations = 10
 
 
-def config_sinc_interpolation(window=None, search_iterations=None):
-    """Configure sinc interpolation.
+def config_ftd_interpolation(sinc_window=None, sinc_search_iterations=None):
+    """Configure fast timing discriminator interpolation.
 
-    As a consequence of the Nyquist theorem, sinc interpolation allows
-    to reconstruct a continuous-time function $x(t)$ up to a certain
-    bandwidth $1/T$ from a sequence of real numbers $x[n]$:
+    The interpolation offered by the fast timing discriminators in
+    [extra.signal] may be configured in terms of performance or
+    precision:
 
-    $$
-    x(t) = \sum \limits_n x[n] ~ {\\rm sinc} \\frac {t - n T}{T}
-    $$
-
-    This can be used to find the optimal edge position between samples
-    with the fast timing discriminators in this module. In particular
-    for fast slopes consisting of only a few sample points, this will
-    generally yield significantly better results than linear
-    interpolation, which tends to shift points towards the middle. For
-    the constant fraction discriminator specifically, this can also
-    be used to enable the use of real delay values.
-
-    This method has generally a large performance impact, but can be
-    somewhat tuned by parameters:
-
-    * `window` specifies the number of samples before and after the
+    * `sinc_window` specifies the number of samples before and after the
         interpolation points actually used to evaluate $x(t)$, i.e. the
-        finite boundaries to approximate the infinite sum above. By
-        default, up to 200 samples in each direction are used.
+        finite boundaries to approximate the infinite sum. By default,
+        up to 200 samples in each direction are used.
 
-    * `search_iterations` specifies the number of binary search steps
-        taken to find the optimal edge position from interpolated values
-        in between two samples. The maximal resolution in samples the
-        interpolation can therefore achieve with $N$ iterations is
+    * `sinc_search_iterations` specifies the number of binary search
+        steps taken to find the optimal edge position from interpolated
+        values in between two samples. The maximal resolution in samples
+        the interpolation can therefore achieve with $N$ iterations is
         $2^{-N}$.
 
     When set, these parameters apply to all discriminator
-    implementations and all their use of sinc interpolation.
+    implementations and all their use of interpolation.
+
+    For more details on sinc interpolation, please refer to
+    [sinc_interpolate][extra.signal.sinc_interpolate].
 
     Args:
-        window (int, optional): Sample window used around the
+        sinc_window (int, optional): Sample window used around the
             interpolated point, unchanged if omitted.
-        search_iterations (int, optional): Number of iterations used in
-            binary search for closest function argument, unchanged if
-            omitted.
+        sinc_search_iterations (int, optional): Number of iterations
+            used in binary search for closest function argument,
+            unchanged if omitted.
 
     Returns
-        (window, search_iterations) Tuple of current values.
+        config (dict) Mapping of current values with keys
+            `sinc_window`, `sinc_search_iterations`.
     """
 
-    global sinc_window, sinc_search_iterations
+    global _sinc_window, _sinc_search_iterations
 
-    if window is not None:
-        sinc_window = <int>window
+    if sinc_window is not None:
+        _sinc_window = <int>sinc_window
 
-    if search_iterations is not None:
-        sinc_search_iterations = <int>search_iterations
+    if sinc_search_iterations is not None:
+        _sinc_search_iterations = <int>sinc_search_iterations
 
-    return dict(window=sinc_window, search_iterations=sinc_search_iterations)
+    return dict(sinc_window=_sinc_window,
+                sinc_search_iterations=_sinc_search_iterations)
 
 
 cdef inline double _sinc(double x) noexcept nogil:
@@ -95,14 +85,17 @@ cdef inline double _sinc(double x) noexcept nogil:
 
     if x != 0.0:
         return sin(x*M_PI) / (x*M_PI)
-    else:
-        return 1.0
+
+    return 1.0
 
 
-cdef double _sinc_interp(data_t[::contiguous] y_sampled, double x_interp) noexcept nogil:
+cdef double _sinc_interp(
+    data_t[::contiguous] y_sampled, double x_interp
+) noexcept nogil:
     cdef int k, \
-        sampling_start = max(<int>floor(x_interp) - sinc_window, 0), \
-        sampling_end = min(<int>ceil(x_interp) + sinc_window, y_sampled.shape[0])
+        sampling_start = max(<int>floor(x_interp) - _sinc_window, 0), \
+        sampling_end = min(<int>ceil(x_interp) + _sinc_window,
+                           y_sampled.shape[0])
 
     cdef double y_interp = 0.0
 
@@ -123,8 +116,8 @@ cdef int _cfd_sinc_interp(
     cdef bint is_integer_delay = int_delay == delay
 
     cdef int k, \
-        sampling_start = max(i - sinc_window, int_delay), \
-        sampling_end = min(j + sinc_window, signal.shape[0])
+        sampling_start = max(i - _sinc_window, int_delay), \
+        sampling_end = min(j + _sinc_window, signal.shape[0])
 
     # Interpolation is always done on double precision, as single
     # precision is almost certain to cause rounding errors in the sum.
@@ -140,14 +133,14 @@ cdef int _cfd_sinc_interp(
         # the same interpolated values in its own summation for every
         # iteration. Computing these values only once and keep them in
         # a small buffer significantly increases performance.
-        interp_buf = <data_t*>malloc(sizeof(delay) * (2 * sinc_window + 1))
+        interp_buf = <data_t*>malloc(sizeof(delay) * (2 * _sinc_window + 1))
 
         assert interp_buf != NULL, 'unable to allocate interpolation buffer'
 
         for k in range(sampling_start, sampling_end):
             interp_buf[k - sampling_start] = _sinc_interp(signal, k - delay)
 
-    for _ in range(sinc_search_iterations):
+    for _ in range(_sinc_search_iterations):
         middle_pos = (left_pos + right_pos) / 2
 
         middle_value = 0.0
@@ -180,8 +173,8 @@ cdef data_t _dled_sinc_interp(
     data_array_t signal, bint negative, int ratio_idx, data_t ratio_value,
 ) noexcept nogil:
     cdef int k, \
-        sampling_start = max(ratio_idx - sinc_window, 0), \
-        sampling_end = min(ratio_idx + 1 + sinc_window, signal.shape[0])
+        sampling_start = max(ratio_idx - _sinc_window, 0), \
+        sampling_end = min(ratio_idx + 1 + _sinc_window, signal.shape[0])
 
     if negative:
         ratio_value = -ratio_value  # Invert for negative traces.
@@ -192,7 +185,7 @@ cdef data_t _dled_sinc_interp(
         middle_value, middle_pos = 0.0, \
         left_pos = <double>ratio_idx, right_pos = <double>(ratio_idx + 1)
 
-    for _ in range(sinc_search_iterations):
+    for _ in range(_sinc_search_iterations):
         middle_pos = (left_pos + right_pos) / 2
 
         middle_value = 0.0
@@ -226,7 +219,7 @@ def cfd(
 
     This discriminator can use sinc interpolation both to find the
     optimal walk crossing as well as to enable real delay values. Please
-    see [extra.utils.ftd.config_sinc_interpolation] for more details.
+    see [extra.signal.config_ftd_interpolation] for more details.
 
     Note that enabling both these features at the same time makes the
     discrimination much more expensive, as repeated nested
@@ -391,7 +384,7 @@ def dled(
     rising pulse slope points away from zero.
 
     This discriminator can use sinc interpolation to find the optimal
-    edge position, please see [extra.utils.ftd.config_sinc_interpolation]
+    edge position, please see [extra.signal.config_ftd_interpolation]
     for more details.
 
     Args:
@@ -544,25 +537,3 @@ def dled(
 
     return np.asarray(edges)[:edge_idx], np.asarray(amplitudes)[:edge_idx], \
         edge_idx
-
-
-def sinc_interpolate(
-    data_t[::contiguous] y_sampled, data_t[::contiguous] x_interp,
-    double[::contiguous] y_interp = None, int window=100
-):
-    # TODO: Useful function that should go somewhere, but doesn't
-    # actually belong to this module.
-
-    if y_interp is None:
-        y_interp = np.zeros(len(x_interp), dtype=np.float64)
-
-    cdef int i, k, \
-        interp_len = min(x_interp.shape[0], y_interp.shape[0]), \
-        sampling_start = max(<int>floor(x_interp[0]) - window, 0), \
-        sampling_end = min(<int>ceil(x_interp[0]) + window, y_sampled.shape[0])
-
-    for i in range(interp_len):
-        for k in range(sampling_start, sampling_end):
-            y_interp[i] += y_sampled[k] * _sinc(k - x_interp[i])
-
-    return np.asarray(y_interp)

@@ -23,11 +23,3 @@ else.
 ## Fitting functions
 
 ::: extra.utils.fit_gaussian
-
-## Fast timing discrimination
-
-::: extra.utils.ftd.cfd
-
-::: extra.utils.ftd.dled
-
-::: extra.utils.ftd.config_sinc_interpolation
