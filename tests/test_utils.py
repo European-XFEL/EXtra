@@ -1,3 +1,4 @@
+
 import numpy as np
 
 from extra.utils import imshow2, fit_gaussian, gaussian
@@ -7,6 +8,7 @@ def test_scaled_imshow():
     # Smoke test
     image = np.random.rand(100, 100)
     imshow2(image)
+
 
 def test_fit_gaussian():
     # Test with auto-generated xdata and nans/infs
