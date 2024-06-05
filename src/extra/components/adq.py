@@ -457,27 +457,6 @@ class AdqRawChannel:
             edges=xr.DataArray(edges, coords=coords),
             amplitudes=xr.DataArray(amplitudes, coords=coords)))
 
-    def _iter_cont_chunks(self):
-        """Iterate over contiguous dataset regions."""
-
-        out_start = 0
-
-        # Calling private EXtra-data APIs, use with caution.
-        for chunk in self._raw_key._data_chunks_nonempty:
-            h5_chunk_len = chunk.dataset.chunks[0]
-
-            for local_start in range(0, chunk.total_count, h5_chunk_len):
-                local_end = min(local_start + h5_chunk_len, chunk.total_count)
-                out_end = out_start + (local_end - local_start)
-                first = int(chunk.first)
-
-                yield chunk.dataset, \
-                    np.s_[first+local_start:first+local_end], \
-                    np.s_[out_start:out_end], \
-                    chunk.train_ids[local_start:local_end]
-
-                out_start = out_end
-
     @property
     def control_source(self):
         """Control source of this digitizer, if found in data."""
@@ -1029,10 +1008,14 @@ class AdqRawChannel:
             self._raw_key.entry_shape, roi)
         out = self._validate_out(out, shape)
 
-        # Loop over contiguous chunks of raw instrument data.
-        for dset, row_sel, out_sel, train_ids in self._iter_cont_chunks():
-            dset.read_direct(out[out_sel], source_sel=(row_sel, *roi))
-            self._preprocess(out[out_sel], out[out_sel])
+        offset = 0
+        for kd in self._raw_key.split_trains(trains_per_part=200):
+            num_trains = int(kd.shape[0])  # Beware of uint64
+            out_sel = out[offset:offset+num_trains]
+            offset += num_trains
+
+            kd.ndarray(roi=roi, out=out_sel)
+            self._preprocess(out_sel, out_sel)
 
         if not labelled:
             return out
@@ -1079,24 +1062,22 @@ class AdqRawChannel:
         # Convert to unlabelled array for use in native code later.
         pulse_ids = pulse_ids.to_numpy()
 
-        # Loop over contiguous chunks of raw instrument data.
-        tmp = None  # Temporary buffer for a single HDF chunk.
-        for dset, row_sel, out_sel, train_ids in self._iter_cont_chunks():
-            pulse_sel = np.s_[pulse_layout.loc[train_ids[0]]['first']:
-                              pulse_layout.loc[train_ids[-1]]['last']]
+        # Drop empty trains for efficient access to train IDs.
+        raw_key = self._raw_key.drop_empty_trains()
 
-            if tmp is None or tmp.shape != dset.shape:
-                # Allocate a new buffer is none yet exists or the
-                # chunk size has changed, which *should* not happen.
-                tmp = np.zeros(dset.chunks, dtype=out.dtype)
+        # Temporary buffer for a single iteration.
+        tmp = np.zeros((200,) + self._raw_key.entry_shape, dtype=out.dtype)
 
-            # Read into the temporary buffer.
-            chunk_out = tmp[:(row_sel.stop - row_sel.start)]
-            dset.read_direct(chunk_out, source_sel=(row_sel, *train_roi))
+        for kd in raw_key.split_trains(trains_per_part=200):
+            pulse_sel = np.s_[pulse_layout.loc[kd.train_ids[0]]['first']:
+                              pulse_layout.loc[kd.train_ids[-1]]['last']]
 
-            self._preprocess(chunk_out, chunk_out)
+            tmp_sel = tmp[:len(kd.train_ids)]
+            kd.ndarray(roi=train_roi, out=tmp_sel)
+
+            self._preprocess(tmp_sel, tmp_sel)
             self._reshape_flat_pulses(
-                chunk_out, out[pulse_sel], pulse_ids[pulse_sel],
+                tmp_sel, out[pulse_sel], pulse_ids[pulse_sel],
                 pulse_layout['length'].max())
 
         if not labelled:
