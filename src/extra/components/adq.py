@@ -42,7 +42,7 @@ class AdqRawChannel:
       * `cm_period > 0 and baselevel is not None`: Common mode
         correction is performed with baseline pulled to `baselevel`.
 
-      * `cm_period > 0 and baselevel is None` (defualt): Common mode
+      * `cm_period > 0 and baselevel is None` (default): Common mode
         correction is performed with baseline at `0`.
 
       * `cm_period == 0 and baselevel is not None`: Baseline is pulled
@@ -57,7 +57,7 @@ class AdqRawChannel:
     available to run explicitly on a set of data.
 
     Args:
-        data (extra.data.DataCollection): Data to access digitizer from.
+        data (extra_data.DataCollection): Data to access digitizer from.
         channel (str): Channel name with or without underscore, e.g.
             1_A or 3C.
         digitizer (str, optional): Source name of an ADQ digitizer, only
@@ -74,7 +74,7 @@ class AdqRawChannel:
             detected automatically.
         clock_ratio (int, optional): Digitizer sampling clock as
             multiple of the bunch repetition rate (4.5 MHz).
-        sample_dim ({sample, time}, optional): Coordinates for sample
+        sample_dim ('sample' or 'time', optional): Coordinates for sample
             dimension if a labelled result is returned, sample by default.
         first_pulse_offset (int, optional): Sample where the first
             pulse begins, 10000 by default. This is used to locate the
@@ -85,10 +85,10 @@ class AdqRawChannel:
         cm_period (int, optional): Apply common mode correction with
             specified sample periodicity, disabled for non-positive
             values and by default 8 or 16 when interleaved.
-        baseline (slice or ArrayLike, optional): Contiguous 1D slice
-            of the trace of each train to determine common mode or
-            baseline or direct baseline data to use, :1000 by default.
-        baselevel (number, optional): ADU value to pull the baseline
+        baseline (slice or numpy.typing.ArrayLike, optional): Contiguous
+            1D slice of the trace of each train to determine common mode
+            or baseline or direct baseline data to use, :1000 by default.
+        baselevel (float, optional): ADU value to pull the baseline
             to, None by default. Note that common mode corrections
             if enabled always pull the baselevel to zero unless
             specified otherwise here.
@@ -634,14 +634,15 @@ class AdqRawChannel:
             pulse_period (int, optional): Pulse period in PPT units of 4.5 MHz.
             pulse_duration (float, optional): Pulse duration in seconds.
             repetition_rate (float, optional): Pulse repetition rate in Hz.
-            pulse_ids (ArrayLike, optional): Pulse IDs of a single train.
+            pulse_ids (numpy.typing.ArrayLike, optional): Pulse IDs of a
+                single train.
             fractional (bool, optional): Whether to round to possible
                 EuXFEL repetition rates (default) or return the full
                 fractional value.
 
         Returns:
-            samples_per_pulse (int or float) Number of samples per pulse,
-                float if `fractional=True`.
+            samples_per_pulse (int or float): Number of samples per
+                pulse, float if `fractional=True`.
         """
 
         if pulse_period is None:
@@ -695,19 +696,18 @@ class AdqRawChannel:
         pulled to 0 by this method.
 
         Args:
-            data (ArrayLike): Input data to preprocess, will be
-                converted to np.ndarray currently.
+            data (numpy.typing.ArrayLike): Input data to preprocess.
             cm_period (int): Sample periodicity of the common mode,
                 generally 8 or 16 with interleaving.
-            baseline (slice or ArrayLike): Contiguous 1D slice
-                of the trace of each train to determine common mode or
-                baseline or direct baseline data to use.
-            baselevel (number or None, optional): ADU value to pull the
+            baseline (slice or numpy.typing.ArrayLike): Contiguous 1D
+                slice of the trace of each train to determine baselevel
+                or direct baseline data to use.
+            baselevel (float or None, optional): ADU value to pull the
                 baseline to, None by default which implicitly pulls the
                 baseline to 0.
 
         Returns:
-            out (ndarray): Corrected input data.
+            out (numpy.ndarray): Corrected input data.
         """
 
         if cm_period < 1:
@@ -730,16 +730,16 @@ class AdqRawChannel:
         method can pull the baseline to any desired level.
 
         Args:
-            data (ArrayLike): Input data to preprocess, will be
-                converted to np.ndarray currently.
-            baseline (slice or ArrayLike): Contiguous 1D slice
-                of the trace of each train to determine baselevel or
-                direct baseline data to use.
-            baselevel (number): ADU value to pull the baseline
+            data (numpy.typing.ArrayLike): Input data to preprocess,
+                will be converted to np.ndarray currently.
+            baseline (slice or numpy.typing.ArrayLike): Contiguous 1D
+                slice of the trace of each train to determine baselevel
+                or direct baseline data to use.
+            baselevel (float): ADU value to pull the baseline
                 to.
 
         Returns:
-            out (ndarray): Modified input data.
+            out (numpy.ndarray): Modified input data.
         """
 
         if not isinstance(data, np.ndarray):
@@ -758,14 +758,15 @@ class AdqRawChannel:
         pulse information the component is initialized with.
 
         Args:
-            data (ArrayLike): Digitizer trace(s) for one or more trains,
-                last axis is assumed to be samples within a train.
+            data (numpy.typing.ArrayLike): Digitizer trace(s) for one or
+                more trains, last axis is assumed to be samples within
+                a train.
             first_pulse_offset (int, optional): Sample where the first
                 pulse begins, by default the value the component was
                 initialized with.
 
         Returns:
-            out (ArrayLike): Reshaped pulse traces.
+            out (numpy.ndarray): Reshaped pulse traces.
         """
 
         # TODO: Support data.ndim > 2
@@ -790,18 +791,18 @@ class AdqRawChannel:
         """Unstack pulse axis into train and pulse.
 
         This method unstacks the pulse axis introduced by
-        [AdqRawChannel.pulse_data] into separate axis for train and
-        the pulses for each of these trains.
+        [pulse_data()][extra.components.AdqRawChannel.pulse_data] into
+        separate axis for train and the pulses for each of these trains.
 
         It is currently limited to 2D data, i.e. expects the first axis
         to exactly represent pulses and the second axis to contain
         samples, and the number of pulses per train have to be constant.
 
         Args:
-            data (ArrayLike): Data separated by pulse.
+            data (numpy.typing.ArrayLike): Data separated by pulse.
 
         Returns:
-            out (numpy.ndarray or xarray.DataArray) Data separated by
+            out (numpy.ndarray or xarray.DataArray): Data separated by
                 train and pulse. If labelled data with a `pulse`
                 index is passed, a labelled result is returned using
                 the correspondig coordinates.
@@ -863,20 +864,21 @@ class AdqRawChannel:
         of such signals.
 
         By default, it uses the
-        [dynamic leading discriminator](extra.signal.dled) from the
-        [extra.signal](extra.signal) package, but other from this
+        [dynamic leading discriminator][extra.signal.dled] from the
+        [extra.signal](../signal.md) package, but other from this
         package or entirely custom functions may be used as well. The
         required signatures must include three keyword arguments
         `signal`, `edges` and `amplitudes` corresponding to those from
-        [extra.signal.dled](extra.signal.dled). The default edge finding
+        [extra.signal.dled][extra.signal.dled]. The default edge finding
         method requires the `threshold` parameter to be passed as
         keyword argument.
 
-        The processing is parallelized via `pasha`.
+        The processing is parallelized via
+        [pasha](https://github.com/European-XFEL/pasha).
 
         Args:
-            data (ArrayLike): Input data to find edges on.
-            edge_func (Callable, optional): Edge finding method to run
+            data (numpy.typing.ArrayLike): Input data to find edges on.
+            edge_func (callable, optional): Edge finding method to run
                 on each train trace, extra.signal.dled by default.
             max_edges (int, optional): Maximal number of edges per
                 train, 50 by default.
@@ -884,9 +886,8 @@ class AdqRawChannel:
                 processes to use, by default 10 or a quarter of all cores
                 whichever is lower. Any non-positive value or 1 disable
                 parallelization.
-
-            Any further keyword arguments are passed to the edge finding
-            method.
+            **edge_kw (Any): Any further keyword arguments are passed to
+                the edge finding method.
 
         Returns:
             result (pandas.DataFrame): Edge positions and pulse heights.
@@ -909,12 +910,13 @@ class AdqRawChannel:
                         **edge_kw):
         """Find signal edges as ragged array.
 
-        Alternative method to [find_edges][AdqRawChannel.find_edges]
-        returning the results as ragged arrays, using nan as placeholder
+        Alternative method to
+        [find_edges()][extra.components.AdqRawChannel.find_edges]
+        returning the results as ragged arrays, using `np.nan` as filler
         value.
 
         Args:
-            data (ArrayLike): Input data to find edges on.
+            data (numpy.typing.ArrayLike): Input data to find edges on.
             labelled (bool, optional): Whether data is returned as a
                 labelled xarray (default) or unlabelled ndarray.
             squeeze_edges (bool, optional): Whether to minimize the edge
@@ -928,20 +930,19 @@ class AdqRawChannel:
                 processes to use, by default 10 or a quarter of all cores
                 whichever is lower. Any non-positive value or 1 disable
                 parallelization.
-
-            Any further keyword arguments are passed to the edge finding
-            method.
+            **edge_kw (Any): Any further keyword arguments are passed to
+                the edge finding method.
 
         Returns:
-            edges, amplitudes (numpy.ndarray): Tuple of edge positions
+            result (numpy.ndarray, numpy.ndarray): Tuple of edge positions
                 and amplitudes, only if not labelled.
 
             result (xarray.Dataset): Edge positions and pulse heights,
-                only
+                only if labelled
         """
 
-        # When given or returning xarray, include digitizer parameters
-        # as attributes
+        # TODO: When given or returning xarray, include digitizer
+        # parameters as attributes.
 
         if _isinstance_no_import(data, 'xarray', 'DataArray'):
             # If input is an xarray, preserve coordinates and use the
@@ -997,8 +998,8 @@ class AdqRawChannel:
             roi (slice or tuple, optional): Part of the trace of each
                 train to read, applied before any preprocessing is
                 performed. The entire train trace is read if omitted.
-            out (ArrayLike, optional): Array to read into, a new is
-                allocated if omitted.
+            out (numpy.typing.ArrayLike, optional): Array to read into,
+                a new is allocated if omitted.
 
         Returns:
             data (xarray.DataArray or numpy.ndarray): Digitizer traces.
@@ -1048,16 +1049,16 @@ class AdqRawChannel:
         Args:
             labelled (bool, optional): Whether data is returned as a
                 labelled xarray (default) or unlabelled ndarray.
-            pulse_dim ({pulseId, pulseIndex, pulseTime}, optional):
+            pulse_dim ('pulseId' or 'pulseIndex' or 'pulseTime', optional):
                 Label for pulse dimension, pulse ID by default.
             train_roi (slice or tuple, optional): Part of the trace of
                 each train to read, applied before any preprocessing is
                 performed. The entire train trace is read if omitted.
-            out (array_like, optional): Array to read into, a new one is
-                allocated if omitted.
+            out (numpy.typing.ArrayLike, optional): Array to read into,
+                a new one is allocated if omitted.
 
         Returns:
-            (numpy.ndarray or xarray.DataArray) Digitizer traces
+            data (xarray.DataArray or numpy.ndarray): Digitizer traces.
         """
 
         if isinstance(train_roi, slice):
@@ -1110,10 +1111,11 @@ class AdqRawChannel:
         significantly more memory efficient than performing these
         operations sequentially from memory.
 
-        Please see [AdqRawChannel.find_edges] for more details.
+        Please see [find_edges()][extra.components.AdqRawChannel.find_edges]
+        for more details.
 
         Args:
-            edge_func (Callable, optional): Edge finding method to run
+            edge_func (callable, optional): Edge finding method to run
                 on each train trace, extra.signal.dled by default.
             max_edges (int, optional): Maximal number of edges per
                 train, 1/5000 of trace length by default.
@@ -1121,9 +1123,8 @@ class AdqRawChannel:
                 processes to use, by default 10 or a quarter of all cores
                 whichever is lower. Any non-positive value or 1 disable
                 parallelization.
-
-            Any further keyword arguments are passed to the edge finding
-            method.
+            **edge_kw (Any): Any further keyword arguments are passed to
+                the edge finding method.
 
         Returns:
             result (pd.DataFrame): Edge positions and pulse heights.
@@ -1140,8 +1141,9 @@ class AdqRawChannel:
                          **edge_kw):
         """Load data and find signal edges by train as ragged array.
 
-        Alternative method to [find_edges][AdqRawChannel.train_edges]
-        returning the results as ragged arrays, using nan as placeholder
+        Alternative method to
+        [train_edges()][extra.components.AdqRawChannel.train_edges]
+        returning the results as ragged arrays, using `np.nan` as filler
         value.
 
         Args:
@@ -1150,7 +1152,7 @@ class AdqRawChannel:
             squeeze_edges (bool, optional): Whether to minimize the edge
                 axis length to the maxinum number of edges found per
                 row, True by default.
-            edge_func (Callable, optional): Edge finding method to run
+            edge_func (callable, optional): Edge finding method to run
                 on each train trace, extra.signal.dled by default.
             max_edges (int, optional): Maximal number of edges per
                 train, 1/5000 of trace length by default.
@@ -1158,13 +1160,12 @@ class AdqRawChannel:
                 processes to use, by default 10 or a quarter of all cores
                 whichever is lower. Any non-positive value or 1 disable
                 parallelization.
-
-            Any further keyword arguments are passed to the edge finding
-            method.
+            **edge_kw (Any): Any further keyword arguments are passed to
+                the edge finding method.
 
         Returns:
-            edges, amplitudes (numpy.ndarray): Tuple of edge positions
-                and amplitudes, only if not labelled.
+            result (numpy.ndarray, numpy.ndarray): Tuple of edge
+                positions and amplitudes, only if not labelled.
 
             result (xarray.Dataset): Edge positions and pulse heights,
                 only if labelled.
@@ -1207,13 +1208,14 @@ class AdqRawChannel:
         efficient than performing these operations sequentially from
         memory.
 
-        Please see [AdqRawChannel.pulse_data] and
-        [AdqRawChannel.find_edges] for more details.
+        Please see [pulse_data()][extra.components.AdqRawChannel.pulse_data]
+        and [find_edges()][extra.components.AdqRawChannel.find_edges]
+        for more details.
 
         Args:
-            pulse_dim ({pulseId, pulseIndex, pulseTime}, optional):
+            pulse_dim ('pulseId' or 'pulseIndex' or 'pulseTime', optional):
                 Label for pulse dimension, pulse ID by default.
-            edge_func (Callable, optional): Edge finding method to run
+            edge_func (callable, optional): Edge finding method to run
                 on each train trace, extra.signal.dled by default.
             max_edges (int, optional): Maximal number of edges per
                 train, 1/100 of trace length per pulse by default.
@@ -1221,9 +1223,8 @@ class AdqRawChannel:
                 processes to use, by default 10 or a quarter of all cores
                 whichever is lower. Any non-positive value or 1 disable
                 parallelization.
-
-            Any further keyword arguments are passed to the edge finding
-            method.
+            **edge_kw (Any): Any further keyword arguments are passed to
+                the edge finding method.
 
         Returns:
             result (pd.DataFrame): Edge positions and pulse heights.
@@ -1240,8 +1241,9 @@ class AdqRawChannel:
                          parallel=None, **edge_kw):
         """Load data and find signal edges by pulse as ragged array.
 
-        Alternative method to [find_edges][AdqRawChannel.pulse_edges]
-        returning the results as ragged arrays, using nan as placeholder
+        Alternative method to
+        [pulse_edges][extra.components.AdqRawChannel.pulse_edges]
+        returning the results as ragged arrays, using `np.nan` as filler
         value.
 
         Args:
@@ -1250,9 +1252,9 @@ class AdqRawChannel:
             squeeze_edges (bool, optional): Whether to minimize the edge
                 axis length to the maxinum number of edges found per
                 row, True by default.
-            pulse_dim ({pulseId, pulseIndex, pulseTime}, optional):
+            pulse_dim ('pulseId' or 'pulseIndex' or 'pulseTime', optional):
                 Label for pulse dimension, pulse ID by default.
-            edge_func (Callable, optional): Edge finding method to run
+            edge_func (callable, optional): Edge finding method to run
                 on each train trace, extra.signal.dled by default.
             max_edges (int, optional): Maximal number of edges per
                 train, 1/100 of trace length by pulse by default.
@@ -1260,13 +1262,12 @@ class AdqRawChannel:
                 processes to use, by default 10 or a quarter of all cores
                 whichever is lower. Any non-positive value or 1 disable
                 parallelization.
-
-            Any further keyword arguments are passed to the edge finding
-            method.
+            **edge_kw (Any): Any further keyword arguments are passed to
+                the edge finding method.
 
         Returns:
-            edges, amplitudes (numpy.ndarray): Tuple of edge positions
-                and amplitudes, only if not labelled.
+            result (numpy.ndarray, numpy.ndarray): Tuple of edge
+                positions and amplitudes, only if not labelled.
 
             result (xarray.Dataset): Edge positions and pulse heights,
                 only if labelled.
