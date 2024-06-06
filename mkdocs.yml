@@ -25,7 +25,9 @@ nav:
     - components/beam-properties.md
     - components/scans.md
     - components/pulse-patterns.md
-    - components/dld.md
+    - components/delay-line-detectors.md
+    - components/optical-lasers.md
+    - components/adq-digitizers.md
   - karabo-bridge.md
   - calibration.md
   - signal.md
