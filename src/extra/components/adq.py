@@ -994,15 +994,23 @@ class AdqRawChannel:
         Args:
             labelled (bool, optional): Whether data is returned as a
                 labelled xarray (default) or unlabelled ndarray.
-            roi (slice, optional): Part of the trace of each train to
-                read, applied before any preprocessing is performed. The
-                entire train trace is read if omitted.
+            roi (slice or tuple, optional): Part of the trace of each
+                train to read, applied before any preprocessing is
+                performed. The entire train trace is read if omitted.
             out (ArrayLike, optional): Array to read into, a new is
                 allocated if omitted.
 
         Returns:
             data (xarray.DataArray or numpy.ndarray): Digitizer traces.
         """
+
+        if isinstance(roi, slice):
+            # The argument was always documented as slice, but actually
+            # required a tuple identical to KeyData.ndarray(). Raw trace
+            # data can never exceed one dimension, so this is confusing.
+            # For comaptibility and and ease of code below, both can be
+            # supported implicitly.
+            roi = (roi,)
 
         shape = (self._raw_key.shape[0],) + roi_shape(
             self._raw_key.entry_shape, roi)
@@ -1042,15 +1050,19 @@ class AdqRawChannel:
                 labelled xarray (default) or unlabelled ndarray.
             pulse_dim ({pulseId, pulseIndex, pulseTime}, optional):
                 Label for pulse dimension, pulse ID by default.
-            train_roi (slice, optional): Part of the trace of each train
-                to read, applied before any preprocessing is performed.
-                The entire train trace is read if omitted.
+            train_roi (slice or tuple, optional): Part of the trace of
+                each train to read, applied before any preprocessing is
+                performed. The entire train trace is read if omitted.
             out (array_like, optional): Array to read into, a new one is
                 allocated if omitted.
 
         Returns:
             (numpy.ndarray or xarray.DataArray) Digitizer traces
         """
+
+        if isinstance(train_roi, slice):
+            # See comment in AdqChannel.train_data().
+            train_roi = (train_roi,)
 
         # Obtain information about pulse layout.
         pulse_ids, pulse_layout = self._prepare_pulses()
