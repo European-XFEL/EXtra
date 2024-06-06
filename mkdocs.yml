@@ -92,6 +92,7 @@ plugins:
             heading_level: 3
             show_source: no
             inherited_members: yes
+            show_symbol_type_toc: yes
 
 extra_css:
   - css/mkdocstrings.css
