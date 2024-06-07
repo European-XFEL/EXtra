@@ -177,6 +177,11 @@ class PulsePattern:
         return self._source
 
     def select_trains(self, trains):
+        """Select a subset of trains.
+
+        The argument can be any object accepted by
+        [DataCollection.select_trains()][extra_data.DataCollection.select_trains].
+        """
         new_train_ids = None
         res = copy(self)
 
