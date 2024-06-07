@@ -230,16 +230,15 @@ class DelayLineDetector:
             if shared_index[:2] == df.index.names[:2]:
                 # Same pulse dimensions as the dataframe.
                 if num_per_pulse is None:
-                    num_per_pulse = df[df.columns[0]].groupby(
-                        level=df.index.names[:-1]).count()
+                    num_per_pulse = df.groupby(
+                        level=df.index.names[:-1]).size()
 
                 align = num_per_pulse
 
             elif shared_index == ['trainId']:
                 # Same train ID dimension as the dataframe.
                 if num_per_train is None:
-                    num_per_train = df[df.columns[0]].groupby(
-                        level=df.index.names[0]).count()
+                    num_per_train = df.groupby(level=df.index.names[0]).size()
 
                 align = num_per_train
 
