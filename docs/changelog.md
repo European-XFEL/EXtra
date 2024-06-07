@@ -17,6 +17,7 @@
     ```
 Added:
 
+- A module to expose the [DAMNIT API](damnit.md).
 - [AdqRawChannel][extra.components.AdqRawChannel] to access and process raw traces saved by fast ADQ digitizers (!35).
 - Hits obtained via [DelayLineDetector.hits()][extra.components.DelayLineDetector.hits] can now optionally be restricted to hits reconstructed with a certain method. (!170).
 - [DldPulses][extra.components.DldPulses] can optionally enumerate PPL-only pulses using negative indices to stay compatible with PPL-unaware data. (!167).
