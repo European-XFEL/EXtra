@@ -63,8 +63,8 @@ def config_ftd_interpolation(sinc_window=None, sinc_search_iterations=None):
             used in binary search for closest function argument,
             unchanged if omitted.
 
-    Returns
-        config (dict) Mapping of current values with keys
+    Returns:
+        config (dict): Mapping of current values with keys
             `sinc_window`, `sinc_search_iterations`.
     """
 
@@ -248,7 +248,7 @@ def cfd(
             allocated if None is passed.
 
     Returns:
-        (ArrayLike, ArrayLike, int) 1D arrays containing the edge
+        (ArrayLike, ArrayLike, int): 1D arrays containing the edge
             positions and amplitudes, number of found edges.
     """
 
@@ -405,8 +405,9 @@ def dled(
         amplitudes (ArrayLike, optional): 1D output array to hold the
             pulse amplitudes corresponding to found edges, a new one is
             allocated if None is passed.
+
     Returns:
-        (ArrayLike, ArrayLike, int) 1D arrays containing the edge
+        (ArrayLike, ArrayLike, int): 1D arrays containing the edge
             positions and amplitudes, number of found edges.
     """
 

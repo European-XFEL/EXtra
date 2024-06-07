@@ -19,7 +19,7 @@ Added:
 
 - [AdqRawChannel][extra.components.AdqRawChannel] to access and process raw traces saved by fast ADQ digitizers (!35).
 - Hits obtained via [DelayLineDetector.hits()][extra.components.DelayLineDetector.hits] can now optionally be restricted to hits reconstructed with a certain method. (!170).
-- [DldPulses](extra.components.DldPulses) can optionally enumerate PPL-only pulses using negative indices to stay compatible with PPL-unaware data. (!167).
+- [DldPulses][extra.components.DldPulses] can optionally enumerate PPL-only pulses using negative indices to stay compatible with PPL-unaware data. (!167).
 - The `slowTrains` XGM property is available through
   [XGM.slow_train_energy()][extra.components.XGM.slow_train_energy] (!162).
 - [XGM.pulse_energy()][extra.components.XGM.pulse_energy] can now take a
@@ -34,7 +34,7 @@ Added:
 - A new method [Scan.split_by_steps()][extra.components.Scan.split_by_steps] (!169).
 - [PumpProbePulses.pulse_mask][extra.components.PumpProbePulses.pulse_mask] now
   has an option to give a mask for only FEL or only pump laser pulses (!174).
-- [BadPixels](extra.calibration.BadPixels) flag values for interpreting masks
+- [BadPixels][extra.calibration.BadPixels] flag values for interpreting masks
   in corrected detector data (!172).
 - Deprecate pulse dimension `time` in favor of `pulseTime` (!178).
 - Constant fraction and dynamic leading edge discriminators to determine arrival time of fast pulses on an analog signal (!25).

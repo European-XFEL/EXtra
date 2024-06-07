@@ -99,3 +99,6 @@ ENV/
 *.h5
 
 src/extra/__version__.py
+
+# Generated C files from Cython
+*.c

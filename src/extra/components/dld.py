@@ -201,7 +201,7 @@ class DelayLineDetector:
                 index and data is repeated accordingly.
 
         Returns:
-            None
+            (NoneType): None
         """
 
         # Compute these lazily.

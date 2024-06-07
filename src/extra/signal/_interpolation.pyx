@@ -50,7 +50,7 @@ def sinc_interpolate(
             By default, up to 100 samples in each direction are used.
 
     Returns:
-        y_interp (np.ndarray) Interpolated output data.
+        y_interp (np.ndarray): Interpolated output data.
     """
 
     if y_interp is None:
@@ -66,4 +66,3 @@ def sinc_interpolate(
             y_interp[i] += y_sampled[k] * _sinc(k - x_interp[i])
 
     return np.asarray(y_interp)
-    

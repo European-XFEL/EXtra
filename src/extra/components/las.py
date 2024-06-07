@@ -32,12 +32,12 @@ class OpticalLaserDelay:
     procedure is to use the measured values at temporal overlap as
     reference offsets.
 
-    The total delay $\Delta t$ is then calculated by:
+    The total delay $\\Delta t$ is then calculated by:
 
     $$
-    \Delta t = (\Delta t_{\rm stage} - r_{\rm stage})
-      - (\Delta t_{\rm trigger} - r_{\rm trigger})
-      + (\Delta t_{bam} - r_{\rm bam})
+    \\Delta t = (\\Delta t_{\rm stage} - r_{\rm stage})
+      - (\\Delta t_{\rm trigger} - r_{\rm trigger})
+      + (\\Delta t_{bam} - r_{\rm bam})
     $$
 
     When constructed, it will try to find the appropriate delay sources
