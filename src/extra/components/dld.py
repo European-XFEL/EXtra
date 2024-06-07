@@ -87,7 +87,7 @@ class DelayLineDetector:
                 Label for pulse dimension, pulse ID by default.
 
         Returns:
-            (pandas.Index or None): Index from internal pulses component
+            Index (pandas.Index or None): Internal pulses component
                 aligned to KeyData object in terms of trains.
         """
 
@@ -138,19 +138,19 @@ class DelayLineDetector:
         contain actual data up to a variable number for each entry.
 
         Args:
-            data (ndarray): 2D data array.
+            data (numpy.typing.ArrayLike): 2D data array.
             index (pd.Index or None): Index to apply to reduced data,
                 or None to indicate no valid entries.
             entry_level (str or None): Additional index level inserted
                 for each entry or omitted if None.
-            mask_func (Callable or None): Additional mask applied to
+            mask_func (callable or None): Additional mask applied to
                 data before reduction, must be a callable taking the
                 raveled input data as an argument and return an equal-
                 length boolean array.
 
         Returns:
-            (pandas.Series or pandas.DataFrame): Series objects are
-                returned for scalar data and DataFrame objects for
+            result (pandas.Series or pandas.DataFrame): Series objects
+                are returned for scalar data and DataFrame objects for
                 structured data.
         """
 
@@ -230,16 +230,15 @@ class DelayLineDetector:
             if shared_index[:2] == df.index.names[:2]:
                 # Same pulse dimensions as the dataframe.
                 if num_per_pulse is None:
-                    num_per_pulse = df[df.columns[0]].groupby(
-                        level=df.index.names[:-1]).count()
+                    num_per_pulse = df.groupby(
+                        level=df.index.names[:-1]).size()
 
                 align = num_per_pulse
 
             elif shared_index == ['trainId']:
                 # Same train ID dimension as the dataframe.
                 if num_per_train is None:
-                    num_per_train = df[df.columns[0]].groupby(
-                        level=df.index.names[0]).count()
+                    num_per_train = df.groupby(level=df.index.names[0]).size()
 
                 align = num_per_train
 
@@ -288,10 +287,12 @@ class DelayLineDetector:
     def pulses(self, **kwargs):
         """Get pulse object based on internal triggers.
 
-        Any keyword arguments are passed to the underlying DldPulses.
+        Args:
+            **kwargs (Any): Any keyword arguments are passed to the
+                underlying [DldPulses][extra.components.DldPulses].
 
         Returns:
-            (extra.components.DldPulses): Pulse object based on
+            pulses (extra.components.DldPulses): Pulse object based on
                 constructed trigger information.
         """
 
@@ -306,8 +307,8 @@ class DelayLineDetector:
         """Get triggers as dataframe.
 
         Returns:
-            (pandas.DataFrame): Constructed trigger information as
-                dataframe.
+            Triggers (pandas.DataFrame): Constructed trigger information
+                as dataframe.
         """
 
         return self.pulses().triggers()
@@ -319,13 +320,13 @@ class DelayLineDetector:
             channel_index (bool, optional): Whether to insert the edge
                 channel as index level and return Series object
                 (default), or as column and return DataFrame object.
-            pulse_dim ({pulseId, pulseIndex, pulseTime}, optional):
+            pulse_dim ('pulseId' or 'pulseIndex' or 'pulseTime', optional):
                 Label for pulse dimension, pulse ID by default.
 
         Returns:
-            (pd.Series or pd.DataFrame): Raw edge positions as Series
-                (indexed by channel) or DataFrame (with channel as
-                column) object.
+            edges (pd.Series or pd.DataFrame): Raw edge positions as
+                series (indexed by channel) or dataframe (with channel
+                as column) object.
         """
 
         kd = self._instrument_src['raw.edges']
@@ -357,23 +358,24 @@ class DelayLineDetector:
         This data is primarily for detector diagnostics purposes and
         should generally not be used for scientific data analysis,
         please refer instead to reconstructed x, y, t data obtained from
-        [hits()](extra.components.DelayLineDetector.hits()).
+        [hits()][extra.components.DelayLineDetector.hits].
 
         Args:
-            pulse_dim ({pulseId, pulseIndex, pulseTime}, optional):
+            pulse_dim ('pulseId' or 'pulseIndex', 'pulseTime', optional):
                 Label for pulse dimension, pulse ID by default.
             extra_columns (dict): Mapping of column name to labeled 1D
                 data to insert, may be pandas series, xarray DataArray
                 or KeyData. Must be re-indexable by internal train or
                 pulse index and data is repeated accordingly.
-            max_method (int, optional): Maximal reconstruction method to
-                include in the result, by default all hits are included.
-                Generally methods up to and including 10 can be
+            max_method (int or None, optional): Maximal reconstruction
+                method to include in the result, by default all hits are
+                included. Generally methods up to and including 10 can be
                 considered safe and > 14 should be treated as risky,
                 please consult processing reports for more details.
 
         Returns:
-            (pandas.DataFrame) Detector signals.
+            Signals (pandas.DataFrame): Detector signals after
+                reconstruction.
         """
 
         if max_method is not None:
@@ -402,20 +404,20 @@ class DelayLineDetector:
         for more information
 
         Args:
-            pulse_dim ({pulseId, pulseIndex, pulseTime}, optional):
+            pulse_dim ('pulseId' or 'pulseIndex', 'pulseTime', optional):
                 Label for pulse dimension, pulse ID by default.
             extra_columns (dict): Mapping of column name to labeled 1D
                 data to insert, may be pandas series, xarray DataArray
                 or KeyData. Must be re-indexable by internal train or
                 pulse index and data is repeated accordingly.
-            max_method (int, optional): Maximal reconstruction method to
-                include in the result, by default all hits are included.
-                Generally methods up to and including 10 can be
-                considered safe and > 14 should be treated as risky,
+            max_method (int or None, optional): Maximal reconstruction
+                method to include in the result, by default all hits are
+                included. Generally methods up to and including 10 can
+                be considered safe and > 14 should be treated as risky,
                 please consult processing reports for more details.
 
         Returns:
-            (pandas.DataFrame) Detector hits.
+            Hits (pandas.DataFrame): Detector hits after reconstruction.
         """
 
         if max_method is not None:
