@@ -16,9 +16,9 @@ Component index:
     - [PumpProbePulses][extra.components.PumpProbePulses]
     - [MachinePulses][extra.components.MachinePulses]
     - [DldPulses][extra.components.DldPulses]
-- [Delay Line Detectors](dld.md)
+- [Delay Line Detectors](delay-line-detectors.md)
     - [DelayLineDetector][extra.components.DelayLineDetector]
-- [Optical Lasers](las.md)
+- [Optical Lasers](optical-lasers.md)
     - [OpticalLaserDelay][extra.components.OpticalLaserDelay]
-- [ADQ Digitizers](adq.md)
+- [ADQ Digitizers](adq-digitizers.md)
     - [AdqRawChannel][extra.components.AdqRawChannel]

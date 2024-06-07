@@ -25,7 +25,9 @@ nav:
     - components/beam-properties.md
     - components/scans.md
     - components/pulse-patterns.md
-    - components/dld.md
+    - components/delay-line-detectors.md
+    - components/optical-lasers.md
+    - components/adq-digitizers.md
   - karabo-bridge.md
   - calibration.md
   - signal.md
@@ -90,6 +92,7 @@ plugins:
             heading_level: 3
             show_source: no
             inherited_members: yes
+            show_symbol_type_toc: yes
 
 extra_css:
   - css/mkdocstrings.css
