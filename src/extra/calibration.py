@@ -525,9 +525,19 @@ class CalibrationData(Mapping):
             (dict) Operating condition for use in CalCat API.
         """
 
+        def to_float_or_string(value):
+            """CALCAT expects data to either be float or a string."""
+            try:  # Any digit or boolean
+                return float(value)
+            except:
+                return str(value)
+
         return {
             "parameters_conditions_attributes": [
-                {"parameter_name": k, "value": str(v)} for k, v in condition.items()
+                {
+                    "parameter_name": k,
+                    "value": to_float_or_string(v)
+                } for k, v in condition.items()
             ]
         }
 
