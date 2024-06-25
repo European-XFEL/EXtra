@@ -55,7 +55,7 @@ def test_xgm_getters(multi_xgm_run, source_sase):
     xgm = XGM(multi_xgm_run, source, default_sase=sase)
     assert isinstance(xgm.wavelength(), pint.Quantity)
     xgm.wavelength_by_train()
-    assert isinstance(xgm.photon_energy(with_units=False), float)
+    assert isinstance(xgm.photon_energy(with_units=False), (float, np.floating))
     xgm.photon_energy_by_train()
     xgm.doocs_server()
     xgm.pulse_energy()
