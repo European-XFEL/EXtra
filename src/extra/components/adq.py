@@ -655,7 +655,7 @@ class AdqRawChannel:
                 pulse_period = AdqRawChannel._bunch_repetition_rate \
                     / repetition_rate
             elif pulse_ids is None and self._pulses is not None:
-                pulse_ids = self._pulses.peek_pulse_ids()
+                pulse_ids = self._pulses.peek_pulse_ids(labelled=False)
 
             if pulse_ids is not None:
                 # May either be passed directly or come from pulses
