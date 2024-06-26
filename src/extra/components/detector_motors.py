@@ -1,6 +1,3 @@
-import random
-import re
-import string
 from itertools import product
 
 import numpy as np
@@ -24,78 +21,54 @@ def mangle_device_id_camelcase(device_id):
     return mangled_id
 
 
-def mangle_pattern(pattern, mangle, **args):
-    """Applies notation conversion to the format pattern."""
-    mangled = mangle(pattern.format(**args))
-    for field, placeholder in args.items():
-        mangled = mangled.replace(mangle(placeholder), "{" + field + "}")
-    return mangled
-
-
-def guess_device_id(mangled_id, underscores=2):
-    """Tries to guess original id from mangled id."""
-    device_id = ''
-    for c in mangled_id:
-        u = c.upper()
-        if underscores > 0 and c == u:
-            device_id += '_'
-            underscores -= 1
-        device_id += u
-    return device_id
-
-
 class DetectorMotors:
     """Base class to access motors of detectors movable groups."""
     _position_key = "actualPosition"
 
-    def __init__(self, dc, detector_id, src_ptrn, key_ptrn, **dims):
+    def __init__(self, dc, detector_id, motors, **coordinates):
         """
         Args:
             dc (extra_data.DataCollection):
                 The data
             detector_id (str):
                 The detector ID, e.g. SPB_IRU_AGIPD1M or SPB_IRU_AGIPD1M
-            src_ptrn (str):
-                Format string pattern for motor sources
-            key_ptrn (str):
-                Format string pattern for motor position keys
-            **dims (lists):
-                Agruments to expand patterns and generate all motor data keys
+            motors (dict):
+                The motors data sources in the dictionary, where keys are
+                stings labelling the motors and values are tuples of
+                source and key names in data collection
+            **coordinates (dict):
+                Agruments to expand patterns and generate all motor labels
         Raises:
-            SourceNameError:
-                If any motor source is not found
             PropertyNameError:
                 If any motor position key is not found
+            SourceNameError:
+                If any motor source is not found
+            ValueError:
+                If the source is not specified for one of the motors
         """
         self.detector_id = detector_id
-        self.src_ptrn = src_ptrn
-        self.key_ptrn = key_ptrn
-        self.dims = dims
+        self.coordinates = coordinates
+        self.motors = motors
 
-        names, coordinates = zip(*self.dims.items())
-        self.motor_ids = [(
-                src_ptrn.format(**dict(zip(names, values))),
-                key_ptrn.format(**dict(zip(names, values)))
-            ) for values in product(*coordinates)]
-        self.motor_labels = [
-            ''.join(f"{n.upper()}{v}" for n, v in zip(names, values))
-            for values in product(*coordinates)]
-
-        self.shape = tuple(len(c) for c in coordinates)
+        self.shape = tuple(len(v) for v in coordinates.values())
         self.num_sources = np.prod(self.shape)
-        self.dc = dc.select(self.motor_ids)
+        self.dc = dc.select(motors.values())
 
         self.num_trains = len(self.dc.train_ids)
+        self.train_ids = self.dc.train_ids
 
         # check sources
         self.keys = []
-        for src, key in self.motor_ids:
-            self.keys.append(self.dc[src, key])
+        for motor_id in product(*coordinates.values()):
+            label = ''.join(f"{n}{v}" for n, v in
+                            zip(coordinates.keys(), motor_id))
+            try:
+                src, key = self.motors[label]
+            except IndexError:
+                raise ValueError(
+                    f"The source for motor {label} is not specified.")
 
-        # add train_ids
-        self.train_ids = np.arange(
-            self.dc.train_ids[0], self.dc.train_ids[-1] + np.uint64(1),
-            dtype=np.uint64)
+            self.keys.append(self.dc[src, key])
 
     def positions(self, labelled=True):
         """Returns the motor positions for all trains.
@@ -113,9 +86,9 @@ class DetectorMotors:
         pos = np.repeat(pos, counts, axis=0)
 
         if labelled:
-            dims = ["trainId"] + list(self.dims.keys())
+            dims = ["trainId"] + list(self.coordinates.keys())
             coords = {"trainId": self.train_ids}
-            coords.update({name: values for name, values in self.dims.items()})
+            coords.update(self.coordinates)
             return xarray.DataArray(
                 pos, dims=dims, coords=coords, name=self._position_key)
         else:
@@ -160,9 +133,9 @@ class DetectorMotors:
         """
         train_ids, values, _ = self._read_positions()
         if labelled:
-            dims = ["trainId"] + list(self.dims.keys())
+            dims = ["trainId"] + list(self.coordinates.keys())
             coords = {"trainId": train_ids}
-            coords.update({name: values for name, values in self.dims.items()})
+            coords.update(self.coordinates)
             return xarray.DataArray(
                 values, dims=dims, coords=coords, name=self._position_key)
         else:
@@ -209,150 +182,52 @@ class DetectorMotors:
                 f"for {self.detector_id} at {self._ts}>")
 
 
-def count_sources(collection, pattern, **dims):
-    """Counts strings expanded from pattern in collection."""
-    names, coordinates = zip(*dims.items())
-    collection = set(collection)
-    sources = (pattern.format(**dict(zip(names, values)))
-               for values in product(*coordinates))
-    return len(set(src for src in sources if src in collection))
-
-
-def _make_motor_placeholders(**dims):
-    """Makes placeholders for different methods of substitution."""
-    placeholders = {}
-    re_args = {}
-    frm_args = {}
-    num_motors = 1
-    for name, coordinates in dims.items():
-        frm_args[name] = "{" + name + "}"
-        num_motors *= len(coordinates)
-        # guess type
-        numbers = all(
-            isinstance(a, int) or (isinstance(a, str) and a.isdigit())
-            for a in coordinates)
-
-        if numbers:
-            re_args[name] = r"\d+"
-            placeholders[name] = ''.join(random.sample(string.digits, 10))
-        else:
-            re_args[name] = r"\w+"
-            placeholders[name] = ''.join(
-                random.sample(string.ascii_uppercase, 10))
-
-    return num_motors, frm_args, re_args, placeholders
-
-
-def find_detectors_and_motors(dc, pattern, position_key, **dims):
-    """Looks for motors related to any detector in data collection."""
-    num_motors, frm_args, re_args, placeholders = (
-        _make_motor_placeholders(**dims))
-
-    placeholders["detector_id"] = "DETPLCHLDR"
-    pattern_camelcase = mangle_pattern(
-        pattern, mangle_device_id_camelcase, **placeholders)
-    pattern_underscore = mangle_pattern(
-        pattern, mangle_device_id_underscore, **placeholders)
-
-    re_args["detector_id"] = r"(?P<detector_id>\w+)"
-    re_ptrn = re.compile(pattern.format(**re_args))
-    re_ptrn_cc = re.compile(pattern_camelcase.format(**re_args))
-    re_ptrn_us = re.compile(pattern_underscore.format(**re_args))
-
-    matches = (re_ptrn.match(src) for src in dc.control_sources)
-    detectors = {}
-    for detector_id in (m["detector_id"] for m in matches if m is not None):
-        src_ptrn = pattern.format(detector_id=detector_id, **frm_args)
-        num_sources = count_sources(dc.control_sources, src_ptrn, **dims)
-        if num_sources == num_motors:
-            detectors[detector_id] = (src_ptrn, position_key)
-
-    data_selectors = []
-    for src in dc.control_sources:
+def sources_by_class(dc, class_id="SlowDataSelector"):
+    """Returns control sources with a given classId."""
+    sources = {}
+    for src_name in dc.control_sources:
         try:
-            class_id = dc.get_run_value(src, "classId")
-            if class_id == "SlowDataSelector":
-                data_selectors.append(src)
+            src = dc[src_name]
+            source_class_id = src.run_value("classId")
+            if class_id == source_class_id:
+                sources[src_name] = src.keys(inc_timestamps=False)
         except PropertyNameError:
             # class id is unknown, skip source
             pass
 
-    suffix = f".{position_key}.value"
-    for data_selector_id in data_selectors:
-        keys = set(
-            key.partition('.')[0] for key in dc[data_selector_id].keys()
-            if key.endswith(suffix))
-        matches = (re_ptrn_cc.match(src) for src in keys)
-        unique_detectors = set(
-            m["detector_id"] for m in matches if m is not None)
-        if not unique_detectors:
-            matches = (re_ptrn_us.match(src) for src in keys)
-            unique_detectors = set(
-                m["detector_id"] for m in matches if m is not None)
-            unique_detectors = {
-                detector_id: pattern_underscore.format(
-                    detector_id=detector_id, **frm_args)
-                for detector_id in unique_detectors
-            }
-        else:
-            unique_detectors = {
-                guess_device_id(detector_id):
-                pattern_camelcase.format(detector_id=detector_id, **frm_args)
-                for detector_id in unique_detectors
-            }
-
-        for detector_id, src_ptrn in unique_detectors.items():
-            if detector_id in detectors:
-                continue
-
-            num_sources = count_sources(keys, src_ptrn, **dims)
-            if num_sources == num_motors:
-                detectors[detector_id] = (
-                    data_selector_id, src_ptrn + '.' + position_key)
-
-    return detectors
+    return sources
 
 
-def find_motors(dc, pattern, position_key, **dims):
-    """Looks for motors related to given detector in data collection."""
-    num_motors, frm_args, _, placeholders = _make_motor_placeholders(**dims)
+def find_motors(dc, pattern, position_key, data_selectors=None, **coordinates):
+    """Searches for motor sources according to a given pattern."""
+    if data_selectors is None:
+        data_selectors = sources_by_class(dc)
 
-    pattern_camelcase = mangle_pattern(
-        pattern, mangle_device_id_camelcase, **placeholders)
-    pattern_underscore = mangle_pattern(
-        pattern, mangle_device_id_underscore, **placeholders)
+    motors = {}
+    dims = coordinates.keys()
+    for point in product(*coordinates.values()):
+        args = dict(zip(dims, point))
+        src = pattern.format(**args)
+        label = ''.join(f"{n}{v}" for n, v in args.items())
 
-    src_ptrn = pattern.format(**frm_args)
-    num_sources = count_sources(dc.control_sources, src_ptrn, **dims)
-    if num_sources == num_motors:
-        return src_ptrn, position_key
+        if src in dc.control_sources and position_key in dc[src].keys():
+            motors[label] = (src, position_key)
+            continue
 
-    data_selectors = []
-    for src in dc.control_sources:
-        try:
-            class_id = dc.get_run_value(src, "classId")
-            if class_id == "SlowDataSelector":
-                data_selectors.append(src)
-        except PropertyNameError:
-            # class id is unknown, skip source
-            pass
+        cc_key = mangle_device_id_camelcase(src) + '.' + position_key
+        us_key = mangle_device_id_underscore(src) + '.' + position_key
+        for ds_src, ds_keys in data_selectors.items():
+            if cc_key in ds_keys:
+                motors[label] = (ds_src, cc_key)
+                break
+            elif us_key in ds_keys:
+                motors[label] = (ds_src, us_key)
+                break
 
-    suffix = f".{position_key}.value"
-    for data_selector_id in data_selectors:
-        keys = set(
-            key.partition('.')[0] for key in dc[data_selector_id].keys()
-            if key.endswith(suffix))
-        src_ptrn = pattern_camelcase.format(**frm_args)
-        num_sources = count_sources(keys, src_ptrn, **dims)
-        if num_sources == num_motors:
-            return data_selector_id, src_ptrn + '.' + position_key
+        if label not in motors:
+            return None
 
-        src_ptrn = pattern_underscore.format(**frm_args)
-        num_sources = count_sources(keys, src_ptrn, **dims)
-        if num_sources == num_motors:
-            return data_selector_id, src_ptrn + '.' + position_key
-
-    raise ValueError("Detector motors are not found")
+    return motors
 
 
 class AGIPD1MQuadrantMotors(DetectorMotors):
@@ -375,6 +250,8 @@ class AGIPD1MQuadrantMotors(DetectorMotors):
     # MID
     # MID_EXP_AGIPD1M/MOTOR//Q{q+1}M{m+1}
     # MID_EXP_UPP/MOTOR/T4
+    KNOWN_DETECTORS = ["SPB_IRU_AGIPD1M", "MID_EXP_AGIPD1M"]
+
     def __init__(self, dc, detector_id=None):
         """
         Args:
@@ -393,22 +270,24 @@ class AGIPD1MQuadrantMotors(DetectorMotors):
         groups = list(range(1, num_groups + 1))
         motors = list(range(1, num_motors + 1))
 
-        if detector_id is None:
-            detectors = find_detectors_and_motors(
-                dc, pattern, self._position_key, q=groups, m=motors)
-            num_detectors = len(detectors)
-            if num_detectors == 0:
-                ValueError("Detector motors are not found")
-            elif num_detectors > 1:
-                detector_ids = ", ".join(detectors.keys())
-                raise ValueError(f"Multiple detectors found: {detector_ids}. "
-                                 f"Use 'detector_id' argument to choose one.")
-            device_id, (device_ptrn, key_ptrn) = detectors.popitem()
-        else:
-            pattern = pattern.format(detector_id=detector_id, q="{q}", m="{m}")
-            device_ptrn, key_ptrn = find_motors(
-                dc, pattern, self._position_key, q=groups, m=motors)
-            device_id = detector_id
+        data_selectors = sources_by_class(dc)
 
-        super().__init__(dc, device_id, device_ptrn, key_ptrn,
-                         q=groups, m=motors)
+        all_motors = {}
+        detectors = (
+            self.KNOWN_DETECTORS if detector_id is None else [detector_id])
+        for det_id in detectors:
+            pattern = det_id + "/MOTOR/Q{q}M{m}"
+            det_motors = find_motors(dc, pattern, self._position_key,
+                                     data_selectors, q=groups, m=motors)
+            if det_motors:
+                all_motors[det_id] = det_motors
+
+        if len(all_motors) == 0:
+            raise ValueError("Motors are not found")
+        elif len(all_motors) > 1:
+            raise ValueError(
+                "Many detector found: {', '.join(det_motors.keys())}. "
+                "Please specify 'detector_id'")
+
+        detector_id, detector_motors = all_motors.popitem()
+        super().__init__(dc, detector_id, detector_motors, q=groups, m=motors)

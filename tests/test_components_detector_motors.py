@@ -13,8 +13,6 @@ testdata = [
                          ids=["motors", "data_selector"])
 def test_detector_motors(mock_spb_aux_run, detector_id, src_ptrn, key_ptrn):
     nparts = 3
-    with pytest.raises(ValueError):
-        AGIPD1MQuadrantMotors(mock_spb_aux_run)
 
     with pytest.raises(ValueError):
         AGIPD1MQuadrantMotors(mock_spb_aux_run, "DETECTOR_WITHOUT_MOTORS")
@@ -32,8 +30,6 @@ def test_detector_motors(mock_spb_aux_run, detector_id, src_ptrn, key_ptrn):
         unique_pos[i] = quad_pos + i * 2.0
 
     assert motors.detector_id == detector_id
-    assert motors.src_ptrn == src_ptrn
-    assert motors.key_ptrn == key_ptrn
 
     p = motors.positions()
     assert isinstance(p, xa.DataArray)
