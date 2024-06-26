@@ -36,11 +36,12 @@ def test_detector_motors(mock_spb_aux_run, detector_id, src_ptrn, key_ptrn):
     assert len(p) == ntrains
     assert p.dims == ('trainId', 'q', 'm')
 
-    p = motors.positions(labelled=False)
+    t, p = motors.positions(labelled=False)
     assert isinstance(p, np.ndarray)
     assert len(p) == ntrains
+    assert np.array_equal(motors.train_ids, t)
 
-    p = motors.compressed_positions()
+    p = motors.positions(compressed=True)
     assert isinstance(p, xa.DataArray)
     assert len(p) == nparts
     assert p.dims == ('trainId', 'q', 'm')
@@ -49,7 +50,7 @@ def test_detector_motors(mock_spb_aux_run, detector_id, src_ptrn, key_ptrn):
     assert np.array_equal(p.m.values, range(1, 3))
     assert np.array_equal(p.values, unique_pos)
 
-    t, p = motors.compressed_positions(labelled=False)
+    t, p = motors.positions(labelled=False, compressed=True)
     assert isinstance(p, np.ndarray)
     assert len(p) == nparts
     assert np.array_equal(t, first)

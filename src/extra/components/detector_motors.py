@@ -70,29 +70,33 @@ class DetectorMotors:
 
             self.keys.append(self.dc[src, key])
 
-    def positions(self, labelled=True):
+    def positions(self, labelled=True, compressed=False):
         """Returns the motor positions for all trains.
 
         Args:
             labelled (bool):
                 If True, returns the xarray with labelled dimensions,
                 overwise returns numpy.ndarray
-
+            compressed (bool):
+                If True, returns positions only when they change,
+                overwise positions in all recorded trains
         Returns:
-            positions (numpy.ndarray or xarray.DataArray):
+            positions (tuple of two numpy.ndarray or xarray.DataArray):
                 The motor positions
         """
         train_ids, pos, counts = self._read_positions()
-        pos = np.repeat(pos, counts, axis=0)
+        if not compressed:
+            pos = np.repeat(pos, counts, axis=0)
+            train_ids = self.train_ids
 
         if labelled:
             dims = ["trainId"] + list(self.coordinates.keys())
-            coords = {"trainId": self.train_ids}
+            coords = {"trainId": train_ids}
             coords.update(self.coordinates)
             return xarray.DataArray(
                 pos, dims=dims, coords=coords, name=self._position_key)
         else:
-            return pos
+            return train_ids, pos
 
     def _read_positions(self):
         """Reads and compresses motor positions."""
@@ -118,28 +122,6 @@ class DetectorMotors:
 
         self._positions = train_ids, pos[ix], counts
         return self._positions
-
-    def compressed_positions(self, labelled=True):
-        """Returns the unique motor positions and corresponding train IDs.
-
-        Args:
-            labelled (bool):
-                If True, returns the xarray with labelled dimensions,
-                overwise returns tuple of numpy.ndarrays
-
-        Returns:
-            positions (tuple of two numpy.ndarray or xarray.DataArray):
-                The motor positions
-        """
-        train_ids, values, _ = self._read_positions()
-        if labelled:
-            dims = ["trainId"] + list(self.coordinates.keys())
-            coords = {"trainId": train_ids}
-            coords.update(self.coordinates)
-            return xarray.DataArray(
-                values, dims=dims, coords=coords, name=self._position_key)
-        else:
-            return train_ids, values
 
     def positions_at(self, tid):
         """Returns motor positions at given train.
