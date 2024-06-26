@@ -52,7 +52,7 @@ class DetectorMotors:
 
         self.shape = tuple(len(v) for v in coordinates.values())
         self.num_sources = np.prod(self.shape)
-        self.dc = dc.select(motors.values())
+        self.dc = dc.select(motors.values(), require_all=True)
 
         self.num_trains = len(self.dc.train_ids)
         self.train_ids = self.dc.train_ids
