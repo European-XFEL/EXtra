@@ -13,8 +13,8 @@ from setuptools import Extension, setup
 
 cython_ext_kw = dict(
     include_dirs=[np.get_include()],
-    compile_args = ['-g0', '-O3', '-fpic', '-frename-registers',
-                    '-ftree-vectorize']
+    extra_compile_args=['-g0', '-O3', '-fpic', '-frename-registers',
+                        '-ftree-vectorize']
 )
 
 setup(
