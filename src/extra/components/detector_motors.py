@@ -141,7 +141,6 @@ class DetectorMotors:
         i = np.searchsorted(train_ids, tid, side="right")
         return values[max(i - 1, 0)]
 
-    @property
     def most_frequent_positions(self):
         """Returns most frequent motor positions."""
         _, values, counts = self._read_positions()
