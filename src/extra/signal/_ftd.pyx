@@ -19,13 +19,49 @@ import numpy as np
 ctypedef floating data_t
 ctypedef floating[::contiguous] data_array_t
 
+
 cpdef enum EdgeInterpolation:
-    # Interpolation method to find edge position.
+    """Edge interpolation methods.
+
+    The fast timing discriminators in this module can use several
+    different interpolation methods to estimate the real edge position
+    in between the actual samples. These differ in terms of their
+    interpolation quality and performance requirements.
+
+    The default setting is to apply `EdgeInterpolation.LINEAR`, which
+    offers good results for not-too-fast rise times at close to no
+    cost in performance.
+
+    For particularly fast signals however, i.e. with large curvature,
+    linear interpolation tends to bias edge positions towards the sample
+    positions at either end. This can be improved with
+    `EdgeInterpolation.SINC`, but at a significant performance hit.
+
+    If the discriminated edge positions should always fall on the most
+    actual sample positions, `EdgeInterpolation.NEAREST` chooses the
+    closest such position. Note that this offers no relevant performance
+    advantage over linear interpolation.
+
+    Some of the interpolation methods can be configured via
+    [config_ftd_interpolation][extra.signal.config_ftd_interpolation].
+
+    Attributes:
+        NEAREST: Chose the sample position whose value is closest to the
+            value at the true edge position, no cost in performance and
+            will always return an integer result.
+        LINEAR: Perform a linear interpolation between the two bordering
+            samples to find the position.
+        SINC: Perform sinc interpolation on a region of the signal
+            around the edge position to find the position, please see
+            [sinc_interpolate][extra.signal.sinc_interpolate] for more
+            details.
+    """
 
     NEAREST = 0
     LINEAR = 1
     SPLINE = 2
     SINC = 3
+
 
 """Sinc interpolation parameters."""
 cdef int _sinc_window = 200
@@ -35,9 +71,9 @@ cdef int _sinc_search_iterations = 10
 def config_ftd_interpolation(sinc_window=None, sinc_search_iterations=None):
     """Configure fast timing discriminator interpolation.
 
-    The interpolation offered by the fast timing discriminators in
-    [extra.signal] may be configured in terms of performance or
-    precision:
+    Some of the interpolation methods used as part of fast timing
+    discrimination in this module may be configured in terms of
+    performance or precision:
 
     * `sinc_window` specifies the number of samples before and after the
         interpolation points actually used to evaluate $x(t)$, i.e. the
@@ -53,8 +89,8 @@ def config_ftd_interpolation(sinc_window=None, sinc_search_iterations=None):
     When set, these parameters apply to all discriminator
     implementations and all their use of interpolation.
 
-    For more details on sinc interpolation, please refer to
-    [sinc_interpolate][extra.signal.sinc_interpolate].
+    For more details on interpolation, please refer to
+    [EdgeInterpolation][extra.signal.EdgeInterpolation].
 
     Args:
         sinc_window (int, optional): Sample window used around the
@@ -219,7 +255,8 @@ def cfd(
 
     This discriminator can use sinc interpolation both to find the
     optimal walk crossing as well as to enable real delay values. Please
-    see [extra.signal.config_ftd_interpolation] for more details.
+    see [config_ftd_interpolation][extra.signal.config_ftd_interpolation]
+    for more details.
 
     Note that enabling both these features at the same time makes the
     discrimination much more expensive, as repeated nested
@@ -384,7 +421,8 @@ def dled(
     rising pulse slope points away from zero.
 
     This discriminator can use sinc interpolation to find the optimal
-    edge position, please see [extra.signal.config_ftd_interpolation]
+    edge position, please see
+    [config_ftd_interpolation][extra.signal.config_ftd_interpolation]
     for more details.
 
     Args:
