@@ -2,15 +2,20 @@
 This module holds various methods to do signal processing.
 
 
-## Interpolation
-
-::: extra.signal.sinc_interpolate
-
-
 ## Fast timing discrimination
-
-::: extra.signal.cfd
 
 ::: extra.signal.dled
 
+::: extra.signal.cfd
+
+::: extra.signal.EdgeInterpolation
+    options:
+      members: []
+      docstring_section_style: "list"
+
 ::: extra.signal.config_ftd_interpolation
+
+
+## Interpolation
+
+::: extra.signal.sinc_interpolate
