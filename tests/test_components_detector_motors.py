@@ -74,6 +74,4 @@ def test_detector_motors(mock_spb_aux_run, detector_id, src_ptrn, key_ptrn):
     with pytest.raises(ValueError):
         p = motors.positions_at(trains[-1] + one)
 
-    assert np.array_equal(motors.first, unique_pos[0])
-    assert np.array_equal(motors.last, unique_pos[-1])
     assert np.array_equal(motors.most_frequent_positions, unique_pos[-1])

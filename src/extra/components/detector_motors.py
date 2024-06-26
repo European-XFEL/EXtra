@@ -147,18 +147,6 @@ class DetectorMotors:
         _, values, counts = self._read_positions()
         return values[np.argmax(counts)]
 
-    @property
-    def first(self):
-        """Returns the first motor positions."""
-        tid = self.train_ids[0]
-        return self.positions_at(tid)
-
-    @property
-    def last(self):
-        """Returns the last motor positions."""
-        tid = self.train_ids[-1]
-        return self.positions_at(tid)
-
     def __repr__(self):
         if not hasattr(self, "_ts"):
             self._ts = self.dc.train_timestamps()[0]
