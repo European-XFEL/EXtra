@@ -56,8 +56,8 @@ def test_detector_motors(mock_spb_aux_run, detector_id, src_ptrn, key_ptrn):
     assert np.array_equal(p, unique_pos)
 
     one = np.uint64(1)
-    p = motors.positions_at(trains[0] - one)
-    assert np.array_equal(p, unique_pos[0])
+    with pytest.raises(ValueError):
+        p = motors.positions_at(trains[0] - one)
     p = motors.positions_at(trains[0])
     assert np.array_equal(p, unique_pos[0])
 
@@ -70,8 +70,8 @@ def test_detector_motors(mock_spb_aux_run, detector_id, src_ptrn, key_ptrn):
 
     p = motors.positions_at(trains[-1])
     assert np.array_equal(p, unique_pos[-1])
-    p = motors.positions_at(trains[-1] + one)
-    assert np.array_equal(p, unique_pos[-1])
+    with pytest.raises(ValueError):
+        p = motors.positions_at(trains[-1] + one)
 
     assert np.array_equal(motors.first, unique_pos[0])
     assert np.array_equal(motors.last, unique_pos[-1])

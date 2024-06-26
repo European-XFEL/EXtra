@@ -152,6 +152,9 @@ class DetectorMotors:
             postions (numpy.ndarray):
                 The motor positions
         """
+        if tid < self.train_ids[0] or self.train_ids[-1] < tid:
+            raise ValueError(
+                f"The train Id ({tid}) is outside of data collection")
         train_ids, values, _ = self._read_positions()
         i = np.searchsorted(train_ids, tid, side="right")
         return values[max(i - 1, 0)]
