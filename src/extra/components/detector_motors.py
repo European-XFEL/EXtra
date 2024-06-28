@@ -38,6 +38,7 @@ class DetectorMotors:
                 source and key names in data collection
             **coordinates (dict):
                 Agruments to expand patterns and generate all motor labels
+
         Raises:
             PropertyNameError:
                 If any motor position key is not found
@@ -81,6 +82,7 @@ class DetectorMotors:
             compressed (bool):
                 If True, returns positions only when they change,
                 overwise positions in all recorded trains
+
         Returns:
             positions (tuple of two numpy.ndarray or xarray.DataArray):
                 The motor positions
@@ -138,9 +140,11 @@ class DetectorMotors:
         Args:
             tid (int):
                 Train ID
+
         Returns:
             postions (numpy.ndarray):
                 The motor positions
+
         Raises:
             ValueError:
                 If train is not found
@@ -241,6 +245,7 @@ class AGIPD1MQuadrantMotors(DetectorMotors):
                 The data
             detector_id (str):
                 The detector ID, e.g. SPB_IRU_AGIPD1M or SPB_IRU_AGIPD1M
+
         Raises:
             ValueError:
                 If motors are not found or multiple motor groups are found
