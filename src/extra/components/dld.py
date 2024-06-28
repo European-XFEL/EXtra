@@ -361,7 +361,7 @@ class DelayLineDetector:
         [hits()][extra.components.DelayLineDetector.hits].
 
         Args:
-            pulse_dim ('pulseId' or 'pulseIndex', 'pulseTime', optional):
+            pulse_dim ('pulseId' or 'pulseIndex' or 'pulseTime', optional):
                 Label for pulse dimension, pulse ID by default.
             extra_columns (dict): Mapping of column name to labeled 1D
                 data to insert, may be pandas series, xarray DataArray
@@ -404,7 +404,7 @@ class DelayLineDetector:
         for more information
 
         Args:
-            pulse_dim ('pulseId' or 'pulseIndex', 'pulseTime', optional):
+            pulse_dim ('pulseId' or 'pulseIndex' or 'pulseTime', optional):
                 Label for pulse dimension, pulse ID by default.
             extra_columns (dict): Mapping of column name to labeled 1D
                 data to insert, may be pandas series, xarray DataArray
