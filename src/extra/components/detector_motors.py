@@ -56,6 +56,7 @@ class DetectorMotors:
 
         self.num_trains = len(self.dc.train_ids)
         self.train_ids = self.dc.train_ids
+        self.train_id_coordinates = np.asarray(self.train_ids)
 
         # check sources
         self.keys = []
@@ -84,10 +85,11 @@ class DetectorMotors:
             positions (tuple of two numpy.ndarray or xarray.DataArray):
                 The motor positions
         """
-        train_ids, pos, counts = self._read_positions()
-        if not compressed:
-            pos = np.repeat(pos, counts, axis=0)
-            train_ids = self.train_ids
+        if compressed:
+            train_ids, pos, counts = self._compress_positions()
+        else:
+            pos = self._read_positions()
+            train_ids = self.train_id_coordinates
 
         if labelled:
             dims = ["trainId"] + list(self.coordinates.keys())
@@ -99,7 +101,7 @@ class DetectorMotors:
             return train_ids, pos
 
     def _read_positions(self):
-        """Reads and compresses motor positions."""
+        """Reads motor positions."""
         if hasattr(self, "_positions"):
             return self._positions
 
@@ -107,8 +109,15 @@ class DetectorMotors:
         pos = np.zeros((self.num_trains, self.num_sources), dtype=float)
         for source_no, key_data in enumerate(self.keys):
             pos[:, source_no] = key_data.ndarray()
-        pos = pos.reshape(-1, *self.shape)
+        self._positions = pos.reshape(-1, *self.shape)
+        return self._positions
 
+    def _compress_positions(self):
+        """Compresses motor positions."""
+        if hasattr(self, "_compressed_pos"):
+            return self._compressed_pos
+
+        pos = self._read_positions()
         # compress
         axes = tuple(range(1, pos.ndim))
         ix = np.flatnonzero(
@@ -120,30 +129,31 @@ class DetectorMotors:
         counts = np.diff(np.append(train_ids.astype(int),
                                    int(self.dc.train_ids[-1]) + 1))
 
-        self._positions = train_ids, pos[ix], counts
-        return self._positions
+        self._compressed_pos = train_ids, pos[ix], counts
+        return self._compressed_pos
 
     def positions_at(self, tid):
-        """Returns motor positions at given train.
+        """Returns motor positions at a given train.
 
         Args:
             tid (int):
                 Train ID
-
         Returns:
             postions (numpy.ndarray):
                 The motor positions
+        Raises:
+            ValueError:
+                If train is not found
         """
-        if tid < self.train_ids[0] or self.train_ids[-1] < tid:
+        i = np.searchsorted(self.train_id_coordinates, tid)
+        if (i >= self.num_trains) or (self.train_id_coordinates[i] != tid):
             raise ValueError(
                 f"The train Id ({tid}) is outside of data collection")
-        train_ids, values, _ = self._read_positions()
-        i = np.searchsorted(train_ids, tid, side="right")
-        return values[max(i - 1, 0)]
+        return self._read_positions()[i]
 
     def most_frequent_positions(self):
         """Returns most frequent motor positions."""
-        _, values, counts = self._read_positions()
+        _, values, counts = self._compress_positions()
         return values[np.argmax(counts)]
 
     def __repr__(self):
