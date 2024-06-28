@@ -29,6 +29,7 @@ nav:
     - components/delay-line-detectors.md
     - components/optical-lasers.md
     - components/adq-digitizers.md
+    - components/detector-motors.md
   - karabo-bridge.md
   - calibration.md
   - signal.md

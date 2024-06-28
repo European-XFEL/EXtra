@@ -7,3 +7,4 @@ from .xgm import XGM  # noqa
 from .dld import DelayLineDetector  # noqa
 from .las import OpticalLaserDelay  # noqa
 from .adq import AdqRawChannel  # noqa
+from .detector_motors import AGIPD1MQuadrantMotors  # noqa
