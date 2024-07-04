@@ -674,7 +674,7 @@ class CalibrationData(Mapping):
         module_details = sorted(pdus.values(), key=lambda d: d["karabo_da"])
         return cls(constant_groups, module_details, det_name)
 
-    def __getitem__(self, key) -> MultiModuleConstant:
+    def __getitem__(self, key):
         if isinstance(key, str):
             return MultiModuleConstant(
                 self.constant_groups[key], self.module_details, self.detector_name, key
@@ -807,6 +807,81 @@ class CalibrationData(Mapping):
                     d.update(caldata.constant_groups[cal_type])
 
         return type(self)(constant_groups, module_details, det_name)
+
+    def markdown_table(self, module_naming="modnum") -> str:
+        """Make a markdown table overview of the constants found.
+
+        Columns are calibration types, rows are modules.
+        If there are >4 calibrations, the table will be split up into several
+        pieces with up to 4 calibrations in each.
+
+        Args:
+            module_naming (str): modnum, aggregator or qm, to change how the
+                modules are labelled in the table. Defaults to modnum.
+        """
+        from tabulate import tabulate
+
+        if module_naming == "aggregator":
+            modules = self.aggregator_names
+        elif module_naming == "modnum":
+            modules = self.module_nums
+        elif module_naming == "qm":
+            modules = self.qm_names
+        else:
+            raise ValueError(
+                f"{module_naming=} (must be 'aggregator', 'modnum' or 'qm')"
+            )
+
+        cal_groups = [
+            sorted(self.constant_groups)[x:x+4] for x in range(0, len(self.constant_groups), 4)
+        ]
+
+        md_tables = []
+        # Loop over groups of calibrations.
+        for cal_group in cal_groups:
+            table = [["Modules"] + cal_group]
+
+            # Loop over calibrations and modules to form the next rows.
+            for mod in modules:
+                mod_consts = []
+
+                for cname in cal_group:
+                    try:
+                        singleconst = self[cname, mod]
+                    except KeyError:
+                        # Constant is not available for this module.
+                        mod_consts.append("—")
+                    else:
+                        # Have the creation time a reference
+                        # link to the CCV on CALCAT.
+                        c_time = datetime.fromisoformat(
+                            singleconst.metadata("begin_validity_at")).strftime(
+                                "%Y-%m-%d %H:%M")
+                        try:
+                            view_url = singleconst.metadata("view_url")
+                            mod_consts.append(f"[{c_time}]({view_url})")
+                        except KeyError:
+                            mod_consts.append(f"{c_time} ({singleconst.ccv_id})")
+
+                table.append([mod] + mod_consts)
+
+            md_tables.append(tabulate(table, tablefmt="pipe", headers="firstrow"))
+
+        return '\n\n'.join(md_tables)
+
+    def display_markdown_table(self, module_naming="modnum"):
+        """Display a table of the constants found (in a Jupyter notebook).
+
+        Columns are calibration types, rows are modules.
+        If there are >4 calibrations, the table will be split up into several
+        pieces with up to 4 calibrations in each.
+
+        Args:
+            module_naming (str): modnum, aggregator or qm, to change how the
+                modules are labelled in the table. Defaults to modnum.
+        """
+        from IPython.display import display, Markdown
+        display(Markdown(self.markdown_table(module_naming=module_naming)))
 
 
 class ConditionsBase:
