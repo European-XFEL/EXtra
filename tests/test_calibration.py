@@ -1,4 +1,5 @@
 import os
+import re
 
 import numpy as np
 import pytest
@@ -62,6 +63,10 @@ def test_AGIPD_CalibrationData_metadata():
     assert bva == "2022-09-02T07:42:33.000+02:00"
     metadata = agipd_cd["Offset", "AGIPD00"].metadata_dict()
     assert metadata["begin_validity_at"] == bva
+
+    assert re.search(
+        r"\[2022-\d{2}-\d{2} \d{2}:\d{2}\]\(https://in.xfel.eu/", agipd_cd.markdown_table()
+    )
 
 @pytest.mark.vcr
 def test_AGIPD_merge():

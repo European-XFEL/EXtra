@@ -29,6 +29,22 @@ from extra.calibration import CalibrationData
 agipd_cd = CalibrationData.from_report(3757)
 ```
 
+In a Jupyter notebook, you can show the selected constants in a table:
+
+```python
+agipd_cd.display_markdown_table()
+```
+
+| Modules | BadPixelsDark                                                                           | Noise                                                                                   | Offset                                                                                  | ThresholdsDark                                                                          |
+|--------:|:----------------------------------------------------------------------------------------|:----------------------------------------------------------------------------------------|:----------------------------------------------------------------------------------------|:----------------------------------------------------------------------------------------|
+|       0 | [2023-07-29 19:34](https://in.xfel.eu/calibration/calibration_constant_versions/172433) | [2023-07-29 19:34](https://in.xfel.eu/calibration/calibration_constant_versions/172424) | [2023-07-29 19:34](https://in.xfel.eu/calibration/calibration_constant_versions/172409) | [2023-07-29 19:34](https://in.xfel.eu/calibration/calibration_constant_versions/172442) |
+|       1 | [2023-07-29 19:34](https://in.xfel.eu/calibration/calibration_constant_versions/172402) | [2023-07-29 19:34](https://in.xfel.eu/calibration/calibration_constant_versions/172395) | [2023-07-29 19:34](https://in.xfel.eu/calibration/calibration_constant_versions/172390) | [2023-07-29 19:34](https://in.xfel.eu/calibration/calibration_constant_versions/172416) |
+|       2 | [2023-07-29 19:34](https://in.xfel.eu/calibration/calibration_constant_versions/172425) | [2023-07-29 19:34](https://in.xfel.eu/calibration/calibration_constant_versions/172410) | [2023-07-29 19:34](https://in.xfel.eu/calibration/calibration_constant_versions/172388) | [2023-07-29 19:34](https://in.xfel.eu/calibration/calibration_constant_versions/172435) |
+|     ... |                                                                                      |
+|      14 | [2023-07-29 19:34](https://in.xfel.eu/calibration/calibration_constant_versions/172407) | [2023-07-29 19:34](https://in.xfel.eu/calibration/calibration_constant_versions/172399) | [2023-07-29 19:34](https://in.xfel.eu/calibration/calibration_constant_versions/172392) | [2023-07-29 19:34](https://in.xfel.eu/calibration/calibration_constant_versions/172418) |
+|      15 | [2023-07-29 19:34](https://in.xfel.eu/calibration/calibration_constant_versions/172421) | [2023-07-29 19:34](https://in.xfel.eu/calibration/calibration_constant_versions/172415) | [2023-07-29 19:34](https://in.xfel.eu/calibration/calibration_constant_versions/172406) | [2023-07-29 19:34](https://in.xfel.eu/calibration/calibration_constant_versions/172429) |
+
+
 ## Found constants
 
 ::: extra.calibration.CalibrationData

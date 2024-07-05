@@ -41,6 +41,9 @@ Added:
 - Deprecate pulse dimension `time` in favor of `pulseTime` (!178).
 - Constant fraction and dynamic leading edge discriminators to determine arrival time of fast pulses on an analog signal (!25).
 - Sinc interpolation method (!25).
+- [extra.calibration.CalibrationData][extra.calibration.CalibrationData] now has methods
+  to create & display a markdown table of the constants found. This is primarily for
+  use in Jupyter notebooks (!202).
 
 Fixed:
 

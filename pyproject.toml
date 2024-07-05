@@ -48,6 +48,7 @@ Documentation = "https://extra.readthedocs.io/en/latest/"
 test = [
     "pytest",
     "pytest-recording",
+    "tabulate",
 ]
 docs = [
     "black",
