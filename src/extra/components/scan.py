@@ -165,15 +165,20 @@ class Scan:
         max_tid, min_tid = self._input_pos.trainId.max(), self._input_pos.trainId.min()
         mid_train_id = (max_tid + min_tid) / 2
 
+        step_centres_x, step_centres_y = [], []
         rects = []
+
         for i, (pos, train_ids) in enumerate(self.steps):
             left, right = train_ids.min(), train_ids.max()
             width = right - left
+            centre_x = (left + right) / 2
             bottom, top = (pos - self._resolution), (pos + self._resolution)
             rects.append(Rectangle((left, bottom), width, top - bottom))
+            step_centres_x.append(centre_x)
+            step_centres_y.append(pos)
 
             if i in label_steps:
-                if (left + right) / 2 < mid_train_id:
+                if centre_x < mid_train_id:
                     # Left half of plot - label to the right
                     lbl_x = min(right + 2 * width, max_tid)
                     line_x_min = min(right + 0.5 * width, max_tid)
@@ -193,6 +198,7 @@ class Scan:
         ax.add_collection(
             PatchCollection(rects, facecolor=(1., 0.75, 1.), edgecolor=None)
         )
+        ax.scatter(step_centres_x, step_centres_y, marker='x', color='k')
 
         ax.set_xlabel("Train ID")
         ax.set_title(f"Scan over {self.name} with {len(self.steps)} steps")
