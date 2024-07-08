@@ -149,17 +149,59 @@ class Scan:
         Example plot:
         ![](../images/scan-plot.png)
         """
+        from matplotlib.collections import PatchCollection
+        from matplotlib.patches import Rectangle
         if ax is None:
             import matplotlib.pyplot as plt
-            fig, ax = plt.subplots(figsize=(9, 5))
+            fig, ax = plt.subplots(figsize=(10, 6))
 
-        for tids in self.positions_train_ids:
-            ax.plot(tids, self._input_pos.sel(trainId=tids))
+        # Show all the motor values
+        ax.plot(self._input_pos.trainId, self._input_pos)
 
-        ax.plot(self._input_pos.trainId, self._input_pos, alpha=0.3, label="Motor position")
+        # Label up to 8 of the steps
+        n_steps = len(self._steps)
+        label_steps = range(0, n_steps, n_steps // min(n_steps, 8))
+
+        max_tid, min_tid = self._input_pos.trainId.max(), self._input_pos.trainId.min()
+        mid_train_id = (max_tid + min_tid) / 2
+
+        step_centres_x, step_centres_y = [], []
+        rects = []
+
+        for i, (pos, train_ids) in enumerate(self.steps):
+            left, right = train_ids.min(), train_ids.max()
+            width = right - left
+            centre_x = (left + right) / 2
+            bottom, top = (pos - self._resolution), (pos + self._resolution)
+            rects.append(Rectangle((left, bottom), width, top - bottom))
+            step_centres_x.append(centre_x)
+            step_centres_y.append(pos)
+
+            if i in label_steps:
+                if centre_x < mid_train_id:
+                    # Left half of plot - label to the right
+                    lbl_x = min(right + 2 * width, max_tid)
+                    line_x_min = min(right + 0.5 * width, max_tid)
+                    line_x_max = min(right + 1.75 * width, max_tid)
+                    ha = 'left'
+                else:
+                    # Right half of plot - label to the left
+                    lbl_x = max(left - 2 * width, min_tid)
+                    line_x_max = max(left - 0.5 * width, min_tid)
+                    line_x_min = max(left - 1.75 * width, min_tid)
+                    ha = 'right'
+                ax.text(lbl_x, pos, str(i),
+                        verticalalignment='center_baseline', horizontalalignment=ha)
+                ax.plot([line_x_min, line_x_max], [pos, pos], color='k')
+
+        # Highlight the step position +/- the resolution
+        ax.add_collection(
+            PatchCollection(rects, facecolor=(1., 0.75, 1.), edgecolor=None)
+        )
+        ax.scatter(step_centres_x, step_centres_y, marker='x', color='k')
+
         ax.set_xlabel("Train ID")
         ax.set_title(f"Scan over {self.name} with {len(self.steps)} steps")
-        ax.legend()
 
         return ax
 

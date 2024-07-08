@@ -44,6 +44,7 @@ Added:
 - [extra.calibration.CalibrationData][extra.calibration.CalibrationData] now has methods
   to create & display a markdown table of the constants found. This is primarily for
   use in Jupyter notebooks (!202).
+- More informative plots from [Scan.plot()][extra.components.Scan.plot] (!201).
 
 Fixed:
 
