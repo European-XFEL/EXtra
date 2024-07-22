@@ -47,11 +47,11 @@ Documentation = "https://extra.readthedocs.io/en/latest/"
 [project.optional-dependencies]
 test = [
     "pytest",
+    "pytest-cov",
     "pytest-recording",
     "tabulate",
 ]
 docs = [
-    "black",
     "mkdocs-material",
     "mkdocstrings",
     "mkdocstrings-python>=1.2.0",
