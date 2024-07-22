@@ -47,6 +47,7 @@ Documentation = "https://extra.readthedocs.io/en/latest/"
 [project.optional-dependencies]
 test = [
     "pytest",
+    "pytest-cov",
     "pytest-recording",
     "tabulate",
 ]

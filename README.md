@@ -1,5 +1,7 @@
 # EXtra - European XFEL Toolkit for Research and Analysis
 
+[![codecov](https://codecov.io/gh/European-XFEL/EXtra/graph/badge.svg?token=vDu1zoDsEK)](https://codecov.io/gh/European-XFEL/EXtra)
+
 This repository holds various bits of code to make data analysis simpler.
 
 ## Development
