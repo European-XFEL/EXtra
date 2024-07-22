@@ -51,7 +51,6 @@ test = [
     "tabulate",
 ]
 docs = [
-    "black",
     "mkdocs-material",
     "mkdocstrings",
     "mkdocstrings-python>=1.2.0",
