@@ -5,16 +5,18 @@
 
 # Changelog
 
-## [Unreleased]
+<!-- ## [Unreleased] -->
 
-!!! note
-    All of the changes here are deployed to our current environment, even though
-    a release hasn't been made for them yet. If you want to have these updates
-    in a personal environment you'll need to install the package from git.
+<!-- !!! note -->
+<!--     All of the changes here are deployed to our current environment, even though -->
+<!--     a release hasn't been made for them yet. If you want to have these updates -->
+<!--     in a personal environment you'll need to install the package from git. -->
 
-    ```bash title="Installation command"
-    pip install git+https://github.com/European-XFEL/EXtra.git
-    ```
+<!--     ```bash title="Installation command" -->
+<!--     pip install git+https://github.com/European-XFEL/EXtra.git -->
+<!--     ``` -->
+
+## [2024.2]
 Added:
 
 - [AGIPD1MQuadrantMotors][extra.components.AGIPD1MQuadrantMotors] to access positions of motors moving quadrants of AGIPD1M detector (!148).
