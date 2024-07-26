@@ -110,6 +110,7 @@ Added:
 
 
 [Unreleased]: https://github.com/European-XFEL/EXtra/compare/2024.1.1...master
+[2024.2]: https://github.com/European-XFEL/EXtra/releases/tag/2024.2
 [2024.1.1]: https://github.com/European-XFEL/EXtra/releases/tag/2024.1.1
 [2024.1]: https://github.com/European-XFEL/EXtra/releases/tag/2024.1
 [2023.2]: https://github.com/European-XFEL/EXtra/releases/tag/2023.2
