@@ -47,6 +47,7 @@ Added:
   to create & display a markdown table of the constants found. This is primarily for
   use in Jupyter notebooks (!202).
 - More informative plots from [Scan.plot()][extra.components.Scan.plot] (!201).
+- Add new `begin_at_strategy` calcat argument and split create `full_path()` method from `dataset_obj()` (!210)
 
 Fixed:
 
