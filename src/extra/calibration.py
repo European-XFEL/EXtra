@@ -277,13 +277,16 @@ class SingleConstant:
             _have_calcat_metadata=True,
         )
 
-    def dataset_obj(self, caldb_root=None) -> h5py.Dataset:
+    def full_path(self, caldb_root=None):
         if caldb_root is not None:
             caldb_root = Path(caldb_root)
         else:
             caldb_root = _get_default_caldb_root()
+        return caldb_root / self.path
 
-        f = h5py.File(caldb_root / self.path, "r")
+    def dataset_obj(self, caldb_root=None) -> h5py.Dataset:
+        calpath = self.full_path(caldb_root)
+        f = h5py.File(calpath, "r")
         return f[self.dataset]["data"]
 
     def ndarray(self, caldb_root=None):
@@ -550,12 +553,21 @@ class CalibrationData(Mapping):
             client=None,
             event_at=None,
             pdu_snapshot_at=None,
+            begin_at_strategy="closest",
+
     ):
         """Look up constants for the given detector conditions & timestamp.
 
         `condition` should be a conditions object for the relevant detector type,
         e.g. `DSSCConditions`.
         """
+
+        accepted_strategies = ["closest", "prior"]
+        if begin_at_strategy not in accepted_strategies:
+            raise ValueError(
+                "Invalid begin_at_strategy. "
+                f"Expected one of {accepted_strategies}")
+
         if calibrations is None:
             calibrations = set(condition.calibration_types)
         if pdu_snapshot_at is None:
@@ -599,6 +611,7 @@ class CalibrationData(Mapping):
                     "karabo_da": "",
                     "event_at": client.format_time(event_at),
                     "pdu_snapshot_at": client.format_time(pdu_snapshot_at),
+                    "begin_at_strategy": begin_at_strategy,
                 },
                 data=json.dumps(cls._format_cond(condition_dict)),
             )
