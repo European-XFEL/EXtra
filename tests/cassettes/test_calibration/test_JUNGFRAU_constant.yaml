@@ -503,7 +503,7 @@ interactions:
       content-type:
       - application/json
     method: GET
-    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=FXE_XAD_JF1M&calibration_id=%5B21%2C+22%2C+23%2C+30%2C+39%5D&karabo_da=&event_at=2024-03-04+17%3A56%3A05.172132%2B00%3A00&pdu_snapshot_at=2024-03-04+17%3A56%3A05.172132%2B00%3A00
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=FXE_XAD_JF1M&calibration_id=%5B21%2C+22%2C+23%2C+30%2C+39%5D&karabo_da=&event_at=2024-03-04+17%3A56%3A05.172132%2B00%3A00&pdu_snapshot_at=2024-03-04+17%3A56%3A05.172132%2B00%3A00&begin_at_strategy=closest
   response:
     body:
       string: '[{"id":196179,"name":"20240304_125702_sIdx=0","file_name":"cal.1709557021.2759159.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m530/","data_set_name":"/Jungfrau_M530/Offset10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2024-03-04T13:33:29.000+01:00","end_validity_at":null,"begin_at":"2024-03-04T13:33:29.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p007136

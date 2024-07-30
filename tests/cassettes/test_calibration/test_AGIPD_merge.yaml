@@ -81,7 +81,7 @@ interactions:
       content-type:
       - application/json
     method: GET
-    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=MID_DET_AGIPD1M-1&calibration_id=%5B1%5D&karabo_da=&event_at=2022-09-01+13%3A26%3A48.00&pdu_snapshot_at=2022-09-01+13%3A26%3A48.00
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=MID_DET_AGIPD1M-1&calibration_id=%5B1%5D&karabo_da=&event_at=2022-09-01+13%3A26%3A48.00&pdu_snapshot_at=2022-09-01+13%3A26%3A48.00&begin_at_strategy=closest
   response:
     body:
       string: '[{"id":141880,"name":"20220902_060534_sIdx=0","file_name":"cal.1662098732.6664886.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m337/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M337/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-09-02T07:42:33.000+02:00","end_validity_at":null,"begin_at":"2022-09-02T07:42:33.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:003049
@@ -197,7 +197,7 @@ interactions:
       content-type:
       - application/json
     method: GET
-    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=MID_DET_AGIPD1M-1&calibration_id=%5B19%5D&karabo_da=&event_at=2022-09-01+13%3A26%3A48.00&pdu_snapshot_at=2022-09-01+13%3A26%3A48.00
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=MID_DET_AGIPD1M-1&calibration_id=%5B19%5D&karabo_da=&event_at=2022-09-01+13%3A26%3A48.00&pdu_snapshot_at=2022-09-01+13%3A26%3A48.00&begin_at_strategy=closest
   response:
     body:
       string: '[{"id":118111,"name":"20220225_174759_sIdx=0","file_name":"cal.1645811278.2248814.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m337/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M337/SlopesFF/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-02-05T13:07:49.000+01:00","end_validity_at":null,"begin_at":"2022-02-05T13:07:49.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
