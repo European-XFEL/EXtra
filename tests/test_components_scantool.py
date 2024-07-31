@@ -66,6 +66,12 @@ def test_scantool():
     # This shouldn't throw an exception
     scantool = Scantool(mock_run)
 
+    # Karabacon 3.0.10 renamed the acquisition time again to
+    # deviceEnv.acquisitionTimes.
+    mock_run_values["deviceEnv.acquisitionTimes.value"] = mock_run_values["acquisitionTime.value"]
+    del mock_run_values["acquisitionTime.value"]
+    scantool = Scantool(mock_run)
+
     # Smoke tests
     scantool.info()
     scantool.format()
