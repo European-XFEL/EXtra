@@ -50,7 +50,6 @@ test = [
     "pytest",
     "pytest-cov",
     "pytest-recording",
-    "tabulate",
 ]
 docs = [
     "mkdocs-material",
