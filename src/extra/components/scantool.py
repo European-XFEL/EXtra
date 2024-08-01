@@ -52,7 +52,8 @@ class Scantool:
         # These are a list of possible property names for different versions of
         # the scantool. So far we've only seen the names being different, the
         # values are the same.
-        acquisition_time_keys = ["deviceEnv.acquisitionTime.value", "acquisitionTime.value"]
+        acquisition_time_keys = ["deviceEnv.acquisitionTime.value", "acquisitionTime.value",
+                                 "deviceEnv.acquisitionTimes.value"]
         active_motors_keys = ["deviceEnv.activeMotors.value", "activeMotors.value"]
 
         # Get scan metadata and list of motors
