@@ -277,7 +277,7 @@ class SingleConstant:
             _have_calcat_metadata=True,
         )
 
-    def full_path(self, caldb_root=None):
+    def file_path(self, caldb_root=None) -> Path:
         if caldb_root is not None:
             caldb_root = Path(caldb_root)
         else:
@@ -285,7 +285,7 @@ class SingleConstant:
         return caldb_root / self.path
 
     def dataset_obj(self, caldb_root=None) -> h5py.Dataset:
-        calpath = self.full_path(caldb_root)
+        calpath = self.file_path(caldb_root)
         f = h5py.File(calpath, "r")
         return f[self.dataset]["data"]
 
@@ -545,15 +545,14 @@ class CalibrationData(Mapping):
         }
 
     @classmethod
-    def from_condition(
-            cls,
-            condition: "ConditionsBase",
-            detector_name,
-            calibrations=None,
-            client=None,
-            event_at=None,
-            pdu_snapshot_at=None,
-            begin_at_strategy="closest",
+    def from_condition(cls,
+        condition: "ConditionsBase",
+        detector_name,
+        calibrations=None,
+        client=None,
+        event_at=None,
+        pdu_snapshot_at=None,
+        begin_at_strategy="closest",
 
     ):
         """Look up constants for the given detector conditions & timestamp.
