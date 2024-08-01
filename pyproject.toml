@@ -26,6 +26,7 @@ dependencies = [
     "pint",
     "requests",
     "scipy",
+    "tabulate",
 ]
 requires-python = ">=3.9"
 readme = "README.md"
