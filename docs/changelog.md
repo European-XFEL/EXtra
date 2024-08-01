@@ -59,6 +59,7 @@ Fixed:
   the XGM will rely only on the fast data to find the number of pulses in
   `.pulse_energy()` (!153).
 - Attempt to convert calibration condition values to floats before defaulting to strings. This prevents misinterpretation of boolean values as strings (e.g., "True") (!193).
+- Add tabulate to the package dependencies.
 
 ## [2024.1.1]
 
