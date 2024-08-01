@@ -1,4 +1,4 @@
-cfelpyutils==2.0.6
+cfelpyutils==2.1.0
 contourpy==1.2.1
 cycler==0.12.1
 EXtra-data==1.17.0
