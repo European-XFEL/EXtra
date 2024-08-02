@@ -124,7 +124,7 @@ class AdqRawChannel:
             raise ValueError('channel expected to be 2 or 3 characters, '
                              'e.g. 1A or 1_A')
 
-        self._channel_number = ord(self._channel_letter) - ord('A')
+        self._channel_number = ord(self._channel_letter) - ord('A') + 1
         self._channel_name = f'{self._channel_board}_{self._channel_letter}'
 
         key = f'digitizers.channel_{self._channel_name}.raw.samples'
