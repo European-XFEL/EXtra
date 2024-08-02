@@ -494,7 +494,7 @@ class AdqRawChannel:
     def channel_key(self, suffix):
         """Instrument KeyData object of this channel."""
         return self._instrument_src[f'digitizers.channel_{self._channel_name}'
-                                    f'_{suffix}']
+                                    f'.{suffix}']
 
     @property
     def raw_samples_key(self):
