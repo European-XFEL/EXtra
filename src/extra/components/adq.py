@@ -232,6 +232,10 @@ class AdqRawChannel:
         if baselevel is not None:
             baseline = baseline - baselevel
 
+        # Make sure the dtypes match, otherwise baseline is likely
+        # going to be float64 and not castable via `safe`.
+        baseline = baseline.astype(out.dtype, copy=False)
+
         for offset in range(period):
             sel = np.s_[offset::period]
             np.subtract(
@@ -707,7 +711,8 @@ class AdqRawChannel:
                 baseline to 0.
 
         Returns:
-            out (numpy.ndarray): Corrected input data.
+            out (numpy.ndarray): Corrected input data, same dtype as
+                input data if floating otherwise `float32`.
         """
 
         if cm_period < 1:
@@ -716,7 +721,8 @@ class AdqRawChannel:
         if not isinstance(data, np.ndarray):
             data = np.asarray(data)
 
-        out = np.zeros_like(data, dtype=np.float32)
+        out = np.zeros_like(data, dtype=data.dtype \
+            if np.issubdtype(data.dtype, np.floating) else np.float32)
         self._correct_cm_by_train(data, out, cm_period, baseline, baselevel)
 
         return out
