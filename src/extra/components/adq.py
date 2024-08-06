@@ -124,7 +124,7 @@ class AdqRawChannel:
             raise ValueError('channel expected to be 2 or 3 characters, '
                              'e.g. 1A or 1_A')
 
-        self._channel_number = ord(self._channel_letter) - ord('A')
+        self._channel_number = ord(self._channel_letter) - ord('A') + 1
         self._channel_name = f'{self._channel_board}_{self._channel_letter}'
 
         key = f'digitizers.channel_{self._channel_name}.raw.samples'
@@ -231,6 +231,10 @@ class AdqRawChannel:
 
         if baselevel is not None:
             baseline = baseline - baselevel
+
+        # Make sure the dtypes match, otherwise baseline is likely
+        # going to be float64 and not castable via `safe`.
+        baseline = baseline.astype(out.dtype, copy=False)
 
         for offset in range(period):
             sel = np.s_[offset::period]
@@ -490,7 +494,7 @@ class AdqRawChannel:
     def channel_key(self, suffix):
         """Instrument KeyData object of this channel."""
         return self._instrument_src[f'digitizers.channel_{self._channel_name}'
-                                    f'_{suffix}']
+                                    f'.{suffix}']
 
     @property
     def raw_samples_key(self):
@@ -707,7 +711,8 @@ class AdqRawChannel:
                 baseline to 0.
 
         Returns:
-            out (numpy.ndarray): Corrected input data.
+            out (numpy.ndarray): Corrected input data, same dtype as
+                input data if floating otherwise `float32`.
         """
 
         if cm_period < 1:
@@ -716,7 +721,8 @@ class AdqRawChannel:
         if not isinstance(data, np.ndarray):
             data = np.asarray(data)
 
-        out = np.zeros_like(data, dtype=np.float32)
+        out = np.zeros_like(data, dtype=data.dtype \
+            if np.issubdtype(data.dtype, np.floating) else np.float32)
         self._correct_cm_by_train(data, out, cm_period, baseline, baselevel)
 
         return out
