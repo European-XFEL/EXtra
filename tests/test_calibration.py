@@ -227,6 +227,42 @@ def test_JUNGFRAU_constant():
 
 
 @pytest.mark.vcr
+def test_JUNGFRAU_constant_prior_strategy():
+    cond = JUNGFRAUConditions(
+        sensor_bias_voltage=90.,
+        memory_cells=1,
+        integration_time=400.,
+        gain_setting=0,
+        sensor_temperature=291.,
+    )
+    jf_cd = CalibrationData.from_condition(
+        cond,
+        "FXE_XAD_JF1M",
+        event_at="2024-03-04T13:33:28.000+01:00",
+        begin_at_strategy="prior",
+    )
+    assert jf_cd.aggregator_names == ["JNGFR01", "JNGFR02"]
+    assert set(jf_cd) >= {"Offset10Hz", "BadPixelsDark10Hz", "RelativeGain10Hz"}
+    assert jf_cd["Noise10Hz"].constants["JNGFR01"]._metadata["begin_at"] == '2022-10-07T09:34:19.000+02:00'  # noqa
+
+def test_raise_invalid_begin_at_strategy():
+    cond = JUNGFRAUConditions(
+        sensor_bias_voltage=90.,
+        memory_cells=1,
+        integration_time=400.,
+        gain_setting=0,
+        sensor_temperature=291.,
+    )
+    with pytest.raises(ValueError):
+        CalibrationData.from_condition(
+            cond,
+            "FXE_XAD_JF1M",
+            event_at="2024-03-04 17:56:05.172132+00:00",
+            begin_at_strategy="INVALID_STRATEGY"
+        )
+
+
+@pytest.mark.vcr
 def test_AGIPD_CalibrationData_report():
     """Test CalibrationData with data from report"""
     # Report ID: https://in.xfel.eu/calibration/reports/3757
