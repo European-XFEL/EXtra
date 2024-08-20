@@ -30,7 +30,7 @@ def _fill_bunch_pattern_table(table, N, offset=10):
         DESTINATION_T4D | PHOTON_LINE_DEFLECTION | DESTINATION_TLD)
 
     # LP_SPB
-    table[offset//2:, 0:300:6] |= PPL_BITS.LP_SPB
+    table[offset//2:, 0:300:6] |= int(PPL_BITS.LP_SPB)
 
 
 class Timeserver(DeviceBase):
