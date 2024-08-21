@@ -17,8 +17,15 @@
     ```
 
 Fixed:
+
 - Karabacon 3.0.10 is now supported by the [Scantool][extra.components.Scantool]
   (!212).
+
+Changed:
+
+- [`gaussian()`][extra.utils.gaussian] has a new `norm` parameter to allow
+  disabling normalization, which [`fit_gaussian()`][extra.utils.fit_gaussian] will
+  use by default (!221).
 
 ## [2024.1.2]
 Added:
