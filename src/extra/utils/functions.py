@@ -1,10 +1,10 @@
 import numpy as np
 
 
-def gaussian(x, y0, A, μ, σ):
-    r"""Normalized Gaussian profile.
+def gaussian(x, y0, A, μ, σ, norm=True):
+    r"""Gaussian profile.
 
-    The profile is normalized in the sense that:
+    If `norm=True` the profile is normalized in the sense that:
 
     $$
     \int_{-\infty}^{\infty} gaussian(x, 0, A, \mu, \sigma > 0) \; dx = A
@@ -16,14 +16,16 @@ def gaussian(x, y0, A, μ, σ):
         A (float): Amplitude
         μ (float): Expected value
         σ (float): Standard deviation
+        norm (bool): Whether to normalize the Gaussian
 
     Returns:
         (array_like): Function value(s)
     """
-    return y0 + (A / (σ * np.sqrt(2*np.pi))) * np.exp(-(x - μ)**2 / (2 * σ**2))
+    norm_factor = σ * np.sqrt(2*np.pi) if norm else 1
+    return y0 + (A / norm_factor) * np.exp(-(x - μ)**2 / (2 * σ**2))
 
 
-def fit_gaussian(ydata, xdata=None, p0=None, **kwargs):
+def fit_gaussian(ydata, xdata=None, p0=None, norm=False, **kwargs):
     """Fit a Gaussian to some data.
 
     This uses [curve_fit()][scipy.optimize.curve_fit] to fit a Gaussian (from
@@ -36,12 +38,18 @@ def fit_gaussian(ydata, xdata=None, p0=None, **kwargs):
         [curve_fit()][scipy.optimize.curve_fit], if you want `pcov` or any other
         output you must pass `full_output=True`.
 
+    !!! note
+        When visualizing the fit results with [gaussian()][extra.utils.gaussian]
+        make sure the `norm` parameters match. i.e. if you're using the default
+        of fitting an unnormalized Gaussian: `gaussian(xdata, *popt, norm=False)`.
+
     Args:
         ydata (array_like): The data to fit. NaN's and infs will automatically
             be masked before fitting.
         xdata (array_like): Optional x-values corresponding to `ydata`.
         p0 (list): A list of `[y0, A, μ, σ]` to match the arguments to
             [gaussian()][extra.utils.gaussian].
+        norm (bool): Whether to fit a normalized or unnormalized Gaussian.
         **kwargs (): All other keyword arguments will be passed to
             [curve_fit()][scipy.optimize.curve_fit].
     """
@@ -69,8 +77,9 @@ def fit_gaussian(ydata, xdata=None, p0=None, **kwargs):
         y0 = np.min(ydata)
         p0 = [y0, A, μ, σ]
 
+    func = lambda *args: gaussian(*args, norm=norm)
     try:
-        result = curve_fit(gaussian, xdata, ydata, p0=p0, **kwargs)
+        result = curve_fit(func, xdata, ydata, p0=p0, **kwargs)
         return result if full_output_requested else result[0]
     except RuntimeError:
         return None
