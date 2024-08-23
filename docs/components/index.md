@@ -24,3 +24,4 @@ Component index:
     - [AdqRawChannel][extra.components.AdqRawChannel]
 - [Detector motors](detector-motors.md)
     - [AGIPD1MQuadrantMotors][extra.components.AGIPD1MQuadrantMotors]
+    - [JF4MHalfMotors][extra.components.JF4MHalfMotors]
