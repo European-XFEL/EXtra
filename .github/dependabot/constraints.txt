@@ -1,5 +1,5 @@
 cfelpyutils==2.1.0
-contourpy==1.2.1
+contourpy==1.3.0
 cycler==0.12.1
 EXtra-data==1.17.0
 EXtra-geom==1.12.0
