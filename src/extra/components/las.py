@@ -273,7 +273,7 @@ class OpticalLaserDelay:
     @property
     def _stage_to_time(self) -> float:
         """millimeter to seconds"""
-        return -2e-3 / speed_of_light
+        return 2e-3 / speed_of_light
 
     @property
     def time_scale(self) -> float:
