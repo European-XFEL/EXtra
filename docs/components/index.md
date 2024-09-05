@@ -18,6 +18,8 @@ Component index:
     - [DldPulses][extra.components.DldPulses]
 - [Delay Line Detectors](delay-line-detectors.md)
     - [DelayLineDetector][extra.components.DelayLineDetector]
+- [Timepix](timepix.md)
+    - [Timepix3][extra.components.Timepix3]
 - [Optical Lasers](optical-lasers.md)
     - [OpticalLaserDelay][extra.components.OpticalLaserDelay]
 - [ADQ Digitizers](adq-digitizers.md)

@@ -12,6 +12,7 @@ from extra_data.tests.mockdata.motor import Motor
 from .mockdata.detector_motors import (
     DetectorMotorDataSelector, get_motor_sources, write_motor_positions)
 from .mockdata.dld import ReconstructedDld
+from .mockdata.timepix import Timepix3Receiver, Timepix3Centroids
 from .mockdata.timeserver import PulsePatternDecoder, Timeserver
 from .mockdata.xgm import XGM, XGMD, XGMReduced
 
@@ -108,3 +109,21 @@ def mock_sqs_remi_directory():
 @pytest.fixture(scope='function')
 def mock_sqs_remi_run(mock_sqs_remi_directory):
     yield RunDirectory(mock_sqs_remi_directory)
+
+
+@pytest.fixture(scope='session')
+def mock_sqs_timepix_directory():
+    sources = [
+        Timeserver('SQS_RR_UTC/TSYS/TIMESERVER'),
+        Timepix3Receiver('SQS_EXTRA_TIMEPIX/DET/TIMEPIX3'),
+        Timepix3Receiver('SQS_EXP_TIMEPIX/DET/TIMEPIX3'),
+        Timepix3Centroids('SQS_EXP_TIMEPIX/CAL/TIMEPIX3')]
+
+    with TemporaryDirectory() as td:
+        write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 100)
+        yield td
+
+
+@pytest.fixture(scope='function')
+def mock_sqs_timepix_run(mock_sqs_timepix_directory):
+    yield RunDirectory(mock_sqs_timepix_directory)

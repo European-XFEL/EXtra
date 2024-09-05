@@ -23,6 +23,7 @@ Fixed:
 
 Changed:
 
+- [Timepix3][extra.components.Timepix3] to access raw hits and centroids from the Timepix3 detector (!231).
 - [`gaussian()`][extra.utils.gaussian] has a new `norm` parameter to allow
   disabling normalization, which [`fit_gaussian()`][extra.utils.fit_gaussian] will
   use by default (!221).
