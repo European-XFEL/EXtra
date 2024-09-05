@@ -520,7 +520,8 @@ class PulsePattern:
              DeprecationWarning, stacklevel=2)
         return self.pulse_counts(*args, **kwargs)
 
-    def build_pulse_index(self, pulse_dim='pulseId', include_extra_dims=True):
+    def build_pulse_index(self, pulse_dim='pulseId', include_extra_dims=True,
+                          pulse_dtype=None):
         """Get a multi-level index for pulse-resolved data.
 
         Args:
@@ -529,6 +530,8 @@ class PulsePattern:
             include_extra_dims (bool, optional): Whether to include any
                 additional dimensions of this particular implementation
                 beyond train ID and pulse dimension.
+            pulse_dtype (numpy.dtype, optional): If specified, force
+                casts the pulse dimension to the specified dtype.
 
         Returns:
             (pandas.MultiIndex): Multi-level index covering train ID,
@@ -559,6 +562,9 @@ class PulsePattern:
         if include_extra_dims:
             index_levels.update({name: pulse_ids.index.get_level_values(name)
                                  for name in pulse_ids.index.names[2:]})
+
+        if pulse_dtype is not None:
+            index_levels[pulse_dim] = index_levels[pulse_dim].astype(pulse_dtype)
 
         import pandas as pd
         return pd.MultiIndex.from_arrays(
