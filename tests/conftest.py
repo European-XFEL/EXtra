@@ -68,7 +68,7 @@ def mock_spb_aux_run(mock_spb_aux_directory):
 
 
 @pytest.fixture(scope="session")
-def multi_xgm_run():
+def multi_xgm_directory():
     sources = [
         XGM("SA2_XTD1_XGM/XGM/DOOCS"),
         XGMD("SPB_XTD9_XGM/XGM/DOOCS"),
@@ -81,10 +81,13 @@ def multi_xgm_run():
         # We need format version 1.1 for the XGM tests, because without the full
         # run metadata we can't get RUN values after a .union() or .select().
         write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 100, format_version="1.1")
+        yield td
 
-        aliases = {"sa2-xgm": "SA2_XTD1_XGM/XGM/DOOCS"}
-        run = RunDirectory(td)
-        yield run.with_aliases(aliases)
+
+@pytest.fixture(scope="function")
+def multi_xgm_run(multi_xgm_directory):
+    aliases = {"sa2-xgm": "SA2_XTD1_XGM/XGM/DOOCS"}
+    yield RunDirectory(multi_xgm_directory).with_aliases(aliases)
 
 
 @pytest.fixture(scope='session')
