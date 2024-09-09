@@ -101,8 +101,9 @@ def mock_sqs_remi_directory():
         ReconstructedDld('SQS_REMI_DLD6/DET/TOP'),
         ReconstructedDld('SQS_REMI_DLD6/DET/BOTTOM'),
         Motor('SQS_ILH_LAS/MOTOR/DELAY_AX_800'),
-        AdqDigitizer('SQS_DIGITIZER_UTC1/ADC/1', channels=[4, 4]),
-        AdqDigitizer('SQS_DIGITIZER_UTC2/ADC/1', channels=[4, 4, 4, 4])]
+        AdqDigitizer('SQS_DIGITIZER_UTC1/ADC/1', channels_per_board=2 * [4]),
+        AdqDigitizer('SQS_DIGITIZER_UTC2/ADC/1', channels_per_board=4 * [4],
+                     data_channels={(0, 0), (2, 1)})]
 
     with TemporaryDirectory() as td:
         write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 100)

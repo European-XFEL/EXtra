@@ -18,7 +18,7 @@ class AdqDigitizer(DeviceBase):
         ('channel_{board}_{ch_letter}/raw/length', 'u4', ()),
         ('channel_{board}_{ch_letter}/raw/position', 'u4', ()),
         ('channel_{board}_{ch_letter}/raw/triggerId', 'u8', ()),
-        ('channel_{board}_{ch_letter}/raw/samples', 'i2', (150000,))
+        ('channel_{board}_{ch_letter}/raw/samples', 'i2', (50000,))
     ]
 
     extra_run_values = [
@@ -30,8 +30,9 @@ class AdqDigitizer(DeviceBase):
         ('board{board}/channel_{ch_number}/enable', None, True),
     ]
 
-    def __init__(self, *args, channels, **kwargs):
+    def __init__(self, *args, channels_per_board, data_channels={}, **kwargs):
         self.channel_labels = []
+        self.data_channels = []
 
         # These are dicts for now to have no duplicate keys, their
         # values are turned into lists afterwards.
@@ -40,12 +41,12 @@ class AdqDigitizer(DeviceBase):
 
         cls = self.__class__
         format_fields = {}
-        for board_idx, num_channels in enumerate(channels):
+        for board_idx, num_channels in enumerate(channels_per_board):
             format_fields['board'] = board_idx + 1
 
-            for ch_index in range(num_channels):
-                format_fields['ch_number'] = ch_index + 1
-                format_fields['ch_letter'] = chr(ord('A') + ch_index)
+            for ch_idx in range(num_channels):
+                format_fields['ch_number'] = ch_idx + 1
+                format_fields['ch_letter'] = chr(ord('A') + ch_idx)
                 self.channel_labels.append(
                     '{board}_{ch_letter}'.format(**format_fields))
 
@@ -57,6 +58,9 @@ class AdqDigitizer(DeviceBase):
                     full_key = key.format(**format_fields)
                     extra_run_values[full_key] = (full_key, dtype, value)
 
+                if (board_idx, ch_idx) in data_channels:
+                    self.data_channels.append(self.channel_labels[-1])
+
         self.instrument_keys = list(instrument_keys.values())
         self.extra_run_values = list(extra_run_values.values())
 
@@ -66,9 +70,12 @@ class AdqDigitizer(DeviceBase):
         super().write_instrument(f)
 
         root_grp = f[f'INSTRUMENT/{self.device_id}:network/digitizers']
-        x = np.arange(150000)
+        x = np.arange(50000)
 
         for i, ch_label in enumerate(self.channel_labels):
+            if ch_label not in self.data_channels:
+                continue
+
             # Add a channel-dependent baseline shift and gaussian to
             # each channel.
             root_grp[f'channel_{ch_label}/raw/samples'][:] += -10 * (i+1) \

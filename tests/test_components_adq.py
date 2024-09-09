@@ -79,8 +79,8 @@ def test_adq_properties(mock_sqs_remi_run):
     assert ch.clock_ratio == 440
     assert np.isclose(ch.sampling_rate, 2.0e9, rtol=1e-2)
     assert np.isclose(ch.sampling_period, 0.5e-9)
-    assert ch.trace_shape == 150000
-    assert np.isclose(ch.trace_duration, 75e-6, rtol=1e-2)
+    assert ch.trace_shape == 50000
+    assert np.isclose(ch.trace_duration, 25e-6, rtol=1e-2)
 
     assert ch.board_parameters == {
         'enable': True, 'enable_raw': True, 'interleavedMode': False}
@@ -95,14 +95,14 @@ def test_adq_properties(mock_sqs_remi_run):
     assert ch.clock_ratio == 880
     assert np.isclose(ch.sampling_rate, 4.0e9, rtol=1e-2)
     assert np.isclose(ch.sampling_period, 0.25e-9)
-    assert np.isclose(ch.trace_duration, 37.5e-6, rtol=1e-2)
+    assert np.isclose(ch.trace_duration, 12.5e-6, rtol=1e-2)
 
     # One of the special 3G boards.
     ch = AdqRawChannel(mock_sqs_remi_run, '1C', digitizer='SQS_DIGITIZER_UTC2')
     assert ch.clock_ratio == 392
     assert np.isclose(ch.sampling_rate, 1.76e9, rtol=1e-2)
     assert np.isclose(ch.sampling_period, 0.57e-9)
-    assert np.isclose(ch.trace_duration, 84e-6, rtol=1e-2)
+    assert np.isclose(ch.trace_duration, 28e-6, rtol=1e-2)
 
 
 def test_adq_samples_per_pulse(mock_sqs_remi_run):
