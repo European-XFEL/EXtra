@@ -20,6 +20,9 @@ Fixed:
 
 - Karabacon 3.0.10 is now supported by the [Scantool][extra.components.Scantool]
   (!212).
+- [`Scan.plot_bin_by_steps()`][extra.components.Scan.plot_bin_by_steps] would
+  previously ignore the `title`/`xlabel`/`ylabel` arguments, now it actually
+  uses them (!237).
 
 Changed:
 

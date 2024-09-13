@@ -289,17 +289,18 @@ class Scan:
                         binned_data + binned_data.uncertainty,
                         alpha=0.5)
         ax.grid()
-        ax.set_xlabel(self.name)
+        ax.set_xlabel(self.name if xlabel is None else xlabel)
+
 
         if binned_data.name is not None:
-            ax.set_ylabel(binned_data.name)
+            ax.set_ylabel(binned_data.name if ylabel is None else ylabel)
             yaxis = binned_data.name
         else:
-            ax.set_ylabel("Signal [arb. u.]")
+            ax.set_ylabel("Signal [arb. u.]" if ylabel is None else ylabel)
             yaxis = "Signal"
 
         ax.legend()
-        ax.set_title(f"{yaxis} vs {self.name}")
+        ax.set_title(f"{yaxis} vs {self.name}" if title is None else title)
 
         return ax
 
