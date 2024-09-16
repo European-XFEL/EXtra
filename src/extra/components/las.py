@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from extra_data import SourceData, KeyData, by_id
-from ._common import _identify_instrument, _instrument_to_sase, \
+from .utils import _identify_instrument, _instrument_to_sase, \
     _select_subcomponent_trains
 from .pulses import XrayPulses, OpticalLaserPulses
 

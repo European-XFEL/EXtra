@@ -15,7 +15,7 @@ from euxfel_bunch_pattern import is_sase, is_laser, \
     PHOTON_LINE_DEFLECTION
 from extra_data import SourceData, KeyData, by_id
 
-from .utils import identify_sase
+from .utils import identify_sase, _instrument_to_sase
 
 
 try:
@@ -1299,10 +1299,7 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
             sase = int(instrument[0])
             ppl_seed = instrument[1]
         elif isinstance(instrument, str):
-            sase = next(iter({
-                sase for sase, topics in XrayPulses._sase_topics.items()
-                if instrument.upper() in topics}), 0)
-
+            sase = _instrument_to_sase(instrument.upper())
             ppl_seed = instrument
         else:
             raise TypeError('instrument must be str, 2-tuple or None')

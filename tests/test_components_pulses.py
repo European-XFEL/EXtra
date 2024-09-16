@@ -686,8 +686,22 @@ def test_pump_probe_basic(mock_spb_aux_run, source):
     np.testing.assert_equal(patterns[1][1][1:], np.r_[1012:1312:6])
 
     with pytest.raises(ValueError):
-        # Should fail with any relation keyword.
+        # Should fail without any relation keyword.
         pulses = PumpProbePulses(run, source=source)
+
+    try:
+        pulses = PumpProbePulses(run, source=source, instrument='SQS',
+                                 pulse_offset=0)
+    except ValueError as e:
+        # Will fail for ppdecoder, but not relevant here.
+        msg = str(e)
+        assert 'LP_SPB' in msg and 'LP_SQS' in msg
+    else:
+        assert pulses.sase == 3
+        assert pulses.ppl_seed == PPL_BITS.LP_SQS
+
+    with pytest.raises(ValueError):
+        PumpProbePulses(run, source=source, instrument='123', pulse_offset=0)
 
 
 def test_pump_probe_defaults(mock_spb_aux_run):
