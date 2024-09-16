@@ -27,7 +27,7 @@ def _identify_instrument(data, threshold=0.5):
 
     from collections import Counter
     topic, num = Counter([
-        s[:s.index('_')] for s in data.all_sources]).most_common()[0]
+        s.partition('_')[0] for s in data.all_sources]).most_common()[0]
 
     if num > threshold * len(data.all_sources):
         # Only accept if it's in the majority of sources
