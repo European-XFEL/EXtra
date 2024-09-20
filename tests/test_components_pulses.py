@@ -383,6 +383,11 @@ def test_build_pulse_index(mock_spb_aux_run, source):
     with pytest.warns():
         assert pulses.get_pulse_index().equals(pulses.build_pulse_index())
 
+    # Force dtype.
+    assert pulses.build_pulse_index(
+        'pulseIndex', pulse_dtype=np.float32
+    ).dtypes['pulseIndex'] == np.float32
+
 
 @pytest.mark.parametrize('source', **pattern_sources)
 def test_search_pulse_patterns(mock_spb_aux_run, source):
