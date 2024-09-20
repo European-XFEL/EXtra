@@ -50,8 +50,9 @@ def fit_gaussian(ydata, xdata=None, p0=None, norm=False, Asign=0, **kwargs):
         p0 (list): A list of `[y0, A, μ, σ]` to match the arguments to
             [gaussian()][extra.utils.gaussian].
         norm (bool): Whether to fit a normalized or unnormalized Gaussian.
-        Asign (int): 1 for an upwards peak, -1 for downwards. 0 (default) allows
-            either, using a faster algorithm. Passing `bounds=` overrides this.
+        Asign (int): Sign of the amplitude (A) parameter for the Gaussian.
+            1 for an upwards peak, -1 for downwards. 0 (default) allows either,
+            using a faster algorithm. Passing `bounds=` overrides this.
         **kwargs (): All other keyword arguments will be passed to
             [curve_fit()][scipy.optimize.curve_fit].
     """
