@@ -26,7 +26,7 @@ Changed:
 - [`gaussian()`][extra.utils.gaussian] has a new `norm` parameter to allow
   disabling normalization, which [`fit_gaussian()`][extra.utils.fit_gaussian] will
   use by default (!221).
-- [`fit_gaussian()`][extra.utils.fit_gaussian] has a new `Asign` parameter to
+- [`fit_gaussian()`][extra.utils.fit_gaussian] has a new `A_sign` parameter to
   specify the expected orientation of the peak (!222).
 
 ## [2024.1.2]

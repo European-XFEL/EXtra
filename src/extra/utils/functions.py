@@ -25,7 +25,7 @@ def gaussian(x, y0, A, μ, σ, norm=True):
     return y0 + (A / norm_factor) * np.exp(-(x - μ)**2 / (2 * σ**2))
 
 
-def fit_gaussian(ydata, xdata=None, p0=None, norm=False, Asign=0, **kwargs):
+def fit_gaussian(ydata, xdata=None, p0=None, norm=False, A_sign=0, **kwargs):
     """Fit a Gaussian to some data.
 
     This uses [curve_fit()][scipy.optimize.curve_fit] to fit a Gaussian (from
@@ -50,7 +50,7 @@ def fit_gaussian(ydata, xdata=None, p0=None, norm=False, Asign=0, **kwargs):
         p0 (list): A list of `[y0, A, μ, σ]` to match the arguments to
             [gaussian()][extra.utils.gaussian].
         norm (bool): Whether to fit a normalized or unnormalized Gaussian.
-        Asign (int): Sign of the amplitude (A) parameter for the Gaussian.
+        A_sign (int): Sign of the amplitude (A) parameter for the Gaussian.
             1 for an upwards peak, -1 for downwards. 0 (default) allows either,
             using a faster algorithm. Passing `bounds=` overrides this.
         **kwargs (): All other keyword arguments will be passed to
@@ -72,7 +72,7 @@ def fit_gaussian(ydata, xdata=None, p0=None, norm=False, Asign=0, **kwargs):
         return None
 
     if p0 is None:
-        if Asign >= 0:  # Peak upwards (or not specified)
+        if A_sign >= 0:  # Peak upwards (or not specified)
             μ_idx = np.argmax(ydata)
             A = max(1, ydata[μ_idx])
             y0 = np.min(ydata)
@@ -85,8 +85,8 @@ def fit_gaussian(ydata, xdata=None, p0=None, norm=False, Asign=0, **kwargs):
         σ = abs(np.max(xdata) - np.min(xdata)) / 4
         p0 = [y0, A, μ, σ]
 
-    if Asign != 0 and 'bounds' not in kwargs:
-        Amin, Amax = (0, np.inf) if Asign > 0 else (-np.inf, 0)
+    if A_sign != 0 and 'bounds' not in kwargs:
+        Amin, Amax = (0, np.inf) if A_sign > 0 else (-np.inf, 0)
         kwargs['bounds'] = (
             # y0      A     μ        σ
             [-np.inf, Amin, -np.inf, 0],

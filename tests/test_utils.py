@@ -20,7 +20,7 @@ def test_fit_gaussian():
     assert np.allclose(popt, params)
 
     # Test with A constrained to be >0
-    popt_A_pos = fit_gaussian(data, Asign=1)
+    popt_A_pos = fit_gaussian(data, A_sign=1)
     assert np.allclose(popt_A_pos, params)
 
     # Test with provided xdata
@@ -33,5 +33,5 @@ def test_fit_gaussian():
     # Test with a downwards-pointing peak
     params = [0, -3, 20, 5]
     data = gaussian(np.arange(100), *params, norm=False)
-    popt = fit_gaussian(data, Asign=-1)
+    popt = fit_gaussian(data, A_sign=-1)
     assert np.allclose(popt, params)
