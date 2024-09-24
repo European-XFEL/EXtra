@@ -1288,6 +1288,8 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
         self._pulse_offset = None  # Allowed to be float!
         self._extrapolate = extrapolate
 
+        # Logic should always check these modes in exactly this order,
+        # see below.
         if bunch_table_position is not None:
             self._bunch_table_position = int(bunch_table_position)
         elif bunch_table_offset is not None:
@@ -1297,6 +1299,14 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
         else:
             raise ValueError('must specify one of bunch_table_position, '
                              'bunch_table_offset, pulse_offset')
+
+        if self._pulse_offset == 0:
+            # Implement this case via the bunch_table_offset mechanism
+            # to enable it to work even if there is only a single FEL
+            # pulse in any given train.
+            # These modes are always checked in the same order as above,
+            # while __repr__ accounts for this special case.
+            self._bunch_table_offset = 0
 
         if instrument is None:
             sase = None
@@ -1323,10 +1333,13 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
     def __repr__(self):
         if self._bunch_table_position is not None:
             offset_str = f'@{self._bunch_table_position}b'
+        elif self._pulse_offset is not None:
+            # This branch is intentionally ahead of buch_table_offset to
+            # still represent the case pulse_offset == 0 correctly even
+            # if it is implemented by bunch_table_offset = 0 internally.
+            offset_str = f'@SA{self._sase}{self._pulse_offset:+d}p'
         elif self._bunch_table_offset is not None:
             offset_str = f'@SA{self._sase}{self._bunch_table_offset:+d}b'
-        elif self._pulse_offset is not None:
-            offset_str = f'@SA{self._sase}{self._pulse_offset:+d}p'
 
         if self._with_timeserver:
             source_type = 'timeserver'

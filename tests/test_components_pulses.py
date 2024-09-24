@@ -709,8 +709,18 @@ def test_pump_probe_basic(mock_spb_aux_run, source):
         PumpProbePulses(run, source=source, instrument='123', pulse_offset=0)
 
 
-def test_pump_probe_defaults(mock_spb_aux_run):
+def test_pump_probe_specials(mock_spb_aux_run, mock_sqs_remi_run):
+    # Test full pulse IDs using defautl arguments.
     run = mock_spb_aux_run.select('SPB*').select_trains(np.s_[10:])
     np.testing.assert_equal(
         PumpProbePulses(run, pulse_offset=1).pulse_ids()[run.train_ids[0]],
         np.r_[1000:1306:6])
+
+    # Test single pulse case with pulse_offset == 0 (working through
+    # bunch_table_offset = 0 instead).
+    run = mock_sqs_remi_run.select_trains(np.s_[10:])
+    assert PumpProbePulses(run, pulse_offset=0).pulse_ids().any()
+
+    # Test single pulse case with pulse_offset != 0 (fails).
+    with pytest.raises(ValueError):
+        PumpProbePulses(run, pulse_offset=1).pulse_ids()
