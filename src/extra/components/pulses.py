@@ -1381,11 +1381,25 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
             try:
                 ppl_pids += self._get_ppl_offset(fel_pids)
             except IndexError:
-                if not self._extrapolate:
-                    raise ValueError(f'missing FEL pulses on train {train_id}')
-                elif prev_fel_pids is None:
-                    raise ValueError('cannot extrapolate missing FEL pulses '
-                                     'on start of data')
+                # The IndexError can occur with trains having exactly
+                # one FEL pulse (in pulse_offset mode) or no FEL pulses
+                # (in bunch_table_offset and pulse_offset mode).
+
+                if not self._extrapolate or prev_fel_pids is None:
+                    if len(fel_pids) == 0:
+                        msg = f'missing any FEL pulses in train {train_id} ' \
+                              f'to determine absolute pulse position'
+                    else:
+                        msg = f'missing second FEL pulse in train ' \
+                              f'{train_id} to determine pulse repetition rate'
+
+                    if self._extrapolate:
+                        msg += ', no train encountered yet to extrapolate from'
+
+                    raise ValueError(msg) from None
+
+                # Otherwise extrapolation is enabled and prior valid
+                # patterns exist.
 
                 ppl_pids += self._get_ppl_offset(prev_fel_pids)
             else:
