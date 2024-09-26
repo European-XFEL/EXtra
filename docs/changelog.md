@@ -34,6 +34,7 @@ Changed:
   use by default (!221).
 - [`fit_gaussian()`][extra.utils.fit_gaussian] has a new `A_sign` parameter to
   specify the expected orientation of the peak (!222).
+- [`AdqRawChannel.pulse_data()`][extra.components.AdqRawChannel.pulse_data] no longer throws an exception if the pulse pattern refers to data beyond the acquired traces, but instead fills this with NaN or -1 depending on data type (!245).
 
 ## [2024.1.2]
 Added:
