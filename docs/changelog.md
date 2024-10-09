@@ -16,6 +16,10 @@
     pip install git+https://github.com/European-XFEL/EXtra.git
     ```
 
+Added:
+
+- [JF4MHalfMotors][extra.components.JF4MHalfMotors] to access positions of motors moving halfs of Jungfrau detector (!224).
+
 Fixed:
 
 - Karabacon 3.0.10 is now supported by the [Scantool][extra.components.Scantool]

@@ -196,7 +196,10 @@ def find_motors(dc, pattern, position_key, data_selectors=None, **coordinates):
         src = pattern.format(**args)
         label = ''.join(f"{n}{v}" for n, v in args.items())
 
-        if src in dc.control_sources and position_key in dc[src].keys():
+        if (
+            src in dc.control_sources and
+            position_key in dc[src].keys(inc_timestamps=False)
+        ):
             motors[label] = (src, position_key)
             continue
 
@@ -244,7 +247,7 @@ class AGIPD1MQuadrantMotors(DetectorMotors):
             dc (extra_data.DataCollection):
                 The data
             detector_id (str):
-                The detector ID, e.g. SPB_IRU_AGIPD1M or SPB_IRU_AGIPD1M
+                The detector ID, e.g. SPB_IRU_AGIPD1M or MID_EXP_AGIPD1M
 
         Raises:
             ValueError:
@@ -264,6 +267,67 @@ class AGIPD1MQuadrantMotors(DetectorMotors):
             self.KNOWN_DETECTORS if detector_id is None else [detector_id])
         for det_id in detectors:
             pattern = det_id + "/MOTOR/Q{q}M{m}"
+            det_motors = find_motors(dc, pattern, self._position_key,
+                                     data_selectors, q=groups, m=motors)
+            if det_motors:
+                all_motors[det_id] = det_motors
+
+        if len(all_motors) == 0:
+            raise ValueError("Motors are not found")
+        elif len(all_motors) > 1:
+            raise ValueError(
+                "Many detector found: {', '.join(det_motors.keys())}. "
+                "Please specify 'detector_id'")
+
+        detector_id, detector_motors = all_motors.popitem()
+        super().__init__(dc, detector_id, detector_motors, q=groups, m=motors)
+
+
+class JF4MHalfMotors(DetectorMotors):
+    """Interface to Jungfrau 4M half motors.
+
+    Example usage in a Jupyter notebook:
+    ```python
+            -----------------------------------------------------------
+    In [1]: |motors = JF4MHalfMotors(run)                             |
+            |motors                                                   |
+            -----------------------------------------------------------
+    Out[1]: <JF4MHalfMotors(2, 1)for SPB_IRDA_JF4M at
+            2024-08-21T19:38:47.690044000>
+    ```
+    """
+    # SPB
+    # SPB_IRDA_JF4M/MOTOR/X{q+1}
+    # SPB_IRDA_JF4M/MOTOR/Z
+
+    KNOWN_DETECTORS = ["SPB_IRDA_JF4M"]
+
+    def __init__(self, dc, detector_id=None):
+        """
+        Args:
+            dc (extra_data.DataCollection):
+                The data
+            detector_id (str):
+                The detector ID, e.g. SPB_IRDA_JF4M
+
+        Raises:
+            ValueError:
+                If motors are not found or multiple motor groups are found
+        """
+        pattern = "{detector_id}/MOTOR/X{q}"
+
+        num_groups = 2
+        num_motors = 1
+        groups = list(range(1, num_groups + 1))
+        motors = list(range(1, num_motors + 1))
+
+        data_selectors = sources_by_class(dc)
+
+        all_motors = {}
+        detectors = (
+            self.KNOWN_DETECTORS if detector_id is None else [detector_id])
+        for det_id in detectors:
+            pattern = det_id + "/MOTOR/X{q}"
             det_motors = find_motors(dc, pattern, self._position_key,
                                      data_selectors, q=groups, m=motors)
             if det_motors:
