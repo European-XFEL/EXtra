@@ -66,7 +66,12 @@ def test_timepix3_data(mock_sqs_timepix_run, method):
     tpx = Timepix3(run)
     data = getattr(tpx, method)()
 
-    np.testing.assert_array_equal(data.columns, ['x', 'y', 't', 'tot'])
+    columns = list(data.columns)
+
+    if method == 'centroid_events':
+        assert columns.pop(-1) == 'centroid_size'
+
+    np.testing.assert_array_equal(columns, ['x', 'y', 't', 'tot'])
     assert data.index.names == ['trainId', 'pulseId']
 
     np.testing.assert_equal(
@@ -187,8 +192,8 @@ def test_timepix3_centroid_events(mock_sqs_timepix_run):
     centroids = tpx.centroid_events(extended_columns=True)
 
     np.testing.assert_array_equal(
-        centroids.columns, ['x', 'y', 't', 'tot', 'tot_avg', 'tot_max', 'toa',
-                            'centroid_size', 'label'])
+        centroids.columns, ['x', 'y', 't', 'tot', 'centroid_size',
+                            'tot_avg', 'tot_max', 'toa', 'label'])
 
     for _, d in centroids.groupby(['trainId', 'pulseId']):
         N = len(d)

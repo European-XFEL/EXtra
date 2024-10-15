@@ -551,8 +551,9 @@ class Timepix3:
                 False by default. If enabled, the pulse index dimension
                 will be forced to float.
             extended_columns (bool, optional): Whether to include the
-                original average and maximal time-over-threshold,
-                size and label for each centroid, False by default.
+                average and maximal time-over-threshold as well
+                as original time-of-arrival and labels for each
+                centroid, False by default.
             parallel (int or None, optional): Nunmber of parallel
                 processes to use, by default 10 or a quarter of all cores
                 whichever is lower. Any non-positive value or 1 disable
@@ -621,14 +622,17 @@ class Timepix3:
         # Build the data frame with centroids and the prepared index.
         df = pd.DataFrame.from_records(
             centroids.ravel()[centroids_rows][mask], index=index,
-            exclude=(['size', 'tot_avg', 'tot_max', 'toa']
+            exclude=(['tot_avg', 'tot_max', 'toa']
                      if not extended_columns else []))
         df.insert(2, 't', centroids_tof[mask])
+        df.rename(columns={'size': 'centroid_size'}, inplace=True)
 
         if extended_columns:
-            df.rename(columns={'size': 'centroid_size'}, inplace=True)
+            # Re-order centroid size.
+            df.insert(4, 'centroid_size', df.pop('centroid_size'))
+
             df['toa'] = centroids_toa[mask]  # Overwrite with modified data.
-            df.insert(6, 'toa', df.pop('toa'))  # Re-order ToA
+            df.insert(7, 'toa', df.pop('toa'))  # Re-order ToA
             df.insert(3, 'tot', df.pop('tot'))  # Re-order ToT.
             df['label'] = centroids_label[mask]
 
