@@ -135,7 +135,7 @@ def test_timepix3_data(mock_sqs_timepix_run, method):
     assert data.index.names == ['trainId', 'pulseId', 'fel', 'ppl']
 
 
-def test_timepix3_pixel_events(mock_sqs_timepix_run):
+def test_timepix3_pixel_events(monkeypatch, mock_sqs_timepix_run):
     tpx = Timepix3(mock_sqs_timepix_run.deselect('SQS_EXTRA*'))
 
     # Extended columns.
@@ -161,6 +161,23 @@ def test_timepix3_pixel_events(mock_sqs_timepix_run):
                               extended_columns=True)
     np.testing.assert_allclose(orig_toa.to_numpy() - events['toa'].to_numpy(),
                                walk[(events['tot'] // 25) - 1] * 1e6)
+
+    # Test for data.size exceeding buffer size by monkeypatching
+    # KeyData.ndarray() method to create out-of-bounds data.size.
+    def _ndarray(self, *args, **kwargs):
+        res = orig_ndarray(self, *args, **kwargs)
+
+        if self.source == tpx.raw_instrument_src.source and self.key == 'data.size':
+            res[res.argmax()] += tpx.raw_x_key.entry_shape[0]
+
+        return res
+
+    from extra_data import KeyData
+    orig_ndarray = KeyData.ndarray
+    monkeypatch.setattr(KeyData, 'ndarray', _ndarray)
+
+    with pytest.warns(RuntimeWarning):
+        tpx.pixel_events()
 
 
 def test_timepix3_centroid_events(mock_sqs_timepix_run):

@@ -441,6 +441,21 @@ class Timepix3:
         hits_per_train = self.raw_size_key.ndarray()
         num_hits = int(hits_per_train.sum())
 
+        if (hits_per_train > self.raw_x_key.entry_shape[0]).any():
+            # data.size may actually record more pixel events than can
+            # be placed into array buffer. The device is supposed to
+            # prevent this, but there is some commissioning data
+            # affected by it.
+
+            diff = hits_per_train - self.raw_x_key.entry_shape[0]
+            max_deviation = diff.max()
+            num_deviations = (diff > 0).sum()
+
+            from warnings import warn
+            warn(f'reported number of pixel events exceed buffer size in '
+                 f'{num_deviations} trains by up to {max_deviation}',
+                 category=RuntimeWarning, stacklevel=2)
+
         # Offset of each train in the by-hit buffers below.
         hit_train_offsets = np.zeros_like(hits_per_train)
         hit_train_offsets[1:] = np.cumsum(hits_per_train[:-1])
@@ -467,7 +482,9 @@ class Timepix3:
         def load_tpx_raw(wid, index, train_id, data):
             raw = data[self._raw_instrument_src.source]
 
-            count = hits_per_train[index]
+            # Retrieve the number of pixel events in this train, making
+            # sure to not exceed the buffer shape.
+            count = min(hits_per_train[index], raw['data.x'].shape[0])
 
             if count == 0:
                 return
