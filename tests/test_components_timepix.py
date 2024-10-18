@@ -185,6 +185,11 @@ def test_timepix3_pixel_events(monkeypatch, mock_sqs_timepix_run):
         tpx.pixel_events()
 
 
+def test_timepix3_exceeded_buffer(mock_timepix_exceeded_buffer_run):
+    with pytest.warns(RuntimeWarning):
+        Timepix3(mock_timepix_exceeded_buffer_run).pixel_events()
+
+
 def test_timepix3_centroid_events(mock_sqs_timepix_run):
     tpx = Timepix3(mock_sqs_timepix_run.deselect('SQS_EXTRA*'))
 

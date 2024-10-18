@@ -127,3 +127,22 @@ def mock_sqs_timepix_directory():
 @pytest.fixture(scope='function')
 def mock_sqs_timepix_run(mock_sqs_timepix_directory):
     yield RunDirectory(mock_sqs_timepix_directory)
+
+
+@pytest.fixture(scope='function')
+def mock_timepix_exceeded_buffer_run(mock_sqs_timepix_directory):
+    run = RunDirectory(mock_sqs_timepix_directory).deselect('SQS_EXTRA*')
+    tpx_root = 'INSTRUMENT/SQS_EXP_TIMEPIX/DET/TIMEPIX3:daqOutput.chip0'
+
+    run.files[0].close()
+    with h5py.File(run.files[0].filename, 'r+') as f:
+        size_dset = f[f'{tpx_root}/data/size']
+        changed_index = np.argmax(size_dset)
+        orig_value = size_dset[changed_index]
+        size_dset[changed_index] += f[f'{tpx_root}/data/x'].shape[1]
+
+    yield run
+
+    run.files[0].close()
+    with h5py.File(run.files[0].filename, 'r+') as f:
+        f[f'{tpx_root}/data/size'][changed_index] = orig_value
