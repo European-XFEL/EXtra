@@ -66,7 +66,12 @@ def test_timepix3_data(mock_sqs_timepix_run, method):
     tpx = Timepix3(run)
     data = getattr(tpx, method)()
 
-    np.testing.assert_array_equal(data.columns, ['x', 'y', 't', 'tot'])
+    columns = list(data.columns)
+
+    if method == 'centroid_events':
+        assert columns.pop(-1) == 'centroid_size'
+
+    np.testing.assert_array_equal(columns, ['x', 'y', 't', 'tot'])
     assert data.index.names == ['trainId', 'pulseId']
 
     np.testing.assert_equal(
@@ -135,7 +140,7 @@ def test_timepix3_data(mock_sqs_timepix_run, method):
     assert data.index.names == ['trainId', 'pulseId', 'fel', 'ppl']
 
 
-def test_timepix3_pixel_events(mock_sqs_timepix_run):
+def test_timepix3_pixel_events(monkeypatch, mock_sqs_timepix_run):
     tpx = Timepix3(mock_sqs_timepix_run.deselect('SQS_EXTRA*'))
 
     # Extended columns.
@@ -162,6 +167,28 @@ def test_timepix3_pixel_events(mock_sqs_timepix_run):
     np.testing.assert_allclose(orig_toa.to_numpy() - events['toa'].to_numpy(),
                                walk[(events['tot'] // 25) - 1] * 1e6)
 
+    # Test for data.size exceeding buffer size by monkeypatching
+    # KeyData.ndarray() method to create out-of-bounds data.size.
+    def _ndarray(self, *args, **kwargs):
+        res = orig_ndarray(self, *args, **kwargs)
+
+        if self.source == tpx.raw_instrument_src.source and self.key == 'data.size':
+            res[res.argmax()] += tpx.raw_x_key.entry_shape[0]
+
+        return res
+
+    from extra_data import KeyData
+    orig_ndarray = KeyData.ndarray
+    monkeypatch.setattr(KeyData, 'ndarray', _ndarray)
+
+    with pytest.warns(RuntimeWarning):
+        tpx.pixel_events()
+
+
+def test_timepix3_exceeded_buffer(mock_timepix_exceeded_buffer_run):
+    with pytest.warns(RuntimeWarning):
+        Timepix3(mock_timepix_exceeded_buffer_run).pixel_events()
+
 
 def test_timepix3_centroid_events(mock_sqs_timepix_run):
     tpx = Timepix3(mock_sqs_timepix_run.deselect('SQS_EXTRA*'))
@@ -170,8 +197,8 @@ def test_timepix3_centroid_events(mock_sqs_timepix_run):
     centroids = tpx.centroid_events(extended_columns=True)
 
     np.testing.assert_array_equal(
-        centroids.columns, ['x', 'y', 't', 'tot', 'tot_avg', 'tot_max', 'toa',
-                            'centroid_size', 'label'])
+        centroids.columns, ['x', 'y', 't', 'tot', 'centroid_size',
+                            'tot_avg', 'tot_max', 'toa', 'label'])
 
     for _, d in centroids.groupby(['trainId', 'pulseId']):
         N = len(d)

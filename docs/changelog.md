@@ -16,6 +16,9 @@
     pip install git+https://github.com/European-XFEL/EXtra.git
     ```
 
+Added:
+- [Timepix3][extra.components.Timepix3] to access raw hits and centroids from the Timepix3 detector (!231).
+
 Fixed:
 
 - Karabacon 3.0.10 is now supported by the [Scantool][extra.components.Scantool]
@@ -25,8 +28,6 @@ Fixed:
   uses them (!237).
 
 Changed:
-
-- [Timepix3][extra.components.Timepix3] to access raw hits and centroids from the Timepix3 detector (!231).
 - [`gaussian()`][extra.utils.gaussian] has a new `norm` parameter to allow
   disabling normalization, which [`fit_gaussian()`][extra.utils.fit_gaussian] will
   use by default (!221).

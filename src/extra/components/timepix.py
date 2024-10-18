@@ -441,6 +441,21 @@ class Timepix3:
         hits_per_train = self.raw_size_key.ndarray()
         num_hits = int(hits_per_train.sum())
 
+        if (hits_per_train > self.raw_x_key.entry_shape[0]).any():
+            # data.size may actually record more pixel events than can
+            # be placed into array buffer. The device is supposed to
+            # prevent this, but there is some commissioning data
+            # affected by it.
+
+            diff = hits_per_train - self.raw_x_key.entry_shape[0]
+            max_deviation = diff.max()
+            num_deviations = (diff > 0).sum()
+
+            from warnings import warn
+            warn(f'reported number of pixel events exceed buffer size in '
+                 f'{num_deviations} trains by up to {max_deviation}',
+                 category=RuntimeWarning, stacklevel=2)
+
         # Offset of each train in the by-hit buffers below.
         hit_train_offsets = np.zeros_like(hits_per_train)
         hit_train_offsets[1:] = np.cumsum(hits_per_train[:-1])
@@ -467,7 +482,9 @@ class Timepix3:
         def load_tpx_raw(wid, index, train_id, data):
             raw = data[self._raw_instrument_src.source]
 
-            count = hits_per_train[index]
+            # Retrieve the number of pixel events in this train, making
+            # sure to not exceed the buffer shape.
+            count = min(hits_per_train[index], raw['data.x'].shape[0])
 
             if count == 0:
                 return
@@ -534,8 +551,9 @@ class Timepix3:
                 False by default. If enabled, the pulse index dimension
                 will be forced to float.
             extended_columns (bool, optional): Whether to include the
-                original average and maximal time-over-threshold,
-                size and label for each centroid, False by default.
+                average and maximal time-over-threshold as well
+                as original time-of-arrival and labels for each
+                centroid, False by default.
             parallel (int or None, optional): Nunmber of parallel
                 processes to use, by default 10 or a quarter of all cores
                 whichever is lower. Any non-positive value or 1 disable
@@ -604,14 +622,17 @@ class Timepix3:
         # Build the data frame with centroids and the prepared index.
         df = pd.DataFrame.from_records(
             centroids.ravel()[centroids_rows][mask], index=index,
-            exclude=(['size', 'tot_avg', 'tot_max', 'toa']
+            exclude=(['tot_avg', 'tot_max', 'toa']
                      if not extended_columns else []))
         df.insert(2, 't', centroids_tof[mask])
+        df.rename(columns={'size': 'centroid_size'}, inplace=True)
 
         if extended_columns:
-            df.rename(columns={'size': 'centroid_size'}, inplace=True)
+            # Re-order centroid size.
+            df.insert(4, 'centroid_size', df.pop('centroid_size'))
+
             df['toa'] = centroids_toa[mask]  # Overwrite with modified data.
-            df.insert(6, 'toa', df.pop('toa'))  # Re-order ToA
+            df.insert(7, 'toa', df.pop('toa'))  # Re-order ToA
             df.insert(3, 'tot', df.pop('tot'))  # Re-order ToT.
             df['label'] = centroids_label[mask]
 

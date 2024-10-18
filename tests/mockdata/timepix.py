@@ -20,7 +20,6 @@ stat_dt = np.dtype([('N_centroids', np.int64),
                     ('fraction_px_in_centroids', np.float64)])
 
 
-
 class TimepixCommon(DeviceBase):
     def _fill_hit_data(self, dset, min_val, max_val):
         val = np.nan if np.issubdtype(dset.dtype, np.floating) else 1
