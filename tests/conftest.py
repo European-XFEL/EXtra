@@ -1,5 +1,6 @@
 
 from pathlib import Path
+from shutil import copytree
 from tempfile import TemporaryDirectory
 
 import h5py
@@ -131,18 +132,14 @@ def mock_sqs_timepix_run(mock_sqs_timepix_directory):
 
 @pytest.fixture(scope='function')
 def mock_timepix_exceeded_buffer_run(mock_sqs_timepix_directory):
-    run = RunDirectory(mock_sqs_timepix_directory).deselect('SQS_EXTRA*')
-    tpx_root = 'INSTRUMENT/SQS_EXP_TIMEPIX/DET/TIMEPIX3:daqOutput.chip0'
+    with TemporaryDirectory() as td:
+        copytree(mock_sqs_timepix_directory, td, dirs_exist_ok=True)
 
-    run.files[0].close()
-    with h5py.File(run.files[0].filename, 'r+') as f:
-        size_dset = f[f'{tpx_root}/data/size']
-        changed_index = np.argmax(size_dset)
-        orig_value = size_dset[changed_index]
-        size_dset[changed_index] += f[f'{tpx_root}/data/x'].shape[1]
+        with h5py.File(next(Path(td).glob('*.h5')), 'r+') as f:
+            tpx_root = f['INSTRUMENT/SQS_EXP_TIMEPIX/DET/TIMEPIX3'
+                         ':daqOutput.chip0']
 
-    yield run
+            size_dset = tpx_root['data/size']
+            size_dset[np.argmax(size_dset)] += tpx_root['data/x'].shape[1]
 
-    run.files[0].close()
-    with h5py.File(run.files[0].filename, 'r+') as f:
-        f[f'{tpx_root}/data/size'][changed_index] = orig_value
+        yield RunDirectory(td).deselect('SQS_EXTRA*')
