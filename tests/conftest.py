@@ -1,5 +1,6 @@
 
 from pathlib import Path
+from shutil import copytree
 from tempfile import TemporaryDirectory
 
 import h5py
@@ -127,3 +128,18 @@ def mock_sqs_timepix_directory():
 @pytest.fixture(scope='function')
 def mock_sqs_timepix_run(mock_sqs_timepix_directory):
     yield RunDirectory(mock_sqs_timepix_directory)
+
+
+@pytest.fixture(scope='function')
+def mock_timepix_exceeded_buffer_run(mock_sqs_timepix_directory):
+    with TemporaryDirectory() as td:
+        copytree(mock_sqs_timepix_directory, td, dirs_exist_ok=True)
+
+        with h5py.File(next(Path(td).glob('*.h5')), 'r+') as f:
+            tpx_root = f['INSTRUMENT/SQS_EXP_TIMEPIX/DET/TIMEPIX3'
+                         ':daqOutput.chip0']
+
+            size_dset = tpx_root['data/size']
+            size_dset[np.argmax(size_dset)] += tpx_root['data/x'].shape[1]
+
+        yield RunDirectory(td).deselect('SQS_EXTRA*')
