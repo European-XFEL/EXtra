@@ -1056,6 +1056,16 @@ class JUNGFRAUConditions(ConditionsBase):
         return cond
 
 
+@dataclass
+class ShimadzuHPVX2Conditions(ConditionsBase):
+    burst_frame_count: float
+
+    calibration_types = {
+        'Offset': ['Burst Frame Count'],
+        'DynamicFF': ['Burst Frame Count'],
+    }
+
+
 class BadPixels(IntFlag):
     """Bad pixel reasons, as used in masks in corrected detector data"""
     OFFSET_OUT_OF_THRESHOLD  = 1 << 0
