@@ -235,8 +235,17 @@ def setup_client(
 
 _default_caldb_root = None
 
+def set_default_caldb_root(p: Path):
+    """Override the default root directory for constants in CalCat"""
+    global _default_caldb_root
+    _default_caldb_root = p
 
-def _get_default_caldb_root():
+def get_default_caldb_root():
+    """Get the root directory for constants in CalCat.
+
+    The default location is different on Maxwell & ONC; this checks which one
+    exists. Calling ``set_default_caldb_root()`` overrides this.
+    """
     global _default_caldb_root
     if _default_caldb_root is None:
         onc_path = Path("/common/cal/caldb_store")
@@ -279,13 +288,15 @@ class SingleConstant:
             _have_calcat_metadata=True,
         )
 
-    def dataset_obj(self, caldb_root=None) -> h5py.Dataset:
+    def file_path(self, caldb_root=None) -> Path:
         if caldb_root is not None:
             caldb_root = Path(caldb_root)
         else:
-            caldb_root = _get_default_caldb_root()
+            caldb_root = get_default_caldb_root()
+        return caldb_root / self.path
 
-        f = h5py.File(caldb_root / self.path, "r")
+    def dataset_obj(self, caldb_root=None) -> h5py.Dataset:
+        f = h5py.File(self.file_path(caldb_root), "r")
         return f[self.dataset]["data"]
 
     def ndarray(self, caldb_root=None):
