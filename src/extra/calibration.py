@@ -300,7 +300,6 @@ class SingleConstant:
         self._metadata = calcat_meta | self._metadata
         self._have_calcat_metadata = True
 
-
     def metadata(self, key, client=None):
         """Get a specific metadata field, e.g. 'begin_validity_at'
 
@@ -548,12 +547,19 @@ class CalibrationData(Mapping):
             client=None,
             event_at=None,
             pdu_snapshot_at=None,
+            begin_at_strategy="closest",
     ):
         """Look up constants for the given detector conditions & timestamp.
 
         `condition` should be a conditions object for the relevant detector type,
         e.g. `DSSCConditions`.
         """
+        accepted_strategies = ["closest", "prior"]
+        if begin_at_strategy not in accepted_strategies:
+            raise ValueError(
+                "Invalid begin_at_strategy. "
+                f"Expected one of {accepted_strategies}")
+
         if calibrations is None:
             calibrations = set(condition.calibration_types)
         if pdu_snapshot_at is None:
@@ -597,6 +603,7 @@ class CalibrationData(Mapping):
                     "karabo_da": "",
                     "event_at": client.format_time(event_at),
                     "pdu_snapshot_at": client.format_time(pdu_snapshot_at),
+                    "begin_at_strategy": begin_at_strategy,
                 },
                 data=json.dumps(cls._format_cond(condition_dict)),
             )
