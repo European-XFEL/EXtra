@@ -1016,6 +1016,7 @@ class JUNGFRAUConditions(ConditionsBase):
     sensor_bias_voltage: float
     memory_cells: int
     integration_time: float
+    exposure_timeout: int
     gain_setting: int
     gain_mode: Optional[int] = None
     sensor_temperature: float = 291
@@ -1028,6 +1029,7 @@ class JUNGFRAUConditions(ConditionsBase):
         "Pixels X",
         "Pixels Y",
         "Integration Time",
+        "Exposure timeout",
         "Sensor temperature",
         "Gain Setting",
         "Gain mode",
@@ -1046,6 +1048,10 @@ class JUNGFRAUConditions(ConditionsBase):
         # Fix-up some database quirks.
         if int(cond.get("Gain mode", -1)) == 0:
             del cond["Gain mode"]
+
+        # Fix-up some database quirks.
+        if int(cond.get("Exposure timeout", -1)) == 25:
+            del cond["Exposure timeout"]
 
         return cond
 
