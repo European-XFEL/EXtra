@@ -525,19 +525,15 @@ class CalibrationData(Mapping):
             (dict) Operating condition for use in CalCat API.
         """
 
-        def to_float_or_string(value):
-            """CALCAT expects data to either be float or a string."""
-            try:  # Any digit or boolean
-                return float(value)
-            except:
-                return str(value)
+        if not all([isinstance(v, (float, str)) for v in condition.values()]):
+            raise TypeError('Operating condition parameters may only be '
+                            'float or str')
 
         return {
-            "parameters_conditions_attributes": [
-                {
-                    "parameter_name": k,
-                    "value": to_float_or_string(v)
-                } for k, v in condition.items()
+            "parameters_conditions_attributes": [{
+                "parameter_name": k,
+                "value": v
+            } for k, v in condition.items()
             ]
         }
 
@@ -892,8 +888,10 @@ class ConditionsBase:
 
         for db_name in parameters:
             value = getattr(self, db_name.lower().replace(" ", "_"))
-            if value is not None:
+            if isinstance(value, str):
                 d[db_name] = value
+            elif value is not None:
+                d[db_name] = float(value)
 
         return d
 
@@ -949,15 +947,15 @@ class AGIPDConditions(ConditionsBase):
 
 @dataclass
 class LPDConditions(ConditionsBase):
-    """Conditions for LPD detectors"""
-    sensor_bias_voltage: float
-    memory_cells: int
+    sensor_bias_voltage: float = 250.0
+    memory_cells: int = 512
     memory_cell_order: Optional[str] = None
     feedback_capacitor: float = 5.0
-    source_energy: float = 9.2
-    category: int = 1
+    source_energy: float = 9.3
+    category: int = 0
     pixels_x: int = 256
     pixels_y: int = 256
+    parallel_gain: bool = False
 
     _base_params = [
         "Sensor Bias Voltage",
@@ -965,6 +963,7 @@ class LPDConditions(ConditionsBase):
         "Pixels X",
         "Pixels Y",
         "Feedback capacitor",
+        "Parallel gain",
     ]
     _dark_parameters = _base_params + [
         "Memory cell order",
@@ -980,6 +979,16 @@ class LPDConditions(ConditionsBase):
         "FFMap": _illuminated_parameters,
         "BadPixelsFF": _illuminated_parameters,
     }
+
+    def make_dict(self, parameters):
+        cond = super().make_dict(parameters)
+
+        # Legacy value for no parallel gain not injected for backwards
+        # compatibility with prior calibration data.
+        if int(cond.get("Parallel gain", -1)) == 0:
+            del cond["Parallel gain"]
+
+        return cond
 
 
 @dataclass
