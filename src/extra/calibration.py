@@ -24,6 +24,8 @@ __all__ = [
     "AGIPDConditions",
     "LPDConditions",
     "DSSCConditions",
+    "JUNGFRAUConditions",
+    "ShimadzuHPVX2Conditions",
 ]
 
 # Default address to connect to, only available internally
