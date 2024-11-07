@@ -18,6 +18,7 @@
 
 Added:
 - [Timepix3][extra.components.Timepix3] to access raw hits and centroids from the Timepix3 detector (!231).
+- [ShimadzuHPVX2Conditions][extra.calibration.ShimadzuHPVX2Conditions] to retrieve constants for dynamic flat-field correction (!254).
 
 Fixed:
 
@@ -33,6 +34,11 @@ Changed:
   use by default (!221).
 - [`fit_gaussian()`][extra.utils.fit_gaussian] has a new `A_sign` parameter to
   specify the expected orientation of the peak (!222).
+- [LPDConditions][extra.calibration.LPDConditions] now accepts
+  `parallel_gain` (!254).
+- [JUNGFRAUConditions][extra.calibration.JUNGFRAUConditions] now accepts
+  `exposure_timeout` (!254).
+- `CalibrationData.from_condition` has a new `begin_at_strategy` parameter (!254).
 
 ## [2024.1.2]
 Added:
