@@ -1109,9 +1109,9 @@ class JUNGFRAUConditions(ConditionsBase):
     sensor_bias_voltage: float
     memory_cells: int
     integration_time: float
-    exposure_timeout: int
     gain_setting: int
     gain_mode: Optional[int] = None
+    exposure_timeout: int = 25
     sensor_temperature: float = 291
     pixels_x: int = 1024
     pixels_y: int = 512
