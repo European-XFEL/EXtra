@@ -24,6 +24,8 @@ __all__ = [
     "AGIPDConditions",
     "LPDConditions",
     "DSSCConditions",
+    "JUNGFRAUConditions",
+    "ShimadzuHPVX2Conditions",
 ]
 
 # Default address to connect to, only available internally
@@ -233,8 +235,17 @@ def setup_client(
 
 _default_caldb_root = None
 
+def set_default_caldb_root(p: Path):
+    """Override the default root directory for constants in CalCat"""
+    global _default_caldb_root
+    _default_caldb_root = p
 
-def _get_default_caldb_root():
+def get_default_caldb_root():
+    """Get the root directory for constants in CalCat.
+
+    The default location is different on Maxwell & ONC; this checks which one
+    exists. Calling ``set_default_caldb_root()`` overrides this.
+    """
     global _default_caldb_root
     if _default_caldb_root is None:
         onc_path = Path("/common/cal/caldb_store")
@@ -277,13 +288,15 @@ class SingleConstant:
             _have_calcat_metadata=True,
         )
 
-    def dataset_obj(self, caldb_root=None) -> h5py.Dataset:
+    def file_path(self, caldb_root=None) -> Path:
         if caldb_root is not None:
             caldb_root = Path(caldb_root)
         else:
-            caldb_root = _get_default_caldb_root()
+            caldb_root = get_default_caldb_root()
+        return caldb_root / self.path
 
-        f = h5py.File(caldb_root / self.path, "r")
+    def dataset_obj(self, caldb_root=None) -> h5py.Dataset:
+        f = h5py.File(self.file_path(caldb_root), "r")
         return f[self.dataset]["data"]
 
     def ndarray(self, caldb_root=None):
@@ -297,7 +310,6 @@ class SingleConstant:
         # this can't change a value that was previously returned.
         self._metadata = calcat_meta | self._metadata
         self._have_calcat_metadata = True
-
 
     def metadata(self, key, client=None):
         """Get a specific metadata field, e.g. 'begin_validity_at'
@@ -487,7 +499,7 @@ class MultiModuleConstant(Mapping):
             modules = self.qm_names
         else:
             raise ValueError(
-                f"{module_naming=} (must be 'aggregator', 'modnum' or 'qm'"
+                f"{module_naming=} (must be 'aggregator', 'modnum' or 'qm')"
             )
 
         ndarr = self.ndarray(caldb_root, parallel=parallel)
@@ -525,19 +537,15 @@ class CalibrationData(Mapping):
             (dict) Operating condition for use in CalCat API.
         """
 
-        def to_float_or_string(value):
-            """CALCAT expects data to either be float or a string."""
-            try:  # Any digit or boolean
-                return float(value)
-            except:
-                return str(value)
+        if not all([isinstance(v, (float, str)) for v in condition.values()]):
+            raise TypeError('Operating condition parameters may only be '
+                            'float or str')
 
         return {
-            "parameters_conditions_attributes": [
-                {
-                    "parameter_name": k,
-                    "value": to_float_or_string(v)
-                } for k, v in condition.items()
+            "parameters_conditions_attributes": [{
+                "parameter_name": k,
+                "value": v
+            } for k, v in condition.items()
             ]
         }
 
@@ -550,12 +558,19 @@ class CalibrationData(Mapping):
             client=None,
             event_at=None,
             pdu_snapshot_at=None,
+            begin_at_strategy="closest",
     ):
         """Look up constants for the given detector conditions & timestamp.
 
         `condition` should be a conditions object for the relevant detector type,
         e.g. `DSSCConditions`.
         """
+        accepted_strategies = ["closest", "prior"]
+        if begin_at_strategy not in accepted_strategies:
+            raise ValueError(
+                "Invalid begin_at_strategy. "
+                f"Expected one of {accepted_strategies}")
+
         if calibrations is None:
             calibrations = set(condition.calibration_types)
         if pdu_snapshot_at is None:
@@ -599,6 +614,7 @@ class CalibrationData(Mapping):
                     "karabo_da": "",
                     "event_at": client.format_time(event_at),
                     "pdu_snapshot_at": client.format_time(pdu_snapshot_at),
+                    "begin_at_strategy": begin_at_strategy,
                 },
                 data=json.dumps(cls._format_cond(condition_dict)),
             )
@@ -808,6 +824,70 @@ class CalibrationData(Mapping):
 
         return type(self)(constant_groups, module_details, det_name)
 
+    def summary_table(self, module_naming="modnum"):
+        """Make a table overview of the constants found.
+
+        Columns are calibration types, rows are modules.
+        If there are >4 calibrations, the table will be split up into several
+        pieces with up to 4 calibrations in each.
+
+	The table(s) returned should be rendered within Jupyter notebooks,
+	including when converting them to Latex & PDF.
+
+        Args:
+            module_naming (str): modnum, aggregator or qm, to change how the
+                modules are labelled in the table. Defaults to modnum.
+        """
+        from tabulate import tabulate
+
+        if module_naming == "aggregator":
+            modules = self.aggregator_names
+        elif module_naming == "modnum":
+            modules = self.module_nums
+        elif module_naming == "qm":
+            modules = self.qm_names
+        else:
+            raise ValueError(
+                f"{module_naming=} (must be 'aggregator', 'modnum' or 'qm')"
+            )
+
+        cal_groups = [
+            sorted(self.constant_groups)[x:x+4] for x in range(0, len(self.constant_groups), 4)
+        ]
+
+        tables = []
+        # Loop over groups of calibrations.
+        for cal_group in cal_groups:
+            table = [["Modules"] + cal_group]
+
+            # Loop over calibrations and modules to form the next rows.
+            for mod in modules:
+                mod_consts = []
+
+                for cname in cal_group:
+                    try:
+                        singleconst = self[cname, mod]
+                    except KeyError:
+                        # Constant is not available for this module.
+                        mod_consts.append("—")
+                    else:
+                        # Have the creation time a reference
+                        # link to the CCV on CALCAT.
+                        c_time = datetime.fromisoformat(
+                            singleconst.metadata("begin_validity_at")).strftime(
+                                "%Y-%m-%d %H:%M")
+                        try:
+                            view_url = singleconst.metadata("view_url")
+                            mod_consts.append((c_time, view_url))
+                        except KeyError:
+                            mod_consts.append(f"{c_time} ({singleconst.ccv_id})")
+
+                table.append([str(mod)] + mod_consts)
+
+            tables.append(table)
+
+        return DisplayTables(tables)
+
     def markdown_table(self, module_naming="modnum") -> str:
         """Make a markdown table overview of the constants found.
 
@@ -892,8 +972,10 @@ class ConditionsBase:
 
         for db_name in parameters:
             value = getattr(self, db_name.lower().replace(" ", "_"))
-            if value is not None:
+            if isinstance(value, str):
                 d[db_name] = value
+            elif value is not None:
+                d[db_name] = float(value)
 
         return d
 
@@ -949,15 +1031,15 @@ class AGIPDConditions(ConditionsBase):
 
 @dataclass
 class LPDConditions(ConditionsBase):
-    """Conditions for LPD detectors"""
-    sensor_bias_voltage: float
-    memory_cells: int
+    sensor_bias_voltage: float = 250.0
+    memory_cells: int = 512
     memory_cell_order: Optional[str] = None
     feedback_capacitor: float = 5.0
-    source_energy: float = 9.2
-    category: int = 1
+    source_energy: float = 9.3
+    category: int = 0
     pixels_x: int = 256
     pixels_y: int = 256
+    parallel_gain: bool = False
 
     _base_params = [
         "Sensor Bias Voltage",
@@ -965,6 +1047,7 @@ class LPDConditions(ConditionsBase):
         "Pixels X",
         "Pixels Y",
         "Feedback capacitor",
+        "Parallel gain",
     ]
     _dark_parameters = _base_params + [
         "Memory cell order",
@@ -980,6 +1063,16 @@ class LPDConditions(ConditionsBase):
         "FFMap": _illuminated_parameters,
         "BadPixelsFF": _illuminated_parameters,
     }
+
+    def make_dict(self, parameters):
+        cond = super().make_dict(parameters)
+
+        # Legacy value for no parallel gain not injected for backwards
+        # compatibility with prior calibration data.
+        if int(cond.get("Parallel gain", -1)) == 0:
+            del cond["Parallel gain"]
+
+        return cond
 
 
 @dataclass
@@ -1018,6 +1111,7 @@ class JUNGFRAUConditions(ConditionsBase):
     integration_time: float
     gain_setting: int
     gain_mode: Optional[int] = None
+    exposure_timeout: int = 25
     sensor_temperature: float = 291
     pixels_x: int = 1024
     pixels_y: int = 512
@@ -1028,6 +1122,7 @@ class JUNGFRAUConditions(ConditionsBase):
         "Pixels X",
         "Pixels Y",
         "Integration Time",
+        "Exposure timeout",
         "Sensor temperature",
         "Gain Setting",
         "Gain mode",
@@ -1047,7 +1142,21 @@ class JUNGFRAUConditions(ConditionsBase):
         if int(cond.get("Gain mode", -1)) == 0:
             del cond["Gain mode"]
 
+        # Fix-up some database quirks.
+        if int(cond.get("Exposure timeout", -1)) == 25:
+            del cond["Exposure timeout"]
+
         return cond
+
+
+@dataclass
+class ShimadzuHPVX2Conditions(ConditionsBase):
+    burst_frame_count: float
+
+    calibration_types = {
+        'Offset': ['Burst Frame Count'],
+        'DynamicFF': ['Burst Frame Count'],
+    }
 
 
 class BadPixels(IntFlag):
@@ -1075,3 +1184,83 @@ class BadPixels(IntFlag):
     NON_LIN_RESPONSE_REGION  = 1 << 20
     WRONG_GAIN_VALUE         = 1 << 21
     NON_STANDARD_SIZE        = 1 << 22
+
+
+def tex_escape(text):
+    """
+    Escape latex special characters found in the text
+
+    :param text: a plain text message
+    :return: the message escaped to appear correctly in LaTeX
+    """
+    conv = {
+        '&': r'\&',
+        '%': r'\%',
+        '$': r'\$',
+        '#': r'\#',
+        '_': r'\_',
+        '{': r'\{',
+        '}': r'\}',
+        '~': r'\textasciitilde{}',
+        '^': r'\^{}',
+        '\\': r'\textbackslash{}',
+        '<': r'\textless{}',
+        '>': r'\textgreater{}',
+        '—': r'\textemdash',
+    }
+
+    key_list = sorted(conv.keys(), key=lambda item: - len(item))
+    regex = re.compile('|'.join(re.escape(str(key)) for key in key_list))
+    return regex.sub(lambda match: conv[match.group()], text)
+
+
+class DisplayTables:
+    def __init__(self, tables):
+        # list (tables) of lists (rows) of lists (cells). A cell may be str,
+        # or a (text, url) tuple to make a link.
+        self.tables = tables
+
+    @staticmethod
+    def _build_table(table, fmt_link, escape=lambda s: s):
+        res = []
+        for row in table:
+            prepd_row = []
+            for cell in row:
+                if isinstance(cell, tuple):
+                    text, url = cell
+                else:
+                    text = cell
+                    url = None
+
+                if url is None:
+                    prepd_row.append(escape(text))
+                else:
+                    prepd_row.append(fmt_link(escape(text), url))
+            res.append(prepd_row)
+        return res
+
+    def _repr_markdown_(self):
+        from tabulate import tabulate
+
+        def fmt_link(text, url):
+            return f"[{text}]({url})"
+
+        prepd_tables = [self._build_table(table, fmt_link) for table in self.tables]
+
+        return '\n\n'.join(
+            tabulate(t, tablefmt="pipe", headers="firstrow")
+            for t in prepd_tables
+        )
+
+    def _repr_latex_(self):
+        from tabulate import tabulate
+
+        def fmt_link(text, url):
+            return r'\href{%s}{%s}' % (url, text)
+
+        prepd_tables = [self._build_table(table, fmt_link, escape=tex_escape) for table in self.tables]
+
+        return '\n\n'.join(
+            tabulate(t, tablefmt="latex_raw", headers="firstrow")
+            for t in prepd_tables
+        )
