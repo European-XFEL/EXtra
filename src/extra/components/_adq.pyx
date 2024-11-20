@@ -24,8 +24,8 @@ def _reshape_flat_pulses(
     for i in range(pulse_ids.shape[0]):
         cur_pid = pulse_ids[i]
 
-        if cur_pid < prev_pid:
-            # Pulse ID decreasing means a new train started.
+        if cur_pid <= prev_pid:
+            # Pulse ID not increasing means a new train started.
             pid_offset = cur_pid
             j += 1
 
