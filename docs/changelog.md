@@ -26,6 +26,7 @@ Fixed:
 - [`Scan.plot_bin_by_steps()`][extra.components.Scan.plot_bin_by_steps] would
   previously ignore the `title`/`xlabel`/`ylabel` arguments, now it actually
   uses them (!237).
+- [`AdqRawChannel.pulse_data()`][extra.components.AdqRawChannel.pulse_data] no longer erroneously reads in the same train data for every pulse if there is only a single pulse per train (!259).
 
 Changed:
 - [`gaussian()`][extra.utils.gaussian] has a new `norm` parameter to allow
