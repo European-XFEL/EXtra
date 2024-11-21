@@ -27,6 +27,7 @@ nav:
     - components/scans.md
     - components/pulse-patterns.md
     - components/delay-line-detectors.md
+    - components/timepix.md
     - components/optical-lasers.md
     - components/adq-digitizers.md
     - components/detector-motors.md
