@@ -18,6 +18,7 @@
 
 Added:
 - [Timepix3][extra.components.Timepix3] to access raw hits and centroids from the Timepix3 detector (!231).
+- [Scan.plot()][extra.components.Scan.plot] now allows passing a `figsize` (!262).
 
 Fixed:
 

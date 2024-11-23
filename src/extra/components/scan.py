@@ -139,7 +139,7 @@ class Scan:
         """List of train IDs for each position."""
         return self._positions_train_ids
 
-    def plot(self, ax=None):
+    def plot(self, figsize=(10, 6), ax=None):
         """Visualize the scan steps.
 
         Each step is plotted in a different color on top of the motor
@@ -153,7 +153,7 @@ class Scan:
         from matplotlib.patches import Rectangle
         if ax is None:
             import matplotlib.pyplot as plt
-            fig, ax = plt.subplots(figsize=(10, 6))
+            fig, ax = plt.subplots(figsize=figsize)
 
         # Show all the motor values
         ax.plot(self._input_pos.trainId, self._input_pos)
