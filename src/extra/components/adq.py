@@ -1046,6 +1046,10 @@ class AdqRawChannel:
         This process depends on the `first_pulse_offset` and potentially
         `single_pulse_length` the component was initialized with.
 
+        If the pulse information refers to data beyond the acquired
+        traces, it is filled by np.nan for floating data types or
+        -1 for integer types.
+
         Args:
             labelled (bool, optional): Whether data is returned as a
                 labelled xarray (default) or unlabelled ndarray.
