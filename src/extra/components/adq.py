@@ -320,13 +320,13 @@ class AdqRawChannel:
 
         return edge_func
 
-    def _validate_out(self, out, shape):
+    def _validate_out(self, out, shape, alloc=np.zeros):
         """Validate output arguments."""
 
         is_corrected = self._cm_period > 0 or self._baselevel is not None
 
         if out is None:
-            out = np.empty(shape, dtype=np.float32)
+            out = alloc(shape, dtype=np.float32)
         elif any([a < b for a, b in zip(out.shape, shape)]):
             raise ValueError(f'requires at least output array shape {shape}')
         elif is_corrected and not np.issubdtype(out.dtype, np.floating):
@@ -1042,7 +1042,7 @@ class AdqRawChannel:
         return xr.DataArray(out, coords=coords)
 
     def pulse_data(self, labelled=True, pulse_dim='pulseId', train_roi=(),
-                   out=None):
+                   out=None, parallel=None):
         """Load this channel's raw data by pulse.
 
         In addition to [AdqRawChannel.train_data], this method also
@@ -1075,33 +1075,52 @@ class AdqRawChannel:
             # See comment in AdqChannel.train_data().
             train_roi = (train_roi,)
 
-        # Obtain information about pulse layout.
+        # Obtain information about pulse layout and use it to determine
+        # required output shape.
         pulse_ids, pulse_layout = self._prepare_pulses()
-
-        # Prepare output buffer.
         out_shape = (len(pulse_ids), pulse_layout['length'].max())
-        out = self._validate_out(out, out_shape)
-
-        # Convert to unlabelled array for use in native code later.
         pulse_ids = pulse_ids.to_numpy()
 
         # Drop empty trains for efficient access to train IDs.
         raw_key = self._raw_key.drop_empty_trains()
 
-        # Temporary buffer for a single iteration.
-        tmp = np.zeros((200,) + self._raw_key.entry_shape, dtype=out.dtype)
+        if parallel is not None:
+            # Prepare parallelization.
+            psh = self._prepare_pasha(parallel)
 
-        for kd in raw_key.split_trains(trains_per_part=200):
-            pulse_sel = np.s_[pulse_layout.loc[kd.train_ids[0]]['first']:
-                              pulse_layout.loc[kd.train_ids[-1]]['last']]
+            # Prepare output buffers.
+            out = self._validate_out(None, out_shape, psh.alloc)
 
-            tmp_sel = tmp[:len(kd.train_ids)]
-            kd.ndarray(roi=train_roi, out=tmp_sel)
+            def read_pulses(wid, index, train_id, data):
+                layout_row = pulse_layout.loc[train_id]
+                pulse_sel = np.s_[layout_row['first']:layout_row['last']]
+                tmp_sel = data[train_roi].astype(out.dtype)
 
-            self._preprocess(tmp_sel, tmp_sel)
-            self._reshape_flat_pulses(
-                tmp_sel, out[pulse_sel], pulse_ids[pulse_sel],
-                pulse_layout['length'].max())
+                self._preprocess(tmp_sel, tmp_sel)
+                self._reshape_flat_pulses(
+                    tmp_sel.reshape(1, -1), out[pulse_sel], pulse_ids[pulse_sel],
+                    layout_row['length'])
+
+            psh.map(read_pulses, self._raw_key)
+
+        else:
+            # Prepare output buffers.
+            out = self._validate_out(out, out_shape)
+
+            # Temporary buffer for a single iteration.
+            tmp = np.zeros((200,) + self._raw_key.entry_shape, dtype=out.dtype)
+
+            for kd in raw_key.split_trains(trains_per_part=200):
+                pulse_sel = np.s_[pulse_layout.loc[kd.train_ids[0]]['first']:
+                                  pulse_layout.loc[kd.train_ids[-1]]['last']]
+
+                tmp_sel = tmp[:len(kd.train_ids)]
+                kd.ndarray(roi=train_roi, out=tmp_sel)
+
+                self._preprocess(tmp_sel, tmp_sel)
+                self._reshape_flat_pulses(
+                    tmp_sel, out[pulse_sel], pulse_ids[pulse_sel],
+                    pulse_layout['length'].max())
 
         if not labelled:
             return out
