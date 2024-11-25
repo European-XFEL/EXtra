@@ -328,13 +328,13 @@ class AdqRawChannel:
 
         return edge_func
 
-    def _validate_out(self, out, shape):
+    def _validate_out(self, out, shape, alloc=np.zeros):
         """Validate output arguments."""
 
         is_corrected = self._cm_period > 0 or self._baselevel is not None
 
         if out is None:
-            out = np.empty(shape, dtype=np.float32)
+            out = alloc(shape, dtype=np.float32)
         elif any([a < b for a, b in zip(out.shape, shape)]):
             raise ValueError(f'requires at least output array shape {shape}')
         elif is_corrected and not np.issubdtype(out.dtype, np.floating):
@@ -908,7 +908,7 @@ class AdqRawChannel:
                 on each train trace, extra.signal.dled by default.
             max_edges (int, optional): Maximal number of edges per
                 train, 50 by default.
-            parallel (int or None, optional): Nunmber of parallel
+            parallel (int or None, optional): Number of parallel
                 processes to use, by default 10 or a quarter of all cores
                 whichever is lower. Any non-positive value or 1 disable
                 parallelization.
@@ -952,7 +952,7 @@ class AdqRawChannel:
                 on each train trace, extra.signal.dled by default.
             max_edges (int, optional): Maximal number of edges per
                 train, 1/5000 of trace length by default.
-            parallel (int or None, optional): Nunmber of parallel
+            parallel (int or None, optional): Number of parallel
                 processes to use, by default 10 or a quarter of all cores
                 whichever is lower. Any non-positive value or 1 disable
                 parallelization.
@@ -1006,7 +1006,7 @@ class AdqRawChannel:
         return self._shape_edge_array(edges, amplitudes, orig_coords,
                                       labelled, squeeze_edges)
 
-    def train_data(self, labelled=True, roi=(), out=None):
+    def train_data(self, labelled=True, roi=(), out=None, parallel=None):
         """Load this channel's raw data by train.
 
         This method is similar to obtaining the digitized raw traces
@@ -1026,6 +1026,10 @@ class AdqRawChannel:
                 performed. The entire train trace is read if omitted.
             out (numpy.typing.ArrayLike, optional): Array to read into,
                 a new is allocated if omitted.
+            parallel (int or None, optional): Number of parallel
+                processes to use, by default 10 or a quarter of all cores
+                whichever is lower. Any non-positive value or 1 disable
+                parallelization.
 
         Returns:
             data (xarray.DataArray or numpy.ndarray): Digitizer traces.
@@ -1041,16 +1045,29 @@ class AdqRawChannel:
 
         shape = (self._raw_key.shape[0],) + roi_shape(
             self._raw_key.entry_shape, roi)
-        out = self._validate_out(out, shape)
 
-        offset = 0
-        for kd in self._raw_key.split_trains(trains_per_part=200):
-            num_trains = int(kd.shape[0])  # Beware of uint64
-            out_sel = out[offset:offset+num_trains]
-            offset += num_trains
+        if parallel is not False:
+            # Prepare parallelization.
+            psh = self._prepare_pasha(parallel)
 
-            kd.ndarray(roi=roi, out=out_sel)
-            self._preprocess(out_sel, out_sel)
+            out = self._validate_out(out, shape, psh.alloc)
+
+            def read_train(wid, index, train_id, data):
+                out[index] = data[roi]
+                self._preprocess(out[index], out[index])
+
+            psh.map(read_train, self._raw_key)
+        else:
+            out = self._validate_out(out, shape)
+
+            offset = 0
+            for kd in self._raw_key.split_trains(trains_per_part=200):
+                num_trains = int(kd.shape[0])  # Beware of uint64
+                out_sel = out[offset:offset+num_trains]
+                offset += num_trains
+
+                kd.ndarray(roi=roi, out=out_sel)
+                self._preprocess(out_sel, out_sel)
 
         if not labelled:
             return out
@@ -1062,7 +1079,7 @@ class AdqRawChannel:
         return xr.DataArray(out, coords=coords)
 
     def pulse_data(self, labelled=True, pulse_dim='pulseId', train_roi=(),
-                   out=None):
+                   out=None, parallel=None):
         """Load this channel's raw data by pulse.
 
         In addition to [AdqRawChannel.train_data], this method also
@@ -1086,6 +1103,10 @@ class AdqRawChannel:
                 performed. The entire train trace is read if omitted.
             out (numpy.typing.ArrayLike, optional): Array to read into,
                 a new one is allocated if omitted.
+            parallel (int or None, optional): Number of parallel
+                processes to use, by default 10 or a quarter of all cores
+                whichever is lower. Any non-positive value or 1 disable
+                parallelization.
 
         Returns:
             data (xarray.DataArray or numpy.ndarray): Digitizer traces.
@@ -1102,25 +1123,47 @@ class AdqRawChannel:
         pulses, pulse_layout = self._prepare_pulses(raw_key.train_ids)
         pulse_ids = pulses.pulse_ids(labelled=False)
 
-        # Prepare output buffer.
+        # Prepare output buffer shape.
         out_shape = (len(pulse_ids), pulse_layout['length'].max())
-        out = self._validate_out(out, out_shape)
 
-        # Temporary buffer for a single iteration.
-        tmp = np.zeros((200,) + roi_shape(
-            self._raw_key.entry_shape, train_roi), dtype=out.dtype)
+        if parallel is not False:
+            # Prepare parallelization.
+            psh = self._prepare_pasha(parallel)
 
-        for kd in raw_key.split_trains(trains_per_part=200):
-            pulse_sel = np.s_[pulse_layout.loc[kd.train_ids[0]]['first']:
-                              pulse_layout.loc[kd.train_ids[-1]]['last']]
+            # Prepare output buffers.
+            out = self._validate_out(None, out_shape, psh.alloc)
 
-            tmp_sel = tmp[:len(kd.train_ids)]
-            kd.ndarray(roi=train_roi, out=tmp_sel)
+            def read_pulses(wid, index, train_id, data):
+                layout_row = pulse_layout.loc[train_id]
+                pulse_sel = np.s_[layout_row['first']:layout_row['last']]
+                tmp_sel = data[train_roi].astype(out.dtype)  # pre-alloc?
 
-            self._preprocess(tmp_sel, tmp_sel)
-            self._reshape_flat_pulses(
-                tmp_sel, out[pulse_sel], pulse_ids[pulse_sel],
-                pulse_layout['length'].max())
+                self._preprocess(tmp_sel, tmp_sel)
+                self._reshape_flat_pulses(
+                    tmp_sel.reshape(1, -1), out[pulse_sel], pulse_ids[pulse_sel],
+                    layout_row['length'])
+
+            psh.map(read_pulses, self._raw_key)
+
+        else:
+            # Prepare output buffers.
+            out = self._validate_out(out, out_shape)
+
+            # Temporary buffer for a single iteration.
+            tmp = np.zeros((200,) + roi_shape(
+                self._raw_key.entry_shape, train_roi), dtype=out.dtype)
+
+            for kd in raw_key.split_trains(trains_per_part=200):
+                pulse_sel = np.s_[pulse_layout.loc[kd.train_ids[0]]['first']:
+                                  pulse_layout.loc[kd.train_ids[-1]]['last']]
+
+                tmp_sel = tmp[:len(kd.train_ids)]
+                kd.ndarray(roi=train_roi, out=tmp_sel)
+
+                self._preprocess(tmp_sel, tmp_sel)
+                self._reshape_flat_pulses(
+                    tmp_sel, out[pulse_sel], pulse_ids[pulse_sel],
+                    pulse_layout['length'].max())
 
         if not labelled:
             return out
@@ -1148,7 +1191,7 @@ class AdqRawChannel:
                 on each train trace, extra.signal.dled by default.
             max_edges (int, optional): Maximal number of edges per
                 train, 1/5000 of trace length by default.
-            parallel (int or None, optional): Nunmber of parallel
+            parallel (int or None, optional): Number of parallel
                 processes to use, by default 10 or a quarter of all cores
                 whichever is lower. Any non-positive value or 1 disable
                 parallelization.
@@ -1185,7 +1228,7 @@ class AdqRawChannel:
                 on each train trace, extra.signal.dled by default.
             max_edges (int, optional): Maximal number of edges per
                 train, 1/5000 of trace length by default.
-            parallel (int or None, optional): Nunmber of parallel
+            parallel (int or None, optional): Number of parallel
                 processes to use, by default 10 or a quarter of all cores
                 whichever is lower. Any non-positive value or 1 disable
                 parallelization.
@@ -1251,7 +1294,7 @@ class AdqRawChannel:
                 on each train trace, extra.signal.dled by default.
             max_edges (int, optional): Maximal number of edges per
                 train, 1/100 of trace length per pulse by default.
-            parallel (int or None, optional): Nunmber of parallel
+            parallel (int or None, optional): Number of parallel
                 processes to use, by default 10 or a quarter of all cores
                 whichever is lower. Any non-positive value or 1 disable
                 parallelization.
@@ -1294,7 +1337,7 @@ class AdqRawChannel:
                 on each train trace, extra.signal.dled by default.
             max_edges (int, optional): Maximal number of edges per
                 train, 1/100 of trace length by pulse by default.
-            parallel (int or None, optional): Nunmber of parallel
+            parallel (int or None, optional): Number of parallel
                 processes to use, by default 10 or a quarter of all cores
                 whichever is lower. Any non-positive value or 1 disable
                 parallelization.

@@ -18,6 +18,9 @@
 
 Added:
 
+- [AdqRawChannel.train_data][extra.components.AdqRawChannel.pulse_data] and
+  [AdqRawChannel.train_data][extra.components.AdqRawChannel.pulse_data] are now
+  reading data in parallel by default (!497).
 - [AGIPDConditions][extra.calibration.AGIPDConditions] now recognizes current source constant types
 - [DetectorData][extra.calibration.DetectorData] to obtain detector metadata and
   module mapping from the Calibration Cataloge (!408).
