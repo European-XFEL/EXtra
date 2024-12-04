@@ -362,7 +362,7 @@ interactions:
       content-type:
       - application/json
     method: GET
-    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=SPB_DET_AGIPD1M-1&calibration_id=%5B1%2C+2%2C+11%2C+14%5D&karabo_da=&event_at=2020-01-07+13%3A26%3A48.00&pdu_snapshot_at=2020-01-07+13%3A26%3A48.00
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=SPB_DET_AGIPD1M-1&calibration_id=%5B1%2C+2%2C+11%2C+14%5D&karabo_da=&event_at=2020-01-07+13%3A26%3A48.00&pdu_snapshot_at=2020-01-07+13%3A26%3A48.00&begin_at_strategy=closest
   response:
     body:
       string: '[{"id":38191,"name":"20200225_180910_sIdx=0","file_name":"cal.1582654148.5093198.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m305/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M305/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2020-02-25T18:21:23.000+01:00","end_validity_at":null,"begin_at":"2020-02-25T18:21:23.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p900138
@@ -762,7 +762,7 @@ interactions:
       content-type:
       - application/json
     method: GET
-    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=SPB_DET_AGIPD1M-1&calibration_id=%5B15%2C+17%5D&karabo_da=&event_at=2020-01-07+13%3A26%3A48.00&pdu_snapshot_at=2020-01-07+13%3A26%3A48.00
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=SPB_DET_AGIPD1M-1&calibration_id=%5B15%2C+17%5D&karabo_da=&event_at=2020-01-07+13%3A26%3A48.00&pdu_snapshot_at=2020-01-07+13%3A26%3A48.00&begin_at_strategy=closest
   response:
     body:
       string: '[{"id":45612,"name":"20200518_221141_sIdx=0","file_name":"cal.1589839899.5748584.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m305/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M305/BadPixelsPC/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2020-03-04T15:41:27.000+01:00","end_validity_at":null,"begin_at":"2020-03-04T15:41:27.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"p900138
@@ -1076,7 +1076,7 @@ interactions:
       content-type:
       - application/json
     method: GET
-    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=SPB_DET_AGIPD1M-1&calibration_id=%5B20%2C+19%5D&karabo_da=&event_at=2020-01-07+13%3A26%3A48.00&pdu_snapshot_at=2020-01-07+13%3A26%3A48.00
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=SPB_DET_AGIPD1M-1&calibration_id=%5B20%2C+19%5D&karabo_da=&event_at=2020-01-07+13%3A26%3A48.00&pdu_snapshot_at=2020-01-07+13%3A26%3A48.00&begin_at_strategy=closest
   response:
     body:
       string: '[{"id":45638,"name":"20200519_093826_sIdx=0","file_name":"cal.1589881105.0254447.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m305/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M305/BadPixelsFF/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2020-02-27T11:04:56.000+01:00","end_validity_at":null,"begin_at":"2020-02-27T11:04:56.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"p900138
