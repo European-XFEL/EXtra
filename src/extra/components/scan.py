@@ -234,7 +234,7 @@ class Scan:
         chunks = self.split_by_steps(data)
 
         counts = np.array([len(c.coords['trainId']) for c in chunks])
-        signal = np.array([c.mean().item() for c in chunks])
+        signal = np.array([c.mean(dim='trainId').item() for c in chunks])
         uncertainty = np.array([c.std().item() for c in chunks])
         if uncertainty_method == "stderr":
             uncertainty /= np.sqrt(counts)
