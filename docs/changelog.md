@@ -27,6 +27,9 @@ Fixed:
 - [`Scan.plot_bin_by_steps()`][extra.components.Scan.plot_bin_by_steps] would
   previously ignore the `title`/`xlabel`/`ylabel` arguments, now it actually
   uses them (!237).
+- [`Scan.bin_by_steps()][extra.components.Scan.plot_bin_by_steps] now preserves
+  any additional dimensions in the data to be binned, so it can produce e.g.
+  an average spectrum per scan step (!269).
 - [`AdqRawChannel.pulse_data()`][extra.components.AdqRawChannel.pulse_data] no longer erroneously reads in the same train data for every pulse if there is only a single pulse per train (!259).
 
 Changed:
