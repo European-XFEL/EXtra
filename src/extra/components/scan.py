@@ -233,21 +233,23 @@ class Scan:
 
         chunks = self.split_by_steps(data)
 
+        res = xr.concat(
+            [c.mean(dim='trainId') for c in chunks],
+            dim=xr.Variable("position", self.positions)
+        )
+
         counts = np.array([len(c.coords['trainId']) for c in chunks])
-        signal = np.array([c.mean().item() for c in chunks])
         uncertainty = np.array([c.std().item() for c in chunks])
         if uncertainty_method == "stderr":
             uncertainty /= np.sqrt(counts)
 
-        return xr.DataArray(signal, dims=("position",),
-                            coords={"position": ("position", self.positions),
-                                    "uncertainty": ("position", uncertainty),
-                                    "counts": ("position", counts)},
-                            name=data.name,
-                            attrs={
-                                "motor": self.name,
-                                "uncertainty_method": uncertainty_method
-                            })
+        return res.assign_coords({
+            "uncertainty": ("position", uncertainty),
+            "counts": ("position", counts),
+        }).assign_attrs({
+            "motor": self.name,
+            "uncertainty_method": uncertainty_method,
+        }).rename(data.name)
 
     def plot_bin_by_steps(self, data, uncertainty_method="std",
                           title=None, xlabel=None, ylabel=None,

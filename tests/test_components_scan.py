@@ -106,3 +106,18 @@ def test_scan(mock_spb_aux_run):
     s.format()
     s.info()
     s.plot_bin_by_steps(data)
+
+
+def test_scan_bin_multidimensional(mock_spb_aux_run):
+    s = Scan(mock_spb_aux_run["MOTOR/MCMOTORYFACE"])
+
+    # Test scan binning with data with additional dimensionsn
+    xgm_intensity = mock_spb_aux_run[
+        "SPB_XTD9_XGM/DOOCS/MAIN:output", "data.intensityTD"
+    ].xarray(extra_dims=["pulse"])
+
+    binned = s.bin_by_steps(xgm_intensity)
+    assert binned.dims == ("position", "pulse")
+    # pulse is present as a dimension, but doesn't have coordinates
+    assert set(binned.coords.keys()) == {"position", "uncertainty", "counts"}
+    assert binned.shape == (10, 1000)
