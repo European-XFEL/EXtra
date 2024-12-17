@@ -57,6 +57,45 @@ def test_timepix3_init(mock_sqs_timepix_run):
     with pytest.raises(ValueError):
         tpx.centroids_instrument_src
 
+    # With explicit source names.
+    tpx = Timepix3(mock_sqs_timepix_run,
+                   ('SQS_EXP_TIMEPIX/DET/TIMEPIX3:daqOutput.chip0',
+                    'SQS_EXP_TIMEPIX/CAL/TIMEPIX3:daqOutput.chip0'))
+    assert_equal_sourcedata(
+        tpx.raw_control_src,
+        mock_sqs_timepix_run['SQS_EXP_TIMEPIX/DET/TIMEPIX3'])
+    assert_equal_sourcedata(
+        tpx.raw_instrument_src,
+        mock_sqs_timepix_run['SQS_EXP_TIMEPIX/DET/TIMEPIX3:daqOutput.chip0'])
+    assert_equal_sourcedata(
+        tpx.centroids_control_src,
+        mock_sqs_timepix_run['SQS_EXP_TIMEPIX/CAL/TIMEPIX3'])
+    assert_equal_sourcedata(
+        tpx.centroids_instrument_src,
+        mock_sqs_timepix_run['SQS_EXP_TIMEPIX/CAL/TIMEPIX3:daqOutput.chip0'])
+
+    # With explicit but only one source name.
+    tpx = Timepix3(mock_sqs_timepix_run,
+                   ('SQS_EXP_TIMEPIX/DET/TIMEPIX3:daqOutput.chip0', ''))
+    assert_equal_sourcedata(
+        tpx.raw_control_src,
+        mock_sqs_timepix_run['SQS_EXP_TIMEPIX/DET/TIMEPIX3'])
+    assert_equal_sourcedata(
+        tpx.raw_instrument_src,
+        mock_sqs_timepix_run['SQS_EXP_TIMEPIX/DET/TIMEPIX3:daqOutput.chip0'])
+
+    with pytest.raises(ValueError):
+        tpx.centroids_control_src
+
+    with pytest.raises(ValueError):
+        tpx.centroids_instrument_src
+
+    # Explicit control source rather than instrument source
+    tpx = Timepix3(mock_sqs_timepix_run,
+                   ('', 'SQS_EXP_TIMEPIX/CAL/TIMEPIX3'))
+    assert_equal_sourcedata(
+        tpx.centroids_instrument_src,
+        mock_sqs_timepix_run['SQS_EXP_TIMEPIX/CAL/TIMEPIX3:daqOutput.chip0'])
 
 @pytest.mark.parametrize('method', ['pixel_events', 'centroid_events'])
 def test_timepix3_data(mock_sqs_timepix_run, method):

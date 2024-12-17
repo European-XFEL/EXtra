@@ -33,10 +33,11 @@ class Timepix3:
 
     Args:
         data (extra_data.DataCollection): Data to access Timepix3 data from.
-        detector (str, optional): Name of the detector, only
-            needed if the data includes more than one. This should
-            be the first part of the source name, i.e. up to the first
-            slash.
+        detector (str or tuple, optional): Name of the detector, which
+            may be the domain (first part of the source name up to the
+            first slash) or a tuple with the explicit raw and centroided
+            source name. If omitted, an attempt is made to detect them
+            automatically.
         pulses (extra.components.pulses.PulsePattern, optional): Pulse
             component to pull pulse information. If omitted, an
             [XrayPulses][extra.components.XrayPulses] object is
@@ -124,26 +125,66 @@ class Timepix3:
             return pasha.ProcessContext(parallel)
 
     @classmethod
-    def _find_detector(cls, data, domain=''):
+    def _find_detector(cls, data, prefix_or_source):
         """Try to find detector source."""
 
-        detectors = defaultdict(list)
+        if isinstance(prefix_or_source, tuple) and len(prefix_or_source) == 2:
+            # Explicit tuple of source names.
 
-        for source in data.instrument_sources:
-            m = cls._instrument_re.match(source)
-            if m is not None and (not domain or m[1] == domain):
-                detectors[m[1]].append(source)
+            def _find_sources(data, source):
+                sd = data[source]
+                domain = source.partition('/')[0]
 
-        if len(detectors) > 1:
-            raise ValueError('multiple detectors found, please pass one '
-                             'explicitly:\n' + ', '.join(sorted(detectors)))
-        elif detectors:
-            return next(iter(detectors.items()))
+                fast_source = f'{source}:daqOutput.chip0'
+                if sd.is_control and fast_source in data.all_sources:
+                    return domain, fast_source
+                elif sd.is_instrument:
+                    return domain, source
 
-        if domain:
-            raise ValueError(f'no sources found for detector {domain}')
-        else:
-            raise ValueError('no detector found, please pass one explicitly')
+            raw_source, centroided_source = prefix_or_source
+
+            if not raw_source and not centroided_source:
+                raise ValueError('tuple of source names may not be all empty')
+
+            found_sources = []
+
+            if raw_source:
+                domain, source = _find_sources(data, raw_source)
+                found_sources.append(source)
+
+            if centroided_source:
+                domain, source = _find_sources(data, centroided_source)
+                found_sources.append(source)
+
+            return domain, found_sources
+
+        elif isinstance(prefix_or_source, str):
+            # Detector domain.
+
+            detectors = defaultdict(list)
+
+            for source in data.instrument_sources:
+                m = cls._instrument_re.match(source)
+                if m is not None and m[1].startswith(prefix_or_source):
+                    detectors[m[1]].append(source)
+
+            if len(detectors) > 1:
+                raise ValueError('multiple detector domains found, please '
+                                 'pass one explicitly via the `detector` '
+                                 'argument:\n' + ', '.join(sorted(detectors)))
+            elif detectors:
+                return next(iter(detectors.items()))
+
+            if prefix_or_source:
+                raise ValueError(f'no detector sources found for '
+                                 f'{prefix_or_source}, please pass explicit '
+                                 f'source name(s)')
+            else:
+                raise ValueError('no detector detected, please narrow the '
+                                 'search with the `detector` argument')
+
+        raise TypeError(
+            'detector may be a string, tuple of two strings or empty')
 
     @staticmethod
     def _sort_timepix_data(train_id, pids, toa_offset, rep_rate, timewalk_lut,
