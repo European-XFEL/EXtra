@@ -80,7 +80,7 @@ class Timepix3:
             selection = {self._raw_instrument_src.source: {
                 'data.x', 'data.y', 'data.toa', 'data.tot'}}
 
-            if self._centroids_instrument_src is not None:
+            if self._has_centroid_labels():
                 selection[self._centroids_instrument_src.source] = {
                     'data.labels'}
 
@@ -107,6 +107,11 @@ class Timepix3:
 
         return "<{} {}: {}>".format(type(self).__name__, self._detector_name,
                                     ', '.join(data_labels))
+
+    def _has_centroid_labels(self):
+        """Whether centroid labels are available."""
+        return (self._centroids_instrument_src is not None and
+                'data.labels' in self._centroids_instrument_src)
 
     @staticmethod
     def _prepare_pasha(parallel):
@@ -462,7 +467,8 @@ class Timepix3:
             extended_columns (bool, optional): Whether to include the
                 original time-of-arrival, readout position and centroid
                 labels for each pixel event, False by default. Labels
-                require centroiding data to be present.
+                require centroiding data processed after Feburary 2024
+                to be present.
             parallel (int or None, optional): Nunmber of parallel
                 processes to use, by default 10 or a quarter of all cores
                 whichever is lower. Any non-positive value or 1 disable
@@ -512,7 +518,7 @@ class Timepix3:
         hits_pidx = psh.alloc(shape=num_hits, dtype=np.int32)
         hits_pos = psh.alloc(shape=num_hits, dtype=np.int32)
 
-        if extended_columns and self._centroids_instrument_src is not None:
+        if extended_columns and self._has_centroid_labels():
             hits_label = psh.alloc(shape=num_hits, dtype=np.int32)
         else:
             hits_label = None
