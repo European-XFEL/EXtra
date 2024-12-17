@@ -46,7 +46,7 @@ class Timepix3:
 
     # Only support single-chip detectors for now.
     _instrument_re = re.compile(
-        r'^(\w{3}_\w+_TIMEPIX)\/(DET|CAL)\/\w+:daqOutput.chip0$')
+        r'^(\w{3}_\w+_TIMEPIX)\/(CAM|DET|CAL)\/\w+:daqOutput.chip0$')
 
     def __init__(self, data, detector=None, pulses=None, **kwargs):
         # Always run detection to potentially find the raw and
@@ -60,7 +60,7 @@ class Timepix3:
         self._centroids_instrument_src = None
 
         for source in sources:
-            if '/DET/' in source:
+            if '/DET/' in source or '/CAM/' in source:
                 self._raw_instrument_src = data[source]
 
                 if (s := source[:source.rfind(':')]) in data.control_sources:
