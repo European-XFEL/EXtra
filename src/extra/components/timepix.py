@@ -379,7 +379,7 @@ class Timepix3:
                 1 by default
 
         Returns:
-            bins (numpy.ndarray) Spatial bin edges.
+            bins (numpy.ndarray): Spatial bin edges.
         """
 
         return np.arange(min_pos, max_pos, 1/bins_per_px) - 0.5/bins_per_px
@@ -410,8 +410,8 @@ class Timepix3:
                 default.
             toa_offset (float, optional): Time-of-arrival offset applied
                 by train in microseconds, 0.0 by default.
-            timewalk_lut (numpy.typing.ArrayLike or os.PathLike or None,
-                optional): Timewalk LUT to correct ToA or path to a file
+            timewalk_lut (numpy.typing.ArrayLike or os.PathLike or None, optional):
+                Timewalk LUT to correct ToA or path to a file
                 compatible with np.load, none by default.
             out_of_pulse_events (bool, optional): Whether to include
                 hits before the first pulse and after the last pulse in
