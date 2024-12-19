@@ -33,10 +33,11 @@ class Timepix3:
 
     Args:
         data (extra_data.DataCollection): Data to access Timepix3 data from.
-        detector (str, optional): Name of the detector, only
-            needed if the data includes more than one. This should
-            be the first part of the source name, i.e. up to the first
-            slash.
+        detector (str or tuple, optional): Name of the detector, which
+            may be the domain (first part of the source name up to the
+            first slash) or a tuple with the explicit raw and centroided
+            source name. If omitted, an attempt is made to detect them
+            automatically.
         pulses (extra.components.pulses.PulsePattern, optional): Pulse
             component to pull pulse information. If omitted, an
             [XrayPulses][extra.components.XrayPulses] object is
@@ -45,7 +46,7 @@ class Timepix3:
 
     # Only support single-chip detectors for now.
     _instrument_re = re.compile(
-        r'^(\w{3}_\w+_TIMEPIX)\/(DET|CAL)\/\w+:daqOutput.chip0$')
+        r'^(\w{3}_\w+_TIMEPIX)\/(CAM|DET|CAL)\/\w+:daqOutput.chip0$')
 
     def __init__(self, data, detector=None, pulses=None, **kwargs):
         # Always run detection to potentially find the raw and
@@ -59,7 +60,7 @@ class Timepix3:
         self._centroids_instrument_src = None
 
         for source in sources:
-            if '/DET/' in source:
+            if '/DET/' in source or '/CAM/' in source:
                 self._raw_instrument_src = data[source]
 
                 if (s := source[:source.rfind(':')]) in data.control_sources:
@@ -79,7 +80,7 @@ class Timepix3:
             selection = {self._raw_instrument_src.source: {
                 'data.x', 'data.y', 'data.toa', 'data.tot'}}
 
-            if self._centroids_instrument_src is not None:
+            if self._has_centroid_labels():
                 selection[self._centroids_instrument_src.source] = {
                     'data.labels'}
 
@@ -107,6 +108,11 @@ class Timepix3:
         return "<{} {}: {}>".format(type(self).__name__, self._detector_name,
                                     ', '.join(data_labels))
 
+    def _has_centroid_labels(self):
+        """Whether centroid labels are available."""
+        return (self._centroids_instrument_src is not None and
+                'data.labels' in self._centroids_instrument_src)
+
     @staticmethod
     def _prepare_pasha(parallel):
         """Prepare pasha context."""
@@ -124,26 +130,66 @@ class Timepix3:
             return pasha.ProcessContext(parallel)
 
     @classmethod
-    def _find_detector(cls, data, domain=''):
+    def _find_detector(cls, data, prefix_or_source):
         """Try to find detector source."""
 
-        detectors = defaultdict(list)
+        if isinstance(prefix_or_source, tuple) and len(prefix_or_source) == 2:
+            # Explicit tuple of source names.
 
-        for source in data.instrument_sources:
-            m = cls._instrument_re.match(source)
-            if m is not None and (not domain or m[1] == domain):
-                detectors[m[1]].append(source)
+            def _find_sources(data, source):
+                sd = data[source]
+                domain = source.partition('/')[0]
 
-        if len(detectors) > 1:
-            raise ValueError('multiple detectors found, please pass one '
-                             'explicitly:\n' + ', '.join(sorted(detectors)))
-        elif detectors:
-            return next(iter(detectors.items()))
+                fast_source = f'{source}:daqOutput.chip0'
+                if sd.is_control and fast_source in data.all_sources:
+                    return domain, fast_source
+                elif sd.is_instrument:
+                    return domain, source
 
-        if domain:
-            raise ValueError(f'no sources found for detector {domain}')
-        else:
-            raise ValueError('no detector found, please pass one explicitly')
+            raw_source, centroided_source = prefix_or_source
+
+            if not raw_source and not centroided_source:
+                raise ValueError('tuple of source names may not be all empty')
+
+            found_sources = []
+
+            if raw_source:
+                domain, source = _find_sources(data, raw_source)
+                found_sources.append(source)
+
+            if centroided_source:
+                domain, source = _find_sources(data, centroided_source)
+                found_sources.append(source)
+
+            return domain, found_sources
+
+        elif isinstance(prefix_or_source, str):
+            # Detector domain.
+
+            detectors = defaultdict(list)
+
+            for source in data.instrument_sources:
+                m = cls._instrument_re.match(source)
+                if m is not None and m[1].startswith(prefix_or_source):
+                    detectors[m[1]].append(source)
+
+            if len(detectors) > 1:
+                raise ValueError('multiple detector domains found, please '
+                                 'pass one explicitly via the `detector` '
+                                 'argument:\n' + ', '.join(sorted(detectors)))
+            elif detectors:
+                return next(iter(detectors.items()))
+
+            if prefix_or_source:
+                raise ValueError(f'no detector sources found for '
+                                 f'{prefix_or_source}, please pass explicit '
+                                 f'source name(s)')
+            else:
+                raise ValueError('no detector detected, please narrow the '
+                                 'search with the `detector` argument')
+
+        raise TypeError(
+            'detector may be a string, tuple of two strings or empty')
 
     @staticmethod
     def _sort_timepix_data(train_id, pids, toa_offset, rep_rate, timewalk_lut,
@@ -421,7 +467,8 @@ class Timepix3:
             extended_columns (bool, optional): Whether to include the
                 original time-of-arrival, readout position and centroid
                 labels for each pixel event, False by default. Labels
-                require centroiding data to be present.
+                require centroiding data processed after Feburary 2024
+                to be present.
             parallel (int or None, optional): Nunmber of parallel
                 processes to use, by default 10 or a quarter of all cores
                 whichever is lower. Any non-positive value or 1 disable
@@ -471,7 +518,7 @@ class Timepix3:
         hits_pidx = psh.alloc(shape=num_hits, dtype=np.int32)
         hits_pos = psh.alloc(shape=num_hits, dtype=np.int32)
 
-        if extended_columns and self._centroids_instrument_src is not None:
+        if extended_columns and self._has_centroid_labels():
             hits_label = psh.alloc(shape=num_hits, dtype=np.int32)
         else:
             hits_label = None
