@@ -14,7 +14,7 @@ mypy-extensions==1.0.0
 numpy<=2.2.1
 packaging==24.2
 pandas==2.2.3
-Pillow==11.0.0
+Pillow==11.1.0
 pyparsing==3.2.1
 python-dateutil==2.9.0.post0
 pytz==2024.2
