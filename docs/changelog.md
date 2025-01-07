@@ -5,17 +5,18 @@
 
 # Changelog
 
-## [Unreleased]
+<!-- ## [Unreleased] -->
 
-!!! note
-    All of the changes here are deployed to our current environment, even though
-    a release hasn't been made for them yet. If you want to have these updates
-    in a personal environment you'll need to install the package from git.
+<!-- !!! note -->
+<!--     All of the changes here are deployed to our current environment, even though -->
+<!--     a release hasn't been made for them yet. If you want to have these updates -->
+<!--     in a personal environment you'll need to install the package from git. -->
 
-    ```bash title="Installation command"
-    pip install git+https://github.com/European-XFEL/EXtra.git
-    ```
+<!--     ```bash title="Installation command" -->
+<!--     pip install git+https://github.com/European-XFEL/EXtra.git -->
+<!--     ``` -->
 
+## [2024.2]
 Added:
 
 - [Timepix3][extra.components.Timepix3] to access raw hits and centroids from the Timepix3 detector (!231).
@@ -34,6 +35,7 @@ Fixed:
 - [`AdqRawChannel.pulse_data()`][extra.components.AdqRawChannel.pulse_data] no longer erroneously reads in the same train data for every pulse if there is only a single pulse per train (!259).
 
 Changed:
+
 - [`gaussian()`][extra.utils.gaussian] has a new `norm` parameter to allow
   disabling normalization, which [`fit_gaussian()`][extra.utils.fit_gaussian] will
   use by default (!221).
@@ -135,7 +137,8 @@ Added:
   [EXtra-geom](detector-geometry.md), and [karabo-bridge-py](karabo-bridge.md).
 
 
-[Unreleased]: https://github.com/European-XFEL/EXtra/compare/2024.1.1...master
+[Unreleased]: https://github.com/European-XFEL/EXtra/compare/2024.2...master
+[2024.2]: https://github.com/European-XFEL/EXtra/releases/tag/2024.2
 [2024.1.2]: https://github.com/European-XFEL/EXtra/releases/tag/2024.1.2
 [2024.1.1]: https://github.com/European-XFEL/EXtra/releases/tag/2024.1.1
 [2024.1]: https://github.com/European-XFEL/EXtra/releases/tag/2024.1
