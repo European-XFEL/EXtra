@@ -545,7 +545,9 @@ class CookieboxCalib(object):
         log(self.log_level, "Reading calibration data ... (this takes a while)")
         self.select_calibration_data()
         # find RoI if needed
-        if auger_start_roi is None or start_roi is None or stop_roi is None:
+        if (self.auger_start_roi is None
+            or self.start_roi is None
+            or self.stop_roi is None):
             log(self.log_level, "Finding RoI ...")
             log(self.log_level, "(This may fail. If it does, please provide a `auger_start_roi`, `start_roi` and `stop_roi`.)")
             for tof_id in self._tof_settings.keys():
