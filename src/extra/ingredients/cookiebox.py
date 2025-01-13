@@ -527,13 +527,13 @@ class CookieboxCalib(object):
         for tof_id, value in self._tof_settings.items():
             if not isinstance(value, AdqRawChannel):
                 digitizer, channel = value
-                self._tof[tof_id] = AdqRawChannel(self._run,
-                                                  channel,
-                                                  digitizer=digitizer,
-                                                  first_pulse_offset=self.first_pulse_offset,
-                                                  single_pulse_length=self.single_pulse_length,
-                                                  interleaved=self.interleaved,
-                                                )
+                value = AdqRawChannel(self._run,
+                                      channel,
+                                      digitizer=digitizer,
+                                      first_pulse_offset=self.first_pulse_offset,
+                                      single_pulse_length=self.single_pulse_length,
+                                      interleaved=self.interleaved,
+                                      )
             self._tof[tof_id] = value
         self.mask = {tof_id: True for tof_id in self._tof_settings.keys()}
 
