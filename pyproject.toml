@@ -20,6 +20,7 @@ dependencies = [
     "extra_geom",
     "h5py",
     "karabo_bridge",
+    "lmfit",
     "oauth2-xfel-client >=6.1",
     "pandas",
     "pasha",
