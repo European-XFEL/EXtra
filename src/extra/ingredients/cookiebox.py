@@ -276,12 +276,49 @@ class CookieboxCalib(object):
                         *self.all_digi,
                         *self.all_digi_control,
                        ]
+        self.single_pulse_length = single_pulse_length
         self.interleaved = interleaved
         self.log_level = log_level
 
         # select data from the run
         self._run = run.select(self.sources, require_all=True)
 
+        # outputs
+        self.tof_fit_result = dict()
+
+        self.model_params = dict()
+        self.jacobian = dict()
+        self.offset = dict()
+        self.normalization = dict()
+        self.transmission = dict()
+        self.int_transmission = dict()
+
+        self.filter_length = filter_length
+        if not isinstance(filter_length, dict):
+            self.filter_length = {tof_id: filter_length for tof_id in self.tof_settings.keys()}
+
+        # get XGM and auxiliary data
+        self.update_xgm_and_metadata()
+
+        # update eTOF data reading objects
+        self.update_tof_settings()
+
+        # find RoI if needed
+        self.update_roi()
+
+        # find where the peaks are per energy in each Tof
+        self.update_fit_result()
+
+        # calibrate and calculate transmission
+        self.update_calibration()
+
+        # now we can use the apply method
+        log(self.log_level, "Ready to apply energy calibration and transmission correction to analysis data ...")
+
+    def update_xgm_and_metadata(self):
+        """
+        Read calibration XGM and metadata information.
+        """
         # get XGM information
         self._xgm = XGM(self._run, self.xgm_source)
         self._xgm_data = self._xgm.pulse_energy().stack(pulse=('trainId', 'pulseIndex'))
@@ -297,22 +334,26 @@ class CookieboxCalib(object):
         self._scan = Scan(self._run[self.energy_source, self.energy_key])
         self.calibration_energies = self._scan.positions*1e3
 
+    def update_tof_settings(self):
+        """
+        Update position of the first pulse offset if needed and
+        create AdqRawChannel.
+        """
         # find first peak offset
         if first_pulse_offset is None:
             log(self.log_level, "First pulse offset not given: guessing it from data.")
             log(self.log_level, "(This may fail, if it does, please provide a `first_pulse_offset` instead.)")
             first_pulse_offset = self.find_offset()
             log(self.log_level, f"Found first pulse offset at {first_pulse_offset}")
+        self.first_pulse_offset = first_pulse_offset
 
         # create tof objects:
-        self.first_pulse_offset = first_pulse_offset
-        self.single_pulse_length = single_pulse_length
         self._tof = {tof_id: AdqRawChannel(self._run,
                                           channel,
                                           digitizer=digitizer,
                                           first_pulse_offset=self.first_pulse_offset,
                                           single_pulse_length=self.single_pulse_length,
-                                          interleaved=interleaved,
+                                          interleaved=self.interleaved,
                                           )
                      for tof_id, (digitizer, channel) in self.tof_settings.items()}
         self.auger_start_roi = {tof_id: auger_start_roi for tof_id in self.tof_settings.keys()}
@@ -320,20 +361,10 @@ class CookieboxCalib(object):
         self.stop_roi = {tof_id: stop_roi for tof_id in self.tof_settings.keys()}
         self.mask = {tof_id: True for tof_id in self.tof_settings.keys()}
 
-        # outputs
-        self.tof_fit_result = dict()
-
-        self.model_params = dict()
-        self.jacobian = dict()
-        self.offset = dict()
-        self.normalization = dict()
-        self.transmission = dict()
-        self.int_transmission = dict()
-
-        self.filter_length = filter_length
-        if not isinstance(filter_length, dict):
-            self.filter_length = {tof_id: filter_length for tof_id in self.tof_settings.keys()}
-    
+    def update_roi(self):
+        """
+        Given calibrated data, apply a selection and find RoI if needed.
+        """
         # average data for each energy slice
         log(self.log_level, "Reading calibration data ... (this takes a while)")
         self.select_calibration_data()
@@ -347,13 +378,19 @@ class CookieboxCalib(object):
             log(self.log_level, f"Start RoIs found: {self.start_roi}")
             log(self.log_level, f"Stop RoIs found: {self.stop_roi}")
 
-
-        # find where the peaks are per energy in each Tof
+    def update_fit_result(self):
+        """
+        Fit TOF data to a Gaussian and collect results.
+        """
         log(self.log_level, "Fit peaks to obtain energy calibration ...")
         for tof_id in self.tof_settings.keys():
             log(self.log_level, f"Fitting eTOF {tof_id} ...")
             self.tof_fit_result[tof_id] = self.peak_tof(tof_id)
 
+    def update_calibration():
+        """
+        Calculate calibration maps and transmission.
+        """
         # calculate transmission (fills the arrays above)
         log(self.log_level, "Calculate calibration and transmission ...")
         for tof_id in self.tof_settings.keys():
@@ -365,9 +402,6 @@ class CookieboxCalib(object):
         self.e_transmission = np.zeros((n_e, n_tof), dtype=np.float32)
         for idx, tof_id in enumerate(self.tof_settings.keys()):
             self.e_transmission[:,idx] = self.int_transmission[tof_id]
-
-        # now we can use the apply method
-        log(self.log_level, "Ready to apply energy calibration and transmission correction to analysis data ...")
 
     def save(self, filename: str):
         """
