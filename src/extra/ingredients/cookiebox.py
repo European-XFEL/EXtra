@@ -261,6 +261,7 @@ class CookieboxCalib(object):
         self.log_level = log_level
 
         # base properties
+        self._run = run
         self._energy_axis = energy_axis
         self._tof_settings = tof_settings
         self._auger_start_roi = {tof_id: auger_start_roi for tof_id in self._tof_settings.keys()}
