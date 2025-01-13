@@ -215,22 +215,32 @@ class CookieboxCalib(object):
       run: The calibration run.
       energy_axis: Energy axis in eV to interpolate eTOF to.
       tof_settings: Dictionary with a TOF label as a key (0,1,2, ...).
-                    Each value is a tuple containing the eTOF source name and channel in the format "1_A".
-      xgm_threshold: Minimum threshold to ignore dark frames in the calibration data (in uJ). Can be 'median' to use the median over the run.
-      first_pulse_offset: Offset to find the first pulse data in digitizers. Use None to guess it.
+                    Each value is *either* a) a tuple containing the
+                    eTOF source name and channel in the format "1_A";
+                    or b) the AdqRawChannel object for that eTOF.
+      xgm_threshold: Minimum threshold to ignore dark frames in
+                     the calibration data (in uJ).
+                     Can be 'median' to use the median over the run.
+      first_pulse_offset: Offset to find the first pulse data in digitizers.
+                          Use `None` to guess it.
       single_pulse_length: In case of a single pulse, what is the length of the trace to keep.
-      auger_start_roi: Start of the Auger and valence RoI in a pulse, relative to the `first_pulse_offset`. Use None to guess it.
-      start_roi: Start of the RoI in a pulse, relative to the `first_pulse_offset`. Use None to guess it.
-      stop_roi: End of the RoI, relative to the `first_pulse_offset`. Use None to guess it.
+      auger_start_roi: Start of the Auger and valence RoI in a pulse,
+                       relative to the `first_pulse_offset`. Use `None` to guess it.
+      start_roi: Start of the RoI in a pulse, relative to the `first_pulse_offset`.
+                 Use `None` to guess it.
+      stop_roi: End of the RoI, relative to the `first_pulse_offset`. Use `None` to guess it.
       energy_source: Where to read the undulator energy from.
       xgm_source: Where to read the XGM intensity from.
-      interleaved: Whether channels are interleaved. If None, attempt to auto-detect, but this fails for a union of runs.
+      interleaved: Whether channels are interleaved. If `None`,
+                   attempt to auto-detect, but this fails for a union of runs.
       log_level: Whether to produce log output. Set to 1 for more log output.
-      filter_length: Number of digital samples from eTOFs to use for the inverse digital frequency. Set to zero to avoid applying it. This is useful to filter ringing.
+      filter_length: Number of digital samples from eTOFs to use for the
+                     inverse digital frequency. Set to zero to avoid applying it.
+                     This is useful to filter ringing.
     """
     def __init__(self, run: DataCollection,
                  energy_axis: np.ndarray,
-                 tof_settings: Dict[int, Tuple[str, str]],
+                 tof_settings: Dict[int, Union[Tuple[str, str], AdqRawChannel]],
                  xgm_threshold: Union[str, float]='median',
                  first_pulse_offset: Optional[int]=None,
                  single_pulse_length: int=400,
@@ -348,14 +358,18 @@ class CookieboxCalib(object):
         self.first_pulse_offset = first_pulse_offset
 
         # create tof objects:
-        self._tof = {tof_id: AdqRawChannel(self._run,
-                                          channel,
-                                          digitizer=digitizer,
-                                          first_pulse_offset=self.first_pulse_offset,
-                                          single_pulse_length=self.single_pulse_length,
-                                          interleaved=self.interleaved,
-                                          )
-                     for tof_id, (digitizer, channel) in self.tof_settings.items()}
+        self._tof = dict()
+        for tof_id, value in self.tof_settings.items():
+            if not isinstance(value, AdqRawChannel):
+                digitizer, channel = value
+                self._tof[tof_id] = AdqRawChannel(self._run,
+                                                  channel,
+                                                  digitizer=digitizer,
+                                                  first_pulse_offset=self.first_pulse_offset,
+                                                  single_pulse_length=self.single_pulse_length,
+                                                  interleaved=self.interleaved,
+                                                )
+            self._tof[tof_id] = value
         self.auger_start_roi = {tof_id: auger_start_roi for tof_id in self.tof_settings.keys()}
         self.start_roi = {tof_id: start_roi for tof_id in self.tof_settings.keys()}
         self.stop_roi = {tof_id: stop_roi for tof_id in self.tof_settings.keys()}
