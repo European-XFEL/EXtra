@@ -565,7 +565,7 @@ class CookieboxCalib(object):
             log(self.log_level, f"Fitting eTOF {tof_id} ...")
             self.tof_fit_result[tof_id] = self.peak_tof(tof_id)
 
-    def update_calibration():
+    def update_calibration(self):
         """
         Calculate calibration maps and transmission.
         """
