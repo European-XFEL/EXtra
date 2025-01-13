@@ -457,7 +457,7 @@ class CookieboxCalib(object):
 
     @property
     def stop_roi(self):
-        return self._start_roi
+        return self._stop_roi
 
     @stop_roi.setter
     def stop_roi(self, value):
