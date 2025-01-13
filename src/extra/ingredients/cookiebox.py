@@ -646,7 +646,7 @@ class CookieboxCalib(object):
             obj._auger_start_roi = load_dict(fid["auger_start_roi"])
             obj._start_roi = load_dict(fid["start_roi"])
             obj._stop_roi = load_dict(fid["stop_roi"])
-            obj._tof_fit_result = {k: TofFitResult(**v) for k, v in load_dict(fid["tof_fit_result"]).items()}
+            obj.tof_fit_result = {k: TofFitResult(**v) for k, v in load_dict(fid["tof_fit_result"]).items()}
             obj._filter_length = load_dict(fid["filter_length"])
             obj._energy_source = fid.attrs["energy_source"]
             obj._xgm_source = fid.attrs["xgm_source"]
