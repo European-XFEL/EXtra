@@ -494,7 +494,7 @@ class CookieboxCalib(object):
                         *self.all_digi_control,
                        ]
         # select data from the run
-        self._run = run.select(self.sources, require_all=True)
+        self._run = self.run.select(self.sources, require_all=True)
 
         # get XGM information
         self._xgm = XGM(self._run, self.xgm_source)
