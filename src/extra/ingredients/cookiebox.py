@@ -174,6 +174,43 @@ class CookieboxCalib(object):
     """
     Calibrate a set of eTOFs read out using an ADQ digitizer device.
 
+    eTOFs provide a 1D trace for all pulses, which can be transformed
+    into traces per pulse by the `AdqRawChannel` Extra component.
+    However, the trace sample axis is meaningless and needs to be converted
+    into energy using a non-linear function. Usually one data analysis run
+    is taken in which the undulator energy is scanned to obtain this map,
+    which is then applied in the actual analysis run.
+
+    The objective is to take a calibration run (where an energy scan is made)
+    and from that run calculate a) the map to be used to interpolate eTOF
+    energy axis from "sample number" into eV; and b) calculate the transmission
+    correction, which corrects the appropriate intensity of the data,
+    given that the eTOF does not measure electrons with equal probability in all energy ranges.
+
+    The concrete steps taken when the object is initialized
+    (`obj = CookieboxCalib(calib_run)`) from a calibration run are:
+    - From a calibration run, derive a sample number (proportional to time-of-flight)
+      to energy non-linear map.
+    - Estimate the transformation Jacobian and use it to correct the
+      spectrum intensity distribution, so that the probability
+      of photo-electrons observed in a range of energies agrees with the
+      probability in the corresponding time-of-flight range.
+    - Calculate a transmission correction due to the eTOF quantum
+      efficiency as "photo-electron integral/Auger+Valence integral".
+    - Calculate a normalization correction due to the pulse energy
+       as taken from the XGM: "Auger+Valence integral/XGM pulse energy".
+
+    The concrete steps taken when the `obj.apply(other_run)` is called with a run to be calibrated are:
+    - Use derived non-linear map to interpolate energy axis per eTOF
+    - Subtract per energy offset per eTOF.
+    - Scale data by the inverse of the absolute value of the Jacobian per eTOF,
+      following the change-of-variable theorem in statistics.
+    - Divide by the transmission per eTOF.
+    - Divide by the normalization correction.
+
+    The variables calculated can be visualized using `obj.plot_diagnostics()`
+    and similar other functions for validation and other cross-checks.
+
     Arguments:
       run: The calibration run.
       energy_axis: Energy axis in eV to interpolate eTOF to.
