@@ -11,5 +11,5 @@ from extra.ingredients import CookieboxCalib
 
 def test_create_cookiebox_calib():
     # instantiates it without doing any calibration, only to check for syntax errors
-    cal = CookieboxCalib(run=None)
+    cal = CookieboxCalib(run=None, energy_axis=None, tof_settings=None)
 
