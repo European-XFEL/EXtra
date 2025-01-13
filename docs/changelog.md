@@ -16,6 +16,11 @@
 <!--     pip install git+https://github.com/European-XFEL/EXtra.git -->
 <!--     ``` -->
 
+## [2025.1]
+Added:
+
+- [CookieboxCalib][extra.ingredients.CookieboxCalib] to calibrate data from eTOFs after taking a calibrato run (!284).
+
 ## [2024.2]
 Added:
 

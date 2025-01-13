@@ -31,6 +31,9 @@ nav:
     - components/optical-lasers.md
     - components/adq-digitizers.md
     - components/detector-motors.md
+  - Ingredients:
+    - ingredients/index.md
+    - ingredients/cookiebox.md
   - karabo-bridge.md
   - calibration.md
   - signal.md
