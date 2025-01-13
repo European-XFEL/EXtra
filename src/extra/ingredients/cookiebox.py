@@ -420,7 +420,7 @@ class CookieboxCalib(object):
         self.update_calibration()
 
     @property
-    def filter_length(self)
+    def filter_length(self):
         return self._filter_length
 
     @filter_length.setter
