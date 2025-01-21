@@ -1084,7 +1084,7 @@ class AdqRawChannel:
         # Drop empty trains for efficient access to train IDs.
         raw_key = self._raw_key.drop_empty_trains()
 
-        if parallel is not None:
+        if parallel is not False:
             # Prepare parallelization.
             psh = self._prepare_pasha(parallel)
 
