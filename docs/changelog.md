@@ -5,7 +5,7 @@
 
 # Changelog
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
 
 <!-- !!! note -->
 <!--     All of the changes here are deployed to our current environment, even though -->
@@ -15,6 +15,9 @@
 <!--     ```bash title="Installation command" -->
 <!--     pip install git+https://github.com/European-XFEL/EXtra.git -->
 <!--     ``` -->
+
+Fixed:
+- [AdqRawChanne][extra.components.AdqRawChannel] now properly enumerates channels starting with 1 rather than 0 as in the Karabo device.
 
 ## [2024.2]
 Added:

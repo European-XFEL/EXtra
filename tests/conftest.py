@@ -10,8 +10,10 @@ from extra_data import RunDirectory
 from extra_data.tests.mockdata import write_file
 
 from extra_data.tests.mockdata.motor import Motor
-from .mockdata.detector_motors import (
-    DetectorMotorDataSelector, get_motor_sources, write_motor_positions)
+from .mockdata.adq import AdqDigitizer
+from .mockdata.detector_motors import (DetectorMotorDataSelector,
+                                       get_motor_sources,
+                                       write_motor_positions)
 from .mockdata.dld import ReconstructedDld
 from .mockdata.timepix import Timepix3Receiver, Timepix3Centroids
 from .mockdata.timeserver import PulsePatternDecoder, Timeserver
@@ -100,7 +102,10 @@ def mock_sqs_remi_directory():
         XGM('SA3_XTD10_XGM/XGM/DOOCS'),
         ReconstructedDld('SQS_REMI_DLD6/DET/TOP'),
         ReconstructedDld('SQS_REMI_DLD6/DET/BOTTOM'),
-        Motor('SQS_ILH_LAS/MOTOR/DELAY_AX_800')]
+        Motor('SQS_ILH_LAS/MOTOR/DELAY_AX_800'),
+        AdqDigitizer('SQS_DIGITIZER_UTC1/ADC/1', channels_per_board=2 * [4]),
+        AdqDigitizer('SQS_DIGITIZER_UTC2/ADC/1', channels_per_board=4 * [4],
+                     data_channels={(0, 0), (2, 1)})]
 
     with TemporaryDirectory() as td:
         write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 100)
