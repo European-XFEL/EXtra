@@ -986,7 +986,7 @@ class AdqRawChannel:
         return self._shape_edge_array(edges, amplitudes, orig_coords,
                                       labelled, squeeze_edges)
 
-    def train_data(self, labelled=True, roi=(), out=None):
+    def train_data(self, labelled=True, roi=(), out=None, parallel=None):
         """Load this channel's raw data by train.
 
         This method is similar to obtaining the digitized raw traces
@@ -1021,16 +1021,29 @@ class AdqRawChannel:
 
         shape = (self._raw_key.shape[0],) + roi_shape(
             self._raw_key.entry_shape, roi)
-        out = self._validate_out(out, shape)
 
-        offset = 0
-        for kd in self._raw_key.split_trains(trains_per_part=200):
-            num_trains = int(kd.shape[0])  # Beware of uint64
-            out_sel = out[offset:offset+num_trains]
-            offset += num_trains
+        if parallel is not None:
+            # Prepare parallelization.
+            psh = self._prepare_pasha(parallel)
 
-            kd.ndarray(roi=roi, out=out_sel)
-            self._preprocess(out_sel, out_sel)
+            out = self._validate_out(out, shape, psh.alloc)
+
+            def read_train(wid, index, train_id, data):
+                out[index] = data[roi]
+                self._preprocess(out[index], out[index])
+
+            psh.map(read_train, self._raw_key)
+        else:
+            out = self._validate_out(out, shape)
+
+            offset = 0
+            for kd in self._raw_key.split_trains(trains_per_part=200):
+                num_trains = int(kd.shape[0])  # Beware of uint64
+                out_sel = out[offset:offset+num_trains]
+                offset += num_trains
+
+                kd.ndarray(roi=roi, out=out_sel)
+                self._preprocess(out_sel, out_sel)
 
         if not labelled:
             return out
@@ -1094,7 +1107,7 @@ class AdqRawChannel:
             def read_pulses(wid, index, train_id, data):
                 layout_row = pulse_layout.loc[train_id]
                 pulse_sel = np.s_[layout_row['first']:layout_row['last']]
-                tmp_sel = data[train_roi].astype(out.dtype)
+                tmp_sel = data[train_roi].astype(out.dtype)  # pre-alloc?
 
                 self._preprocess(tmp_sel, tmp_sel)
                 self._reshape_flat_pulses(
