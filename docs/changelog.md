@@ -25,6 +25,10 @@ Added:
 - [Timepix3][extra.components.Timepix3] to access raw hits and centroids from the Timepix3 detector (!231).
 - [Scan.plot()][extra.components.Scan.plot] now allows passing a `figsize` (!262).
 
+Added:
+
+- [JF4MHalfMotors][extra.components.JF4MHalfMotors] to access positions of motors moving halfs of Jungfrau detector (!224).
+
 Fixed:
 
 - Karabacon 3.0.10 is now supported by the [Scantool][extra.components.Scantool]

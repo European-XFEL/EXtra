@@ -48,6 +48,8 @@ def mock_spb_aux_directory():
         Motor("MOTOR/MCMOTORYFACE"),
         DetectorMotorDataSelector("SPB_IRU_AGIPD1M/DS", "SPB_IRU_AGIPD1M"),
         DetectorMotorDataSelector("SPB_EXP_AGIPD1M2/DS", "SPB_EXP_AGIPD1M2"),
+        Motor('SPB_IRDA_JF4M/MOTOR/X1'),
+        Motor('SPB_IRDA_JF4M/MOTOR/X2'),
     ]
     sources += get_motor_sources("SPB_IRU_AGIPD1M")
 
@@ -62,6 +64,12 @@ def mock_spb_aux_directory():
             motor_ds[10::10] = np.arange(9) + 0.5
             # write agipd quadrand motor positions
             write_motor_positions(f, "SPB_IRU_AGIPD1M")
+            # write jf4m halves motor positions
+            jfx1 = f['CONTROL/SPB_IRDA_JF4M/MOTOR/X1/actualPosition/value']
+            jfx1[:] = 10
+            jfx2 = f['CONTROL/SPB_IRDA_JF4M/MOTOR/X2/actualPosition/value']
+            jfx2[:10] = 5
+            jfx2[10:] = 6
 
         yield td
 
