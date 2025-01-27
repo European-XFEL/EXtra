@@ -198,7 +198,7 @@ def find_motors(dc, pattern, position_key, data_selectors=None, **coordinates):
 
         if (
             src in dc.control_sources and
-            position_key in dc[src].keys(inc_timestamps=False)
+            position_key in dc[src]
         ):
             motors[label] = (src, position_key)
             continue
