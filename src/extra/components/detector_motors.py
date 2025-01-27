@@ -337,7 +337,7 @@ class JF4MHalfMotors(DetectorMotors):
             raise ValueError("Motors are not found")
         elif len(all_motors) > 1:
             raise ValueError(
-                "Many detector found: {', '.join(det_motors.keys())}. "
+                "Many detector found: {', '.join(det_motors.keys())}.\n"
                 "Please specify 'detector_id'")
 
         detector_id, detector_motors = all_motors.popitem()
