@@ -21,4 +21,4 @@ pytz==2025.1
 pyzmq==26.2.1
 six==1.17.0
 tzdata==2025.1
-xarray<=2025.1.1
+xarray<=2025.1.2
