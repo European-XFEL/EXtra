@@ -12,6 +12,8 @@ from functools import partial
 
 import xarray as xr
 
+import h5py
+
 def log(level, msg):
     if level > 0:
         print(msg)
@@ -138,7 +140,7 @@ class GratingCalib(object):
             fid["bkg"] = self.bkg
             fid["angle"] = self.angle
             fid["energy_axis"] = self.energy_axis
-            fid["calibration_energes"] = self.calibration_energies
+            fid["calibration_energies"] = self.calibration_energies
             fid["calibration_data"] = self.calibration_data
 
             # energy source and key (not really needed to apply it though)
@@ -150,8 +152,6 @@ class GratingCalib(object):
             fid.attrs["grating_key"] = self.grating_key
 
             fid.attrs["log_level"] = self.log_level
-            if self.interleaved is not None:
-                fid.attrs["interleaved"] = self.interleaved
 
 
     @classmethod
@@ -164,10 +164,10 @@ class GratingCalib(object):
             obj.e0 = fid["e0"][()]
             obj.slope = fid["slope"][()]
             obj.bkg = fid["bkg"][()]
-            obj.angle = fid["angle"]
-            obj.energy_axis = fid['energy_axis']
-            obj.calibration_energies = fid['calibration_energies']
-            obj.calibration_data = fid['calibration_data']
+            obj.angle = fid["angle"][()]
+            obj.energy_axis = fid['energy_axis'][()]
+            obj.calibration_energies = fid['calibration_energies'][()]
+            obj.calibration_data = fid['calibration_data'][()]
 
             obj.energy_source = fid.attrs["energy_source"]
             obj.energy_key = fid.attrs["energy_key"]
@@ -187,11 +187,11 @@ class GratingCalib(object):
         Apply calibration to a new analysis run.
         It is assumed it contains the same settings.
         """
-        data = run[self.grating_source, self.grating_key].ndarray()
-        data = rotate(data - self.bkg, self.angle, axes=(-1, -2))
+        data = run[self.grating_source, self.grating_key].xarray()
+        coords = data.coords
+        data = rotate(data.to_numpy() - self.bkg, self.angle, axes=(-1, -2))
         data = data.sum(-2)
         energy = self.energy_axis
-        coords = data.coords
         data = xr.DataArray(data=data,
                             dims=('trainId', 'energy'),
                             coords=dict(trainId=coords['trainId'],
