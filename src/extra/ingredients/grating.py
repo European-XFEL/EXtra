@@ -187,17 +187,22 @@ class GratingCalib(object):
         Apply calibration to a new analysis run.
         It is assumed it contains the same settings.
         """
-        data = run[self.grating_source, self.grating_key].xarray()
-        coords = data.coords
-        data = rotate(data.to_numpy() - self.bkg, self.angle, axes=(-1, -2))
-        data = data.sum(-2)
+        # do it per train to avoid memory overflow
+        trainId = list()
+        out_data = list()
+        for i, (tid, data) in enumerate(run.trains()):
+            #print(f"Train {tid}, idx {i}")
+            d = data[self.grating_source][self.grating_key]
+            d = rotate(d - self.bkg, self.angle, axes=(-1, -2))
+            trainId += [tid]
+            out_data += [d.sum(-2)]
         energy = self.energy_axis
-        data = xr.DataArray(data=data,
+        out_data = xr.DataArray(data=np.stack(out_data, axis=0),
                             dims=('trainId', 'energy'),
-                            coords=dict(trainId=coords['trainId'],
+                            coords=dict(trainId=np.array(trainId),
                                         energy=energy
                                         )
                            )
 
-        return data
+        return out_data
 
