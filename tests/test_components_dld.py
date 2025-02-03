@@ -96,7 +96,7 @@ def test_dld_pulse_align(mock_sqs_remi_run):
         dld.hits()
 
     # Less trains for detector data.
-    dld = DelayLineDetector(run.select_trains(np.s_[:50]), pulses=pulses)
+    dld = DelayLineDetector(run.select_trains(np.s_[1:50]), pulses=pulses)
     hits = dld.hits()
     pd.testing.assert_frame_equal(hits, all_hits.loc[np.r_[10002:10050], :])
 
