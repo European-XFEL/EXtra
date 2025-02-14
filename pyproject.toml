@@ -23,6 +23,7 @@ dependencies = [
     "lmfit",
     "oauth2-xfel-client >=6.1",
     "pandas",
+    "xarray",
     "pasha",
     "pint",
     "requests",
