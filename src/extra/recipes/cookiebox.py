@@ -99,8 +99,6 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
     """A function doing the actual calibration, per tof, per energy index."""
     tof_id, energy_id = itr
     energy, train_ids = scan.steps[energy_id]
-    #xgm = XGM(run.select_trains(by_id[list(train_ids)]), "SA3_XTD10_XGM/XGM/DOOCS")
-    #sel_xgm_data = xgm.pulse_energy().stack(pulse=('trainId', 'pulseIndex'))
     mask = xgm_data.coords["trainId"].isin(list(train_ids))
     sel_xgm_data = xgm_data[mask]
     tof_data = tof[tof_id].select_trains(by_id[list(train_ids)]).pulse_data(pulse_dim='pulseIndex')
