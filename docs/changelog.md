@@ -5,7 +5,7 @@
 
 # Changelog
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
 
 <!-- !!! note -->
 <!--     All of the changes here are deployed to our current environment, even though -->
@@ -16,16 +16,22 @@
 <!--     pip install git+https://github.com/European-XFEL/EXtra.git -->
 <!--     ``` -->
 
-## [2025.1]
 Added:
+- [CookieboxCalibration][extra.recipes.CookieboxCalibration] to calibrate data from eTOFs after taking a calibration run (!284).
+- [Grating2DCalibration][extra.recipes.Grating2DCalibration] to calibrate data from a 2D grating detector (!284).
 
-- [CookieboxCalib][extra.ingredients.CookieboxCalib] to calibrate data from eTOFs after taking a calibrato run (!284).
+Fixed:
+- [AdqRawChanne][extra.components.AdqRawChannel] now properly enumerates channels starting with 1 rather than 0 as in the Karabo device.
 
 ## [2024.2]
 Added:
 
 - [Timepix3][extra.components.Timepix3] to access raw hits and centroids from the Timepix3 detector (!231).
 - [Scan.plot()][extra.components.Scan.plot] now allows passing a `figsize` (!262).
+
+Added:
+
+- [JF4MHalfMotors][extra.components.JF4MHalfMotors] to access positions of motors moving halfs of Jungfrau detector (!224).
 
 Fixed:
 

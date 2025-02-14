@@ -10,8 +10,10 @@ from extra_data import RunDirectory
 from extra_data.tests.mockdata import write_file
 
 from extra_data.tests.mockdata.motor import Motor
-from .mockdata.detector_motors import (
-    DetectorMotorDataSelector, get_motor_sources, write_motor_positions)
+from .mockdata.adq import AdqDigitizer
+from .mockdata.detector_motors import (DetectorMotorDataSelector,
+                                       get_motor_sources,
+                                       write_motor_positions)
 from .mockdata.dld import ReconstructedDld
 from .mockdata.timepix import Timepix3Receiver, Timepix3Centroids
 from .mockdata.timeserver import PulsePatternDecoder, Timeserver
@@ -46,6 +48,8 @@ def mock_spb_aux_directory():
         Motor("MOTOR/MCMOTORYFACE"),
         DetectorMotorDataSelector("SPB_IRU_AGIPD1M/DS", "SPB_IRU_AGIPD1M"),
         DetectorMotorDataSelector("SPB_EXP_AGIPD1M2/DS", "SPB_EXP_AGIPD1M2"),
+        Motor('SPB_IRDA_JF4M/MOTOR/X1'),
+        Motor('SPB_IRDA_JF4M/MOTOR/X2'),
     ]
     sources += get_motor_sources("SPB_IRU_AGIPD1M")
 
@@ -60,6 +64,12 @@ def mock_spb_aux_directory():
             motor_ds[10::10] = np.arange(9) + 0.5
             # write agipd quadrand motor positions
             write_motor_positions(f, "SPB_IRU_AGIPD1M")
+            # write jf4m halves motor positions
+            jfx1 = f['CONTROL/SPB_IRDA_JF4M/MOTOR/X1/actualPosition/value']
+            jfx1[:] = 10
+            jfx2 = f['CONTROL/SPB_IRDA_JF4M/MOTOR/X2/actualPosition/value']
+            jfx2[:10] = 5
+            jfx2[10:] = 6
 
         yield td
 
@@ -100,7 +110,10 @@ def mock_sqs_remi_directory():
         XGM('SA3_XTD10_XGM/XGM/DOOCS'),
         ReconstructedDld('SQS_REMI_DLD6/DET/TOP'),
         ReconstructedDld('SQS_REMI_DLD6/DET/BOTTOM'),
-        Motor('SQS_ILH_LAS/MOTOR/DELAY_AX_800')]
+        Motor('SQS_ILH_LAS/MOTOR/DELAY_AX_800'),
+        AdqDigitizer('SQS_DIGITIZER_UTC1/ADC/1', channels_per_board=2 * [4]),
+        AdqDigitizer('SQS_DIGITIZER_UTC2/ADC/1', channels_per_board=4 * [4],
+                     data_channels={(0, 0), (2, 1)})]
 
     with TemporaryDirectory() as td:
         write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 100)
