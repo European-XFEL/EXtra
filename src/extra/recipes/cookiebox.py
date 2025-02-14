@@ -1,12 +1,9 @@
 from typing import Optional, Union, Dict, List, Tuple, Any
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, is_dataclass
+
+from .base import BaseCalibration
 
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.colors import Normalize
-from matplotlib.colors import LogNorm
-import matplotlib.colors as mcolors
-
 from extra_data import open_run, by_id, DataCollection
 import h5py
 import xarray as xr
@@ -38,31 +35,6 @@ class TofFitResult:
     Aa: np.ndarray
     offset: np.ndarray
 
-def save_dict(h5grp, obj: Dict[str, Any]):
-    """Save dictionary object into HDF5 group recursively."""
-    for k, v in obj.items():
-        if isinstance(v, dict):
-            newgrp = h5grp.create_group(f"{k}")
-            save_dict(newgrp, v)
-        else:
-            h5grp[f"{k}"] = v
-
-def load_dict(h5grp):
-    """Load dictionary object from HDF5 group recursively."""
-    out = dict()
-    for k, obj in h5grp.items():
-        # convert positive integers into integers if needed
-        if k.isdigit():
-            k = int(k)
-        if isinstance(obj, h5py.Group):
-            out[k] = load_dict(obj)
-        elif isinstance(obj, h5py.Dataset):
-            out[k] = obj[()]
-    return dict(sorted(out.items()))
-
-def log(level, msg):
-    if level > 0:
-        print(msg)
 
 def search_offset(trace: np.ndarray, sigma: float=20):
     """
@@ -170,7 +142,7 @@ def apply_filter(data: np.ndarray, filter_length: int) -> np.ndarray:
     taps = firwin(N, cutoff, window=('kaiser', beta))
     return filtfilt(taps, 1.0, data, axis=-1)
 
-class CookieboxCalib(object):
+class CookieboxCalibration(BaseCalibration):
     """
     Calibrate a set of eTOFs read out using an ADQ digitizer device.
 
@@ -187,8 +159,8 @@ class CookieboxCalib(object):
     correction, which corrects the appropriate intensity of the data,
     given that the eTOF does not measure electrons with equal probability in all energy ranges.
 
-    The concrete steps taken when the object is initialized
-    (`obj = CookieboxCalib(calib_run)`) from a calibration run are:
+    The concrete steps taken when the object is setup
+    (`obj = CookieboxCalib()` and `obj.setup(run, energy_axis)`) from a calibration run are:
     - From a calibration run, derive a sample number (proportional to time-of-flight)
       to energy non-linear map.
     - Estimate the transformation Jacobian and use it to correct the
@@ -211,13 +183,7 @@ class CookieboxCalib(object):
     The variables calculated can be visualized using `obj.plot_diagnostics()`
     and similar other functions for validation and other cross-checks.
 
-    Arguments:
-      run: The calibration run.
-      energy_axis: Energy axis in eV to interpolate eTOF to.
-      tof_settings: Dictionary with a TOF label as a key (0,1,2, ...).
-                    Each value is *either* a) a tuple containing the
-                    eTOF source name and channel in the format "1_A";
-                    or b) the AdqRawChannel object for that eTOF.
+    Args:
       xgm_threshold: Minimum threshold to ignore dark frames in
                      the calibration data (in uJ).
                      Can be 'median' to use the median over the run.
@@ -238,9 +204,7 @@ class CookieboxCalib(object):
                      inverse digital frequency. Set to zero to avoid applying it.
                      This is useful to filter ringing.
     """
-    def __init__(self, run: DataCollection,
-                 energy_axis: np.ndarray,
-                 tof_settings: Dict[int, Union[Tuple[str, str], AdqRawChannel]],
+    def __init__(self, 
                  xgm_threshold: Union[str, float]='median',
                  first_pulse_offset: Optional[int]=None,
                  single_pulse_length: int=400,
@@ -250,32 +214,19 @@ class CookieboxCalib(object):
                  energy_source: str='SA3_XTD10_UND/DOOCS/PHOTON_ENERGY',
                  xgm_source: str="SA3_XTD10_XGM/XGM/DOOCS",
                  interleaved: Optional[bool]=None,
-                 log_level: Optional[int]=0,
                  filter_length: Union[int, Dict[int, int]]=0,
                 ):
-        # if no run is set, we are just reading from a fil, so trust
-        # `load` to set everything up
-        if run is None:
-            return
-        # only for log output
-        self.log_level = log_level
+        self._init_auger_start_roi = auger_start_roi
+        self._init_start_roi = start_roi
+        self._init_stop_roi = stop_roi
+        self._init_filter_length = filter_length
 
-        # base properties
-        self._run = run
-        self._energy_axis = energy_axis
-        self._tof_settings = tof_settings
-        self._auger_start_roi = {tof_id: auger_start_roi for tof_id in self._tof_settings.keys()}
-        self._start_roi = {tof_id: start_roi for tof_id in self._tof_settings.keys()}
-        self._stop_roi = {tof_id: stop_roi for tof_id in self._tof_settings.keys()}
         self._energy_source = energy_source
         self._first_pulse_offset = first_pulse_offset
         self._single_pulse_length = single_pulse_length
         self._interleaved = interleaved
         self._xgm_source = xgm_source
         self._xgm_threshold = xgm_threshold
-        self._filter_length = filter_length
-        if not isinstance(filter_length, dict):
-            self._filter_length = {tof_id: filter_length for tof_id in self._tof_settings.keys()}
 
         # empty outputs
         self.tof_fit_result = dict()
@@ -286,8 +237,72 @@ class CookieboxCalib(object):
         self.transmission = dict()
         self.int_transmission = dict()
 
-        # now do the full analysis, step by step
+        # what we need to save it all
+        self._version = 1
+        self._all_fields = ["_energy_axis",
+                            "_tof_settings",
+                            "_auger_start_roi",
+                            "_start_roi",
+                            "_stop_roi",
+                            "_energy_source",
+                            "_first_pulse_offset",
+                            "_single_pulse_length",
+                            "_interleaved",
+                            "_xgm_source",
+                            "_xgm_threshold",
+                            "_filter_length",
+                            "tof_fit_result",
+                            "model_params",
+                            "jacobian",
+                            "offset",
+                            "normalization",
+                            "transmission",
+                            "int_transmission",
+                            "tof_fit_result",
+                            "calibration_data",
+                            "calibration_mean_xgm",
+                            "mask",
+                            "energy_key",
+                            "sources",
+                            "e_transmission",
+                            "calibration_energies",
+                            "_version",
+                           ]
+    @classmethod
+    def from_file(cls, filename: str):
+        """
+        Load setup saved with save previously.
+        """
+        obj = BaseCalibration.from_file(filename)
+        obj._tof_settings = {k: (v[0].decode("utf-8"), v[1].decode("utf-8")) for k, v in obj._tof_settings.items()}
+        obj.tof_fit_result = {k: TofFitResult(**v) for k, v in obj.tof_fit_result.items()}
+        return obj
 
+    def setup(self, run: DataCollection, energy_axis: np.ndarray, tof_settings: Dict[int, Union[Tuple[str, str], AdqRawChannel]]):
+        """
+        Derive calibrations.
+
+        Args:
+          run: The calibration run.
+          energy_axis: Energy axis in eV to interpolate eTOF to.
+          tof_settings: Dictionary with a TOF label as a key (0,1,2, ...).
+                        Each value is *either* a) a tuple containing the
+                        eTOF source name and channel in the format "1_A";
+                        or b) the AdqRawChannel object for that eTOF.
+        """
+        # base properties
+        self._run = run
+        self._energy_axis = energy_axis
+        self._tof_settings = tof_settings
+
+        self._auger_start_roi = {tof_id: self._init_auger_start_roi for tof_id in self._tof_settings.keys()}
+        self._start_roi = {tof_id: self._init_start_roi for tof_id in self._tof_settings.keys()}
+        self._stop_roi = {tof_id: self._init_stop_roi for tof_id in self._tof_settings.keys()}
+        self._filter_length = self._init_filter_length
+        if not isinstance(self._filter_length, dict):
+            self._filter_length = {tof_id: self._filter_length for tof_id in self._tof_settings.keys()}
+
+        # now do the full analysis, step by step
         # get XGM and auxiliary data
         self.update_xgm_and_metadata()
 
@@ -304,18 +319,18 @@ class CookieboxCalib(object):
         self.update_calibration()
 
         # now we can use the apply method
-        log(self.log_level, "Ready to apply energy calibration and transmission correction to analysis data ...")
+        logging.info("Ready to apply energy calibration and transmission correction to analysis data ...")
 
     # these setters allow one to update
     # some of the input properties and rerun only the necessary steps
     # for recalibration
     #
     @property
-    def run(self):
+    def run(self) -> DataCollection:
         return self._run
 
     @run.setter
-    def run(self, value):
+    def run(self, value: DataCollection):
         self._run = value
         self.update_xgm_and_metadata()
         self.update_tof_settings()
@@ -324,11 +339,11 @@ class CookieboxCalib(object):
         self.update_calibration()
 
     @property
-    def first_pulse_offset(self):
+    def first_pulse_offset(self) -> int:
         return self._first_pulse_offset
 
     @first_pulse_offset.setter
-    def first_pulse_offset(self, value):
+    def first_pulse_offset(self, value: int):
         self._first_pulse_offset = value
         self.update_tof_settings()
         self.update_roi()
@@ -336,11 +351,11 @@ class CookieboxCalib(object):
         self.update_calibration()
 
     @property
-    def single_pulse_length(self):
+    def single_pulse_length(self) -> int:
         return self._single_pulse_length
 
     @single_pulse_length.setter
-    def single_pulse_length(self, value):
+    def single_pulse_length(self, value: int):
         self._single_pulse_length = value
         self.update_tof_settings()
         self.update_roi()
@@ -348,11 +363,11 @@ class CookieboxCalib(object):
         self.update_calibration()
 
     @property
-    def interleaved(self):
+    def interleaved(self) -> bool:
         return self._interleaved
 
     @interleaved.setter
-    def interleaved(self, value):
+    def interleaved(self, value: bool):
         self._interleaved = value
         self.update_tof_settings()
         self.update_roi()
@@ -360,11 +375,11 @@ class CookieboxCalib(object):
         self.update_calibration()
 
     @property
-    def xgm_source(self):
+    def xgm_source(self) -> str:
         return self._xgm_source
 
     @xgm_source.setter
-    def xgm_source(self, value):
+    def xgm_source(self, value: str):
         self._xgm_source = value
         self.update_xgm_and_metadata()
         self.update_tof_settings()
@@ -373,11 +388,11 @@ class CookieboxCalib(object):
         self.update_calibration()
 
     @property
-    def energy_source(self):
+    def energy_source(self) -> str:
         return self._energy_source
 
     @energy_source.setter
-    def energy_source(self, value):
+    def energy_source(self, value: str):
         self._energy_source = value
         self.update_xgm_and_metadata()
         self.update_tof_settings()
@@ -386,20 +401,20 @@ class CookieboxCalib(object):
         self.update_calibration()
 
     @property
-    def energy_axis(self):
+    def energy_axis(self) -> np.ndarray:
         return self._energy_axis
 
     @energy_axis.setter
-    def energy_axis(self, value):
+    def energy_axis(self, value: np.ndarray):
         self._energy_axis = value
         self.update_calibration()
 
     @property
-    def xgm_threshold(self):
+    def xgm_threshold(self) -> float:
         return self._xgm_threshold
 
     @xgm_threshold.setter
-    def xgm_threshold(self, value):
+    def xgm_threshold(self, value: Union[float, str]):
         self._xgm_threshold = value
         # find median if needed
         if self._xgm_threshold == 'median':
@@ -409,11 +424,11 @@ class CookieboxCalib(object):
         self.update_calibration()
 
     @property
-    def tof_settings(self):
+    def tof_settings(self) -> Dict[int, Union[Tuple[str, str], AdqRawChannel]]:
         return self._tof_settings
 
     @tof_settings.setter
-    def tof_settings(self, value):
+    def tof_settings(self, value: Dict[int, Union[Tuple[str, str], AdqRawChannel]]):
         self._tof_settings = value
         self.update_tof_settings()
         self.update_roi()
@@ -421,11 +436,11 @@ class CookieboxCalib(object):
         self.update_calibration()
 
     @property
-    def filter_length(self):
+    def filter_length(self) -> Dict[int, int]:
         return self._filter_length
 
     @filter_length.setter
-    def filter_length(self, value):
+    def filter_length(self, value: Dict[int, int]):
         self._filter_length = value
         if not isinstance(value, dict):
             self._filter_length = {tof_id: value for tof_id in self._tof_settings.keys()}
@@ -434,33 +449,33 @@ class CookieboxCalib(object):
         self.update_calibration()
 
     @property
-    def auger_start_roi(self):
+    def auger_start_roi(self) -> Dict[int, int]:
         return self._auger_start_roi
 
     @auger_start_roi.setter
-    def auger_start_roi(self, value):
+    def auger_start_roi(self, value: int):
         self._auger_start_roi = {tof_id: value for tof_id in self._tof_settings.keys()}
         self.update_roi()
         self.update_fit_result()
         self.update_calibration()
 
     @property
-    def start_roi(self):
+    def start_roi(self) -> Dict[int, int]:
         return self._start_roi
 
     @start_roi.setter
-    def start_roi(self, value):
+    def start_roi(self, value: int):
         self._start_roi = {tof_id: value for tof_id in self._tof_settings.keys()}
         self.update_roi()
         self.update_fit_result()
         self.update_calibration()
 
     @property
-    def stop_roi(self):
+    def stop_roi(self) -> Dict[int, int]:
         return self._stop_roi
 
     @stop_roi.setter
-    def stop_roi(self, value):
+    def stop_roi(self, value: int):
         self._stop_roi = {tof_id: value for tof_id in self._tof_settings.keys()}
         self.update_roi()
         self.update_fit_result()
@@ -517,10 +532,10 @@ class CookieboxCalib(object):
         """
         # find first peak offset
         if self.first_pulse_offset is None:
-            log(self.log_level, "First pulse offset not given: guessing it from data.")
-            log(self.log_level, "(This may fail, if it does, please provide a `first_pulse_offset` instead.)")
+            logging.info("First pulse offset not given: guessing it from data.")
+            logging.info("(This may fail, if it does, please provide a `first_pulse_offset` instead.)")
             self.first_pulse_offset = self.find_offset()
-            log(self.log_level, f"Found first pulse offset at {first_pulse_offset}")
+            logging.info(f"Found first pulse offset at {self.first_pulse_offset}")
 
         # create tof objects:
         self._tof = dict()
@@ -542,27 +557,27 @@ class CookieboxCalib(object):
         Given calibrated data, apply a selection and find RoI if needed.
         """
         # average data for each energy slice
-        log(self.log_level, "Reading calibration data ... (this takes a while)")
+        logging.info("Reading calibration data ... (this takes a while)")
         self.select_calibration_data()
         # find RoI if needed
         if (self.auger_start_roi is None
             or self.start_roi is None
             or self.stop_roi is None):
-            log(self.log_level, "Finding RoI ...")
-            log(self.log_level, "(This may fail. If it does, please provide a `auger_start_roi`, `start_roi` and `stop_roi`.)")
+            logging.info("Finding RoI ...")
+            logging.info("(This may fail. If it does, please provide a `auger_start_roi`, `start_roi` and `stop_roi`.)")
             for tof_id in self._tof_settings.keys():
                 self.find_roi(tof_id)
-            log(self.log_level, f"Auger start RoIs found: {self.auger_start_roi}")
-            log(self.log_level, f"Start RoIs found: {self.start_roi}")
-            log(self.log_level, f"Stop RoIs found: {self.stop_roi}")
+            logging.info(f"Auger start RoIs found: {self.auger_start_roi}")
+            logging.info(f"Start RoIs found: {self.start_roi}")
+            logging.info(f"Stop RoIs found: {self.stop_roi}")
 
     def update_fit_result(self):
         """
         Fit TOF data to a Gaussian and collect results.
         """
-        log(self.log_level, "Fit peaks to obtain energy calibration ...")
+        logging.info("Fit peaks to obtain energy calibration ...")
         for tof_id in self._tof_settings.keys():
-            log(self.log_level, f"Fitting eTOF {tof_id} ...")
+            logging.info(f"Fitting eTOF {tof_id} ...")
             self.tof_fit_result[tof_id] = self.peak_tof(tof_id)
 
     def update_calibration(self):
@@ -570,7 +585,7 @@ class CookieboxCalib(object):
         Calculate calibration maps and transmission.
         """
         # calculate transmission (fills the arrays above)
-        log(self.log_level, "Calculate calibration and transmission ...")
+        logging.info("Calculate calibration and transmission ...")
         for tof_id in self._tof_settings.keys():
             self.calculate_calibration_and_transmission(tof_id)
 
@@ -580,101 +595,6 @@ class CookieboxCalib(object):
         self.e_transmission = np.zeros((n_e, n_tof), dtype=np.float32)
         for idx, tof_id in enumerate(self._tof_settings.keys()):
             self.e_transmission[:,idx] = self.int_transmission[tof_id]
-
-    def save(self, filename: str):
-        """
-        Dump all data needed for applying the calibration into an h5 file.
-        """
-        with h5py.File(filename, "w") as fid:
-            # energy axis
-            fid["energy_axis"] = self.energy_axis
-            # keep tof settings as a set of attributes with keys corresponding to tofs
-            # the values are tuples with the tof digitizer source and channel name
-            save_dict(fid.create_group("tof_settings"), {k: list(v) for k, v in self._tof_settings.items()})
-            save_dict(fid.create_group("auger_start_roi"), self.auger_start_roi)
-            save_dict(fid.create_group("start_roi"), self.start_roi)
-            save_dict(fid.create_group("stop_roi"), self.stop_roi)
-            save_dict(fid.create_group("model_params"), self.model_params)
-            save_dict(fid.create_group("transmission"), self.transmission)
-            save_dict(fid.create_group("int_transmission"), self.int_transmission)
-            tof_dict = {k: dict(asdict(v)) for k, v in self.tof_fit_result.items()}
-            save_dict(fid.create_group("tof_fit_result"), tof_dict)
-            save_dict(fid.create_group("calibration_data"), self.calibration_data)
-            save_dict(fid.create_group("calibration_mean_xgm"), self.calibration_mean_xgm)
-
-            save_dict(fid.create_group("mask"), self.mask)
-            save_dict(fid.create_group("offset"), self.offset)
-            save_dict(fid.create_group("jacobian"), self.jacobian)
-            save_dict(fid.create_group("normalization"), self.normalization)
-            save_dict(fid.create_group("filter_length"), self._filter_length)
-
-
-            # energy source and key (not really needed to apply it though)
-            fid.attrs["energy_source"] = self.energy_source
-            fid.attrs["energy_key"] = self.energy_key
-            fid.attrs["xgm_source"] = self.xgm_source
-            fid.attrs["sources"] = self.sources
-
-            fid.attrs["first_pulse_offset"] = self.first_pulse_offset
-            fid.attrs["single_pulse_length"] = self.single_pulse_length
-
-            fid.attrs["log_level"] = self.log_level
-            if self.interleaved is not None:
-                fid.attrs["interleaved"] = self.interleaved
-
-            fid["xgm_threshold"] = self._xgm_threshold
-            fid["e_transmission"] = self.e_transmission
-            fid["tof_ids"] = np.array(list(self._tof_settings.keys()))
-            fid["calibration_energies"] = self.calibration_energies
-
-
-    @classmethod
-    def load(cls, filename: str):
-        """
-        Load setup saved with save previously.
-        """
-        obj = CookieboxCalib(None, None, None)
-        with h5py.File(filename, "r") as fid:
-            if "log_level" in fid.attrs:
-                obj.log_level = fid.attrs["log_level"]
-            else:
-                obj.log_level = 1
-
-            obj._energy_axis = fid["energy_axis"][()]
-            obj._tof_settings = load_dict(fid["tof_settings"])
-            obj._tof_settings = {k: (v[0].decode("utf-8"), v[1].decode("utf-8")) for k, v in obj._tof_settings.items()}
-            obj._auger_start_roi = load_dict(fid["auger_start_roi"])
-            obj._start_roi = load_dict(fid["start_roi"])
-            obj._stop_roi = load_dict(fid["stop_roi"])
-            obj.tof_fit_result = {k: TofFitResult(**v) for k, v in load_dict(fid["tof_fit_result"]).items()}
-            obj._filter_length = load_dict(fid["filter_length"])
-            obj._energy_source = fid.attrs["energy_source"]
-            obj._xgm_source = fid.attrs["xgm_source"]
-            obj._xgm_threshold = fid["xgm_threshold"][()]
-            obj._first_pulse_offset = fid.attrs["first_pulse_offset"]
-            obj._single_pulse_length = fid.attrs["single_pulse_length"]
-            if "interleaved" in fid.attrs:
-                obj._interleaved = fid.attrs["interleaved"]
-            else:
-                obj._interleaved = None
-
-            # outputs
-            obj.model_params = load_dict(fid["model_params"])
-            obj.transmission = load_dict(fid["transmission"])
-            obj.int_transmission = load_dict(fid["int_transmission"])
-            obj.mask = load_dict(fid["mask"])
-            obj.offset = load_dict(fid["offset"])
-            obj.jacobian = load_dict(fid["jacobian"])
-            obj.normalization = load_dict(fid["normalization"])
-
-            obj.energy_key = fid.attrs["energy_key"]
-            obj.sources = fid.attrs["sources"]
-
-            obj.e_transmission = fid["e_transmission"][()]
-            obj.calibration_data = load_dict(fid["calibration_data"])
-            obj.calibration_mean_xgm = load_dict(fid["calibration_mean_xgm"])
-            obj.calibration_energies = fid["calibration_energies"][()]
-        return obj
 
     def select_calibration_data(self):
         """
@@ -739,6 +659,9 @@ class CookieboxCalib(object):
     def find_roi(self, tof_id: int):
         """
         Find RoI for the photo-electron peak from calibration data.
+
+        Args:
+          tof_id: The eTOF ID.
         """
         auger = list()
         roi = list()
@@ -750,12 +673,12 @@ class CookieboxCalib(object):
             peaks = search_roi(d)
             peaks = sorted(peaks)
             if len(peaks) < 2:
-                log(self.log_level, f"Failed to find peaks for eTOF {tof_id}, energy index {e}. Check the data quality.")
+                logging.info(f"Failed to find peaks for eTOF {tof_id}, energy index {e}. Check the data quality.")
                 continue
             auger += [peaks[0]]
             roi += [peaks[1]]
         if len(auger) == 0 or len(roi) == 0:
-            log(self.log_level, f"No peaks found in eTOF {tof_id}. Check the data quality. I will set the RoI to collect non-sense, so this TOF data will be meaningless. It will also be masked.")
+            logging.info(f"No peaks found in eTOF {tof_id}. Check the data quality. I will set the RoI to collect non-sense, so this TOF data will be meaningless. It will also be masked.")
             self.auger_start_roi[tof_id] = 0
             self.start_roi[tof_id] = 100
             self.stop_roi[tof_id] = 200
@@ -774,6 +697,8 @@ class CookieboxCalib(object):
     def plot_calibration_data(self):
         """Plot data for checks.
         """
+        import matplotlib.pyplot as plt
+        from matplotlib.colors import Normalize
         data = self.calibration_data
         tof_ids = list(self._tof_settings.keys())
         energies = self.calibration_energies
@@ -796,6 +721,9 @@ class CookieboxCalib(object):
     def peak_tof(self, tof_id: int) -> TofFitResult:
         """
         For each energy in tof `tof_id`, fit a Gaussian and store its parameters.
+
+        Args:
+          tof_id: The eTOF ID.
 
         Returns: Energy vector used, means and std. dev. in the sample axis scale, and integral of Gaussian.
         """
@@ -844,6 +772,9 @@ class CookieboxCalib(object):
     def calculate_calibration_and_transmission(self, tof_id: int):
         """
         Calculate transmissions.
+
+        Args:
+          tof_id: eTOF ID.
         """
         energy_ids = np.arange(len(self._scan.positions))
         # fit calibration
@@ -884,6 +815,7 @@ class CookieboxCalib(object):
         """
         Diagnostics plots for finding the energy peaks in a scan.
         """
+        import matplotlib.pyplot as plt
         auger_start_roi = self.auger_start_roi[tof_id]
         start_roi = self.start_roi[tof_id]
         stop_roi = self.stop_roi[tof_id]
@@ -912,7 +844,11 @@ class CookieboxCalib(object):
     def plot_all_transmissions(self, tof_ids: Optional[List[int]]=None):
         """
         Plot all transmissions in the same plot.
+
+        Args:
+          tof_ids: List of eTOF IDs to plot. If none, show all.
         """
+        import matplotlib.pyplot as plt
         fig = plt.figure(figsize=(20, 10))
         for tof_id, transmission in self.int_transmission.items():
             if tof_ids is not None:
@@ -927,7 +863,11 @@ class CookieboxCalib(object):
     def plot_all_offsets(self, tof_ids: Optional[List[int]]=None):
         """
         Plot all offset in the same plot.
+
+        Args:
+          tof_ids: List of eTOF IDs to plot. If none, show all.
         """
+        import matplotlib.pyplot as plt
         fig = plt.figure(figsize=(20, 10))
         for tof_id, offset in self.offset.items():
             if tof_ids is not None:
@@ -942,7 +882,11 @@ class CookieboxCalib(object):
     def plot_all_jacobians(self, tof_ids: Optional[List[int]]=None):
         """
         Plot all offset in the same plot.
+
+        Args:
+          tof_ids: List of eTOF IDs to plot. If none, show all.
         """
+        import matplotlib.pyplot as plt
         fig = plt.figure(figsize=(20, 10))
         for tof_id, jacobian in self.jacobian.items():
             if tof_ids is not None:
@@ -957,7 +901,11 @@ class CookieboxCalib(object):
     def plot_all_normalizations(self, tof_ids: Optional[List[int]]=None):
         """
         Plot all normalizations in the same plot.
+
+        Args:
+          tof_ids: List of eTOF IDs to plot. If none, show all.
         """
+        import matplotlib.pyplot as plt
         fig = plt.figure(figsize=(20, 10))
         for tof_id, normalization in self.normalization.items():
             if tof_ids is not None:
@@ -972,14 +920,19 @@ class CookieboxCalib(object):
     def plot_fit(self, tof_id: int):
         """
         Diagnostics plots for fit.
+
+        Args:
+          tof_id: eTOF ID.
         """
+        import matplotlib.pyplot as plt
+        from matplotlib.colors import CSS4_COLORS
         data = self.calibration_data[tof_id]
         auger_start_roi = self.auger_start_roi[tof_id]
         start_roi = self.start_roi[tof_id]
         stop_roi = self.stop_roi[tof_id]
         ts = np.arange(start_roi, stop_roi)
         fig = plt.figure(figsize=(20,10))
-        for e, c in zip(range(data.shape[0]), mcolors.CSS4_COLORS.keys()):
+        for e, c in zip(range(data.shape[0]), CSS4_COLORS.keys()):
             energy = self.calibration_energies[e]
             plt.scatter(ts, data[e,start_roi:stop_roi], c=c, label=f"{energy:.1f} eV")
             mu = self.tof_fit_result[tof_id].mu[e]
@@ -1000,6 +953,11 @@ class CookieboxCalib(object):
         """
         Apply calibration, offset correction and transmission correction to a new analysis run.
         It is assumed it contains the same eTOF settings.
+
+        Args:
+          run: The run to calibrate.
+
+        Returns: The xarray Dataset.
         """
 
         tof_ids = sorted([idx for idx, tof_id in enumerate(self._tof_settings.keys()) if self.mask[tof_id]])
