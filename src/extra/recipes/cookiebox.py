@@ -20,7 +20,7 @@ import scipy
 from scipy.stats import linregress
 from scipy.optimize import minimize_scalar
 from functools import partial
-from scipy.signal import fftconvolve
+from scipy.ndimage import gaussian_filter1d
 from scipy.interpolate import CubicSpline
 from scipy.signal import kaiserord, filtfilt, firwin
 
@@ -42,11 +42,8 @@ def search_offset(trace: np.ndarray, sigma: float=20):
     """
     Find highest peaks in the 1D trace.
     """
-    axis = np.arange(len(trace))
-    gaussian = np.exp(-0.5*(axis - np.mean(axis))**2/sigma**2)
-    gaussian /= np.sum(gaussian, axis=0, keepdims=True)
     # apply it to the data
-    smoothened = fftconvolve(trace, gaussian, mode="same", axes=0)
+    smoothened = gaussian_filter1d(trace, sigma=sigma, mode="nearest")
     peak_idx = np.argmax(smoothened)
     return peak_idx - 200
 
@@ -653,11 +650,6 @@ class CookieboxCalibration(BaseCalibration):
                               pd.Index(list(tof.keys()), name="tof"))
         data = -all_trace.mean(["tof", "trainId"])
         peaks = search_offset(data)
-        # smooth = scipy.ndimage.gaussian_filter1d(data, sigma=50)
-        # thr = np.median(smooth)
-        # peaks, _ = scipy.signal.find_peaks(smooth, height=thr)
-        # if len(peaks) == 0:
-        #     raise RuntimeError(f"Unable to find peaks in averaged data.")
         return max(peaks, 0)
 
     def find_roi(self, tof_id: int):
