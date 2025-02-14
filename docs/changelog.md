@@ -16,6 +16,10 @@
 <!--     pip install git+https://github.com/European-XFEL/EXtra.git -->
 <!--     ``` -->
 
+Added:
+- [CookieboxCalibration][extra.recipes.CookieboxCalibration] to calibrate data from eTOFs after taking a calibration run (!284).
+- [Grating2DCalibration][extra.recipes.Grating2DCalibration] to calibrate data from a 2D grating detector (!284).
+
 Fixed:
 - [AdqRawChanne][extra.components.AdqRawChannel] now properly enumerates channels starting with 1 rather than 0 as in the Karabo device.
 
