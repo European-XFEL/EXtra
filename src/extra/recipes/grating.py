@@ -26,17 +26,11 @@ class Grating2DCalibration(BaseCalibration):
     Calibrate a 2D grating spectrometer.
 
     Args:
-      grating_source: Where to read the grating data from.
       angle: The rotation angle in degrees if the camera is not aligned.
-      energy_source: Where to read the undulator energy from.
     """
     def __init__(self,
-                 grating_source: str='SQS_DIAG3_BIU/CAM/CAM_6:daqOutput',
                  angle: float=0.0,
-                 energy_source: str='SA3_XTD10_MONO/MDL/PHOTON_ENERGY',
                 ):
-        self.energy_source = energy_source
-        self.grating_source = grating_source
         self.angle = angle
 
         self._version = 1
@@ -57,14 +51,21 @@ class Grating2DCalibration(BaseCalibration):
 
     def setup(self,
               bkg_run: DataCollection,
-              run: DataCollection):
+              run: DataCollection,
+              grating_source: str,
+              energy_source: str,
+              )
         """
         Setup calibration.
 
         Args:
           bkg_run: The background run.
           run: The calibration run.
+          grating_source: Where to read the grating data from.
+          energy_source: Where to read the undulator energy from.
         """
+        self.grating_source = grating_source
+        self.energy_source = energy_source
         # depending of using DOOCS or MDL device, guess the energy key
         sd = run[self.energy_source]
         ev_conv = 1.0

@@ -657,9 +657,6 @@ class CookieboxCalibration(BaseCalibration):
         roi = list()
         for e in range(self.calibration_data[tof_id].shape[0]):
             d = self.calibration_data[tof_id][e, :]
-            # idx = np.arange(len(d))
-            # D = np.stack((idx, d), axis=0)
-            # km = KMeans(n_clusters=2).fit(D)
             peaks = search_roi(d)
             peaks = sorted(peaks)
             if len(peaks) < 2:
