@@ -41,6 +41,12 @@ class TofFitResult:
 def search_offset(trace: np.ndarray, sigma: float=20):
     """
     Find highest peaks in the 1D trace.
+
+    Args:
+      trace: Trace.
+      sigma: Sigma of the Gaussian to convolve.
+
+    Returns: Offset with some slack.
     """
     # apply it to the data
     smoothened = gaussian_filter1d(trace, sigma=sigma, mode="nearest")
@@ -50,38 +56,70 @@ def search_offset(trace: np.ndarray, sigma: float=20):
 def search_roi(roi: np.ndarray):
     """
     Find highest peaks in the 1D trace.
+
+    Args:
+      roi: Trace.
+
+    Returns: Peak position.
     """
     p, _ = scipy.signal.find_peaks(roi, prominence=(0.25*np.amax(roi), None))
     return p
 
-def model(ts,c,e0,t0):
+def model(ts: np.ndarray, c: float, e0: float, t0: float) -> np.ndarray:
     """
     Model to fit energy as a function of the sample axis.
+
+    Args:
+      ts: Time axis.
+      c: Time coefficient.
+      e0: Initial energy.
+      t0: Zero-time offset.
+
+    Returns: The energy corresponding to the ts axis values.
     """
-    # e = e0 + c/(ts - t0)**2
-    # ts = np.sqrt(c/(e - e0)) + t0
-    # dt/de = d/de [ sqrt(c/e) ] = d/du sqrt(u) d/de [c/e] = -0.5*c/sqrt(c/e) * 1/(e-e0)^2 
-    # dt/de = -0.5*c/(np.sqrt(c/(e - e0)))/(e - e0)**2
-    # before transmission, after time -> energy interpolation:
-    # multiply peak sizes by dt/de
     return e0+c/(ts-t0)**2
 
-# e = e0 + c/(ts-t0)^2
-# 1/(e - e0)
-def lin_fit(ts,energies,t0):
+def lin_fit(ts: np.ndarray, energies: np.ndarray, t0: float) -> Tuple[float, float, float]:
     """
     Fit model using linear regression for fixed t0.
+
+    Args:
+      ts: Time axis.
+      energies: Energy axis.
+      t0: Fixed zero-time.
+
+    Returns: Tuple with c, e0 and t0 values after the fit.
     """
     res = linregress(1/np.asarray(ts-t0)**2,np.asarray(energies))
     c = res.slope
     e0 = res.intercept
-    return c,e0,t0
+    return c, e0, t0
 
-def norm_diff_t0(ts,energies,t0):
+def norm_diff_t0(ts: np.ndarray, energies: np.ndarray, t0: float) -> float:
+    """
+    Calculates the model mismatch between prediction and observation.
+
+    Args:
+      ts: Time axis.
+      energies: Energy axis.
+      t0: Zero-time.
+
+    Returns: Norm of difference between observation and prediction.
+    """
     c,e0,_ = lin_fit(ts,energies,t0)
     return np.linalg.norm(model(ts,c,e0,t0) - energies)
 
-def fit(peak_ids,energies,t0_bounds):
+def fit(peak_ids: np.ndarray, energies: np.ndarray, t0_bounds: Tuple[float, float]) -> Tuple[float, float, float]:
+    """
+    Fit peak IDs to energies withn the zero-time bounds.
+
+    Args:
+      peak_ids: The peak IDs.
+      energies: The energy values.
+      t0_bounds: The minimum and maximum zero-time bounds.
+
+    Returns: Tuple with c, e0, t0.
+    """
     peak_ids = np.asarray(peak_ids)
     energies = np.asarray(energies)
 
@@ -96,7 +134,19 @@ def fit(peak_ids,energies,t0_bounds):
 
 
 def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dict[int, AdqRawChannel], xgm_threshold: float, filter_length: int) -> xr.DataArray:
-    """A function doing the actual calibration, per tof, per energy index."""
+    """
+    Calculate the mean of the ToF data in the given tof and energy bin in `itr`.
+
+    Args:
+      itr: The tof ID and energy ID from the Scan object.
+      scan: The Scan object.
+      xgm_data: All the pulse energy values.
+      tof: The Extra component for reading each tof.
+      xgm_threshold: The minimum pulse energy to consider.
+      filter_length: The filter length to use (only if positive).
+
+    Returns: DataArray with mean of data in the energy bin given.
+    """
     tof_id, energy_id = itr
     energy, train_ids = scan.steps[energy_id]
     mask = xgm_data.coords["trainId"].isin(list(train_ids))
