@@ -12,11 +12,12 @@ from scipy.stats import linregress
 from functools import partial
 
 from .base import BaseCalibration
+import logging
 
 def calc_mean(energy_id: int, scan: Scan, mono_run: DataCollection,
              grating_source: str, grating_key: str):
     energy, train_ids = scan.steps[energy_id]
-    print(f"Energy {energy}, energy id {energy_id}")
+    logging.info(f"Energy {energy}, energy id {energy_id}")
     data = mono_run.select_trains(by_id[list(train_ids)])[grating_source, grating_key].xarray()
     return data.mean('trainId').to_numpy()
 
@@ -65,7 +66,7 @@ class Grating2DCalibration(BaseCalibration):
           run: The calibration run.
         """
         # depending of using DOOCS or MDL device, guess the energy key
-        sd = run[energy_source]
+        sd = run[self.energy_source]
         ev_conv = 1.0
         if 'actualEnergy' in sd:
             self.energy_key = 'actualEnergy'
@@ -75,7 +76,7 @@ class Grating2DCalibration(BaseCalibration):
         else:
             raise ValueError('Unknown energy source.')
 
-        sd = run[grating_source]
+        sd = run[self.grating_source]
         if 'data.image.pixels' in sd:
             self.grating_key = 'data.image.pixels'
         else:

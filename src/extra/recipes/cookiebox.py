@@ -24,6 +24,8 @@ from scipy.signal import fftconvolve
 from scipy.interpolate import CubicSpline
 from scipy.signal import kaiserord, filtfilt, firwin
 
+import logging
+
 
 @dataclass
 class TofFitResult:
@@ -268,15 +270,17 @@ class CookieboxCalibration(BaseCalibration):
                             "calibration_energies",
                             "_version",
                            ]
-    @classmethod
-    def from_file(cls, filename: str):
+    def _post_load(self):
         """
-        Load setup saved with save previously.
+        Actions to do after loading from file.
         """
-        obj = BaseCalibration.from_file(filename)
-        obj._tof_settings = {k: (v[0].decode("utf-8"), v[1].decode("utf-8")) for k, v in obj._tof_settings.items()}
-        obj.tof_fit_result = {k: TofFitResult(**v) for k, v in obj.tof_fit_result.items()}
-        return obj
+        self._tof_settings = {int(k): (v[0].decode("utf-8"), v[1].decode("utf-8")) for k, v in self._tof_settings.items()}
+        self.tof_fit_result = {k: TofFitResult(**v) for k, v in self.tof_fit_result.items()}
+        self._auger_start_roi = {int(k): v for k, v in self._auger_start_roi.items()}
+        self._start_roi = {int(k): v for k, v in self._start_roi.items()}
+        self._stop_roi = {int(k): v for k, v in self._stop_roi.items()}
+        self.mask = {int(k): v for k, v in self.mask.items()}
+        self._filter_length = {int(k): v for k, v in self._filter_length.items()}
 
     def setup(self, run: DataCollection, energy_axis: np.ndarray, tof_settings: Dict[int, Union[Tuple[str, str], AdqRawChannel]]):
         """
@@ -976,7 +980,7 @@ class CookieboxCalibration(BaseCalibration):
             """
             Apply the energy calibration and transmission correction for a given eTOF.
             """
-            log(self.log_level, f"Correcting eTOF {tof_id} ...")
+            logging.info(f"Correcting eTOF {tof_id} ...")
             # the sample axis to use for the calibration
             auger_start_roi = self.auger_start_roi[tof_id]
             start_roi = self.start_roi[tof_id]

@@ -1,3 +1,4 @@
+from typing import Optional, Union, Dict, List, Tuple, Any
 
 import h5py
 from dataclasses import dataclass, asdict, is_dataclass
@@ -9,10 +10,13 @@ def save_dict(h5grp, obj: Dict[str, Any]):
             newgrp = h5grp.create_group(f"{k}")
             save_dict(newgrp, v)
         elif isinstance(v, str) or isinstance(v, int) or isinstance(v, float):
-            h5grp.attrs[f"{k}"] = v.decode('utf-8')
+            h5grp.attrs[f"{k}"] = v
+        elif isinstance(v, list):
+            h5grp.attrs[f"{k}"] = v
         elif is_dataclass(v):
             new_v = asdict(v)
-            h5grp[f"{k}"] = new_v
+            newgrp = h5grp.create_group(f"{k}")
+            save_dict(newgrp, new_v)
         else:
             h5grp[f"{k}"] = v
 
@@ -47,7 +51,6 @@ class BaseCalibration(object):
     def apply(self):
         """Apply into new data"""
         raise NotImplementedError("This is a base class implementation. This method must be implemented by subclasses.")
-        
 
     def to_file(self, filename: str):
         """
@@ -58,8 +61,14 @@ class BaseCalibration(object):
 
         """
         with h5py.File(filename, "w") as fid:
-            all_data = {k: v for k, v in self.__dict__ if k in self._all_fields}
+            all_data = {k: v for k, v in self.__dict__.items() if k in self._all_fields}
             save_dict(fid, all_data)
+
+    def _post_load(self):
+        """
+        Actions after loading a file.
+        """
+        pass
 
     @classmethod
     def from_file(cls, filename: str):
@@ -71,5 +80,6 @@ class BaseCalibration(object):
             all_data = load_dict(fid)
             for k, v in all_data.items():
                 setattr(obj, k, v)
+        obj._post_load()
 
         return obj
