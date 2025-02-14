@@ -3,6 +3,7 @@ import pandas as pd
 import xarray as xr
 
 from extra.recipes import CookieboxCalibration
+from extra_data import open_run
 
 def test_cookiebox_calibration():
     # calibrate a given run

@@ -3,6 +3,7 @@ import pandas as pd
 import xarray as xr
 
 from extra.recipes import Grating2DCalibration
+from extra_data import open_run
 
 def test_grating_2d_calibration():
     # calibrate a given run
