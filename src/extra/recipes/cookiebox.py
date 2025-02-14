@@ -78,20 +78,16 @@ def lin_fit(ts,energies,t0):
     return c,e0,t0
 
 def norm_diff_t0(ts,energies,t0):
-    #print(ts,'fi',energies)
     c,e0,_ = lin_fit(ts,energies,t0)
     return np.linalg.norm(model(ts,c,e0,t0) - energies)
 
 def fit(peak_ids,energies,t0_bounds):
     peak_ids = np.asarray(peak_ids)
     energies = np.asarray(energies)
-    #print(peak_ids)
-    #print(energies)
 
     f = partial(norm_diff_t0,peak_ids,energies)
     res=minimize_scalar(f,method='Bounded',bounds=t0_bounds)
     t0 = res.x
-    #print(res)
     c,e0,t0=lin_fit(peak_ids,energies,t0)
     if res.success:
         return c,e0,t0
