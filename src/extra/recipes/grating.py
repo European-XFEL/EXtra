@@ -53,8 +53,7 @@ class Grating2DCalibration(BaseCalibration):
               bkg_run: DataCollection,
               run: DataCollection,
               grating_source: str,
-              energy_source: str,
-              )
+              energy_source: str):
         """
         Setup calibration.
 
