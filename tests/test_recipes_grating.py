@@ -6,10 +6,9 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from extra.ingredients import CookieboxCalib
+from extra.recipes import Grating2DCalibration
 
-
-def test_create_cookiebox_calib():
+def test_create_grating_2d_calibration():
     # instantiates it without doing any calibration, only to check for syntax errors
-    cal = CookieboxCalib(run=None, energy_axis=None, tof_settings=None)
+    cal = Grating2DCalibration()
 
