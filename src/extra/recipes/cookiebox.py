@@ -149,6 +149,9 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
     """
     tof_id, energy_id = itr
     energy, train_ids = scan.steps[energy_id]
+    # this does train ID matching, because:
+    # - the given run may not have both XGM and eTOF for every train;
+    # - and we cannot control the creation of the run object, since we want to receive the ready-made XGM object
     good_ids = sorted(list(set(train_ids).intersection(set(xgm_data.coords["trainId"].to_numpy()))))
     mask = xgm_data.coords["trainId"].isin(good_ids)
     sel_xgm_data = xgm_data[mask]
@@ -297,7 +300,7 @@ class CookieboxCalibration(SerializableMixin):
                             "calibration_data",
                             "calibration_mean_xgm",
                             "mask",
-                            "sources",
+                            #"sources",
                             "e_transmission",
                             "calibration_energies",
                             "_version",
@@ -582,27 +585,27 @@ class CookieboxCalibration(SerializableMixin):
         # keep track of all needed sources and match them
         #all_digi = list(set([item[0] for item in self._tof_settings.values()]))
         #all_digi_control = [d.replace(":network", "") for d in self.all_digi]
-        all_digi = list(set([item.instrument_source.source for item in self._tof.values()]))
-        all_digi_control = list(set([item.control_source.source for item in self._tof.values()]))
-        energy_source = self._scan.name
-        if '.' in energy_source:
-            energy_source = energy_source.split('.')[0]
-        self.sources = [energy_source,
-                        self._xgm.control_source.source,
-                        self._xgm.instrument_source.source,
-                        self._pulses.source.source,
-                        *all_digi,
-                        *all_digi_control,
-                       ]
+        #all_digi = list(set([item.instrument_source.source for item in self._tof.values()]))
+        #all_digi_control = list(set([item.control_source.source for item in self._tof.values()]))
+        #energy_source = self._scan.name
+        #if '.' in energy_source:
+        #    energy_source = energy_source.split('.')[0]
+        #self.sources = [energy_source,
+        #                self._xgm.control_source.source,
+        #                self._xgm.instrument_source.source,
+        #                self._pulses.source.source,
+        #                *all_digi,
+        #                *all_digi_control,
+        #               ]
         # select data from the run
-        self._run = self.run.select(self.sources, require_all=True)
+        self._run = self.run #.select(self.sources, require_all=True)
 
         # recreate pulses object after selection:
         self._pulses = XrayPulses(self._run)
 
-        # update XGM object after selection
-        self._xgm._control_source = self._run[self._xgm.control_source.source]
-        self._xgm._instrument_source = self._run[self._xgm.instrument_source.source]
+        ## update XGM object after selection
+        #self._xgm._control_source = self._run[self._xgm.control_source.source]
+        #self._xgm._instrument_source = self._run[self._xgm.instrument_source.source]
 
         # get XGM information
         self._xgm_data = self._xgm.pulse_energy().stack(pulse=('trainId', 'pulseIndex'))
@@ -610,11 +613,11 @@ class CookieboxCalibration(SerializableMixin):
         if self._xgm_threshold == 'median':
             self._xgm_threshold = np.median(self._xgm_data.to_numpy())
 
-        # update tofs with new run
-        for tof_id in self._tof.keys():
-            self._tof[tof_id]._control_src = self._run[self._tof[tof_id]._control_src.source]
-            self._tof[tof_id]._instrument_src = self._run[self._tof[tof_id]._instrument_src.source]
-            self._tof[tof_id]._raw_key = self._tof[tof_id]._instrument_src[self._tof[tof_id]._raw_key.key]
+        ## update tofs with new run
+        #for tof_id in self._tof.keys():
+        #    self._tof[tof_id]._control_src = self._run[self._tof[tof_id]._control_src.source]
+        #    self._tof[tof_id]._instrument_src = self._run[self._tof[tof_id]._instrument_src.source]
+        #    self._tof[tof_id]._raw_key = self._tof[tof_id]._instrument_src[self._tof[tof_id]._raw_key.key]
 
         # create scan object
         self.calibration_energies = self._scan.positions
