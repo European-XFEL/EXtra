@@ -149,9 +149,10 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
     """
     tof_id, energy_id = itr
     energy, train_ids = scan.steps[energy_id]
-    mask = xgm_data.coords["trainId"].isin(list(train_ids))
+    good_ids = sorted(list(set(train_ids).intersection(set(xgm_data.coords["trainId"].to_numpy()))))
+    mask = xgm_data.coords["trainId"].isin(good_ids)
     sel_xgm_data = xgm_data[mask]
-    tof_data = tof[tof_id].select_trains(by_id[list(train_ids)]).pulse_data(pulse_dim='pulseIndex')
+    tof_data = tof[tof_id].select_trains(by_id[good_ids]).pulse_data(pulse_dim='pulseIndex')
     # select XGM
     tof_data = tof_data.loc[sel_xgm_data > xgm_threshold, :]
     tof_xgm_data = sel_xgm_data.loc[sel_xgm_data > xgm_threshold]
@@ -596,12 +597,6 @@ class CookieboxCalibration(SerializableMixin):
         # select data from the run
         self._run = self.run.select(self.sources, require_all=True)
 
-        # get XGM information
-        self._xgm_data = self._xgm.pulse_energy().stack(pulse=('trainId', 'pulseIndex'))
-        # find median if needed
-        if self._xgm_threshold == 'median':
-            self._xgm_threshold = np.median(self._xgm_data.to_numpy())
-
         # recreate pulses object after selection:
         self._pulses = XrayPulses(self._run)
 
@@ -609,10 +604,17 @@ class CookieboxCalibration(SerializableMixin):
         self._xgm._control_source = self._run[self._xgm.control_source.source]
         self._xgm._instrument_source = self._run[self._xgm.instrument_source.source]
 
+        # get XGM information
+        self._xgm_data = self._xgm.pulse_energy().stack(pulse=('trainId', 'pulseIndex'))
+        # find median if needed
+        if self._xgm_threshold == 'median':
+            self._xgm_threshold = np.median(self._xgm_data.to_numpy())
+
         # update tofs with new run
         for tof_id in self._tof.keys():
             self._tof[tof_id]._control_src = self._run[self._tof[tof_id]._control_src.source]
             self._tof[tof_id]._instrument_src = self._run[self._tof[tof_id]._instrument_src.source]
+            self._tof[tof_id]._raw_key = self._tof[tof_id]._instrument_src[self._tof[tof_id]._raw_key.key]
 
         # create scan object
         self.calibration_energies = self._scan.positions
@@ -1074,7 +1076,6 @@ class CookieboxCalibration(SerializableMixin):
             start_roi = self.start_roi[tof_id]
             stop_roi = self.stop_roi[tof_id]
             ts = np.arange(start_roi, stop_roi)
-            #print(tof_id)
             if self.model_params[tof_id][0] == 0:
                 return np.zeros((n_trains, n_pulses, n_e), dtype=np.float32)
             e = model(ts, *self.model_params[tof_id])
@@ -1119,7 +1120,6 @@ class CookieboxCalibration(SerializableMixin):
                                          energy=self.energy_axis
                                         )
                             )
-            #print(o.shape)
             return o
 
         outdata = [apply_correction(tof_id)
