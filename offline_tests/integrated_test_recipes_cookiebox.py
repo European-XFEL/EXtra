@@ -42,12 +42,13 @@ def test_cookiebox_calibration():
                     auger_start_roi=150,
                     start_roi=200,
                     stop_roi=320,
-                    xgm_source="SQS_DIAG1_XGMD/XGM/DOOCS",
                     interleaved=True,
     )
 
     # do calibration
-    cal.setup(run=calib_run, energy_axis=energy_axis, tof_settings=tof_settings)
+    cal.setup(run=calib_run, energy_axis=energy_axis, tof_settings=tof_settings,
+              xgm=XGM(calib_run, "SQS_DIAG1_XGMD/XGM/DOOCS"),
+              scan=Scan(calib_run["SA3_XTD10_MONO/MDL/PHOTON_ENERGY", "actualEnergy"]))
 
     cal.to_file('cookiebox_calib.h5')
     cal_read = CookieboxCalibration.from_file('cookiebox_calib.h5')

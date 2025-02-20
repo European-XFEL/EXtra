@@ -1,24 +1,31 @@
 from typing import Optional, Union, Dict, List, Tuple, Any
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
+import logging
+from functools import partial
+
 import numpy as np
 import xarray as xr
 import h5py
 
-from extra_data import open_run, by_id, DataCollection
-from scipy.ndimage import rotate
+from extra_data import open_run, by_id, DataCollection, KeyData
 from extra.components import Scan
-from scipy.stats import linregress
-from functools import partial
 
 from .base import SerializableMixin
-import logging
 
-def calc_mean(energy_id: int, scan: Scan, mono_run: DataCollection,
-             grating_source: str, grating_key: str):
+def calc_mean(energy_id: int, scan: Scan,
+             grating: KeyData) -> np.ndarray:
+    """
+    Calculate mean over train IDs with a given energy value.
+
+    Args:
+      energy_id: The id of this energy bin in the `scan` object.
+      scan: The `Scan` object.
+      grating: The camera key object.
+    """
     energy, train_ids = scan.steps[energy_id]
-    logging.info(f"Energy {energy}, energy id {energy_id}")
-    data = mono_run.select_trains(by_id[list(train_ids)])[grating_source, grating_key].xarray()
+    logging.debug(f"Energy {energy}, energy id {energy_id}")
+    data = grating.select_trains(by_id[list(train_ids)]).xarray()
     return data.mean('trainId').to_numpy()
 
 class Grating2DCalibration(SerializableMixin):
@@ -41,8 +48,6 @@ class Grating2DCalibration(SerializableMixin):
                             "energy_axis",
                             "calibration_energies",
                             "calibration_data",
-                            "energy_source",
-                            "energy_key",
                             "grating_source",
                             "grating_key",
                             "sources",
@@ -50,50 +55,34 @@ class Grating2DCalibration(SerializableMixin):
                            ]
 
     def setup(self,
-              bkg_run: DataCollection,
-              run: DataCollection,
-              grating_source: str,
-              energy_source: str):
+              grating_signal: KeyData,
+              grating_bkg: KeyData,
+              scan: Scan):
         """
         Setup calibration.
 
         Args:
           bkg_run: The background run.
           run: The calibration run.
-          grating_source: Where to read the grating data from.
-          energy_source: Where to read the undulator energy from.
+          grating_signal: Where to read the grating data from.
+                   Example: `signal_run["SQS_DIAG3_BIU/CAM/CAM_6:daqOutput, "data.image.pixels"]`
+          grating_bkg: Where to read the grating background data from.
+               Example: `bkg_run["SQS_DIAG3_BIU/CAM/CAM_6:daqOutput, "data.image.pixels"]`
+          scan: Scan object identfying where to read the undulator energy from.
+                Example: `Scan(run["SA3_XTD10_MONO/MDL/PHOTON_ENERGY", "actualEnergy"])`
         """
-        self.grating_source = grating_source
-        self.energy_source = energy_source
-        # depending of using DOOCS or MDL device, guess the energy key
-        sd = run[self.energy_source]
-        ev_conv = 1.0
-        if 'actualEnergy' in sd:
-            self.energy_key = 'actualEnergy'
-        elif 'actualPosition' in sd:
-            self.energy_key = 'actualPosition'
-            ev_conv = 1e3
-        else:
-            raise ValueError('Unknown energy source.')
+        self.grating_source = grating_signal.source
+        self.grating_key = grating_signal.key
+        self._grating_signal = grating_signal
+        self._grating_bkg = grating_bkg
 
-        sd = run[self.grating_source]
-        if 'data.image.pixels' in sd:
-            self.grating_key = 'data.image.pixels'
-        else:
-            raise ValueError('Unknown grating source.')
-
-        self.sources = [self.energy_source,
+        self.sources = [
                         self.grating_source,
                        ]
 
-        # select data from the run
-        self._run = run.select(self.sources, require_all=True)
-
         # create scan object
-        one_ev = 1.0/ev_conv
-        self._scan = Scan(self._run[self.energy_source, self.energy_key], resolution=one_ev)
+        self._scan = scan
         self.calibration_energies = self._scan.positions
-        self.calibration_energies *= ev_conv
 
         # outputs
         self.e0 = 0
@@ -102,7 +91,7 @@ class Grating2DCalibration(SerializableMixin):
 
         # background
         logging.info("Load background ...")
-        self.get_background_template(bkg_run)
+        self.get_background_template()
 
         # load data
         logging.info("Load data ...")
@@ -115,21 +104,17 @@ class Grating2DCalibration(SerializableMixin):
         # now we can use the apply method
         logging.info("Ready to apply ...")
 
-    def get_background_template(self, bkg_run: DataCollection):
+    def get_background_template(self):
         """Get the background template.
-
-        Args:
-          bkg_run: The background run.
         """
-        self.bkg = bkg_run[self.grating_source, self.grating_key].ndarray().mean(0)
+        self.bkg = self._grating_bkg.ndarray().mean(0)
 
     def load_data(self):
         """Load calibration data."""
+        from scipy.ndimage import rotate
         fn = partial(calc_mean,
                      scan=self._scan,
-                     mono_run=self._run,
-                     grating_source=self.grating_source,
-                     grating_key=self.grating_key,
+                     grating=self._grating_signal,
                      )
         energy_ids = np.arange(len(self.calibration_energies))
         with ProcessPoolExecutor() as p:
@@ -138,6 +123,7 @@ class Grating2DCalibration(SerializableMixin):
 
     def fit(self):
         """Fit line."""
+        from scipy.stats import linregress
         sample = np.arange(self.calibration_data.shape[-1])
         sample_mode = np.argmax(self.calibration_data, axis=-1)
         #sample_mode = snp.sum(self.calibration_data*sample, axis=-1)/np.sum(self.calibration_data, axis=-1)
@@ -151,6 +137,7 @@ class Grating2DCalibration(SerializableMixin):
         Apply calibration to a new analysis run.
         It is assumed it contains the same settings.
         """
+        from scipy.ndimage import rotate
         # do it per train to avoid memory overflow
         trainId = list()
         out_data = list()

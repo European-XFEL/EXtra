@@ -1,7 +1,10 @@
 from typing import Optional, Union, Dict, List, Tuple, Any
 from dataclasses import dataclass, asdict, is_dataclass
 
-from .base import SerializableMixin
+import itertools
+from functools import partial
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+import logging
 
 import numpy as np
 from extra_data import open_run, by_id, DataCollection
@@ -9,22 +12,9 @@ import h5py
 import xarray as xr
 import pandas as pd
 
-import itertools
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from .base import SerializableMixin
 
 from extra.components import Scan, AdqRawChannel, XrayPulses, XGM
-
-from lmfit.models import GaussianModel, LinearModel, ConstantModel
-from lmfit.model import ModelResult
-import scipy
-from scipy.stats import linregress
-from scipy.optimize import minimize_scalar
-from functools import partial
-from scipy.ndimage import gaussian_filter1d
-from scipy.interpolate import CubicSpline
-from scipy.signal import kaiserord, filtfilt, firwin
-
-import logging
 
 
 @dataclass
@@ -38,7 +28,7 @@ class TofFitResult:
     offset: np.ndarray
 
 
-def search_offset(trace: np.ndarray, sigma: float=20):
+def search_offset(trace: np.ndarray, sigma: float=20) -> int:
     """
     Find highest peaks in the 1D trace.
 
@@ -49,11 +39,12 @@ def search_offset(trace: np.ndarray, sigma: float=20):
     Returns: Offset with some slack.
     """
     # apply it to the data
+    from scipy.ndimage import gaussian_filter1d
     smoothened = gaussian_filter1d(trace, sigma=sigma, mode="nearest")
     peak_idx = np.argmax(smoothened)
     return peak_idx - 200
 
-def search_roi(roi: np.ndarray):
+def search_roi(roi: np.ndarray) -> np.ndarray:
     """
     Find highest peaks in the 1D trace.
 
@@ -62,6 +53,7 @@ def search_roi(roi: np.ndarray):
 
     Returns: Peak position.
     """
+    import scipy
     p, _ = scipy.signal.find_peaks(roi, prominence=(0.25*np.amax(roi), None))
     return p
 
@@ -90,6 +82,7 @@ def lin_fit(ts: np.ndarray, energies: np.ndarray, t0: float) -> Tuple[float, flo
 
     Returns: Tuple with c, e0 and t0 values after the fit.
     """
+    from scipy.stats import linregress
     res = linregress(1/np.asarray(ts-t0)**2,np.asarray(energies))
     c = res.slope
     e0 = res.intercept
@@ -120,6 +113,7 @@ def fit(peak_ids: np.ndarray, energies: np.ndarray, t0_bounds: Tuple[float, floa
 
     Returns: Tuple with c, e0, t0.
     """
+    from scipy.optimize import minimize_scalar
     peak_ids = np.asarray(peak_ids)
     energies = np.asarray(energies)
 
@@ -181,6 +175,7 @@ def apply_filter(data: np.ndarray, filter_length: int) -> np.ndarray:
       filter_length: Number of samples to consider as fluctuatios to filter out.
     Returns: Filtered data in the same shape as input.
     """
+    from scipy.signal import kaiserord, filtfilt, firwin
     nyq_rate = 0.5
     width = 1.0/(0.5*filter_length)/0.5
     ripple_db = 20.0
@@ -580,45 +575,13 @@ class CookieboxCalibration(SerializableMixin):
         """
         # set up helper objects
         # pulse structure
-        self._pulses = XrayPulses(self.run)
-
-        # keep track of all needed sources and match them
-        #all_digi = list(set([item[0] for item in self._tof_settings.values()]))
-        #all_digi_control = [d.replace(":network", "") for d in self.all_digi]
-        #all_digi = list(set([item.instrument_source.source for item in self._tof.values()]))
-        #all_digi_control = list(set([item.control_source.source for item in self._tof.values()]))
-        #energy_source = self._scan.name
-        #if '.' in energy_source:
-        #    energy_source = energy_source.split('.')[0]
-        #self.sources = [energy_source,
-        #                self._xgm.control_source.source,
-        #                self._xgm.instrument_source.source,
-        #                self._pulses.source.source,
-        #                *all_digi,
-        #                *all_digi_control,
-        #               ]
-        # select data from the run
-        self._run = self.run #.select(self.sources, require_all=True)
-
-        # recreate pulses object after selection:
         self._pulses = XrayPulses(self._run)
-
-        ## update XGM object after selection
-        #self._xgm._control_source = self._run[self._xgm.control_source.source]
-        #self._xgm._instrument_source = self._run[self._xgm.instrument_source.source]
 
         # get XGM information
         self._xgm_data = self._xgm.pulse_energy().stack(pulse=('trainId', 'pulseIndex'))
         # find median if needed
         if self._xgm_threshold == 'median':
             self._xgm_threshold = np.median(self._xgm_data.to_numpy())
-
-        ## update tofs with new run
-        #for tof_id in self._tof.keys():
-        #    self._tof[tof_id]._control_src = self._run[self._tof[tof_id]._control_src.source]
-        #    self._tof[tof_id]._instrument_src = self._run[self._tof[tof_id]._instrument_src.source]
-        #    self._tof[tof_id]._raw_key = self._tof[tof_id]._instrument_src[self._tof[tof_id]._raw_key.key]
-
         # create scan object
         self.calibration_energies = self._scan.positions
 
@@ -640,7 +603,7 @@ class CookieboxCalibration(SerializableMixin):
         for tof_id in self._tof_settings.keys():
             if not isinstance(self._tof_settings[tof_id], AdqRawChannel):
                 digitizer, channel = self._tof_settings[tof_id]
-                self._tof[tof_id] = AdqRawChannel(self.run,
+                self._tof[tof_id] = AdqRawChannel(self._run,
                                                   channel,
                                                   digitizer=digitizer,
                                                   first_pulse_offset=self.first_pulse_offset[tof_id],
@@ -769,12 +732,17 @@ class CookieboxCalibration(SerializableMixin):
             peaks = search_roi(d)
             peaks = sorted(peaks)
             if len(peaks) < 2:
-                logging.info(f"Failed to find peaks for eTOF {tof_id}, energy index {e}. Check the data quality.")
+                logging.info(f"Failed to find peaks for eTOF {tof_id}, energy index {e}. "
+                             f"Check the data quality.")
                 continue
             auger += [peaks[0]]
             roi += [peaks[1]]
         if len(auger) == 0 or len(roi) == 0:
-            logging.info(f"No peaks found in eTOF {tof_id}. Check the data quality. I will set the RoI to collect non-sense, so this TOF data will be meaningless. It will also be masked.")
+            logging.info(f"No peaks found in eTOF {tof_id}. "
+                         f"Check the data quality. "
+                         f"I will set the RoI to collect non-sense,"
+                         f" so this TOF data will be meaningless. "
+                         f"It will also be masked.")
             self.auger_start_roi[tof_id] = 0
             self.start_roi[tof_id] = 100
             self.stop_roi[tof_id] = 200
@@ -823,6 +791,8 @@ class CookieboxCalibration(SerializableMixin):
 
         Returns: Energy vector used, means and std. dev. in the sample axis scale, and integral of Gaussian.
         """
+        from lmfit.models import GaussianModel, ConstantModel
+        from lmfit.model import ModelResult
         energies = self.calibration_energies
         data = self.calibration_data[tof_id]
         mu = list()
@@ -872,6 +842,8 @@ class CookieboxCalibration(SerializableMixin):
         Args:
           tof_id: eTOF ID.
         """
+        from scipy.interpolate import CubicSpline
+
         energy_ids = np.arange(len(self._scan.positions))
         # fit calibration
         c, e0, t0 = fit(self.tof_fit_result[tof_id].mu, self.tof_fit_result[tof_id].energy, t0_bounds=[-3000, 3000])
@@ -1020,6 +992,8 @@ class CookieboxCalibration(SerializableMixin):
         Args:
           tof_id: eTOF ID.
         """
+        from lmfit.models import GaussianModel, ConstantModel
+        from lmfit.model import ModelResult
         import matplotlib.pyplot as plt
         from matplotlib.colors import CSS4_COLORS
         data = self.calibration_data[tof_id]
