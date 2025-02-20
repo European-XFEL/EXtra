@@ -11,7 +11,7 @@ from extra.components import Scan
 from scipy.stats import linregress
 from functools import partial
 
-from .base import BaseCalibration
+from .base import SerializableMixin
 import logging
 
 def calc_mean(energy_id: int, scan: Scan, mono_run: DataCollection,
@@ -21,7 +21,7 @@ def calc_mean(energy_id: int, scan: Scan, mono_run: DataCollection,
     data = mono_run.select_trains(by_id[list(train_ids)])[grating_source, grating_key].xarray()
     return data.mean('trainId').to_numpy()
 
-class Grating2DCalibration(BaseCalibration):
+class Grating2DCalibration(SerializableMixin):
     """
     Calibrate a 2D grating spectrometer.
 

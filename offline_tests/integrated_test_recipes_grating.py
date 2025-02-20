@@ -17,7 +17,7 @@ def test_grating_2d_calibration():
     calib = Grating2DCalibration(angle=-10.5)
 
     # do calibration
-    calib.setup(bkg_run, mono_run)
+    calib.setup(bkg_run, mono_run, grating_source="SQS_DIAG3_BIU/CAM/CAM_6:daqOutput", energy_source="SA3_XTD10_MONO/MDL/PHOTON_ENERGY")
 
     calib.to_file('grating_calib.h5')
     cal_read = Grating2DCalibration.from_file('grating_calib.h5')

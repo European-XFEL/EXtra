@@ -35,23 +35,12 @@ def load_dict(h5grp):
         out[k] = obj
     return dict(sorted(out.items()))
 
-class BaseCalibration(object):
+class SerializableMixin(object):
     """
-    Base class for all calibration-related sub-classes.
+    Base class for serializable sub-classes.
 
     This should never be instantiated directly.
     """
-    def __init__(self):
-        raise NotImplementedError("This is a base class implementation. This method must be implemented by subclasses.")
-
-    def setup(self):
-        """Setup analysis from previous data."""
-        raise NotImplementedError("This is a base class implementation. This method must be implemented by subclasses.")
-
-    def apply(self):
-        """Apply into new data"""
-        raise NotImplementedError("This is a base class implementation. This method must be implemented by subclasses.")
-
     def to_file(self, filename: str):
         """
         Dump all data needed for applying the calibration into an h5 file.
@@ -83,3 +72,4 @@ class BaseCalibration(object):
         obj._post_load()
 
         return obj
+
