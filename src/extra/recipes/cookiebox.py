@@ -1128,11 +1128,8 @@ class CookieboxCalibration(SerializableMixin):
         outdata = outdata.transpose('trainId', 'pulseIndex', 'energy', 'tof')
         outdata_corr = outdata/norm.to_numpy()[None, None, :, :]
 
-        xgm_data = XGM(run, self.xgm_source).pulse_energy()
-
         return xr.Dataset(data_vars=dict(obs=outdata_corr,
                                          obs_notransmission=outdata,
-                                         xgm=xgm_data,
                                          transmission=norm
                                          )
                         )
