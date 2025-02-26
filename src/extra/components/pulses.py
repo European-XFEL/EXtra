@@ -3,6 +3,7 @@
 
 from __future__ import annotations  # to defer evaulation of annotations
 from copy import copy
+from itertools import pairwise
 from functools import wraps, lru_cache
 from typing import Optional
 from warnings import warn
@@ -16,19 +17,6 @@ from euxfel_bunch_pattern import is_sase, is_laser, \
 from extra_data import SourceData, KeyData, by_id
 
 from .utils import identify_sase, _instrument_to_sase
-
-
-try:
-    from itertools import pairwise
-except ImportError:
-    # Compatibility for Python < 3.10
-    from itertools import tee
-
-    def pairwise(iterable):
-        # pairwise('ABCDEFG') --> AB BC CD DE EF FG
-        a, b = tee(iterable)
-        next(b, None)
-        return zip(a, b)
 
 
 __all__ = ['XrayPulses', 'OpticalLaserPulses', 'MachinePulses',
