@@ -127,7 +127,7 @@ def fit(peak_ids: np.ndarray, energies: np.ndarray, t0_bounds: Tuple[float, floa
         raise Exception('fit did not converge.')
 
 
-def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dict[int, AdqRawChannel], xgm_threshold: float, filter_length: int) -> xr.DataArray:
+def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dict[int, AdqRawChannel], xgm_threshold: float, frequencies: Dict[int, List[float]]) -> xr.DataArray:
     """
     Calculate the mean of the ToF data in the given tof and energy bin in `itr`.
 
@@ -137,7 +137,7 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
       xgm_data: All the pulse energy values.
       tof: The Extra component for reading each tof.
       xgm_threshold: The minimum pulse energy to consider.
-      filter_length: The filter length to use (only if positive).
+      frequencies: The digital frequencies to filter.
 
     Returns: DataArray with mean of data in the energy bin given.
     """
@@ -159,30 +159,34 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
     out_xgm = tof_xgm_data.mean(0)
 
     # apply filter
-    filter_length = filter_length[tof_id]
-    if filter_length > 0:
-        filtered = apply_filter(out_data, filter_length)
+    freq = frequencies[tof_id]
+    if len(freq) > 0:
+        filtered = apply_filter(out_data, freq)
     else:
         filtered = out_data
     return filtered, out_xgm
 
-def apply_filter(data: np.ndarray, filter_length: int) -> np.ndarray:
+def apply_filter(data: np.ndarray, frequencies: List[int]) -> np.ndarray:
     """
-    Apply a low-pass Kaiser filter on data along its last axis with frequency 1/(2*filter_length) and width 1/(4*filter_length).
+    Apply a Kaiser filter on data along its last axis.
 
     Args:
       data: Data with shape (n_samples, n_energy). Filter is applied on last axis.
-      filter_length: Number of samples to consider as fluctuatios to filter out.
+      frequencies: Inverse number of samples to consider as fluctuatios to filter out.
     Returns: Filtered data in the same shape as input.
     """
     from scipy.signal import kaiserord, filtfilt, firwin
     nyq_rate = 0.5
-    width = 1.0/(0.5*filter_length)/0.5
-    ripple_db = 20.0
-    N, beta = kaiserord(ripple_db, width)
-    cutoff = 1.0/(filter_length)/nyq_rate
-    taps = firwin(N, cutoff, window=('kaiser', beta))
-    return filtfilt(taps, 1.0, data, axis=-1)
+    ripple_db = 10.0
+    out = data
+    for f in frequencies:
+        df = min(0.05*f, 0.05)
+        N, beta = kaiserord(ripple_db, df)
+        if N % 2 == 0:
+            N += 1
+        taps = firwin(N, [f-df/2, f+df/2], window=('kaiser', beta), pass_zero='bandstop', fs=1)
+        out = filtfilt(taps, 1.0, out, axis=-1)
+    return out
 
 class CookieboxCalibration(SerializableMixin):
     """
@@ -239,8 +243,7 @@ class CookieboxCalibration(SerializableMixin):
       stop_roi: End of the RoI, relative to the `first_pulse_offset`. Use `None` to guess it.
       interleaved: Whether channels are interleaved. If `None`,
                    attempt to auto-detect, but this fails for a union of runs.
-      filter_length: Number of digital samples from eTOFs to use for the
-                     inverse digital frequency. Set to zero to avoid applying it.
+      frequencies: Digital frequencies to filter out.
                      This is useful to filter ringing.
     """
     def __init__(self,
@@ -251,12 +254,12 @@ class CookieboxCalibration(SerializableMixin):
                  start_roi: Optional[int]=None,
                  stop_roi: Optional[int]=None,
                  interleaved: Optional[bool]=None,
-                 filter_length: Union[int, Dict[int, int]]=0,
+                 frequencies: Union[float, Dict[int, float]]=0,
                 ):
         self._init_auger_start_roi = auger_start_roi
         self._init_start_roi = start_roi
         self._init_stop_roi = stop_roi
-        self._init_filter_length = filter_length
+        self._init_frequencies = frequencies
 
         self._init_first_pulse_offset = first_pulse_offset
         self._init_single_pulse_length = single_pulse_length
@@ -283,7 +286,7 @@ class CookieboxCalibration(SerializableMixin):
                             "_single_pulse_length",
                             "_interleaved",
                             "_xgm_threshold",
-                            "_filter_length",
+                            "_frequencies",
                             "tof_fit_result",
                             "model_params",
                             "jacobian",
@@ -310,7 +313,7 @@ class CookieboxCalibration(SerializableMixin):
         self._start_roi = {int(k): v for k, v in self._start_roi.items()}
         self._stop_roi = {int(k): v for k, v in self._stop_roi.items()}
         self.mask = {int(k): v for k, v in self.mask.items()}
-        self._filter_length = {int(k): v for k, v in self._filter_length.items()}
+        self._frequencies = {int(k): v for k, v in self._frequencies.items()}
         self._first_pulse_offset = {int(k): v for k, v in self._first_pulse_offset.items()}
         self._single_pulse_length = {int(k): v for k, v in self._single_pulse_length.items()}
         self._interleaved = {int(k): v for k, v in self._interleaved.items()}
@@ -348,9 +351,9 @@ class CookieboxCalibration(SerializableMixin):
         self._auger_start_roi = {tof_id: self._init_auger_start_roi for tof_id in self._tof_settings.keys()}
         self._start_roi = {tof_id: self._init_start_roi for tof_id in self._tof_settings.keys()}
         self._stop_roi = {tof_id: self._init_stop_roi for tof_id in self._tof_settings.keys()}
-        self._filter_length = self._init_filter_length
-        if not isinstance(self._filter_length, dict):
-            self._filter_length = {tof_id: self._filter_length for tof_id in self._tof_settings.keys()}
+        self._frequencies = self._init_frequencies
+        if not isinstance(self._frequencies, dict):
+            self._frequencies = {tof_id: self._frequencies for tof_id in self._tof_settings.keys()}
         self._first_pulse_offset = {tof_id: self._init_first_pulse_offset for tof_id in self._tof_settings.keys()}
         self._single_pulse_length = {tof_id: self._init_single_pulse_length for tof_id in self._tof_settings.keys()}
         self._interleaved = {tof_id: self._init_interleaved for tof_id in self._tof_settings.keys()}
@@ -504,19 +507,19 @@ class CookieboxCalibration(SerializableMixin):
         self.update_calibration()
 
     @property
-    def filter_length(self) -> Dict[int, int]:
-        return self._filter_length
+    def frequencies(self) -> Dict[int, int]:
+        return self._frequencies
 
-    def set_filter_length(self, value: Dict[int, int]):
+    def set_frequencies(self, value: Dict[int, List[float]]):
         """
         Update the filter length and recompute.
 
         Args:
           value: The filter length.
         """
-        self._filter_length = value
+        self._frequencies = value
         if not isinstance(value, dict):
-            self._filter_length = {tof_id: value for tof_id in self._tof_settings.keys()}
+            self._frequencies = {tof_id: value for tof_id in self._tof_settings.keys()}
         self.update_roi()
         self.update_fit_result()
         self.update_calibration()
@@ -592,11 +595,16 @@ class CookieboxCalibration(SerializableMixin):
         """
         # find first peak offset
         if self.first_pulse_offset is None:
-            logging.info("First pulse offset not given: guessing it from data.")
-            logging.info("(This may fail, if it does, please provide a `first_pulse_offset` instead.)")
-            self.first_pulse_offset = self.find_offset()
-            logging.info(f"Found first pulse offset at {self.first_pulse_offset}")
-            self.first_pulse_offset = {tof_id: self.first_pulse_offset for tof_id in self._tof_settings.keys()}
+            need_it = False
+            for tof_id in self._tof_settings.keys():
+                if not isinstance(self._tof_settings[tof_id], AdqRawChannel):
+                    need_it = True
+            if need_it:
+                logging.info("First pulse offset not given: guessing it from data.")
+                logging.info("(This may fail, if it does, please provide a `first_pulse_offset` instead.)")
+                self.first_pulse_offset = self.find_offset()
+                logging.info(f"Found first pulse offset at {self.first_pulse_offset}")
+                self.first_pulse_offset = {tof_id: self.first_pulse_offset for tof_id in self._tof_settings.keys()}
 
         # create tof objects:
         self._tof = dict()
@@ -676,7 +684,7 @@ class CookieboxCalibration(SerializableMixin):
                      xgm_data=self._xgm_data,
                      tof=self._tof,
                      xgm_threshold=self._xgm_threshold,
-                     filter_length=self._filter_length
+                     frequencies=self._frequencies
                      )
 
 
@@ -810,13 +818,17 @@ class CookieboxCalibration(SerializableMixin):
             ya = data[e, auger_start_roi:start_roi]
             gamodel = GaussianModel() + ConstantModel()
             ii = np.argmax(ya)
-            resulta = gamodel.fit(ya, x=xa, center=auger_start_roi+ii, amplitude=ya[ii], sigma=2, c=np.median(ya))
+            #ii = np.sum(xa*(ya-np.amin(ya)))/np.sum(ya-np.amin(ya))
+            iisig = 2 #np.sqrt(np.sum((xa -ii)**2*(ya-np.amin(ya)))/np.sum(ya-np.amin(ya)))
+            resulta = gamodel.fit(ya, x=xa, center=xa[ii], amplitude=np.amax(ya), sigma=iisig, c=np.median(ya))
             # fit data
             x = np.arange(start_roi, stop_roi)
             y = data[e, start_roi:stop_roi]
             gmodel = GaussianModel() + ConstantModel()
             ii = np.argmax(y)
-            result = gmodel.fit(y, x=x, center=start_roi+ii, amplitude=y[ii], sigma=10, c=np.median(y))
+            #ii = np.sum(x*(y-np.amin(y)))/np.sum(y-np.amin(y))
+            iisig = 10 #np.sqrt(np.sum((x -ii)**2*(y-np.amin(y)))/np.sum(y-np.amin(y)))
+            result = gmodel.fit(y, x=x, center=x[ii], amplitude=np.amax(y), sigma=iisig, c=np.median(y))
             #result.plot_fit()
             #plt.show()
             # we care about the normalization coefficient, not the normalized amplitude
@@ -1060,22 +1072,24 @@ class CookieboxCalibration(SerializableMixin):
                                 self._tof_settings[tof_id][1],
                                 digitizer=self._tof_settings[tof_id][0],
                                 first_pulse_offset=self.first_pulse_offset[tof_id],
-                                single_pulse_length=self.single_pulse_length[tof_id])
+                                single_pulse_length=self.single_pulse_length[tof_id],
+                                interleaved=self.interleaved[tof_id])
             pulses = tof.pulse_data(pulse_dim='pulseIndex').unstack('pulse').transpose('trainId', 'pulseIndex', 'sample')
             coords = pulses.coords
             dims = pulses.dims
-            pulses = pulses.to_numpy()
-            pulses = -pulses[:, :, start_roi:stop_roi]
+            pulses = -pulses.to_numpy()
             n_t, n_p, _ = pulses.shape
             assert n_t == n_trains
             assert n_p == n_pulses
             pulses = np.reshape(pulses, (n_t*n_p, -1))
             # apply filter
-            filter_length = self._filter_length[tof_id]
-            if filter_length > 0:
-                filtered = apply_filter(pulses, filter_length)
+            frequencies = self._frequencies[tof_id]
+            if len(frequencies) > 0:
+                filtered = apply_filter(pulses, frequencies)
             else:
                 filtered = pulses
+
+            filtered = filtered[:, start_roi:stop_roi]
 
             # interpolate
             # o = np.apply_along_axis(lambda arr: CubicSpline(e[::-1], arr[::-1])(self.energy_axis),
@@ -1083,7 +1097,7 @@ class CookieboxCalibration(SerializableMixin):
             #                        arr=filtered)
             o = np.apply_along_axis(lambda arr: np.interp(self.energy_axis, e[::-1], arr[::-1], left=0, right=0),
                                    axis=1,
-                                   arr=filtered)
+                                   arr=pulses)
             o = np.reshape(o, (n_t, n_p, n_e))
             # subtract offset
             o = o - self.offset[tof_id][None, None, :]
