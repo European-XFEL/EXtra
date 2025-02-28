@@ -1097,7 +1097,7 @@ class CookieboxCalibration(SerializableMixin):
             #                        arr=filtered)
             o = np.apply_along_axis(lambda arr: np.interp(self.energy_axis, e[::-1], arr[::-1], left=0, right=0),
                                    axis=1,
-                                   arr=pulses)
+                                   arr=filtered)
             o = np.reshape(o, (n_t, n_p, n_e))
             # subtract offset
             o = o - self.offset[tof_id][None, None, :]
