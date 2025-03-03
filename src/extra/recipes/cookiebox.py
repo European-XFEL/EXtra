@@ -16,7 +16,6 @@ from .base import SerializableMixin
 
 from extra.components import Scan, AdqRawChannel, XrayPulses, XGM
 
-
 @dataclass
 class TofFitResult:
     """Class keeping track of fit in a single Tof."""
@@ -176,17 +175,24 @@ def apply_filter(data: np.ndarray, frequencies: List[int]) -> np.ndarray:
     Returns: Filtered data in the same shape as input.
     """
     from scipy.signal import kaiserord, filtfilt, firwin
+    #from scipy.signal import butter
     nyq_rate = 0.5
     ripple_db = 10.0
     out = data
+    order = 5
     for f in frequencies:
-        df = min(0.05*f, 0.05)
+        df = 0.1*f
+        #sif f - df < 0 or f + df > 0.5:
+        #    df = 0.1*f
         N, beta = kaiserord(ripple_db, df)
         if N % 2 == 0:
-            N += 1
-        taps = firwin(N, [f-df/2, f+df/2], window=('kaiser', beta), pass_zero='bandstop', fs=1)
-        out = filtfilt(taps, 1.0, out, axis=-1)
+            N -= 1
+        a = firwin(N, [f-df/2, f+df/2], window='hamming', pass_zero='bandstop', fs=1)
+        b = 1
+        #b, a = butter(order, [f-df/2, f+df/2], fs=1.0, btype='bandstop')
+        out = filtfilt(a, b, out, axis=-1)
     return out
+
 
 class CookieboxCalibration(SerializableMixin):
     """
@@ -1077,19 +1083,21 @@ class CookieboxCalibration(SerializableMixin):
             pulses = tof.pulse_data(pulse_dim='pulseIndex').unstack('pulse').transpose('trainId', 'pulseIndex', 'sample')
             coords = pulses.coords
             dims = pulses.dims
-            pulses = -pulses.to_numpy()
-            n_t, n_p, _ = pulses.shape
+            pulses = -pulses.to_numpy()[:,:, start_roi:stop_roi]
+            n_t, n_p, n_s = pulses.shape
             assert n_t == n_trains
             assert n_p == n_pulses
-            pulses = np.reshape(pulses, (n_t*n_p, -1))
+            pulses = np.reshape(pulses, (n_t, n_p*n_s))
             # apply filter
             frequencies = self._frequencies[tof_id]
             if len(frequencies) > 0:
-                filtered = apply_filter(pulses, frequencies)
+                filtered = np.apply_along_axis(lambda arr: apply_filter(arr, frequencies),
+                                               axis=1,
+                                               arr=pulses)
             else:
                 filtered = pulses
+            filtered = np.reshape(filtered, (n_t*n_p, n_s))
 
-            filtered = filtered[:, start_roi:stop_roi]
 
             # interpolate
             # o = np.apply_along_axis(lambda arr: CubicSpline(e[::-1], arr[::-1])(self.energy_axis),
