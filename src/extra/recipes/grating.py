@@ -104,6 +104,19 @@ class Grating2DCalibration(SerializableMixin):
         # now we can use the apply method
         logging.info("Ready to apply ...")
 
+    def _asdict(self):
+        """
+        Return serializable dict.
+        """
+        return {k: v for k, v in self.__dict__.items() if k in self._all_fields}
+
+    def _fromdict(self, all_data):
+        """
+        Rebuild object from dict.
+        """
+        for k, v in all_data.items():
+            setattr(self, k, v)
+
     def get_background_template(self):
         """Get the background template.
         """

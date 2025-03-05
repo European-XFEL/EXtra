@@ -309,10 +309,18 @@ class CookieboxCalibration(SerializableMixin):
                             "calibration_energies",
                             "_version",
                            ]
-    def _post_load(self):
+    def _asdict(self):
+        """
+        Return serializable dict.
+        """
+        return {k: v for k, v in self.__dict__.items() if k in self._all_fields}
+
+    def _fromdict(self, all_data):
         """
         Actions to do after loading from file.
         """
+        for k, v in all_data.items():
+            setattr(self, k, v)
         self._tof_settings = {int(k): (v[0].decode("utf-8"), v[1].decode("utf-8")) for k, v in self._tof_settings.items()}
         self.tof_fit_result = {k: TofFitResult(**v) for k, v in self.tof_fit_result.items()}
         self._auger_start_roi = {int(k): v for k, v in self._auger_start_roi.items()}
