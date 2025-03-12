@@ -14,7 +14,7 @@ import pandas as pd
 
 from .base import SerializableMixin
 
-from extra.components import AdqRawChannel, XrayPulses, XGM
+from extra.components import AdqRawChannel, XrayPulses, XGM, Scan
 
 from sklearn.decomposition import IncrementalPCA
 from sklearn.base import TransformerMixin, BaseEstimator
@@ -278,13 +278,84 @@ class VSLight(SerializableMixin):
     The concrete steps taken when the `obj.apply(other_run)` is called with a run to be calibrated are:
     - Use derived map on the intensity axis.
 
+    Example usage:
+    ```
+    # select relevant data
+    # this is not needed, but useful to be sure all data is correctly matched
+    ts = "SQS_RR_UTC/TSYS/TIMESERVER:outputBunchPattern"
+    pes1 = 'SQS_DIGITIZER_UTC4/ADC/1:network'
+    pes2 = 'SQS_DIGITIZER_UTC5/ADC/1:network'
+    xgm_source_ctrl = "SQS_DIAG1_XGMD/XGM/DOOCS"
+    xgm_source = "SQS_DIAG1_XGMD/XGM/DOOCS:output"
+
+    energy_source = "SA3_XTD10_MONO/MDL/PHOTON_ENERGY"
+    calib_run = open_run(proposal=900485, run=349).select([ts,
+                                                           pes1,
+                                                           pes2,
+                                                           xgm_source,
+                                                           xgm_source_ctrl,
+                                                           energy_source], require_all=True)
+    # set up AdqRawChannel object to read data from each eTOF
+    create_channel = lambda digi, ch: AdqRawChannel(calib_run,
+                                                    ch,
+                                                    digitizer=digi,
+                                                    first_pulse_offset=23300,
+                                                    single_pulse_length=400,
+                                                    interleaved=True,
+                                                    baseline=np.s_[:],
+                                                    )
+    tof_settings = {
+           0: create_channel(pes1, "1_A"),
+           1: create_channel(pes1, "1_C"),
+           2: create_channel(pes1, "2_A"),
+           3: create_channel(pes1, "2_C"),
+           4: create_channel(pes1, "3_A"),
+           5: create_channel(pes1, "3_C"),
+           6: create_channel(pes1, "4_A"),
+           7: create_channel(pes1, "4_C"),
+           8: create_channel(pes2, "1_A"),
+           9: create_channel(pes2, "1_C"),
+           10: create_channel(pes2, "2_A"),
+           11: create_channel(pes2, "2_C"),
+           12: create_channel(pes2, "3_A"),
+           13: create_channel(pes2, "3_C"),
+           14: create_channel(pes2, "4_A"),
+           15: create_channel(pes2, "4_C"),
+           }
+    # define the target energy axis to interpolate to
+    energy_axis = np.linspace(970, 1050, 160)
+    # interleaved is only needed if the eTOF control sources are not available
+    cal = VSLight(interleaved=True)
+    # calculate calibration factors
+    cal.setup(run=calib_run,
+              energy_axis=energy_axis,
+              tof_settings=deepcopy(tof_settings),
+              xgm=XGM(calib_run, xgm_source_c),
+              energy=calib_run[energy_source, "actualEnergy"]
+             )
+    cal.to_file("test_vs_p900485r349.h5")
+    # when interested in re-using it:
+    cal_read = VSLight.from_file("test_vs_p900485r349.h5")
+    # apply it
+    new_run = open_run(900485, 349)
+    cal_data = cal_read.apply(new_run)
+    # plot it
+    plt.plot(cal_data.sel(tof=4).mean('trainId').mean('pulseIndex').to_numpy())
+    ```
+
     Arguments:
       energy_width: True energy width of input monochromated data, in eV.
       xgm_threshold: Minimum threshold to ignore dark frames in
                      the calibration data (in uJ).
                      Can be 'median' to use the median over the run.
+      first_pulse_offset: The first sample in the first pulse in the eTOF trace.
+                          Not needed if `setup()` is called with `AdqRawChannel` objects.
+                          Can be `None` for automatic discovery if not in counting mode only.
+      single_pulse_offset: The single pulse offset when facing single pulse per train data.
       interleaved: Whether channels are interleaved. If `None`,
                    attempt to auto-detect, but this fails for a union of runs.
+      counting_mode: Calibration in counting mode?
+      counting_threshold: How many counts to use to discover a peak?
     """
     def __init__(self,
                  energy_width: float=1.0,
@@ -292,16 +363,21 @@ class VSLight(SerializableMixin):
                  first_pulse_offset: Optional[int]=None,
                  single_pulse_length: int=400,
                  interleaved: Optional[bool]=None,
+                 counting_mode: bool=False,
+                 counting_threshold: float=-8,
                 ):
         self.energy_width = energy_width
         self._xgm_threshold = xgm_threshold
         self._init_interleaved = interleaved
+        self._counting_mode = counting_mode
+        self._counting_threshold = counting_threshold
 
         self._init_first_pulse_offset = first_pulse_offset
         self._init_single_pulse_length = single_pulse_length
 
         # empty outputs
-        self.target = dict()
+        self.tof_data = dict()
+        self.y = dict()
         self.model = dict()
         self.pca_x = dict()
         self.pca_y = dict()
@@ -331,6 +407,10 @@ class VSLight(SerializableMixin):
                             # "pca_x",
                             # "pca_y",
                             # "model",
+                            "_counting_mode",
+                            "_counting_threshold",
+                            "tof_data",
+                            "y",
                             "_version",
                            ]
         self._all_pca_fields = ["components_",
@@ -400,7 +480,7 @@ class VSLight(SerializableMixin):
                 for i in tof_ids:
                     self.model[i] = MultiOutputGenericWithStd(ARDRegression(tol=1e-8, verbose=True), n_jobs=8)
                     self.model[i].estimators_ = list()
-                    for e in v.keys():
+                    for e in v[i].keys():
                         self.model[i].estimators_ += [ARDRegression(tol=1e-8, verbose=True)]
                         for par in self._all_model_fields:
                             setattr(self.model[i].estimators_[-1], par, v[i][e][par])
@@ -417,11 +497,12 @@ class VSLight(SerializableMixin):
               run: DataCollection,
               energy_axis: np.ndarray,
               tof_settings: Dict[int, Union[Tuple[str, str], AdqRawChannel]],
-              energy: KeyData,
               xgm: XGM,
+              energy_for_analog_mode: Optional[KeyData]=None,
+              scan_for_counting_mode: Optional[Scan]=None,
               ):
         """
-        Derive calibrations.
+        Derive calibrations and store in this object for later usage wth `apply`.
 
         Args:
           run: The calibration run.
@@ -430,10 +511,11 @@ class VSLight(SerializableMixin):
                         Each value is *either* a) a tuple containing the
                         eTOF source name and channel in the format "1_A";
                         or b) the AdqRawChannel object for that eTOF.
-          energy: KeyData providing the monochromatd energy.
+          energy_for_analog_mode: In analog mode, KeyData providing the monochromated energy.
                 For example: `calib_run["SA3_XTD10_MONO/MDL/PHOTON_ENERGY", "actualEnergy.value"]`
           xgm: The XGM object used to apply a pulse energy selection.
                For example: `XGM(run, "SQS_DIAG1_XGMD/XGM/DOOCS")`
+          scan_for_counting_mode: In counting mode, this must be provided to bin a run and average it.
         """
         # base properties
         self._run = run
@@ -441,7 +523,11 @@ class VSLight(SerializableMixin):
         self._tof_settings = tof_settings
 
         self._xgm = xgm
-        self._energy = energy
+        self._energy = energy_for_analog_mode
+        self._scan_for_counting = scan_for_counting_mode
+
+        if self._counting_mode and self._scan_for_counting is None:
+            raise ValueError("In counting mode, `scan_for_counting must be passed as a parameter.")
 
         self._first_pulse_offset = {tof_id: self._init_first_pulse_offset for tof_id in self._tof_settings.keys()}
         self._single_pulse_length = {tof_id: self._init_single_pulse_length for tof_id in self._tof_settings.keys()}
@@ -454,7 +540,7 @@ class VSLight(SerializableMixin):
         # get XGM and auxiliary data
         self.update_metadata()
 
-        # get dta
+        # get data
         self.update_data()
 
         # fit
@@ -603,6 +689,21 @@ class VSLight(SerializableMixin):
         self.update_data()
         self.update_fit()
 
+    @property
+    def counting_threshold(self) -> float:
+        return self._counting_threshold
+
+    def set_counting_threshold(self, value: float):
+        """
+        Update counting threshold.
+
+        Args:
+          value: Counting threshold.
+        """
+        self._counting_threshold = value
+        self.update_data()
+        self.update_fit()
+
     def update_metadata(self):
         """
         Read calibration XGM and metadata information.
@@ -617,7 +718,10 @@ class VSLight(SerializableMixin):
         if self._xgm_threshold == 'median':
             self._xgm_threshold = np.median(self._xgm_data.to_numpy())
         # get energies
-        self.calibration_energies = self._energy.xarray()
+        if not self._counting_mode:
+            self.calibration_energies = self._energy.xarray()
+        else:
+            self.calibration_energies = self._scan_for_counting.positions
 
     def update_tof_settings(self):
         """
@@ -625,6 +729,8 @@ class VSLight(SerializableMixin):
         create AdqRawChannel.
         """
         # find first peak offset
+        if self.first_pulse_offset is None and self._counting_mode:
+            raise ValueError("This has been set in counting mode, but the first pulse offset is unknown.")
         if self.first_pulse_offset is None:
             need_it = False
             for tof_id in self._tof_settings.keys():
@@ -662,17 +768,17 @@ class VSLight(SerializableMixin):
         """Plot data for checks.
         """
         import matplotlib.pyplot as plt
-        from matplotlib.colors import Normalize
+        from matplotlib.colors import LogNorm
         tof_ids = list(self._tof_settings.keys())
         energies = self.calibration_energies
         n_energies = len(energies)
         fig, axes = plt.subplots(nrows=4, ncols=4, clear=True, figsize=(20,20))
         for tof_id in tof_ids:
-            data = self.load_data_for(tof_id).to_numpy()
+            data = self.tof_data[tof_id]
             ax = axes.flatten()[tof_id]
             ax.imshow(-data,
                     aspect=data.shape[-1]/n_energies,
-                      norm=Normalize(vmax=np.amax(data))
+                      norm=LogNorm()
                      )
             #ax.set_yticklabels((energies.to_numpy()+0.5).astype(int))
             ax.set_title(f'TOF {tof_id}')
@@ -716,13 +822,42 @@ class VSLight(SerializableMixin):
         """
         # average data for each energy slice
         logging.info("Reading calibration data ... (this takes a while)")
-        self.select_calibration_data()
+        tof_ids = list(self._tof.keys())
+
+        tof_data = self._tof
+        xgm_data = self._xgm_data
+        xgm_threshold = self._xgm_threshold
+
+        # select XGM
+        sel_xgm = xgm_data > xgm_threshold
+        sel_xgm_data = xgm_data[sel_xgm]
+
+        # match them by train ID
+        train_ids = np.unique(xgm_data.coords["trainId"].to_numpy())
+        n_pulses = self._pulses.pulse_counts().max()
+
+        self.train_ids = train_ids
+        self.selection = sel_xgm
+        self.calibration_mean_xgm = sel_xgm_data.to_numpy()
+        if not self._counting_mode:
+            e_data = self.calibration_energies.expand_dims(dim={"pulseIndex": np.arange(n_pulses)}).transpose('trainId', 'pulseIndex')
+            e_data = e_data.sel(trainId=train_ids)
+            e_data = e_data.stack(pulse=('trainId', 'pulseIndex'))
+            e_data = e_data[sel_xgm]
+            self.calibration_energies = e_data.to_numpy()
+
+        for tof_id in self._tof_settings.keys():
+            self.tof_data[tof_id], self.y[tof_id] = self.load_data_for(tof_id)
 
     def guess_components(self, data, n_min):
         pca_threshold = 0.9
-        pca_test = IncrementalPCA(n_components=min(200, data.shape[-1]), whiten=True, batch_size=600)
+        bare_minimum = min(data.shape[0], min(200, data.shape[-1]))
+        if n_min > bare_minimum:
+            n_min = bare_minimum
+        pca_test = IncrementalPCA(n_components=bare_minimum, whiten=True, batch_size=600)
         perm = np.random.permutation(data.shape[0])
-        for i, batch_idx in enumerate(np.array_split(perm, 500)[:20]):
+        n_part = min(500, data.shape[0])
+        for i, batch_idx in enumerate(np.array_split(perm, data.shape[0]//n_part)[:20]):
             #logging.info(f"Partial fit y {i} ...")
             pca_test.partial_fit(data[batch_idx, :])
         #pca_test.fit(data)
@@ -736,8 +871,29 @@ class VSLight(SerializableMixin):
         return n_pca_y
 
     def load_data_for(self, tof_id):
-        tof_data = self._tof[tof_id].select_trains(by_id[self.train_ids]).pulse_data(pulse_dim='pulseIndex').sel(sample=np.s_[:self.single_pulse_length[tof_id]])
-        return tof_data[self.selection]
+        if self._counting_mode:
+            energy_ids = np.arange(len(self._scan_for_counting.positions))
+            tof_data = list()
+            y = list()
+            for energy_id in energy_ids:
+                energy, train_ids = self._scan_for_counting.steps[energy_id]
+                train_ids = self.train_ids[np.isin(self.train_ids, train_ids)]
+                this_tof_data = self._tof[tof_id].select_trains(by_id[train_ids]).pulse_data(pulse_dim='pulseIndex').sel(sample=np.s_[:self.single_pulse_length[tof_id]])
+                edges = self._tof[tof_id].find_edges(this_tof_data, threshold=self.counting_threshold)
+                ts = np.arange(0, this_tof_data.shape[-1])
+                hist, _ = np.histogram(edges.edge, bins=ts)
+                mu = 1.0/(self.energy_width*np.sqrt(2*np.pi))
+                this_y = mu*np.exp(-0.5*(self.energy_axis - energy)**2/((self.energy_width/2.355)**2))
+                tof_data += [-hist]
+                y += [this_y]
+            tof_data = np.stack(tof_data, axis=0)
+            y = np.stack(y, axis=0)
+        else:
+            tof_data = self._tof[tof_id].select_trains(by_id[self.train_ids]).pulse_data(pulse_dim='pulseIndex').sel(sample=np.s_[:self.single_pulse_length[tof_id]])
+            tof_data = -tof_data[self.selection].to_numpy()
+            mu = self.calibration_mean_xgm[:, None]/(self.energy_width*np.sqrt(2*np.pi))
+            y = mu*np.exp(-0.5*(self.energy_axis[None, :] - self.calibration_energies[:, None])**2/((self.energy_width/2.355)**2))
+        return tof_data, y
 
     def update_fit(self):
         """
@@ -746,8 +902,8 @@ class VSLight(SerializableMixin):
         logging.info("Fit PCA+ARD...")
         pca_threshold = 0.90
 
-        e = self.calibration_energies.to_numpy()
-        xgm_data = self.calibration_mean_xgm.to_numpy()
+        e = self.calibration_energies
+        xgm_data = self.calibration_mean_xgm
 
         # binning for energy
         e_min = e.min()
@@ -759,22 +915,18 @@ class VSLight(SerializableMixin):
 
         # how many components in y?
         for tof_id in self._tof_settings.keys():
-            tof_data = self.load_data_for(tof_id).to_numpy()
+            tof_data, y = self.tof_data[tof_id], self.y[tof_id]
             perm = np.random.permutation(tof_data.shape[0])
-
-            # target for this tof (variation in XGM)
-            logging.info(f"Define targets for eTOF {tof_id} ...")
-            mu = xgm_data[:, None]/(self.energy_width*np.sqrt(2*np.pi))
-            y = mu*np.exp(-0.5*(self.energy_axis[None, :] - e[:, None])**2/((self.energy_width/2.355)**2))
 
             logging.info(f"Transform target for eTOF {tof_id} ...")
             # how many target components?
-            n_pca_y = self.guess_components(y, min(100, y.shape[-1]))
+            n_pca_y = self.guess_components(y, 100)
             logging.info(f"Components for targets in {tof_id}: {n_pca_y}")
             # fit PCA on target
             logging.info(f"Fit PCA for y ...")
             self.pca_y[tof_id] = IncrementalPCA(n_components=n_pca_y, whiten=True, batch_size=5*n_pca_y)
-            for i, batch_idx in enumerate(np.array_split(perm, 500)[:20]):
+            n_part = min(500, y.shape[0])
+            for i, batch_idx in enumerate(np.array_split(perm, y.shape[0]//n_part)[:20]):
                 #logging.info(f"Partial fit y {i} ...")
                 self.pca_y[tof_id].partial_fit(y[batch_idx, :])
             tr_y = self.pca_y[tof_id].transform(y)
@@ -787,7 +939,8 @@ class VSLight(SerializableMixin):
             self.pca_x[tof_id] = IncrementalPCA(n_components=n_pca_x, whiten=True, batch_size=5*n_pca_x)
             self.model[tof_id] = MultiOutputGenericWithStd(ARDRegression(tol=1e-8, verbose=True), n_jobs=8)
             logging.info(f"Fit PCA for x ...")
-            for i, batch_idx in enumerate(np.array_split(perm, 500)[:20]):
+            n_part = min(500, tof_data.shape[0])
+            for i, batch_idx in enumerate(np.array_split(perm, tof_data.shape[0]//n_part)[:20]):
                 #logging.info(f"Partial fit x {i} ...")
                 self.pca_x[tof_id].partial_fit(tof_data[batch_idx, :])
             tr_x = self.pca_x[tof_id].transform(tof_data)
@@ -806,33 +959,6 @@ class VSLight(SerializableMixin):
                 self.resolution[tof_id][i] = get_resolution(y, y_hat, self.energy_axis,
                                                             e_center, e_width)
 
-
-    def select_calibration_data(self):
-        """
-        Select data for calibration.
-        """
-        tof_ids = list(self._tof.keys())
-
-        tof_data = self._tof
-        xgm_data = self._xgm_data
-        xgm_threshold = self._xgm_threshold
-
-        # select XGM
-        sel_xgm = xgm_data > xgm_threshold
-        sel_xgm_data = xgm_data[sel_xgm]
-
-        # match them by train ID
-        train_ids = np.unique(xgm_data.coords["trainId"].to_numpy())
-        n_pulses = self._pulses.pulse_counts().max()
-        e_data = self.calibration_energies.expand_dims(dim={"pulseIndex": np.arange(n_pulses)}).transpose('trainId', 'pulseIndex')
-        e_data = e_data.sel(trainId=train_ids)
-        e_data = e_data.stack(pulse=('trainId', 'pulseIndex'))
-        e_data = e_data[sel_xgm]
-
-        self.train_ids = train_ids
-        self.selection = sel_xgm
-        self.calibration_mean_xgm = sel_xgm_data
-        self.calibration_energies = e_data
 
     def find_offset(self, n_trains: int=1000, n_samples: int=2000) -> int:
         """
@@ -863,7 +989,8 @@ class VSLight(SerializableMixin):
         It is assumed it contains the same eTOF settings.
         """
 
-        tof_ids = sorted([idx for idx, tof_id in enumerate(self._tof_settings.keys()) if self.mask[tof_id]])
+        tof_idx = sorted([idx for idx, tof_id in enumerate(self._tof_settings.keys()) if self.mask[tof_id]])
+        tof_ids = sorted([tof_id for idx, tof_id in enumerate(self._tof_settings.keys()) if self.mask[tof_id]])
         n_tof = len(tof_ids)
         n_e = len(self.energy_axis)
         n_trains = len(run.train_ids)
@@ -879,10 +1006,11 @@ class VSLight(SerializableMixin):
                                 digitizer=self._tof_settings[tof_id][0],
                                 first_pulse_offset=self.first_pulse_offset[tof_id],
                                 single_pulse_length=self.single_pulse_length[tof_id],
-                                interleaved=self.interleaved[tof_id])
+                                interleaved=self.interleaved[tof_id]
+                               )
             pulses = tof.pulse_data(pulse_dim='pulseIndex').unstack('pulse')
             pulses = pulses.transpose('trainId', 'pulseIndex', 'sample')
-            pulses = pulses.sel(sample=np.s_[:self.single_pulse_length[tof_id]])
+            pulses = pulses.sel(sample=np.s_[0:self.single_pulse_length[tof_id]-1])
             coords = pulses.coords
             dims = pulses.dims
             pulses = pulses.to_numpy()
@@ -894,8 +1022,6 @@ class VSLight(SerializableMixin):
             # apply model
             pca_x = self.pca_x[tof_id].transform(pulses)
             pca_y = self.model[tof_id].predict(pca_x)
-            print(len(self.model[tof_id].estimators_))
-            print(tof_id, pca_y.shape, pca_x.shape, pulses.shape)
             o = self.pca_y[tof_id].inverse_transform(pca_y)
             o = np.reshape(o, (n_t, n_p, n_e))
             # regenerate DataArray

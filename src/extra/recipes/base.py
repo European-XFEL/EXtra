@@ -17,6 +17,10 @@ def save_dict(h5grp, obj: Dict[str, Any]):
             new_v = asdict(v)
             newgrp = h5grp.create_group(f"{k}")
             save_dict(newgrp, new_v)
+        elif isinstance(v, SerializableMixin):
+            new_v = v._asdict()
+            newgrp = h5grp.create_group(f"{k}")
+            save_dict(newgrp, new_v)
         else:
             h5grp[f"{k}"] = v
 
