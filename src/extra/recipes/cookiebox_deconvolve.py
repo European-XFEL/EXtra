@@ -1,10 +1,12 @@
-from typing import Tuple, Any
+from typing import Tuple, Optional
 from functools import partial
+from scipy.linalg import convolution_matrix
 import numpy as np
-
+import xarray as xr
 from .base import SerializableMixin
 
 from extra.components import AdqRawChannel, Scan
+from extra_data import by_id
 
 def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=1.0, n_iter: int=4000):
     '''
@@ -147,7 +149,7 @@ class TOFResponse(SerializableMixin):
       n_filter: Require no edges to be found before sample n_filter and after n_samples-n_filter.
     """
     def __init__(self, counting_threshold: int=-10,
-                 n_samples: int=1000,
+                 n_samples: int=400,
                  n_filter: int=100):
         self.counting_threshold = counting_threshold
         self.n_samples = n_samples
@@ -183,7 +185,7 @@ class TOFResponse(SerializableMixin):
 
     def setup(self,
               tof: AdqRawChannel,
-              scan: Optional[Scan]=None,
+              scan: Scan,
               ):
         """
         Given a `AdqRawChannel` object, and a `Scan` object over the corresponding MCP,
@@ -258,11 +260,23 @@ class TOFResponse(SerializableMixin):
           tol: Maximum acceptable difference in MCP voltage, in Volts.
         """
         diff = np.fabs(self.mcp_v - mcp_voltage)
-        if np.amin(diff) > tolerance:
+        if np.amin(diff) > tol:
             raise ValueError(f"No instrument response available for MCP voltage setting {mcp_voltage}. "
                              f"Only the following voltage settings are available: {self.mcp_v}")
         idx = np.argmin(diff)
         return self.h[idx]
+
+    def plot(self):
+        """
+        Plot impulse response.
+        """
+        import matplotlib.pyplot as plt
+        fig = plt.figure(figsize=(10, 8))
+        for k, mcp_v in enumerate(self.mcp_v):
+            plt.plot(self.h[k], lw=2, label=f"{mcp_v} V")
+        plt.xlabel("Samples")
+        plt.ylabel("Intensity [a.u.]")
+        plt.legend(frameon=False, ncols=2)
 
     def apply(self, tof: AdqRawChannel, mcp_voltage: float, Lambda: float=0.01) -> Tuple[xr.DataArray, xr.DataArray]:
         """
@@ -311,8 +325,8 @@ class TOFResponse(SerializableMixin):
         original = -tof.pulse_data(pulse_dim='pulseIndex')
         h = self.get_response(mcp_voltage)
         #result = tv_deconvolution(h, original, Lambda=Lambda)
-        dec = partial(tv_deconvolution, h=h, Lambda=Lambda)
-        result_trace = np.apply_along_axis(tv_deconvolution, axis=0, arr=original.data)
+        func = partial(tv_deconvolution, h=h, Lambda=Lambda)
+        result_trace = np.apply_along_axis(func, axis=1, arr=original.data)
         result = original.copy()
         result.data = result_trace
         return result, original
