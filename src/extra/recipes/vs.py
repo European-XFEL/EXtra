@@ -878,7 +878,8 @@ class VSLight(SerializableMixin):
             for energy_id in energy_ids:
                 energy, train_ids = self._scan_for_counting.steps[energy_id]
                 train_ids = self.train_ids[np.isin(self.train_ids, train_ids)]
-                this_tof_data = self._tof[tof_id].select_trains(by_id[train_ids]).pulse_data(pulse_dim='pulseIndex').sel(sample=np.s_[:self.single_pulse_length[tof_id]])
+                this_tof_data = self._tof[tof_id].select_trains(by_id[train_ids]).pulse_data(pulse_dim='pulseIndex')
+                this_tof_data = this_tof_data.isel(sample=slice(0, self.single_pulse_length[tof_id]))
                 edges = self._tof[tof_id].find_edges(this_tof_data, threshold=self.counting_threshold)
                 ts = np.arange(0, this_tof_data.shape[-1])
                 hist, _ = np.histogram(edges.edge, bins=ts)
@@ -889,7 +890,8 @@ class VSLight(SerializableMixin):
             tof_data = np.stack(tof_data, axis=0)
             y = np.stack(y, axis=0)
         else:
-            tof_data = self._tof[tof_id].select_trains(by_id[self.train_ids]).pulse_data(pulse_dim='pulseIndex').sel(sample=np.s_[:self.single_pulse_length[tof_id]])
+            tof_data = self._tof[tof_id].select_trains(by_id[self.train_ids]).pulse_data(pulse_dim='pulseIndex')
+            tof_data = tof_data.isel(sample=slice(0, self.single_pulse_length[tof_id]))
             tof_data = -tof_data[self.selection].to_numpy()
             mu = self.calibration_mean_xgm[:, None]/(self.energy_width*np.sqrt(2*np.pi))
             y = mu*np.exp(-0.5*(self.energy_axis[None, :] - self.calibration_energies[:, None])**2/((self.energy_width/2.355)**2))
