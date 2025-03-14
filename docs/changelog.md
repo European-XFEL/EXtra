@@ -17,6 +17,8 @@
 <!--     ``` -->
 
 Added:
+- [TOFResponse][extra.recipes.TOFResponse] to estimate, deconvolve and denoise the instrumental response in eTOFs (!304).
+- [VSLight][extra.recipes.VSLight] to calibrate and deconvolve eTOFs from a continuous monochromator scan (!304).
 - [CookieboxCalibration][extra.recipes.CookieboxCalibration] to calibrate data from eTOFs after taking a calibration run (!284).
 - [Grating2DCalibration][extra.recipes.Grating2DCalibration] to calibrate data from a 2D grating detector (!284).
 
