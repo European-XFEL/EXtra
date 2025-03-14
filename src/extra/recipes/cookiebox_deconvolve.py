@@ -332,6 +332,23 @@ class TOFResponse(SerializableMixin):
     h = response.get_response(mcp_voltage=3000)
     ```
 
+    This could also be coupled with the `CookieboxCalibration` object to deconvolve
+    and denoise spectra before calibration.
+
+    ```
+    # open a new run
+    run = open_run(proposal=900485, run=349)
+    # get the calibration constants
+    cal = CookieboxCalibration.from_file("my_calibration.h5")
+    # load the trace for this new run, exactly as required for calibration
+    trace = cal.load_trace(run)
+    # apply the deconvolution using this TOFResponse object
+    response = TOFResponse.from_file("tof4.h5")
+    trace.loc[dict(tof=4)] = response.apply(trace.sel(tof=4), mcp_voltage=3600)
+    # now apply the calibration:
+    spectrum = cal.calibrate(trace)
+    ```
+
     Args:
       counting_threshold: Threshold to use when identifying edges.
       n_samples: Total number of samples use for impulse response.
@@ -477,7 +494,27 @@ class TOFResponse(SerializableMixin):
         assuming the given MCP voltage and using the Lambda parameter
         as a denoising strength.
 
-        Example:
+        This could be coupled with the `CookieboxCalibration` object to deconvolve
+        and denoise spectra before calibration.
+
+        ```
+        # open a new run
+        run = open_run(proposal=900485, run=349)
+        # get the calibration constants
+        cal = CookieboxCalibration.from_file("my_calibration.h5")
+        # load the trace for this new run, exactly as required for calibration
+        trace = cal.load_trace(run)
+        # apply the deconvolution using this TOFResponse object
+        response = TOFResponse.from_file("tof4.h5")
+        trace.loc[dict(tof=4)] = response.apply(trace.sel(tof=4), mcp_voltage=3600)
+        # now apply the calibration:
+        spectrum = cal.calibrate(trace)
+        ```
+
+        If the raw trace is desired, this could be used independetly from the calibration
+        object simply to mprove the trace resolution.
+
+        Example of usage without the calibration:
         ```
         ts = "SQS_RR_UTC/TSYS/TIMESERVER:outputBunchPattern"
         digitizer = 'SQS_DIGITIZER_UTC4/ADC/1:network'
