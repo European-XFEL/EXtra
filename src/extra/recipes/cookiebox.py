@@ -1169,7 +1169,9 @@ class CookieboxCalibration(SerializableMixin):
             """
             logging.info(f"Correcting eTOF {tof_id} ...")
             # get it in the right order
-            pulses = tof_trace.transpose('trainId', 'pulseIndex', 'sample').to_numpy()
+            pulses = tof_trace.transpose('trainId', 'pulseIndex', 'sample')
+            coords = pulses.coords
+            pulses = pulses.to_numpy()
             # the sample axis to use for the calibration
             n_t, n_p, n_s = pulses.shape
             pulses = np.reshape(pulses, (n_t*n_p, n_s))
