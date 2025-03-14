@@ -213,7 +213,8 @@ def tv_deconvolution_fft(data: np.ndarray, h: np.ndarray, Lambda: float=1.0, n_i
         raise ValueError(f"Input data must either be 1D or 2D. The shape sent is {data.shape}.")
 
     N = b.shape[0]
-    assert len(h) <= N
+    if len(h) > N:
+        h = h[:N]
 
     # make them the same size
     if len(h) < N:
