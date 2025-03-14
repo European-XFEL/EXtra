@@ -1010,7 +1010,7 @@ class VSLight(SerializableMixin):
                                )
             pulses = tof.pulse_data(pulse_dim='pulseIndex').unstack('pulse')
             pulses = pulses.transpose('trainId', 'pulseIndex', 'sample')
-            pulses = pulses.sel(sample=np.s_[0:self.single_pulse_length[tof_id]-1])
+            pulses = pulses.isel(sample=slice(0, self.single_pulse_length[tof_id]))
             coords = pulses.coords
             dims = pulses.dims
             pulses = pulses.to_numpy()
