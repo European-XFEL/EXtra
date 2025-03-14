@@ -1096,13 +1096,14 @@ class CookieboxCalibration(SerializableMixin):
         plt.title(f"TOF {tof_id}")
         plt.show()
 
-    def load_trace(self, run: DataCollection) -> xr.Dataset:
+    def load_trace(self, run: DataCollection, kwargs_adq: Dict[str, Any]=dict()) -> xr.Dataset:
         """
         Only load region of interest for the same settings in a new run and output a Dataset with it.
         This is the recommended way to load data from a new run before applying the calibration.
 
         Args:
           run: The run to calibrate.
+          kwargs_adq: Keyword arguments for the `AdqRawChannel` object if one wishes to override settings.
 
         Returns: An xarray DataArray with the traces containing axes ('trainId', 'pulseIndex', 'sample', 'tof').
         """
@@ -1126,7 +1127,8 @@ class CookieboxCalibration(SerializableMixin):
                                 digitizer=self._tof_settings[tof_id][0],
                                 first_pulse_offset=self.first_pulse_offset[tof_id],
                                 single_pulse_length=self.single_pulse_length[tof_id],
-                                interleaved=self.interleaved[tof_id])
+                                interleaved=self.interleaved[tof_id],
+                                **kwargs_adq)
             pulses = tof.pulse_data(pulse_dim='pulseIndex').unstack('pulse').transpose('trainId', 'pulseIndex', 'sample')
             pulses = -pulses.isel(sample=slice(start_roi, stop_roi))
             return pulses
