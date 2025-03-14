@@ -148,6 +148,9 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
     good_ids = sorted(list(set(train_ids).intersection(set(xgm_data.coords["trainId"].to_numpy()))))
     mask = xgm_data.coords["trainId"].isin(good_ids)
     sel_xgm_data = xgm_data[mask]
+    if len(good_ids) == 0:
+        x = tof[tof_id].select_trains(np._[0:1]).pulse_data(pulse_dim='pulseIndex').to_numpy().mean(0)
+        return np.zeros_like(x), 0
     tof_data = tof[tof_id].select_trains(by_id[good_ids]).pulse_data(pulse_dim='pulseIndex')
     # select XGM
     tof_data = tof_data.loc[sel_xgm_data > xgm_threshold, :]
@@ -165,7 +168,7 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
         filtered = out_data
     return filtered, out_xgm
 
-def apply_filter(data: np.ndarray, frequencies: List[int]) -> np.ndarray:
+def apply_filter(data: np.ndarray, frequencies: List[float]) -> np.ndarray:
     """
     Apply a Kaiser filter on data along its last axis.
 
@@ -263,7 +266,7 @@ class CookieboxCalibration(SerializableMixin):
                                                     first_pulse_offset=23300,
                                                     single_pulse_length=400,
                                                     interleaved=True,
-                                                    baseline=np.s_[:],
+                                                    baseline=np.s_[:20000],
                                                     )
     tof_settings = {
            0: create_channel(pes1, "1_A"),
@@ -295,7 +298,6 @@ class CookieboxCalibration(SerializableMixin):
                     auger_start_roi=150,
                     start_roi=200,
                     stop_roi=320,
-                    interleaved=True,
     )
 
     # do calibration
@@ -343,7 +345,7 @@ class CookieboxCalibration(SerializableMixin):
                  start_roi: Optional[int]=None,
                  stop_roi: Optional[int]=None,
                  interleaved: Optional[bool]=None,
-                 frequencies: Union[float, Dict[int, float]]=0,
+                 frequencies: Union[List[float], Dict[int, List[float]]]=[],
                 ):
         self._init_auger_start_roi = auger_start_roi
         self._init_start_roi = start_roi
@@ -604,7 +606,7 @@ class CookieboxCalibration(SerializableMixin):
         self.update_calibration()
 
     @property
-    def frequencies(self) -> Dict[int, int]:
+    def frequencies(self) -> Dict[int, List[float]]:
         return self._frequencies
 
     def set_frequencies(self, value: Dict[int, List[float]]):
@@ -691,7 +693,7 @@ class CookieboxCalibration(SerializableMixin):
         create AdqRawChannel.
         """
         # find first peak offset
-        if self.first_pulse_offset is None:
+        if self._init_first_pulse_offset is None:
             need_it = False
             for tof_id in self._tof_settings.keys():
                 if not isinstance(self._tof_settings[tof_id], AdqRawChannel):
@@ -699,9 +701,9 @@ class CookieboxCalibration(SerializableMixin):
             if need_it:
                 logging.info("First pulse offset not given: guessing it from data.")
                 logging.info("(This may fail, if it does, please provide a `first_pulse_offset` instead.)")
-                self.first_pulse_offset = self.find_offset()
-                logging.info(f"Found first pulse offset at {self.first_pulse_offset}")
-                self.first_pulse_offset = {tof_id: self.first_pulse_offset for tof_id in self._tof_settings.keys()}
+                first_pulse_offset = self.find_offset()
+                logging.info(f"Found first pulse offset at {first_pulse_offset}")
+                self._first_pulse_offset = {tof_id: first_pulse_offset for tof_id in self._tof_settings.keys()}
 
         # create tof objects:
         self._tof = dict()
@@ -787,6 +789,7 @@ class CookieboxCalibration(SerializableMixin):
 
         with ProcessPoolExecutor() as p:
             itr_gen = list(itertools.product(tof_ids, energy_ids))
+            #data_gen = map(fn, itr_gen)
             data_gen = p.map(fn, itr_gen)
             # organize it all in a numpy array
             for (d, x), (tof_id, energy_id) in zip(data_gen, itr_gen):
