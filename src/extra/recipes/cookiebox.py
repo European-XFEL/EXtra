@@ -1128,7 +1128,7 @@ class CookieboxCalibration(SerializableMixin):
                                 single_pulse_length=self.single_pulse_length[tof_id],
                                 interleaved=self.interleaved[tof_id])
             pulses = tof.pulse_data(pulse_dim='pulseIndex').unstack('pulse').transpose('trainId', 'pulseIndex', 'sample')
-            pulses = -pulses.isel(sample=slice(start_roi, stop_roi-1))
+            pulses = -pulses.isel(sample=slice(start_roi, stop_roi))
             return pulses
 
         outdata = [fetch(tof_id)
@@ -1182,7 +1182,6 @@ class CookieboxCalibration(SerializableMixin):
             stop_roi = self.stop_roi[tof_id]
             ts = np.arange(start_roi, stop_roi)
             e = model(ts, *self.model_params[tof_id])
-            print(e.shape, pulses.shape)
 
             # interpolate
             # o = np.apply_along_axis(lambda arr: CubicSpline(e[::-1], arr[::-1])(self.energy_axis),
@@ -1191,6 +1190,8 @@ class CookieboxCalibration(SerializableMixin):
             o = np.apply_along_axis(lambda arr: np.interp(self.energy_axis, e[::-1], arr[::-1], left=0, right=0),
                                    axis=1,
                                    arr=pulses)
+
+            n_e = len(self.energy_axis)
             o = np.reshape(o, (n_t, n_p, n_e))
             # subtract offset
             o = o - self.offset[tof_id][None, None, :]
