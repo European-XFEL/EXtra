@@ -16,13 +16,7 @@ from .base import SerializableMixin
 
 from extra.components import AdqRawChannel, XrayPulses, XGM, Scan
 
-from sklearn.decomposition import IncrementalPCA
-from sklearn.base import TransformerMixin, BaseEstimator
-from sklearn.base import OutlierMixin
-from sklearn.pipeline import Pipeline
-from sklearn.linear_model import ARDRegression
-from sklearn.base import clone, MetaEstimatorMixin
-from joblib import Parallel, delayed
+from sklearn.base import BaseEstimator, MetaEstimatorMixin
 from scipy.signal import csd, fftconvolve, firwin, kaiserord, argrelmin
 
 def search_offset(trace: np.ndarray, sigma: float=20) -> int:
@@ -192,6 +186,7 @@ def get_resolution(y: np.ndarray, y_hat: np.ndarray, e: np.ndarray,
     return results
 
 def _fit_estimator(estimator, X: np.ndarray, y: np.ndarray, w: Optional[np.ndarray]=None):
+    from sklearn.base import clone
     estimator = clone(estimator)
     if w is None:
         estimator.fit(X, y)
@@ -199,7 +194,7 @@ def _fit_estimator(estimator, X: np.ndarray, y: np.ndarray, w: Optional[np.ndarr
         estimator.fit(X, y, w)
     return estimator
 
-def get_properties(model):   
+def get_properties(model):
     return {k: v for k, v in model.__dict__.items() if k.endswith('_')}
 
 class MultiOutputGenericWithStd(MetaEstimatorMixin, BaseEstimator):
@@ -220,6 +215,7 @@ class MultiOutputGenericWithStd(MetaEstimatorMixin, BaseEstimator):
 
         Returns: self.
         """
+        from joblib import Parallel, delayed
         if y.ndim == 1:
             raise ValueError(
                 "y must have at least two dimensions for "
@@ -245,6 +241,7 @@ class MultiOutputGenericWithStd(MetaEstimatorMixin, BaseEstimator):
             Multi-output targets predicted across multiple predictors.
             Note: Separate models are generated for each predictor.
         """
+        from joblib import Parallel, delayed
         y = Parallel(n_jobs=self.n_jobs)(
             delayed(e.predict)(X, return_std) for e in self.estimators_
         )
@@ -461,6 +458,8 @@ class VSLight(SerializableMixin):
         """
         Actions to do after loading from file.
         """
+        from sklearn.decomposition import IncrementalPCA
+        from sklearn.linear_model import ARDRegression
         tof_ids = all_data["_tof_settings"].keys()
         self.pca_x = dict()
         self.pca_y = dict()
@@ -850,6 +849,7 @@ class VSLight(SerializableMixin):
             self.tof_data[tof_id], self.y[tof_id] = self.load_data_for(tof_id)
 
     def guess_components(self, data, n_min):
+        from sklearn.decomposition import IncrementalPCA
         pca_threshold = 0.9
         bare_minimum = min(data.shape[0], min(200, data.shape[-1]))
         if n_min > bare_minimum:
@@ -901,6 +901,8 @@ class VSLight(SerializableMixin):
         """
         Fit TOF data to a Gaussian and collect results.
         """
+        from sklearn.decomposition import IncrementalPCA
+        from sklearn.linear_model import ARDRegression
         logging.info("Fit PCA+ARD...")
         pca_threshold = 0.90
 
