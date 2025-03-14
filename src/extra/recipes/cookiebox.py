@@ -126,7 +126,7 @@ def fit(peak_ids: np.ndarray, energies: np.ndarray, t0_bounds: Tuple[float, floa
         raise Exception('fit did not converge.')
 
 
-def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dict[int, AdqRawChannel], xgm_threshold: float, frequencies: Dict[int, List[float]]) -> xr.DataArray:
+def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dict[int, AdqRawChannel], xgm_threshold: float) -> xr.DataArray:
     """
     Calculate the mean of the ToF data in the given tof and energy bin in `itr`.
 
@@ -136,7 +136,6 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
       xgm_data: All the pulse energy values.
       tof: The Extra component for reading each tof.
       xgm_threshold: The minimum pulse energy to consider.
-      frequencies: The digital frequencies to filter.
 
     Returns: DataArray with mean of data in the energy bin given.
     """
@@ -160,13 +159,7 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
     out_data = -tof_data.mean(0)
     out_xgm = tof_xgm_data.mean(0)
 
-    # apply filter
-    freq = frequencies[tof_id]
-    if len(freq) > 0:
-        filtered = apply_filter(out_data, freq)
-    else:
-        filtered = out_data
-    return filtered, out_xgm
+    return out_data, out_xgm
 
 def apply_filter(data: np.ndarray, frequencies: List[float]) -> np.ndarray:
     """
@@ -334,8 +327,6 @@ class CookieboxCalibration(SerializableMixin):
       stop_roi: End of the RoI, relative to the `first_pulse_offset`. Use `None` to guess it.
       interleaved: Whether channels are interleaved. If `None`,
                    attempt to auto-detect, but this fails for a union of runs.
-      frequencies: Digital frequencies to filter out.
-                     This is useful to filter ringing.
     """
     def __init__(self,
                  xgm_threshold: Union[str, float]='median',
@@ -345,12 +336,10 @@ class CookieboxCalibration(SerializableMixin):
                  start_roi: Optional[int]=None,
                  stop_roi: Optional[int]=None,
                  interleaved: Optional[bool]=None,
-                 frequencies: Union[List[float], Dict[int, List[float]]]=[],
                 ):
         self._init_auger_start_roi = auger_start_roi
         self._init_start_roi = start_roi
         self._init_stop_roi = stop_roi
-        self._init_frequencies = frequencies
 
         self._init_first_pulse_offset = first_pulse_offset
         self._init_single_pulse_length = single_pulse_length
@@ -377,7 +366,6 @@ class CookieboxCalibration(SerializableMixin):
                             "_single_pulse_length",
                             "_interleaved",
                             "_xgm_threshold",
-                            "_frequencies",
                             "tof_fit_result",
                             "model_params",
                             "jacobian",
@@ -412,7 +400,6 @@ class CookieboxCalibration(SerializableMixin):
         self._start_roi = {int(k): v for k, v in self._start_roi.items()}
         self._stop_roi = {int(k): v for k, v in self._stop_roi.items()}
         self.mask = {int(k): v for k, v in self.mask.items()}
-        self._frequencies = {int(k): v for k, v in self._frequencies.items()}
         self._first_pulse_offset = {int(k): v for k, v in self._first_pulse_offset.items()}
         self._single_pulse_length = {int(k): v for k, v in self._single_pulse_length.items()}
         self._interleaved = {int(k): v for k, v in self._interleaved.items()}
@@ -450,9 +437,6 @@ class CookieboxCalibration(SerializableMixin):
         self._auger_start_roi = {tof_id: self._init_auger_start_roi for tof_id in self._tof_settings.keys()}
         self._start_roi = {tof_id: self._init_start_roi for tof_id in self._tof_settings.keys()}
         self._stop_roi = {tof_id: self._init_stop_roi for tof_id in self._tof_settings.keys()}
-        self._frequencies = self._init_frequencies
-        if not isinstance(self._frequencies, dict):
-            self._frequencies = {tof_id: self._frequencies for tof_id in self._tof_settings.keys()}
         self._first_pulse_offset = {tof_id: self._init_first_pulse_offset for tof_id in self._tof_settings.keys()}
         self._single_pulse_length = {tof_id: self._init_single_pulse_length for tof_id in self._tof_settings.keys()}
         self._interleaved = {tof_id: self._init_interleaved for tof_id in self._tof_settings.keys()}
@@ -601,24 +585,6 @@ class CookieboxCalibration(SerializableMixin):
         """
         self._tof_settings = value
         self.update_tof_settings()
-        self.update_roi()
-        self.update_fit_result()
-        self.update_calibration()
-
-    @property
-    def frequencies(self) -> Dict[int, List[float]]:
-        return self._frequencies
-
-    def set_frequencies(self, value: Dict[int, List[float]]):
-        """
-        Update the filter length and recompute.
-
-        Args:
-          value: The filter length.
-        """
-        self._frequencies = value
-        if not isinstance(value, dict):
-            self._frequencies = {tof_id: value for tof_id in self._tof_settings.keys()}
         self.update_roi()
         self.update_fit_result()
         self.update_calibration()
@@ -783,7 +749,6 @@ class CookieboxCalibration(SerializableMixin):
                      xgm_data=self._xgm_data,
                      tof=self._tof,
                      xgm_threshold=self._xgm_threshold,
-                     frequencies=self._frequencies
                      )
 
 
@@ -1131,43 +1096,31 @@ class CookieboxCalibration(SerializableMixin):
         plt.title(f"TOF {tof_id}")
         plt.show()
 
-    def apply(self, run: DataCollection) -> xr.Dataset:
+    def load_trace(self, run: DataCollection) -> xr.Dataset:
         """
-        Apply calibration, offset correction and transmission correction to a new analysis run.
-        It is assumed it contains the same eTOF settings.
+        Only load region of interest for the same settings in a new run and output a Dataset with it.
+        This is the recommended way to load data from a new run before applying the calibration.
 
         Args:
           run: The run to calibrate.
 
-        Returns: The xarray Dataset.
+        Returns: An xarray DataArray with the traces containing axes ('trainId', 'pulseIndex', 'sample', 'tof').
         """
 
-        tof_idx = sorted([idx for idx, tof_id in enumerate(self._tof_settings.keys()) if self.mask[tof_id]])
         tof_ids = sorted([tof_id for idx, tof_id in enumerate(self._tof_settings.keys()) if self.mask[tof_id]])
-        n_tof = len(tof_ids)
-        n_e = len(self.energy_axis)
-        n_trains = len(run.train_ids)
-        n_pulses = XrayPulses(run).pulse_counts().max()
-        norm = np.stack([v for k, v in self.normalization.items() if k in tof_ids], axis=-1)
-        norm *= self.e_transmission[:, tof_idx]
-        norm = xr.DataArray(data=norm,
-                            dims=('energy', 'tof'),
-                            coords=dict(energy=self.energy_axis,
-                                        tof=tof_ids))
-
-        def apply_correction(tof_id):
+        def fetch(tof_id):
             """
             Apply the energy calibration and transmission correction for a given eTOF.
             """
-            logging.info(f"Correcting eTOF {tof_id} ...")
+            logging.info(f"Fetch data from eTOF {tof_id} ...")
             # the sample axis to use for the calibration
             auger_start_roi = self.auger_start_roi[tof_id]
             start_roi = self.start_roi[tof_id]
             stop_roi = self.stop_roi[tof_id]
-            ts = np.arange(start_roi, stop_roi)
-            if self.model_params[tof_id][0] == 0:
-                return np.zeros((n_trains, n_pulses, n_e), dtype=np.float32)
-            e = model(ts, *self.model_params[tof_id])
+            # ts = np.arange(start_roi, stop_roi)
+            # if self.model_params[tof_id][0] == 0:
+            #     return np.zeros((n_trains, n_pulses, n_e), dtype=np.float32)
+            # e = model(ts, *self.model_params[tof_id])
             tof = AdqRawChannel(run,
                                 self._tof_settings[tof_id][1],
                                 digitizer=self._tof_settings[tof_id][0],
@@ -1175,23 +1128,51 @@ class CookieboxCalibration(SerializableMixin):
                                 single_pulse_length=self.single_pulse_length[tof_id],
                                 interleaved=self.interleaved[tof_id])
             pulses = tof.pulse_data(pulse_dim='pulseIndex').unstack('pulse').transpose('trainId', 'pulseIndex', 'sample')
-            coords = pulses.coords
-            dims = pulses.dims
-            pulses = -pulses.to_numpy()[:,:, start_roi:stop_roi]
-            n_t, n_p, n_s = pulses.shape
-            assert n_t == n_trains
-            assert n_p == n_pulses
-            pulses = np.reshape(pulses, (n_t, n_p*n_s))
-            # apply filter
-            frequencies = self._frequencies[tof_id]
-            if len(frequencies) > 0:
-                filtered = np.apply_along_axis(lambda arr: apply_filter(arr, frequencies),
-                                               axis=1,
-                                               arr=pulses)
-            else:
-                filtered = pulses
-            filtered = np.reshape(filtered, (n_t*n_p, n_s))
+            pulses = -pulses.sel(sample=slice(start_roi, stop_roi))
+            return pulses
 
+        outdata = [fetch(tof_id)
+                   for tof_id in tof_ids]
+        outdata = xr.concat(outdata, pd.Index(tof_ids, name="tof"))
+        outdata = outdata.transpose('trainId', 'pulseIndex', 'sample', 'tof')
+
+        return outdata
+
+    def calibrate(self, trace: xr.DataArray) -> xr.DataArray:
+        """
+        Takes a trace separated with axes ('trainId', 'pulseIndex', 'sample', 'tof'),
+        as given by `load_trace` and applies the calibration.
+        The method `apply` provides a direct way to retrieve the trace and calbrate it.
+        The methods `load_trace` and `calibrate` allow one to apply an intermediate processing
+        step between them.
+
+        Args:
+          trace: A pre-processed trace retrieved with the *same* `AdqRawChannel` settings as this calibration object.
+                 Its axes are expected to be ('trainId', 'pulseIndex', 'sample', 'tof').
+                 It is recommended to use always `load_trace` to obtain this.
+
+        Returns: the calibrated data as an xarray DataArray. The DataArray obs cotains the calibrated data.
+                 The axes of the output are ('trainId', 'pulseIndex', 'energy', 'tof').
+        """
+        tof_idx = sorted([idx for idx, tof_id in enumerate(self._tof_settings.keys()) if self.mask[tof_id]])
+        tof_ids = sorted([tof_id for idx, tof_id in enumerate(self._tof_settings.keys()) if self.mask[tof_id]])
+        norm = np.stack([v for k, v in self.normalization.items() if k in tof_ids], axis=-1)
+        norm *= self.e_transmission[:, tof_idx]
+        norm = xr.DataArray(data=norm,
+                            dims=('energy', 'tof'),
+                            coords=dict(energy=self.energy_axis,
+                                        tof=tof_ids))
+
+        def apply_correction(tof_id, tof_trace):
+            """
+            Apply the energy calibration and transmission correction for a given eTOF.
+            """
+            logging.info(f"Correcting eTOF {tof_id} ...")
+            # get it in the right order
+            pulses = tof_trace.transpose('trainId', 'pulseIndex', 'sample').to_numpy()
+            # the sample axis to use for the calibration
+            n_t, n_p, n_s = pulses.shape
+            pulses = np.reshape(pulses, (n_t, n_p*n_s))
 
             # interpolate
             # o = np.apply_along_axis(lambda arr: CubicSpline(e[::-1], arr[::-1])(self.energy_axis),
@@ -1199,31 +1180,43 @@ class CookieboxCalibration(SerializableMixin):
             #                        arr=filtered)
             o = np.apply_along_axis(lambda arr: np.interp(self.energy_axis, e[::-1], arr[::-1], left=0, right=0),
                                    axis=1,
-                                   arr=filtered)
+                                   arr=pulses)
             o = np.reshape(o, (n_t, n_p, n_e))
             # subtract offset
             o = o - self.offset[tof_id][None, None, :]
             # apply Jacobian
             o = o*self.jacobian[tof_id][None, None, :]
             # regenerate DataArray
-            o = xr.DataArray(data=o,
+            return xr.DataArray(data=o,
                              dims=('trainId', 'pulseIndex', 'energy'),
                              coords=dict(trainId=coords['trainId'],
                                          pulseIndex=coords['pulseIndex'],
                                          energy=self.energy_axis
                                         )
                             )
-            return o
 
-        outdata = [apply_correction(tof_id)
+        outdata = [apply_correction(tof_id, trace.sel(tof=tof_id))
                    for tof_id in tof_ids]
         outdata = xr.concat(outdata, pd.Index(tof_ids, name="tof"))
         outdata = outdata.transpose('trainId', 'pulseIndex', 'energy', 'tof')
         outdata_corr = outdata/norm.to_numpy()[None, None, :, :]
 
-        return xr.Dataset(data_vars=dict(obs=outdata_corr,
-                                         obs_notransmission=outdata,
-                                         transmission=norm
-                                         )
-                        )
+        return outdata_corr
+
+    def apply(self, run: DataCollection) -> xr.DataArray:
+        """
+        Collect trace from run *consistently* with the calibration settings and apply
+        calibration, offset correction and transmission correction to a new analysis run.
+        It is assumed it contains the same eTOF settings.
+
+        Args:
+          run: The run to calibrate.
+
+        Returns: The xarray Dataset.
+        """
+        # fetch the trace with the same settings
+        trace = self.load_trace(run)
+        # calibrate the spectrum
+        spectrum = self.calibrate(trace)
+        return spectrum
 
