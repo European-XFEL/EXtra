@@ -1156,9 +1156,15 @@ class CookieboxCalibration(SerializableMixin):
         Returns: the calibrated data as an xarray DataArray. The DataArray obs cotains the calibrated data.
                  The axes of the output are ('trainId', 'pulseIndex', 'energy', 'tof').
         """
-        tof_idx = sorted([idx for idx, tof_id in enumerate(self._tof_settings.keys()) if self.mask[tof_id]])
-        tof_ids = sorted([tof_id for idx, tof_id in enumerate(self._tof_settings.keys()) if self.mask[tof_id]])
-        norm = np.stack([v for k, v in self.normalization.items() if k in tof_ids], axis=-1)
+        tof_idx = [idx
+                   for idx, tof_id in enumerate(self._tof_settings.keys())
+                   if self.mask[tof_id] and tof_id in trace.tof]
+        tof_ids = [tof_id
+                   for idx, tof_id in enumerate(self._tof_settings.keys())
+                   if self.mask[tof_id] and tof_id in trace.tof]
+        norm = np.stack([v
+                         for k, v in self.normalization.items()
+                         if k in tof_ids], axis=-1)
         norm *= self.e_transmission[:, tof_idx]
         norm = xr.DataArray(data=norm,
                             dims=('energy', 'tof'),
