@@ -1204,7 +1204,7 @@ class CookieboxCalibration(SerializableMixin):
             n_e = len(self.energy_axis)
             o = np.reshape(o, (n_t, n_p, n_e))
             # subtract offset
-            o = o - self.offset[tof_id][None, None, :]
+            #o = o - self.offset[tof_id][None, None, :]
             # apply Jacobian
             o = o*self.jacobian[tof_id][None, None, :]
             # regenerate DataArray

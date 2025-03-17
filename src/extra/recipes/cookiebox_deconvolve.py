@@ -13,8 +13,7 @@ from extra_data import by_id
 
 
 def clip_at_zero(x):
-    #return np.clip(x, a_min=0, a_max=None)
-    return np.maximum(x, 0)
+    return np.clip(x, a_min=0, a_max=None)
 
 def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=0.01, n_iter: int=4000, n_shift: int=0):
     r'''
@@ -86,14 +85,14 @@ def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=0.01, n_iter
         hl = np.concatenate((h, np.zeros(N - len(h))))
     elif len(h) > N:
         hl = np.copy(h[:N])
-    hl = hl/np.sum(hl)
+    hl = hl/np.sum(hl**2)
 
     # roll over to match the effect of fftcovolve
     #hl = np.roll(hl, -N//2)
-    hl = np.roll(hl, -n_shift, axis=-1)
+    hl = np.roll(hl, -n_shift+len(hl)//2, axis=-1)
     # create the matrix representing the convolution
     # this is expensive, but no easy way comes to mind
-    A = convolution_matrix(hl, N, mode='same')
+    A = convolution_matrix(hl, len(hl), mode='same')
     # ensure the convergence criteria is satisfied
     # sigma * tau L^2 <= 1
     L = np.linalg.norm(A)
@@ -147,8 +146,8 @@ def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=0.01, n_iter
         #y = prox_Fs(y + sigma*(K @ x_bar))
         #y = prox_Fs(y + sigma*grad(x_bar))
         gx_tmp[1:, :] = -np.diff(x_bar, axis=0)/2
-        y = y + sigma*gx_tmp
-        y = y - (clip_at_zero(y - sigma*Lambda) - clip_at_zero(-y - sigma*Lambda))
+        y += sigma*gx_tmp
+        y -= (clip_at_zero(y - sigma*Lambda) - clip_at_zero(-y - sigma*Lambda))
 
         # Calculate norms
         if k%20 == 0:
@@ -235,11 +234,11 @@ def tv_deconvolution_fft(data: np.ndarray, h: np.ndarray, Lambda: float=1.0, n_i
         hl = np.concatenate((h, np.zeros(N - len(h))))
     elif len(h) > N:
         hl = np.copy(h[:N])
-    hl = hl/np.sum(hl)
+    hl = hl/np.sum(hl**2)
 
     # roll over to match the effect of fftcovolve
     #hl = np.roll(hl, -N//2)
-    hl = np.roll(hl, -n_shift, axis=-1)
+    hl = np.roll(hl, -n_shift+len(h)//2, axis=-1)
     # create the matrix representing the convolution
     # this is expensive, but no easy way comes to mind
     #A = convolution_matrix(hl, N, mode='same')
@@ -602,7 +601,7 @@ class TOFResponse(SerializableMixin):
             original.data /= norm
         else:
             raise ValueError("Expect `tof_trace` to be a numpy array or xarray DataArray.")
-        h = self.get_response(mcp_voltage)[self.n_filter:]
+        h = self.get_response(mcp_voltage)
         if method == "matrix":
             result_trace = tv_deconvolution(original.data, h=h, Lambda=Lambda, n_iter=n_iter, n_shift=self.n_filter)
         else:
