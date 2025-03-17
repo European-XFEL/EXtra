@@ -3,6 +3,9 @@ from warnings import warn
 
 from extra_data import SourceData
 
+from .utils import _isinstance_no_import
+
+
 class Scantool:
     """Interface for the European XFEL scantool (Karabacon).
 
@@ -61,8 +64,17 @@ class Scantool:
         self._source = run[src]
         self._active = self.source["isMoving"].ndarray().any()
         self._scan_type = values["scanEnv.scanType.value"]
-        self._acquisition_time = get_first_value(acquisition_time_keys)
         self._motors = [x.decode() for x in get_first_value(active_motors_keys) if len(x) > 0]
+
+        # The acquisition time vector gives the length of each step, unless the
+        # acquisition mode is some kind of 'continuous' in which case only the
+        # first element is used:
+        # - https://git.xfel.eu/karaboDevices/Karabacon/-/blob/bd22d4a69bf7a401856f49920789ef42fda14ad2/src/karabacon/devices/nodes.py#L264
+        # - https://git.xfel.eu/karaboDevices/Karabacon/-/blob/bd22d4a69bf7a401856f49920789ef42fda14ad2/src/karabacon/enums.py#L67
+        self._acquisition_time = get_first_value(acquisition_time_keys)
+        if _isinstance_no_import(self._acquisition_time, "numpy", "ndarray"):
+            if "Continuous" in values["deviceEnv.acquisitionMode.value"]:
+                self._acquisition_time = self._acquisition_time[0]
 
         # The deviceEnv.activeMotors property stores the motor aliases,
         # but we can try to get the actual device names from the

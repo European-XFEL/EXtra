@@ -7,14 +7,14 @@
 
 ## [Unreleased]
 
-<!-- !!! note -->
-<!--     All of the changes here are deployed to our current environment, even though -->
-<!--     a release hasn't been made for them yet. If you want to have these updates -->
-<!--     in a personal environment you'll need to install the package from git. -->
+!!! note
+    All of the changes here are deployed to our current environment, even though
+    a release hasn't been made for them yet. If you want to have these updates
+    in a personal environment you'll need to install the package from git.
 
-<!--     ```bash title="Installation command" -->
-<!--     pip install git+https://github.com/European-XFEL/EXtra.git -->
-<!--     ``` -->
+    ```bash title="Installation command"
+    pip install git+https://github.com/European-XFEL/EXtra.git
+    ```
 
 Added:
 - [CookieboxCalibration][extra.recipes.CookieboxCalibration] to calibrate data from eTOFs after taking a calibration run (!284).
@@ -22,6 +22,9 @@ Added:
 
 Fixed:
 - [AdqRawChanne][extra.components.AdqRawChannel] now properly enumerates channels starting with 1 rather than 0 as in the Karabo device.
+- Fixed reading of the
+  [Scantool.acquisition_time][extra.components.Scantool.acquisition_time]
+  property for newer Scantool versions (!303).
 
 ## [2024.2]
 Added:
