@@ -859,7 +859,7 @@ class VSLight(SerializableMixin):
 
             logging.info(f"Transform target for eTOF {tof_id} ...")
             # how many target components?
-            n_pca_y = self.guess_components(y, 100)
+            n_pca_y = self.guess_components(y, 40)
             logging.info(f"Components for targets in {tof_id}: {n_pca_y}")
             # fit PCA on target
             logging.info(f"Fit PCA for y ...")
@@ -948,7 +948,7 @@ class VSLight(SerializableMixin):
                                 interleaved=self.interleaved[tof_id]
                                )
             pulses = tof.pulse_data(pulse_dim='pulseIndex').unstack('pulse')
-            pulses = pulses.transpose('trainId', 'pulseIndex', 'sample')
+            pulses = -pulses.transpose('trainId', 'pulseIndex', 'sample')
             pulses = pulses.isel(sample=slice(0, self.single_pulse_length[tof_id]))
             coords = pulses.coords
             dims = pulses.dims

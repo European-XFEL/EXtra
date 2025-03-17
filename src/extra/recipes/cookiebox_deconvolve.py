@@ -97,8 +97,8 @@ def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=0.01, n_iter
     # sigma * tau L^2 <= 1
     L = np.linalg.norm(A)
 
-    sigma = 1.0/L
-    tau = 1.0/L
+    sigma = 1.9/L
+    tau = 0.5/L
 
     # we need the proximal operator of F and G
     # The function G(x) is as follows:
@@ -128,7 +128,7 @@ def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=0.01, n_iter
 
     # initialize the temporary variables
     y = 0*b #*(A.T @ b)
-    x = 0*b
+    x = np.copy(b)
     x_bar = 0*x
     gx_tmp = 0*x_bar
     gy_tmp = 0*y
@@ -249,8 +249,8 @@ def tv_deconvolution_fft(data: np.ndarray, h: np.ndarray, Lambda: float=1.0, n_i
     # Frobenius norm is sqrt(sum |a_{ij}|^2) = sqrt(N*sum |h|^2),
     # since every column of the convolution matrix is just h rolled over
     L = np.sqrt(np.sum(hl**2)*len(hl))
-    sigma = 1.0/L
-    tau = 1.0/L
+    sigma = 1.9/L
+    tau = 0.5/L
 
     # we need the proximal operator of F and G
     # The function G(x) is as follows:
