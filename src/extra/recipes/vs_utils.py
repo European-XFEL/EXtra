@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional, Union, Tuple
 import numpy as np
 from sklearn.base import BaseEstimator, MetaEstimatorMixin
 
