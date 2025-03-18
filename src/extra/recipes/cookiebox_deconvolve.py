@@ -324,6 +324,59 @@ def tv_deconvolution_fft(data: np.ndarray, h: np.ndarray, Lambda: float=1.0, n_i
 
     return np.transpose(x)
 
+def std_deconvolution(data: np.ndarray, h: np.ndarray, snr: float=5.0, n_shift: int=0):
+    r'''
+    Standard deconvolution.
+
+    Args:
+        h: Impulse response function of system to deconvolve as a 1D array.
+        data: Data to deconvolve with shape (n_samples) if a single shot is given or
+              (n_shots, n_samples) for multiple shots. It must have n_samples smaller or equal to len(h).
+        n_shift: At which sample does the impulse response of h start.
+    '''
+
+    # if data includes multiple shots, it will be (n_shots, n_samples)
+    # we need batch multplication with A, so we simply use data.T,
+    # which is shape (n_samples, n_shots), so:
+    # A is (n_samples, n_samples)
+    # x is (n_samples, n_shots)
+    # A @ x is (n_samples, n_shots)
+    # => the desired result would be trasposed
+    is1d = False
+    if len(data.shape) == 1:
+        is1d = True
+        b = data[:, None]
+    elif len(data.shape) == 2:
+        b = np.transpose(data)
+    else:
+        raise ValueError(f"Input data must either be 1D or 2D. The shape sent is {data.shape}.")
+
+    N = b.shape[0]
+
+    # make them the same size
+    if len(h) < N:
+        hl = np.concatenate((h, np.zeros(N - len(h))))
+    elif len(h) > N:
+        hl = np.copy(h[:N])
+    hl = hl/np.sum(hl**2)
+
+    # roll over to match the effect of fftcovolve
+    #hl = np.roll(hl, -N//2)
+    hl = np.roll(hl, -n_shift+len(h)//2, axis=-1)
+
+    snr2 = snr**2
+    H = np.fft.fft(hl)
+    H2 = np.abs(H)**2
+    W = np.conj(H)/(snr2*H2 + 1)
+
+    x = np.fft.ifft(W[:,None]*np.fft.fft(b, axis=0), axis=0)
+    x = np.abs(x)
+
+    if is1d:
+        return x[:,0]
+
+    return np.transpose(x)
+
 class TOFResponse(SerializableMixin):
     """
     Given a run with the Cookiebox in counting mode, obtain its MCP impulse response.
@@ -583,6 +636,7 @@ class TOFResponse(SerializableMixin):
           n_iter: Number of deconvoluton iterations.
           method: Set to "matrix" for matrix multplications (faster for shorter traces, ie len(trace) < 400).
                   Use "fft" for the FFT-based method. Warning: the two methods provide similar, but *not identcal* results.
+                  Use "standard" for  standard deconvolution.
 
         Returns: The deconvolved data as a DataArray.
         """
@@ -602,10 +656,14 @@ class TOFResponse(SerializableMixin):
         else:
             raise ValueError("Expect `tof_trace` to be a numpy array or xarray DataArray.")
         h = self.get_response(mcp_voltage)
-        if method == "matrix":
+        if method == "tv_matrix":
             result_trace = tv_deconvolution(original.data, h=h, Lambda=Lambda, n_iter=n_iter, n_shift=self.n_filter)
-        else:
+        elif method == "standard":
+            result_trace = std_deconvolution(original.data, h=h, n_shift=self.n_filter)
+        elif method == "tv_fft":
             result_trace = tv_deconvolution_fft(original.data, h=h, Lambda=Lambda, n_iter=n_iter, n_shift=self.n_filter)
+        else:
+            raise ValueError("Unknown method.")
         result = original
         result.data = result_trace*norm
         return result
