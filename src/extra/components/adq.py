@@ -355,7 +355,7 @@ class AdqRawChannel:
             self._correct_cm_by_train(data, out, self._cm_period,
                                       self._baseline, self._baselevel)
             for period in self._extra_cm_period:
-                self._correct_cm_by_train(data, out, period,
+                self._correct_cm_by_train(np.copy(out), out, period,
                                           self._baseline, self._baselevel)
 
         elif self._baselevel is not None:
