@@ -278,32 +278,20 @@ class VSLight(SerializableMixin):
       xgm_threshold: Minimum threshold to ignore dark frames in
                      the calibration data (in uJ).
                      Can be 'median' to use the median over the run.
-      first_pulse_offset: The first sample in the first pulse in the eTOF trace.
-                          Not needed if `setup()` is called with `AdqRawChannel` objects.
-                          Can be `None` for automatic discovery if not in counting mode only.
-      single_pulse_offset: The single pulse offset when facing single pulse per train data.
-      interleaved: Whether channels are interleaved. If `None`,
-                   attempt to auto-detect, but this fails for a union of runs.
       counting_mode: Calibration in counting mode?
       counting_threshold: How many counts to use to discover a peak?
     """
     def __init__(self,
                  energy_width: float=1.0,
                  xgm_threshold: Union[str, float]='median',
-                 first_pulse_offset: Optional[int]=None,
-                 single_pulse_length: int=400,
-                 interleaved: Optional[bool]=None,
                  counting_mode: bool=False,
                  counting_threshold: float=-8,
                 ):
         self.energy_width = energy_width
         self._xgm_threshold = xgm_threshold
-        self._init_interleaved = interleaved
         self._counting_mode = counting_mode
         self._counting_threshold = counting_threshold
 
-        self._init_first_pulse_offset = first_pulse_offset
-        self._init_single_pulse_length = single_pulse_length
 
         # empty outputs
         self.tof_data = dict()
@@ -315,13 +303,16 @@ class VSLight(SerializableMixin):
 
         # what we need to save it all
         self._version = 1
+        self.all_kwargs_adq = ["first_pulse_offset",
+                               "cm_period",
+                               "interleaved",
+                               "single_pulse_length",
+                               "extra_cm_period",
+                               ]
         self._all_fields = [
                             "energy_width",
                             "_energy_axis",
-                            "_tof_settings",
-                            "_first_pulse_offset",
-                            "_single_pulse_length",
-                            "_interleaved",
+                            "kwargs_adq",
                             "_xgm_threshold",
                             "model_params",
                             "calibration_data",
@@ -394,7 +385,7 @@ class VSLight(SerializableMixin):
         from sklearn.decomposition import IncrementalPCA
         from sklearn.linear_model import ARDRegression
         from .vs_utils import MultiOutputGenericWithStd
-        tof_ids = all_data["_tof_settings"].keys()
+        tof_ids = all_data["kwargs_adq"].keys()
         self.pca_x = dict()
         self.pca_y = dict()
         self.model = dict()
@@ -420,16 +411,16 @@ class VSLight(SerializableMixin):
             else:
                 setattr(self, k, v)
         # fix some dicts
-        self._tof_settings = {int(k): (v[0].decode("utf-8"), v[1].decode("utf-8")) for k, v in self._tof_settings.items()}
         self.mask = {int(k): v for k, v in self.mask.items()}
-        self._first_pulse_offset = {int(k): v for k, v in self._first_pulse_offset.items()}
-        self._single_pulse_length = {int(k): v for k, v in self._single_pulse_length.items()}
-        self._interleaved = {int(k): v for k, v in self._interleaved.items()}
+        self.kwargs_adq = {int(k): v for k, v in self.kwargs_adq.items()}
+        # for tof_id in self._kwargs_adq.keys():
+        #     self.kwargs_adq[tof_id]["source"] = self.kwargs_adq[tof_id]["source"].decode("utf-8")
+        #     self.kwargs_adq[tof_id]["name"] = self.kwargs_adq[tof_id]["name"].decode("utf-8")
 
     def setup(self,
               run: DataCollection,
               energy_axis: np.ndarray,
-              tof_settings: Dict[int, Union[Tuple[str, str], AdqRawChannel]],
+              tof_settings: Dict[int, AdqRawChannel],
               xgm: XGM,
               energy_for_analog_mode: Optional[KeyData]=None,
               scan_for_counting_mode: Optional[Scan]=None,
@@ -441,9 +432,7 @@ class VSLight(SerializableMixin):
           run: The calibration run.
           energy_axis: Energy axis in eV to interpolate eTOF to.
           tof_settings: Dictionary with a TOF label as a key (0,1,2, ...).
-                        Each value is *either* a) a tuple containing the
-                        eTOF source name and channel in the format "1_A";
-                        or b) the AdqRawChannel object for that eTOF.
+                        Each value is the `AdqRawChannel` object for that eTOF.
           energy_for_analog_mode: In analog mode, KeyData providing the monochromated energy.
                 For example: `calib_run["SA3_XTD10_MONO/MDL/PHOTON_ENERGY", "actualEnergy.value"]`
           xgm: The XGM object used to apply a pulse energy selection.
@@ -461,10 +450,6 @@ class VSLight(SerializableMixin):
 
         if self._counting_mode and self._scan_for_counting is None:
             raise ValueError("In counting mode, `scan_for_counting must be passed as a parameter.")
-
-        self._first_pulse_offset = {tof_id: self._init_first_pulse_offset for tof_id in self._tof_settings.keys()}
-        self._single_pulse_length = {tof_id: self._init_single_pulse_length for tof_id in self._tof_settings.keys()}
-        self._interleaved = {tof_id: self._init_interleaved for tof_id in self._tof_settings.keys()}
 
         # now do the full analysis, step by step
         # update eTOF data reading objects
@@ -486,77 +471,6 @@ class VSLight(SerializableMixin):
     # some of the input properties and rerun only the necessary steps
     # for recalibration
     #
-    @property
-    def run(self) -> DataCollection:
-        return self._run
-
-    def set_run(self, value: DataCollection):
-        """
-        Update the run object and recompute.
-
-        Args:
-          value: The new run.
-        """
-        self._run = value
-        self.update_tof_settings()
-        self.update_metadata()
-        self.update_data()
-        self.update_fit()
-
-    @property
-    def first_pulse_offset(self) -> int:
-        return self._first_pulse_offset
-
-    def set_first_pulse_offset(self, value: int):
-        """
-        Update the first pulse offset and recompute.
-
-        Args:
-          value: New first pulse offset value.
-        """
-        self._first_pulse_offset = value
-        if not isinstance(value, dict):
-            self._first_pulse_offset = {tof_id: value for tof_id in self._tof_settings.keys()}
-        self.update_tof_settings()
-        self.update_data()
-        self.update_fit()
-
-    @property
-    def single_pulse_length(self) -> int:
-        return self._single_pulse_length
-
-    def set_single_pulse_length(self, value: int):
-        """
-        Update the single pulse length and recompute.
-
-        Args:
-          value: New single pulse length.
-        """
-        self._single_pulse_length = value
-        if not isinstance(value, dict):
-            self._single_pulse_length = {tof_id: value for tof_id in self._tof_settings.keys()}
-        self.update_tof_settings()
-        self.update_data()
-        self.update_fit()
-
-    @property
-    def interleaved(self) -> bool:
-        return self._interleaved
-
-    def set_interleaved(self, value: bool):
-        """
-        Update interleaved mode and recompute.
-
-        Args:
-          value: New value for the interleaved mode.
-        """
-        self._interleaved = value
-        if not isinstance(value, dict):
-            self._interleaved = {tof_id: self._interleaved for tof_id in self._tof_settings.keys()}
-        self.update_tof_settings()
-        self.update_data()
-        self.update_fit()
-
     @property
     def energy_axis(self) -> np.ndarray:
         return self._energy_axis
@@ -589,11 +503,7 @@ class VSLight(SerializableMixin):
         self.update_data()
         self.update_fit()
 
-    @property
-    def tof_settings(self) -> Dict[int, Union[Tuple[str, str], AdqRawChannel]]:
-        return self._tof_settings
-
-    def set_tof_settings(self, value: Dict[int, Union[Tuple[str, str], AdqRawChannel]]):
+    def set_tof_settings(self, value: Dict[int, AdqRawChannel]):
         """
         Update the eTOF settings and recompute.
 
@@ -602,23 +512,6 @@ class VSLight(SerializableMixin):
         """
         self._tof_settings = value
         self.update_tof_settings()
-        self.update_data()
-        self.update_fit()
-
-    @property
-    def frequencies(self) -> Dict[int, int]:
-        return self._frequencies
-
-    def set_frequencies(self, value: Dict[int, List[float]]):
-        """
-        Update the filter length and recompute.
-
-        Args:
-          value: The filter length.
-        """
-        self._frequencies = value
-        if not isinstance(value, dict):
-            self._frequencies = {tof_id: value for tof_id in self._tof_settings.keys()}
         self.update_data()
         self.update_fit()
 
@@ -661,48 +554,28 @@ class VSLight(SerializableMixin):
         Update position of the first pulse offset if needed and
         create AdqRawChannel.
         """
-        # find first peak offset
-        if self.first_pulse_offset is None and self._counting_mode:
-            raise ValueError("This has been set in counting mode, but the first pulse offset is unknown.")
-        if self.first_pulse_offset is None:
-            need_it = False
-            for tof_id in self._tof_settings.keys():
-                if not isinstance(self._tof_settings[tof_id], AdqRawChannel):
-                    need_it = True
-            if need_it:
-                logging.info("First pulse offset not given: guessing it from data.")
-                logging.info("(This may fail, if it does, please provide a `first_pulse_offset` instead.)")
-                self.first_pulse_offset = self.find_offset()
-                logging.info(f"Found first pulse offset at {self.first_pulse_offset}")
-                self.first_pulse_offset = {tof_id: self.first_pulse_offset for tof_id in self._tof_settings.keys()}
-
         # create tof objects:
         self._tof = dict()
+        self.kwargs_adq = dict()
         for tof_id in self._tof_settings.keys():
-            if not isinstance(self._tof_settings[tof_id], AdqRawChannel):
-                digitizer, channel = self._tof_settings[tof_id]
-                self._tof[tof_id] = AdqRawChannel(self._run,
-                                                  channel,
-                                                  digitizer=digitizer,
-                                                  first_pulse_offset=self.first_pulse_offset[tof_id],
-                                                  single_pulse_length=self.single_pulse_length[tof_id],
-                                                  interleaved=self.interleaved[tof_id],
-                                                  )
-            else: # it is an AdqRawChannel, so copy its properties, so we can use it in apply
-                self._tof[tof_id] = self._tof_settings[tof_id]
-                self._tof_settings[tof_id] = (self._tof[tof_id].instrument_source.source, self._tof[tof_id].name)
-                self._first_pulse_offset[tof_id] = self._tof[tof_id].first_pulse_offset
-                self._single_pulse_length[tof_id] = self._tof[tof_id].single_pulse_length
-                self._interleaved[tof_id] = self._tof[tof_id].interleaved
-
-        self.mask = {tof_id: True for tof_id in self._tof_settings.keys()}
+            self.kwargs_adq[tof_id] = dict()
+            self._tof[tof_id] = self._tof_settings[tof_id]
+            for k in self.all_kwargs_adq:
+                if hasattr(self._tof[tof_id], f"_{k}"):
+                    key = f"_{k}"
+                else:
+                    key = f"{k}"
+                self.kwargs_adq[tof_id][k] = getattr(self._tof[tof_id], key)
+            self.kwargs_adq[tof_id]["source"] = self._tof[tof_id].instrument_source.source
+            self.kwargs_adq[tof_id]["name"] = self._tof[tof_id].name
+        self.mask = {tof_id: True for tof_id in self.kwargs_adq.keys()}
 
     def plot_calibration_data(self):
         """Plot data for checks.
         """
         import matplotlib.pyplot as plt
         from matplotlib.colors import LogNorm
-        tof_ids = list(self._tof_settings.keys())
+        tof_ids = list(self.kwargs_adq.keys())
         energies = self.calibration_energies
         n_energies = len(energies)
         fig, axes = plt.subplots(nrows=4, ncols=4, clear=True, figsize=(20,20))
@@ -779,16 +652,16 @@ class VSLight(SerializableMixin):
             e_data = e_data[sel_xgm]
             self.calibration_energies = e_data.to_numpy()
 
-        for tof_id in self._tof_settings.keys():
+        for tof_id in self.kwargs_adq.keys():
             self.tof_data[tof_id], self.y[tof_id] = self.load_data_for(tof_id)
 
     def guess_components(self, data, n_min):
-        from sklearn.decomposition import IncrementalPCA
+        from .vs_utils import TruncatedIncrementalPCA
         pca_threshold = 0.9
         bare_minimum = min(data.shape[0], min(200, data.shape[-1]))
         if n_min > bare_minimum:
             n_min = bare_minimum
-        pca_test = IncrementalPCA(n_components=bare_minimum, whiten=True, batch_size=600)
+        pca_test = TruncatedIncrementalPCA(n_components=bare_minimum, whiten=True, batch_size=600)
         perm = np.random.permutation(data.shape[0])
         n_part = min(500, data.shape[0])
         for i, batch_idx in enumerate(np.array_split(perm, data.shape[0]//n_part)[:20]):
@@ -813,7 +686,7 @@ class VSLight(SerializableMixin):
                 energy, train_ids = self._scan_for_counting.steps[energy_id]
                 train_ids = self.train_ids[np.isin(self.train_ids, train_ids)]
                 this_tof_data = self._tof[tof_id].select_trains(by_id[train_ids]).pulse_data(pulse_dim='pulseIndex')
-                this_tof_data = this_tof_data.isel(sample=slice(0, self.single_pulse_length[tof_id]))
+                this_tof_data = this_tof_data.isel(sample=slice(0, self.kwargs_adq[tof_id]["single_pulse_length"]))
                 edges = self._tof[tof_id].find_edges(this_tof_data, threshold=self.counting_threshold)
                 ts = np.arange(0, this_tof_data.shape[-1])
                 hist, _ = np.histogram(edges.edge, bins=ts)
@@ -825,7 +698,7 @@ class VSLight(SerializableMixin):
             y = np.stack(y, axis=0)
         else:
             tof_data = self._tof[tof_id].select_trains(by_id[self.train_ids]).pulse_data(pulse_dim='pulseIndex')
-            tof_data = tof_data.isel(sample=slice(0, self.single_pulse_length[tof_id]))
+            tof_data = tof_data.isel(sample=slice(0, self.kwargs_adq[tof_id]["single_pulse_length"]))
             tof_data = -tof_data[self.selection].to_numpy()
             mu = self.calibration_mean_xgm[:, None]/(self.energy_width*np.sqrt(2*np.pi))
             y = mu*np.exp(-0.5*(self.energy_axis[None, :] - self.calibration_energies[:, None])**2/((self.energy_width/2.355)**2))
@@ -835,7 +708,7 @@ class VSLight(SerializableMixin):
         """
         Fit TOF data to a Gaussian and collect results.
         """
-        from sklearn.decomposition import IncrementalPCA
+        from .vs_utils import TruncatedIncrementalPCA
         from sklearn.linear_model import ARDRegression
         from .vs_utils import MultiOutputGenericWithStd
         logging.info("Fit PCA+ARD...")
@@ -853,7 +726,7 @@ class VSLight(SerializableMixin):
         self.e_probe = e_probe
 
         # how many components in y?
-        for tof_id in self._tof_settings.keys():
+        for tof_id in self.kwargs_adq.keys():
             tof_data, y = self.tof_data[tof_id], self.y[tof_id]
             perm = np.random.permutation(tof_data.shape[0])
 
@@ -863,7 +736,7 @@ class VSLight(SerializableMixin):
             logging.info(f"Components for targets in {tof_id}: {n_pca_y}")
             # fit PCA on target
             logging.info(f"Fit PCA for y ...")
-            self.pca_y[tof_id] = IncrementalPCA(n_components=n_pca_y, whiten=True, batch_size=5*n_pca_y)
+            self.pca_y[tof_id] = TruncatedIncrementalPCA(n_components=n_pca_y, whiten=True, batch_size=5*n_pca_y)
             n_part = min(500, y.shape[0])
             for i, batch_idx in enumerate(np.array_split(perm, y.shape[0]//n_part)[:20]):
                 #logging.info(f"Partial fit y {i} ...")
@@ -875,7 +748,7 @@ class VSLight(SerializableMixin):
             n_pca_x = self.guess_components(tof_data, 100)
             logging.info(f"Components for sources in {tof_id}: {n_pca_x}")
             # pipeline for source
-            self.pca_x[tof_id] = IncrementalPCA(n_components=n_pca_x, whiten=True, batch_size=5*n_pca_x)
+            self.pca_x[tof_id] = TruncatedIncrementalPCA(n_components=n_pca_x, whiten=True, batch_size=5*n_pca_x)
             self.model[tof_id] = MultiOutputGenericWithStd(ARDRegression(tol=1e-8, verbose=True), n_jobs=8)
             logging.info(f"Fit PCA for x ...")
             n_part = min(500, tof_data.shape[0])
@@ -898,65 +771,76 @@ class VSLight(SerializableMixin):
                 self.resolution[tof_id][i] = get_resolution(y, y_hat, self.energy_axis,
                                                             e_center, e_width)
 
-
-    def find_offset(self, n_trains: int=1000, n_samples: int=2000) -> int:
+    def load_trace(self, run: DataCollection, **extra_kwargs_adq: Dict[str, Any]) -> xr.DataArray:
         """
-        Find global offset.
+        Only load region of interest for the same settings in a new run and output a Dataset with it.
+        This is the recommended way to load data from a new run before applying the calibration.
 
         Args:
-          n_trains: Number of trains to use for speed.
-          n_samples: Number of samples to use for samples.
+          run: The run to calibrate.
+          extra_kwargs_adq: Extra keyword arguments for the `AdqRawChannel` object if one wishes to override settings.
 
-        Returns: the offset.
-        """
-        tof = {tof_id: AdqRawChannel(self._run,
-                                      channel,
-                                      digitizer=digitizer,
-                                      first_pulse_offset=0,
-                                      interleaved=self.interleaved,
-                                      )
-                     for tof_id, (digitizer, channel) in self._tof_settings.items()}
-        all_trace = xr.concat([v.select_trains(np.s_[:n_trains]).train_data(roi=np.s_[:n_samples]) for v in tof.values()],
-                              pd.Index(list(tof.keys()), name="tof"))
-        data = -all_trace.mean(["tof", "trainId"])
-        peaks = search_offset(data)
-        return max(peaks, 0)
-
-    def apply(self, run: DataCollection) -> xr.Dataset:
-        """
-        Apply calibration, offset correction and transmission correction to a new analysis run.
-        It is assumed it contains the same eTOF settings.
+        Returns: An xarray DataArray with the traces containing axes ('trainId', 'pulseIndex', 'sample', 'tof').
         """
 
-        tof_idx = sorted([idx for idx, tof_id in enumerate(self._tof_settings.keys()) if self.mask[tof_id]])
-        tof_ids = sorted([tof_id for idx, tof_id in enumerate(self._tof_settings.keys()) if self.mask[tof_id]])
-        n_tof = len(tof_ids)
-        n_e = len(self.energy_axis)
-        n_trains = len(run.train_ids)
-        n_pulses = XrayPulses(run).pulse_counts().max()
+        tof_ids = sorted([tof_id for idx, tof_id in enumerate(self.kwargs_adq.keys()) if self.mask[tof_id]])
+        def fetch(tof_id):
+            """
+            Apply the energy calibration and transmission correction for a given eTOF.
+            """
+            logging.info(f"Fetch data from eTOF {tof_id} ...")
+            kwargs = {k: v for k, v in self.kwargs_adq[tof_id].items()}
+            del kwargs["name"]
+            del kwargs["source"]
+            kwargs.update(extra_kwargs_adq)
+            tof = AdqRawChannel(run,
+                                self.kwargs_adq[tof_id]["name"],
+                                digitizer=self.kwargs_adq[tof_id]["source"],
+                                **kwargs)
+            pulses = -tof.pulse_data(pulse_dim='pulseIndex').unstack('pulse').transpose('trainId', 'pulseIndex', 'sample')
+            return pulses
 
-        def apply_correction(tof_id):
+        outdata = [fetch(tof_id)
+                   for tof_id in tof_ids]
+        outdata = xr.concat(outdata, pd.Index(tof_ids, name="tof"))
+        outdata = outdata.transpose('trainId', 'pulseIndex', 'sample', 'tof')
+        return outdata
+
+    def calibrate(self, trace: xr.DataArray) -> xr.DataArray:
+        """
+        Takes a trace separated with axes ('trainId', 'pulseIndex', 'sample', 'tof'),
+        as given by `load_trace` and applies the calibration.
+        The method `apply` provides a direct way to retrieve the trace and calbrate it.
+        The methods `load_trace` and `calibrate` allow one to apply an intermediate processing
+        step between them.
+
+        Args:
+          trace: A pre-processed trace retrieved with the *same* `AdqRawChannel` settings as this calibration object.
+                 Its axes are expected to be ('trainId', 'pulseIndex', 'sample', 'tof').
+                 It is recommended to use always `load_trace` to obtain this.
+
+        Returns: the calibrated data as an xarray DataArray. The DataArray obs cotains the calibrated data.
+                 The axes of the output are ('trainId', 'pulseIndex', 'energy', 'tof').
+        """
+        tof_idx = [idx
+                   for idx, tof_id in enumerate(self.kwargs_adq.keys())
+                   if self.mask[tof_id] and tof_id in trace.tof]
+        tof_ids = [tof_id
+                   for idx, tof_id in enumerate(self.kwargs_adq.keys())
+                   if self.mask[tof_id] and tof_id in trace.tof]
+
+        def apply_correction(tof_id, tof_trace):
             """
             Apply the energy calibration and transmission correction for a given eTOF.
             """
             logging.info(f"Correcting eTOF {tof_id} ...")
-            tof = AdqRawChannel(run,
-                                self._tof_settings[tof_id][1],
-                                digitizer=self._tof_settings[tof_id][0],
-                                first_pulse_offset=self.first_pulse_offset[tof_id],
-                                single_pulse_length=self.single_pulse_length[tof_id],
-                                interleaved=self.interleaved[tof_id]
-                               )
-            pulses = tof.pulse_data(pulse_dim='pulseIndex').unstack('pulse')
-            pulses = -pulses.transpose('trainId', 'pulseIndex', 'sample')
-            pulses = pulses.isel(sample=slice(0, self.single_pulse_length[tof_id]))
+            # get it in the right order
+            pulses = tof_trace.transpose('trainId', 'pulseIndex', 'sample')
             coords = pulses.coords
-            dims = pulses.dims
             pulses = pulses.to_numpy()
-            n_t, n_p, _ = pulses.shape
-            assert n_t == n_trains
-            assert n_p == n_pulses
-            pulses = np.reshape(pulses, (n_t*n_p, -1))
+            # the sample axis to use for the calibration
+            n_t, n_p, n_s = pulses.shape
+            pulses = np.reshape(pulses, (n_t*n_p, n_s))
 
             # apply model
             pca_x = self.pca_x[tof_id].transform(pulses)
@@ -971,14 +855,28 @@ class VSLight(SerializableMixin):
                                          energy=self.energy_axis
                                         )
                             )
-            #print(o.shape)
-            return o
 
-        outdata = [apply_correction(tof_id)
+        outdata = [apply_correction(tof_id, trace.sel(tof=tof_id))
                    for tof_id in tof_ids]
         outdata = xr.concat(outdata, pd.Index(tof_ids, name="tof"))
         outdata = outdata.transpose('trainId', 'pulseIndex', 'energy', 'tof')
+        outdata_corr = outdata/norm.to_numpy()[None, None, :, :]
 
-        return xr.Dataset(data_vars=dict(obs=outdata,
-                                         )
-                        )
+        return outdata_corr
+
+    def apply(self, run: DataCollection) -> xr.DataArray:
+        """
+        Collect trace from run *consistently* with the calibration settings and apply
+        calibration, offset correction and transmission correction to a new analysis run.
+        It is assumed it contains the same eTOF settings.
+
+        Args:
+          run: The run to calibrate.
+
+        Returns: The xarray Dataset.
+        """
+        # fetch the trace with the same settings
+        trace = self.load_trace(run)
+        # calibrate the spectrum
+        spectrum = self.calibrate(trace)
+        return spectrum
