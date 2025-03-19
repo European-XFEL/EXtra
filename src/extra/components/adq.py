@@ -240,12 +240,15 @@ class AdqRawChannel:
         # going to be float64 and not castable via `safe`.
         baseline = baseline.astype(out.dtype, copy=False)
 
-        for offset in range(period):
-            sel = np.s_[offset::period]
-            np.subtract(
-                signal[..., sel],
-                baseline[..., sel].mean(axis=signal.ndim - 1)[..., None],
-                out=out[..., sel], casting='safe')
+        if isinstance(period, int):
+            period = [period]
+        for p in period:
+            for offset in range(p):
+                sel = np.s_[offset::p]
+                np.subtract(
+                    signal[..., sel],
+                    baseline[..., sel].mean(axis=signal.ndim - 1)[..., None],
+                    out=out[..., sel], casting='safe')
 
     @staticmethod
     def _correct_cm_by_mean(signal, out, period, baseline, baselevel=None):
@@ -352,11 +355,8 @@ class AdqRawChannel:
 
         if self._cm_period > 0:
             # Apply common mode corrections (includes baselevel).
-            self._correct_cm_by_train(data, out, self._cm_period,
+            self._correct_cm_by_train(data, out, [self._cm_period] + self._extra_cm_period,
                                       self._baseline, self._baselevel)
-            for period in self._extra_cm_period:
-                self._correct_cm_by_train(np.copy(out), out, period,
-                                          self._baseline, self._baselevel)
 
         elif self._baselevel is not None:
             self._pull_to_baselevel(data, out, self._baseline, self._baselevel)
