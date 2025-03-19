@@ -1,4 +1,4 @@
-from typing import Tuple, Union, Optional
+from typing import Tuple, Union, Optional, List
 from functools import partial
 from scipy.linalg import convolution_matrix
 from scipy.signal import fftconvolve
@@ -127,9 +127,21 @@ def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=0.01, n_iter
     grad = lambda v: np.concatenate([np.zeros((1, v.shape[-1])), -np.diff(v, axis=0)/2.0], axis=0)
 
     # initialize the temporary variables
+    #x = np.copy(b)
+    # use standard deconvolution to initialize x
+    snr2 = 25
+    hl2 = np.roll(hl, -len(hl)//2, axis=-1)
+    H = np.fft.fft(hl2)
+    H2 = np.abs(H)**2
+    W = snr2*np.conj(H)/(snr2*H2 + 1)
+    x = np.fft.ifft(W[:,None]*np.fft.fft(b, axis=0), axis=0)
+    x = np.abs(x)
+
+    x_bar = np.copy(x)
+
+    # the dual variable
     y = 0*b #*(A.T @ b)
-    x = np.copy(b)
-    x_bar = 0*x
+
     gx_tmp = 0*x_bar
     gy_tmp = 0*y
     for k in range(0, n_iter):
@@ -154,7 +166,7 @@ def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=0.01, n_iter
             fidelity = np.mean(0.5*np.sqrt(np.mean((A @ x - b)**2, axis=0)), axis=-1)
             tv = np.mean(np.sum(np.abs(grad(x)), axis=0), axis=-1)
             energy = 1.0*fidelity + Lambda*tv
-            print("[%4d] : energy %e \t fidelity %e \t TV %e" %(k,energy,fidelity,tv))
+            logging.info("[%4d] : energy %e \t fidelity %e \t TV %e" %(k,energy,fidelity,tv))
     if is1d:
         return x[:,0]
 
@@ -238,7 +250,7 @@ def tv_deconvolution_fft(data: np.ndarray, h: np.ndarray, Lambda: float=1.0, n_i
 
     # roll over to match the effect of fftcovolve
     #hl = np.roll(hl, -N//2)
-    hl = np.roll(hl, -n_shift+len(h)//2, axis=-1)
+    hl = np.roll(hl, -n_shift+len(hl)//2, axis=-1)
     # create the matrix representing the convolution
     # this is expensive, but no easy way comes to mind
     #A = convolution_matrix(hl, N, mode='same')
@@ -318,7 +330,7 @@ def tv_deconvolution_fft(data: np.ndarray, h: np.ndarray, Lambda: float=1.0, n_i
             fidelity = np.mean(0.5*np.sqrt(np.mean((fftconvolve(hl[:, None], x, axes=0, mode='same') - b)**2, axis=0)), axis=-1)
             tv = np.mean(np.sum(np.abs(grad(x)), axis=0), axis=-1)
             energy = 1.0*fidelity + Lambda*tv
-            print("[%4d] : energy %e \t fidelity %e \t TV %e" %(k,energy,fidelity,tv))
+            logging.info("[%4d] : energy %e \t fidelity %e \t TV %e" %(k,energy,fidelity,tv))
     if is1d:
         return x[:,0]
 
@@ -362,12 +374,12 @@ def std_deconvolution(data: np.ndarray, h: np.ndarray, snr: float=5.0, n_shift: 
 
     # roll over to match the effect of fftcovolve
     #hl = np.roll(hl, -N//2)
-    hl = np.roll(hl, -n_shift+len(h)//2, axis=-1)
+    hl = np.roll(hl, -n_shift, axis=-1)
 
     snr2 = snr**2
     H = np.fft.fft(hl)
     H2 = np.abs(H)**2
-    W = np.conj(H)/(snr2*H2 + 1)
+    W = snr2*np.conj(H)/(snr2*H2 + 1)
 
     x = np.fft.ifft(W[:,None]*np.fft.fft(b, axis=0), axis=0)
     x = np.abs(x)
@@ -376,6 +388,14 @@ def std_deconvolution(data: np.ndarray, h: np.ndarray, snr: float=5.0, n_shift: 
         return x[:,0]
 
     return np.transpose(x)
+
+def comb(period: List[int], amplitude: List[float]):
+    c = list()
+    for T, A in zip(period, amplitude):
+        delta = np.array([1.0]+[0.0]*(T-1))
+        c += [A*delta]
+    c = np.concatenate(c)
+    return np.concatenate((np.zeros_like(c), c))
 
 class TOFResponse(SerializableMixin):
     """
@@ -537,20 +557,25 @@ class TOFResponse(SerializableMixin):
         self.h_digital = np.stack(self.h_digital, axis=0)
         self.mcp_v = np.array(self.mcp_v)
 
-    def get_response(self, mcp_voltage: float, tol: float=1.0):
+    def get_response(self, mcp_voltage: float, tol: float=1.0, reflection_period: List[int]=list(), reflection_amplitude: List[float]=list()):
         """
         Returns the instrument response for a given MCP voltage setting
 
         Args:
           mcp_voltage: The MCP potential difference in Volts.
           tol: Maximum acceptable difference in MCP voltage, in Volts.
+          reflection_period: Simulate reflection with these distances.
+          reflection_amplitude: Amplitudes of the reflections.
         """
         diff = np.fabs(self.mcp_v - mcp_voltage)
         if np.amin(diff) > tol:
             raise ValueError(f"No instrument response available for MCP voltage setting {mcp_voltage}. "
                              f"Only the following voltage settings are available: {self.mcp_v}")
         idx = np.argmin(diff)
-        return self.h[idx]
+        h = self.h[idx]
+        if len(reflection_period) > 0:
+            h = fftconvolve(h, comb(reflection_period, reflection_amplitude), mode='same')
+        return h
 
     def plot(self):
         """
@@ -568,6 +593,8 @@ class TOFResponse(SerializableMixin):
               mcp_voltage: float,
               Lambda: float=0.01,
               n_iter: int=4000,
+              reflection_period: List[int]=list(),
+              reflection_amplitude: List[float]=list(),
               method: str="matrix") -> xr.DataArray:
         """
         Apply TV-deconvolution on TOF data taken n *analog* mode,
@@ -655,7 +682,7 @@ class TOFResponse(SerializableMixin):
             original.data /= norm
         else:
             raise ValueError("Expect `tof_trace` to be a numpy array or xarray DataArray.")
-        h = self.get_response(mcp_voltage)
+        h = self.get_response(mcp_voltage, reflection_period=reflection_period, reflection_amplitude=reflection_amplitude)
         if method == "tv_matrix":
             result_trace = tv_deconvolution(original.data, h=h, Lambda=Lambda, n_iter=n_iter, n_shift=self.n_filter)
         elif method == "standard":
