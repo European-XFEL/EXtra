@@ -656,12 +656,12 @@ class VSLight(SerializableMixin):
             self.tof_data[tof_id], self.y[tof_id] = self.load_data_for(tof_id)
 
     def guess_components(self, data, n_min):
-        from .vs_utils import TruncatedIncrementalPCA
+        from sklearn.decomposition import IncrementalPCA
         pca_threshold = 0.9
         bare_minimum = min(data.shape[0], min(200, data.shape[-1]))
         if n_min > bare_minimum:
             n_min = bare_minimum
-        pca_test = TruncatedIncrementalPCA(n_components=bare_minimum, whiten=True, batch_size=600)
+        pca_test = IncrementalPCA(n_components=bare_minimum, whiten=True, batch_size=600)
         perm = np.random.permutation(data.shape[0])
         n_part = min(500, data.shape[0])
         for i, batch_idx in enumerate(np.array_split(perm, data.shape[0]//n_part)[:20]):
@@ -708,7 +708,7 @@ class VSLight(SerializableMixin):
         """
         Fit TOF data to a Gaussian and collect results.
         """
-        from .vs_utils import TruncatedIncrementalPCA
+        from sklearn.decomposition import IncrementalPCA
         from sklearn.linear_model import ARDRegression
         from .vs_utils import MultiOutputGenericWithStd
         logging.info("Fit PCA+ARD...")
@@ -736,7 +736,7 @@ class VSLight(SerializableMixin):
             logging.info(f"Components for targets in {tof_id}: {n_pca_y}")
             # fit PCA on target
             logging.info(f"Fit PCA for y ...")
-            self.pca_y[tof_id] = TruncatedIncrementalPCA(n_components=n_pca_y, whiten=True, batch_size=5*n_pca_y)
+            self.pca_y[tof_id] = IncrementalPCA(n_components=n_pca_y, whiten=True, batch_size=5*n_pca_y)
             n_part = min(500, y.shape[0])
             for i, batch_idx in enumerate(np.array_split(perm, y.shape[0]//n_part)[:20]):
                 #logging.info(f"Partial fit y {i} ...")
@@ -748,7 +748,7 @@ class VSLight(SerializableMixin):
             n_pca_x = self.guess_components(tof_data, 100)
             logging.info(f"Components for sources in {tof_id}: {n_pca_x}")
             # pipeline for source
-            self.pca_x[tof_id] = TruncatedIncrementalPCA(n_components=n_pca_x, whiten=True, batch_size=5*n_pca_x)
+            self.pca_x[tof_id] = IncrementalPCA(n_components=n_pca_x, whiten=True, batch_size=5*n_pca_x)
             self.model[tof_id] = MultiOutputGenericWithStd(ARDRegression(tol=1e-8, verbose=True), n_jobs=8)
             logging.info(f"Fit PCA for x ...")
             n_part = min(500, tof_data.shape[0])
