@@ -286,12 +286,15 @@ class VSLight(SerializableMixin):
                  xgm_threshold: Union[str, float]='median',
                  counting_mode: bool=False,
                  counting_threshold: float=-8,
+                 n_pca_out: int=100,
+                 n_pca_in: int=100,
                 ):
         self.energy_width = energy_width
         self._xgm_threshold = xgm_threshold
         self._counting_mode = counting_mode
         self._counting_threshold = counting_threshold
-
+        self.n_pca_in = n_pca_in
+        self.n_pca_out = n_pca_out
 
         # empty outputs
         self.tof_data = dict()
@@ -309,7 +312,8 @@ class VSLight(SerializableMixin):
                                "single_pulse_length",
                                "extra_cm_period",
                                ]
-        self._all_fields = [
+        self._all_fields = ["n_pca_in",
+                            "n_pca_out",
                             "energy_width",
                             "_energy_axis",
                             "kwargs_adq",
@@ -688,7 +692,7 @@ class VSLight(SerializableMixin):
                 this_tof_data = self._tof[tof_id].select_trains(by_id[train_ids]).pulse_data(pulse_dim='pulseIndex')
                 this_tof_data = this_tof_data.isel(sample=slice(0, self.kwargs_adq[tof_id]["single_pulse_length"]))
                 edges = self._tof[tof_id].find_edges(this_tof_data, threshold=self.counting_threshold)
-                ts = np.arange(0, this_tof_data.shape[-1])
+                ts = np.arange(0, this_tof_data.shape[-1]+1)
                 hist, _ = np.histogram(edges.edge, bins=ts)
                 mu = 1.0/(self.energy_width*np.sqrt(2*np.pi))
                 this_y = mu*np.exp(-0.5*(self.energy_axis - energy)**2/((self.energy_width/2.355)**2))
@@ -732,28 +736,30 @@ class VSLight(SerializableMixin):
 
             logging.info(f"Transform target for eTOF {tof_id} ...")
             # how many target components?
-            n_pca_y = self.guess_components(y, 40)
+            n_part = min(500, y.shape[0])
+
+            n_pca_y = min(self.n_pca_out, n_part) #self.guess_components(y, 40)
             logging.info(f"Components for targets in {tof_id}: {n_pca_y}")
             # fit PCA on target
             logging.info(f"Fit PCA for y ...")
             self.pca_y[tof_id] = IncrementalPCA(n_components=n_pca_y, whiten=True, batch_size=5*n_pca_y)
-            n_part = min(500, y.shape[0])
             for i, batch_idx in enumerate(np.array_split(perm, y.shape[0]//n_part)[:20]):
-                #logging.info(f"Partial fit y {i} ...")
+                logging.info(f"Partial fit y {i} ...")
                 self.pca_y[tof_id].partial_fit(y[batch_idx, :])
             tr_y = self.pca_y[tof_id].transform(y)
 
             logging.info(f"Transform source for eTOF {tof_id} ...")
             # how many source components?
-            n_pca_x = self.guess_components(tof_data, 100)
+            n_part = min(500, tof_data.shape[0])
+
+            n_pca_x = min(self.n_pca_in, n_part) #self.guess_components(tof_data, 100)
             logging.info(f"Components for sources in {tof_id}: {n_pca_x}")
             # pipeline for source
             self.pca_x[tof_id] = IncrementalPCA(n_components=n_pca_x, whiten=True, batch_size=5*n_pca_x)
             self.model[tof_id] = MultiOutputGenericWithStd(ARDRegression(tol=1e-8, verbose=True), n_jobs=8)
             logging.info(f"Fit PCA for x ...")
-            n_part = min(500, tof_data.shape[0])
             for i, batch_idx in enumerate(np.array_split(perm, tof_data.shape[0]//n_part)[:20]):
-                #logging.info(f"Partial fit x {i} ...")
+                logging.info(f"Partial fit x {i} ...")
                 self.pca_x[tof_id].partial_fit(tof_data[batch_idx, :])
             tr_x = self.pca_x[tof_id].transform(tof_data)
             logging.info(f"Fit model ...")
@@ -836,16 +842,18 @@ class VSLight(SerializableMixin):
             logging.info(f"Correcting eTOF {tof_id} ...")
             # get it in the right order
             pulses = tof_trace.transpose('trainId', 'pulseIndex', 'sample')
+            pulses = pulses.isel(sample=slice(0, self.kwargs_adq[tof_id]["single_pulse_length"]))
             coords = pulses.coords
             pulses = pulses.to_numpy()
             # the sample axis to use for the calibration
             n_t, n_p, n_s = pulses.shape
-            pulses = np.reshape(pulses, (n_t*n_p, n_s))
 
             # apply model
+            pulses = np.reshape(pulses, (n_t*n_p, n_s))
             pca_x = self.pca_x[tof_id].transform(pulses)
             pca_y = self.model[tof_id].predict(pca_x)
             o = self.pca_y[tof_id].inverse_transform(pca_y)
+            n_e = len(self.energy_axis)
             o = np.reshape(o, (n_t, n_p, n_e))
             # regenerate DataArray
             o = xr.DataArray(data=o,
@@ -855,14 +863,14 @@ class VSLight(SerializableMixin):
                                          energy=self.energy_axis
                                         )
                             )
+            return o
 
         outdata = [apply_correction(tof_id, trace.sel(tof=tof_id))
                    for tof_id in tof_ids]
         outdata = xr.concat(outdata, pd.Index(tof_ids, name="tof"))
         outdata = outdata.transpose('trainId', 'pulseIndex', 'energy', 'tof')
-        outdata_corr = outdata/norm.to_numpy()[None, None, :, :]
 
-        return outdata_corr
+        return outdata
 
     def apply(self, run: DataCollection) -> xr.DataArray:
         """

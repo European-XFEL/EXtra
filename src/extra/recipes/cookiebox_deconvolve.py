@@ -83,7 +83,7 @@ def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=0.01, n_iter
     # make them the same size
     if len(h) < N:
         hl = np.concatenate((h, np.zeros(N - len(h))))
-    elif len(h) > N:
+    elif len(h) >= N:
         hl = np.copy(h[:N])
     hl = hl/np.sum(hl**2)
 
@@ -244,7 +244,7 @@ def tv_deconvolution_fft(data: np.ndarray, h: np.ndarray, Lambda: float=1.0, n_i
     # make them the same size
     if len(h) < N:
         hl = np.concatenate((h, np.zeros(N - len(h))))
-    elif len(h) > N:
+    elif len(h) >= N:
         hl = np.copy(h[:N])
     hl = hl/np.sum(hl**2)
 
@@ -368,7 +368,7 @@ def std_deconvolution(data: np.ndarray, h: np.ndarray, snr: float=5.0, n_shift: 
     # make them the same size
     if len(h) < N:
         hl = np.concatenate((h, np.zeros(N - len(h))))
-    elif len(h) > N:
+    elif len(h) >= N:
         hl = np.copy(h[:N])
     hl = hl/np.sum(hl**2)
 

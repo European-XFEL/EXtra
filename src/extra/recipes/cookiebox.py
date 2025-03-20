@@ -819,7 +819,8 @@ class CookieboxCalibration(SerializableMixin):
         ee = self.tof_fit_result[tof_id].energy[eidx]
         eo = self.tof_fit_result[tof_id].offset[eidx]
 
-        self.offset[tof_id] = CubicSpline(ee, eo)(self.energy_axis)
+        #self.offset[tof_id] = CubicSpline(ee, eo)(self.energy_axis)
+        self.offset[tof_id] = eo
 
         # self.offset[tof_id] = np.interp(self.energy_axis,
         #                                 ee,
@@ -1078,7 +1079,9 @@ class CookieboxCalibration(SerializableMixin):
             stop_roi = self.stop_roi[tof_id]
             ts = np.arange(start_roi, stop_roi)
             e = model(ts, *self.model_params[tof_id])
-
+            # subtract offset
+            pulses = pulses - self.offset[tof_id][None, :]
+    
             # interpolate
             # o = np.apply_along_axis(lambda arr: CubicSpline(e[::-1], arr[::-1])(self.energy_axis),
             #                        axis=1,
@@ -1089,8 +1092,6 @@ class CookieboxCalibration(SerializableMixin):
 
             n_e = len(self.energy_axis)
             o = np.reshape(o, (n_t, n_p, n_e))
-            # subtract offset
-            #o = o - self.offset[tof_id][None, None, :]
             # apply Jacobian
             o = o*self.jacobian[tof_id][None, None, :]
             # regenerate DataArray
