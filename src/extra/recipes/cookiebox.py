@@ -819,8 +819,8 @@ class CookieboxCalibration(SerializableMixin):
         ee = self.tof_fit_result[tof_id].energy[eidx]
         eo = self.tof_fit_result[tof_id].offset[eidx]
 
-        #self.offset[tof_id] = CubicSpline(ee, eo)(self.energy_axis)
-        self.offset[tof_id] = eo
+        self.offset[tof_id] = CubicSpline(ee, eo)(self.energy_axis)
+        #self.offset[tof_id] = eo
 
         # self.offset[tof_id] = np.interp(self.energy_axis,
         #                                 ee,
@@ -863,8 +863,8 @@ class CookieboxCalibration(SerializableMixin):
         ax[1].plot(self.energy_axis, self.int_transmission[tof_id], lw=2, label="Interpolated transmission")
         ax[1].set(xlabel="Energy [eV]", ylabel="Transmission [a.u.]")
         ax[2].scatter(self.tof_fit_result[tof_id].energy, self.tof_fit_result[tof_id].offset, label="Offset")
-        ax[2].plot(self.energy_axis, self.offset[tof_id], lw=2, label="Interpolated offset")
-        ax[2].set(xlabel="Energy [eV]", ylabel="Offset to subtract [a.u.]")
+        ax[2].plot(self.energy_axis, self.offset[tof_id], lw=2, label="Offset")
+        ax[2].set(xlabel="Samples", ylabel="Offset to subtract [a.u.]")
         ax[3].scatter(self.tof_fit_result[tof_id].energy, self.tof_fit_result[tof_id].Aa/self.calibration_mean_xgm[tof_id], label="Normalization")
         ax[3].plot(self.energy_axis, self.normalization[tof_id], lw=2, label="Interpolated normalization")
         ax[3].set(xlabel="Energy [eV]", ylabel="(Auger+valence)/pulse energy [a.u.]")
@@ -1079,8 +1079,7 @@ class CookieboxCalibration(SerializableMixin):
             stop_roi = self.stop_roi[tof_id]
             ts = np.arange(start_roi, stop_roi)
             e = model(ts, *self.model_params[tof_id])
-            # subtract offset
-            pulses = pulses - self.offset[tof_id][None, :]
+
     
             # interpolate
             # o = np.apply_along_axis(lambda arr: CubicSpline(e[::-1], arr[::-1])(self.energy_axis),
@@ -1092,6 +1091,8 @@ class CookieboxCalibration(SerializableMixin):
 
             n_e = len(self.energy_axis)
             o = np.reshape(o, (n_t, n_p, n_e))
+            # subtract offset
+            o = o - self.offset[tof_id][None, None, :]
             # apply Jacobian
             o = o*self.jacobian[tof_id][None, None, :]
             # regenerate DataArray
