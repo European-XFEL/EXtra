@@ -446,13 +446,16 @@ class TOFResponse(SerializableMixin):
 
     Args:
       counting_threshold: Threshold to use when identifying edges.
+      n_peaks: Number of peaks to select.
       n_samples: Total number of samples use for impulse response.
       n_filter: Require no edges to be found before sample n_filter and after n_samples-n_filter.
     """
-    def __init__(self, counting_threshold: int=-10,
+    def __init__(self, counting_threshold: int=-7,
+                 n_peaks: int=2,
                  n_samples: int=400,
                  n_filter: int=100):
         self.counting_threshold = counting_threshold
+        self.n_peaks = n_peaks
         self.n_samples = n_samples
         self.n_filter = n_filter
         self.h = None
@@ -468,6 +471,7 @@ class TOFResponse(SerializableMixin):
                             "counting_threshold",
                             "n_samples",
                             "n_filter",
+                            "n_peaks",
                             "_version",
                            ]
 
@@ -514,7 +518,7 @@ class TOFResponse(SerializableMixin):
                 continue
 
             # require a single edge within the pulse
-            edges_sel = ((np.sum(~np.isnan(edges_pos), axis=-1) == 1)
+            edges_sel = ((np.sum(~np.isnan(edges_pos), axis=-1) == self.n_peaks)
                          & (edges_pos[:,0] >= self.n_filter)
                          & (edges_pos[:,0] <= self.n_samples - self.n_filter))
 
