@@ -399,16 +399,13 @@ def comb(period: List[int], amplitude: List[float]):
 
 class TOFResponse(SerializableMixin):
     """
-    Given a run with the Cookiebox in counting mode, obtain its MCP impulse response.
-    The impulse response is calculated in bins of the MCP Scan object provided,
-    so that one can characterize the impulse response as a functon of the MCP voltage.
+    Given a run with the Cookiebox in counting mode, obtain its impulse response.
 
     Example usage:
     ```
     tof_id = 4
     channel = "3_A"
     digitizer = "SQS_DIGITIZER_UTC4/ADC/1:network"
-    mpod_source = "SQS_RACK_MPOD-2/MDL/MPOD_MAPPER"
     calib_run = open_run(proposal=900485, run=320)
     calib_run = calib_run.select([digitizer, mpod_source], require_all=True)
     tof = AdqRawChannel(calib_run,
@@ -419,12 +416,10 @@ class TOFResponse(SerializableMixin):
                         interleaved=True,
                         baseline=np.s_[:20000],
                         )
-    scan = Scan(calib_run[mpod_source, f"TOF_{tof_id}.channelVoltage.value"],
-                resolution=10, intra_step_filtering=1)
     response = TOFResponse()
-    response.setup(tof, scan)
+    response.setup(tof)
     response.to_file("tof4.h5")
-    h = response.get_response(mcp_voltage=3000)
+    h = response.get_response(type="aligned")
     ```
 
     This could also be coupled with the `CookieboxCalibration` object to deconvolve
@@ -439,35 +434,35 @@ class TOFResponse(SerializableMixin):
     trace = cal.load_trace(run)
     # apply the deconvolution using this TOFResponse object
     response = TOFResponse.from_file("tof4.h5")
-    trace.loc[dict(tof=4)] = response.apply(trace.sel(tof=4), mcp_voltage=3600)
+    trace.loc[dict(tof=4)] = response.apply(trace.sel(tof=4))
     # now apply the calibration:
     spectrum = cal.calibrate(trace)
     ```
 
     Args:
       counting_threshold: Threshold to use when identifying edges.
-      n_peaks: Number of peaks to select.
+      n_peaks: Number of peaks to select, if positive. Otherwise no peak selection is made.
       n_samples: Total number of samples use for impulse response.
       n_filter: Require no edges to be found before sample n_filter and after n_samples-n_filter.
     """
     def __init__(self, counting_threshold: int=-7,
-                 n_peaks: int=2,
+                 n_peaks: Optional[int]=None,
                  n_samples: int=400,
                  n_filter: int=100):
         self.counting_threshold = counting_threshold
+        if n_peaks is None:
+            n_peaks = -1
         self.n_peaks = n_peaks
         self.n_samples = n_samples
         self.n_filter = n_filter
         self.h = None
         self.h_digital = None
         self.h_analog = None
-        self.mcp_v = None
         self._version = 1
         self._all_fields = [
                             "h",
                             "h_digital",
                             "h_analog",
-                            "mcp_v",
                             "counting_threshold",
                             "n_samples",
                             "n_filter",
@@ -490,93 +485,88 @@ class TOFResponse(SerializableMixin):
 
     def setup(self,
               tof: AdqRawChannel,
-              scan: Scan,
               ):
         """
-        Given a `AdqRawChannel` object, and a `Scan` object over the corresponding MCP,
+        Given a `AdqRawChannel` object,
         calculate this eTOF's impulse response function.
 
         Args:
           tof: `AdqRawChannel` used to access data for a given eTOF.
-          scan: `Scan` object on
         """
-        self.mcp_v = list()
-        self.h = list()
-        self.h_digital = list()
-        self.h_analog = list()
-        for step_nr, (mcp_v, train_ids) in enumerate(scan.steps):
-            # get pulse data
-            logging.info("Get pulse data ...")
-            this_tof_data = tof.select_trains(by_id[train_ids]).pulse_data(pulse_dim='pulseIndex')
-            # get edges
-            logging.info("Get edges ...")
-            edges_pos, edges_amp = tof.find_edge_array(this_tof_data,
-                                                       labelled=False,
-                                                       threshold=self.counting_threshold)
+        
+        # get pulse data
+        logging.info("Get pulse data ...")
+        this_tof_data = tof.pulse_data(pulse_dim='pulseIndex')
+        # get edges
+        logging.info("Get edges ...")
+        edges_pos, edges_amp = tof.find_edge_array(this_tof_data,
+                                                   labelled=False,
+                                                   threshold=self.counting_threshold)
 
-            if edges_pos.shape[-1] == 0:
-                continue
+        if edges_pos.shape[-1] == 0:
+            raise ValueError(f"No peaks found.")
 
-            # require a single edge within the pulse
-            edges_sel = ((np.sum(~np.isnan(edges_pos), axis=-1) == self.n_peaks)
-                         & (edges_pos[:,0] >= self.n_filter)
-                         & (edges_pos[:,0] <= self.n_samples - self.n_filter))
+        # require a single edge within the pulse
+        edges_sel = ((edges_pos[:,0] >= self.n_filter)
+                     & (edges_pos[:,0] <= self.n_samples - self.n_filter))
+        if self.n_peaks > 0:
+            edges_sel = edges_sel & (np.sum(~np.isnan(edges_pos), axis=-1) == self.n_peaks)
 
-            if np.sum(edges_sel) == 0:
-                continue
+        if np.sum(edges_sel) == 0:
+            raise ValueError(f"No peaks found after n_filter={self.n_filter} "
+                             f"and before n_samples-n_filter={self.n_samples-self.n_filter} "
+                             f"with n_peaks requirement.")
 
-            # build axis
-            ts = np.arange(0, self.n_samples)
-            h_axis = np.arange(0, self.n_samples)
+        # build axis
+        ts = np.arange(0, self.n_samples)
+        h_axis = np.arange(0, self.n_samples)
 
-            # find edges and build both digital and analog response functions
-            logging.info("Build digital signal ...")
-            edges = tof.find_edges(this_tof_data, threshold=self.counting_threshold)
-            ts1 = np.arange(0, self.n_samples+1)
-            h_digital, _ = np.histogram(edges.edge, bins=ts1)
-            h_digital = h_digital.astype(float)/np.amax(h_digital)
-            self.h_digital += [h_digital]
+        # find edges and build both digital and analog response functions
+        logging.info("Build digital signal ...")
+        edges = tof.find_edges(this_tof_data, threshold=self.counting_threshold)
+        ts1 = np.arange(0, self.n_samples+1)
+        h_digital, _ = np.histogram(edges.edge, bins=ts1)
+        h_digital = h_digital.astype(float)/np.amax(h_digital)
+        self.h_digital = h_digital
 
-            logging.info("Build analog signal ...")
-            h_analog, _ = np.histogram(edges.edge, bins=ts1, weights=-edges.amplitude)
-            h_analog /= np.amax(h_analog)
-            self.h_analog += [h_analog]
+        logging.info("Build analog signal ...")
+        h_analog, _ = np.histogram(edges.edge, bins=ts1, weights=-edges.amplitude)
+        h_analog /= np.amax(h_analog)
+        self.h_analog = h_analog
 
-            # now align traces
-            logging.info("Build aligned signal ...")
-            aligned = list()
-            for p, e in zip(this_tof_data.pulse[edges_sel].to_numpy(), edges_pos[edges_sel]):
-                # select region of interest in the trace
-                e0 = int(e[0])
-                roi_aligned = -this_tof_data.sel(pulse=p).isel(sample=slice(e0-self.n_filter, e0+self.n_samples-self.n_filter))
-                xi = np.arange(self.n_samples) - (e0 - np.floor(e0))
-                aligned.append(np.interp(np.arange(self.n_samples), xi, roi_aligned))
-            aligned = np.stack(aligned, axis=0).sum(0)
-            aligned /= np.amax(aligned)
-            self.h += [aligned]
+        # now align traces
+        logging.info("Build aligned signal ...")
+        aligned = list()
+        for p, e in zip(this_tof_data.pulse[edges_sel].to_numpy(), edges_pos[edges_sel]):
+            # select region of interest in the trace
+            e0 = int(e[0])
+            roi_aligned = -this_tof_data.sel(pulse=p).isel(sample=slice(e0-self.n_filter, e0+self.n_samples-self.n_filter))
+            xi = np.arange(self.n_samples) - (e0 - np.floor(e0))
+            aligned.append(np.interp(np.arange(self.n_samples), xi, roi_aligned))
+        aligned = np.stack(aligned, axis=0).sum(0)
+        aligned /= np.amax(aligned)
+        self.h = aligned
 
-            self.mcp_v += [mcp_v]
-        self.h = np.stack(self.h, axis=0)
-        self.h_analog = np.stack(self.h_analog, axis=0)
-        self.h_digital = np.stack(self.h_digital, axis=0)
-        self.mcp_v = np.array(self.mcp_v)
-
-    def get_response(self, mcp_voltage: float, tol: float=1.0, reflection_period: List[int]=list(), reflection_amplitude: List[float]=list()):
+    def get_response(self, type: str="aligned", reflection_period: List[int]=list(), reflection_amplitude: List[float]=list()):
         """
-        Returns the instrument response for a given MCP voltage setting
+        Returns the instrument response.
 
         Args:
-          mcp_voltage: The MCP potential difference in Volts.
-          tol: Maximum acceptable difference in MCP voltage, in Volts.
+          type: Which version of the isntrument response to retrieve.
+                "aligned" provides the MCP response, which is edge-aligned.
+                "digital" is the digital response.
+                "analog" is the analog response.
           reflection_period: Simulate reflection with these distances.
           reflection_amplitude: Amplitudes of the reflections.
         """
-        diff = np.fabs(self.mcp_v - mcp_voltage)
-        if np.amin(diff) > tol:
-            raise ValueError(f"No instrument response available for MCP voltage setting {mcp_voltage}. "
-                             f"Only the following voltage settings are available: {self.mcp_v}")
-        idx = np.argmin(diff)
-        h = self.h[idx]
+        if type == "aligned":
+            h = self.h
+        elif type == "digital":
+            h = self.h_digital
+        elif type == "analog":
+            h = self.h_analog
+        else:
+            raise ValueError(f"Unknown type={type}.")
         if len(reflection_period) > 0:
             h = fftconvolve(h, comb(reflection_period, reflection_amplitude), mode='same')
         return h
@@ -587,22 +577,19 @@ class TOFResponse(SerializableMixin):
         """
         import matplotlib.pyplot as plt
         fig = plt.figure(figsize=(10, 8))
-        for k, mcp_v in enumerate(self.mcp_v):
-            plt.plot(np.arange(-self.n_filter, self.n_samples-self.n_filter), self.h[k], lw=2, label=f"{mcp_v} V")
+        plt.plot(np.arange(-self.n_filter, self.n_samples-self.n_filter), self.h, lw=2)
         plt.xlabel("Samples")
         plt.ylabel("Intensity [a.u.]")
-        plt.legend(frameon=False, ncols=2)
 
     def apply(self, tof_trace: Union[xr.DataArray, np.ndarray],
-              mcp_voltage: float,
               Lambda: float=0.01,
               n_iter: int=4000,
               reflection_period: List[int]=list(),
               reflection_amplitude: List[float]=list(),
               method: str="matrix") -> xr.DataArray:
         """
-        Apply TV-deconvolution on TOF data taken n *analog* mode,
-        assuming the given MCP voltage and using the Lambda parameter
+        Apply TV-deconvolution on TOF data taken in *analog* mode,
+        assuming the given parameter setting and using the Lambda parameter
         as a denoising strength.
 
         This could be coupled with the `CookieboxCalibration` object to deconvolve
@@ -617,7 +604,7 @@ class TOFResponse(SerializableMixin):
         trace = cal.load_trace(run)
         # apply the deconvolution using this TOFResponse object
         response = TOFResponse.from_file("tof4.h5")
-        trace.loc[dict(tof=4)] = response.apply(trace.sel(tof=4), mcp_voltage=3600)
+        trace.loc[dict(tof=4)] = response.apply(trace.sel(tof=4))
         # now apply the calibration:
         spectrum = cal.calibrate(trace)
         ```
@@ -630,12 +617,11 @@ class TOFResponse(SerializableMixin):
         ts = "SQS_RR_UTC/TSYS/TIMESERVER:outputBunchPattern"
         digitizer = 'SQS_DIGITIZER_UTC4/ADC/1:network'
         digitizer_ctl = 'SQS_DIGITIZER_UTC4/ADC/1:network'
-        mpod_source = "SQS_RACK_MPOD-2/MDL/MPOD_MAPPER"
         tof_id = 4
         channel = "3_A"
         calib_run = open_run(proposal=900485, run=509).select([ts,
                                                                digitizer, digitizer_ctl
-                                                               mpod_source], require_all=True)
+                                                               ], require_all=True)
         # set up AdqRawChannel object to read data from each eTOF
         tof = AdqRawChannel(run,
                             channel=channel,
@@ -648,11 +634,10 @@ class TOFResponse(SerializableMixin):
         # fetch data
         # select only first samples, since we don't care about the full trace
         original = -tof.pulse_data(pulse_dim='pulseIndex').sel(sample=np.s_[0:400])
-        mcp_voltage = run[mpod_source, f"TOF_{tof_id}.channelVoltage.value"].ndarray().mean()
         # retrieve impulse response from a file
         response = TOFResponse.from_file("tof4.h5")
         # apply it
-        result = response.apply(original, mcp_voltage)
+        result = response.apply(original)
         # plot it
         plt.plot(result.isel(trainId=0, pulseIndex=0), lw=2, label="Deconvolved")
         plt.plot(original.isel(trainId=0, pulseIndex=0), lw=2, label="Original")
@@ -662,7 +647,6 @@ class TOFResponse(SerializableMixin):
         Args:
           tof_trace: The eTOF data as a DataArray returned by `AdqRawChannel` with shape (pulses, samples), or
                a numpy array of shape (n_pulses, n_samples)
-          mcp_voltage: The MCP voltage set in this data.
           Lambda: The regularization strength.
           n_iter: Number of deconvoluton iterations.
           method: Set to "matrix" for matrix multplications (faster for shorter traces, ie len(trace) < 400).
@@ -686,7 +670,7 @@ class TOFResponse(SerializableMixin):
             original.data /= norm
         else:
             raise ValueError("Expect `tof_trace` to be a numpy array or xarray DataArray.")
-        h = self.get_response(mcp_voltage, reflection_period=reflection_period, reflection_amplitude=reflection_amplitude)
+        h = self.get_response(reflection_period=reflection_period, reflection_amplitude=reflection_amplitude)
         if method == "tv_matrix":
             result_trace = tv_deconvolution(original.data, h=h, Lambda=Lambda, n_iter=n_iter, n_shift=self.n_filter)
         elif method == "standard":
