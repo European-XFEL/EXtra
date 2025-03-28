@@ -515,7 +515,7 @@ class TOFResponse(SerializableMixin):
               n_iter: int=500,
               reflection_period: List[int]=list(),
               reflection_amplitude: List[float]=list(),
-              method: str="matrix") -> xr.DataArray:
+              method: str="nn_matrix", **kwargs) -> xr.DataArray:
         """
         Apply TV-deconvolution on TOF data taken in *analog* mode,
         assuming the given parameter setting and using the Lambda parameter
