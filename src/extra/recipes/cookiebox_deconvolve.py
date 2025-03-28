@@ -15,7 +15,109 @@ from extra_data import by_id
 def clip_at_zero(x):
     return np.clip(x, a_min=0, a_max=None)
 
-def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=0.01, n_iter: int=4000, n_shift: int=0):
+def nn_deconvolution(data: np.ndarray, h: np.ndarray, n_iter: int=4000, n_shift: int=0, nonneg: bool=True):
+    r'''
+    Chambolle-Pock algorithm for the minimization of the objective function
+        $\min_x 1/2||h \otimes x - data||^2 + I(x)$
+
+    This is formulated as the following primal optimization objective:
+        $min_x G(x) + I(x)$       (P)
+
+    Where:
+        $G(x) = 1/2||A x - b||^2$
+        $A =$ matrix representation of the convolution
+        $b =$ input data
+        $F(y) = I(y)$, which is the non-negatvity constraint
+        $y = x $
+
+
+    The problem is solved using the Chambolle-Pock algorithm, which uss the primal-dual formulation
+    of the optimization objective:
+        min_x max_y G(x) + <x, y> - F*(y)
+
+    The algorithm to solve this problem is:
+        $x_{i+1} = (I + \tau \partial G)^{-1} (x_i - \tau y_i)$
+        $\bar{x}_{i+1} = x_{i+1} + \omega(x_{i+1} - x_i)$
+        $y_{i+1} = (I + \sigma \partial F^\star)^{-1}(y_i + \sigma \bar{x})$
+
+    It converges if $\tau \sigma L^2 \leq 1$.
+
+    References:
+    [1] Chambolle, A., Pock, T. A First-Order Primal-Dual Algorithm for Convex
+        Problems with Applications to Imaging.
+        J Math Imaging Vis 40, 120–145 (2011).
+        https://doi.org/10.1007/s10851-010-0251-1
+    [2] N. Parikh and S. Boyd. Proximal Algorithms.
+        Foundations and Trends in Optimization,
+        volume 1, issue 3, pp. 127-239, 2014.
+
+    Args:
+        h: Impulse response function of system to deconvolve as a 1D array.
+        data: Data to deconvolve with shape (n_samples) if a single shot is given or
+              (n_shots, n_samples) for multiple shots. It must have n_samples smaller or equal to len(h).
+        n_iter: Number of iterations.
+        n_shift: At which point the impulse response function start in h.
+        nonneg: If True, impose non-negativity constraint.
+    '''
+
+    # if data includes multiple shots, it will be (n_shots, n_samples)
+    # we need batch multplication with A, so we simply use data.T,
+    # which is shape (n_samples, n_shots), so:
+    # A is (n_samples, n_samples)
+    # x is (n_samples, n_shots)
+    # A @ x is (n_samples, n_shots)
+    # => the desired result would be trasposed
+    is1d = False
+    if len(data.shape) == 1:
+        is1d = True
+        b = data[:, None]
+    elif len(data.shape) == 2:
+        b = np.transpose(data)
+    else:
+        raise ValueError(f"Input data must either be 1D or 2D. The shape sent is {data.shape}.")
+
+    N = b.shape[0]
+
+    # make them the same size
+    if len(h) < N:
+        hl = np.concatenate((h, np.zeros(N - len(h))))
+    elif len(h) >= N:
+        hl = np.copy(h[:N])
+    hl = hl/np.sum(hl)
+
+    # roll over to match the effect of fftcovolve
+    #hl = np.roll(hl, -N//2)
+    hl = np.roll(hl, -n_shift+len(hl)//2, axis=-1)
+    # create the matrix representing the convolution
+    # this is expensive, but no easy way comes to mind
+    A = convolution_matrix(hl, len(hl), mode='same')
+
+    I = np.eye(N)
+
+    rho = 0.1
+    G = np.linalg.pinv(A.T @ A + rho*I)
+    x = np.copy(b)
+    z = np.copy(b)
+    u = np.copy(b)
+
+    for k in range(0, n_iter):
+        # consensus ADMM
+        x = G @ (2*A.T @ b + rho*(z - u))
+        z = np.clip(x + u, a_min=0, a_max=None)
+        u = u + (x - z)
+
+        # Calculate norms
+        if k%20 == 0:
+            fidelity = np.mean(0.5*np.sqrt(np.mean((A @ x - b)**2, axis=0)), axis=-1)
+            nn = np.mean(np.sqrt(np.mean(np.clip(-x, a_min=0, a_max=None)**2, axis=0)), axis=-1)
+            logging.info("[%4d] : fidelity %e \t mse of negative %e" %(k,fidelity, nn))
+    x = z
+    if is1d:
+        return x[:,0]
+
+    return np.transpose(x)
+    
+def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=0.0, n_iter: int=4000, n_shift: int=0, nonneg: bool=True):
     r'''
     Chambolle-Pock algorithm for the minimization of the objective function
         $\min_x 1/2||h \otimes x - data||^2 + Lambda TV(x)$
@@ -60,6 +162,7 @@ def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=0.01, n_iter
         Lambda : Weight of the TV penalty.
         n_iter: Number of iterations.
         n_shift: At which point the impulse response function start in h.
+        nonneg: If True, impose non-negativity constraint.
     '''
 
     # if data includes multiple shots, it will be (n_shots, n_samples)
@@ -85,7 +188,7 @@ def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=0.01, n_iter
         hl = np.concatenate((h, np.zeros(N - len(h))))
     elif len(h) >= N:
         hl = np.copy(h[:N])
-    hl = hl/np.sum(hl**2)
+    hl = hl/np.sum(hl)
 
     # roll over to match the effect of fftcovolve
     #hl = np.roll(hl, -N//2)
@@ -97,8 +200,8 @@ def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=0.01, n_iter
     # sigma * tau L^2 <= 1
     L = np.linalg.norm(A)
 
-    sigma = 1.9/L
-    tau = 0.5/L
+    sigma = 0.9/L
+    tau = 0.9/L
 
     # we need the proximal operator of F and G
     # The function G(x) is as follows:
@@ -108,226 +211,47 @@ def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=0.01, n_iter
     I = np.eye(N)
     GG = np.linalg.pinv(I + tau*(A.T @ A))
     ATb = np.ascontiguousarray((A.T @ b))
-    #prox_G = lambda v: np.clip(GG @ (v + tau*ATb), a_min=0, a_max=None)
+    if nonneg:
+        prox_G = lambda v: np.clip(GG @ (v + tau*ATb), a_min=0, a_max=None)
+    else:
+        prox_G = lambda v: GG @ (v + tau*ATb)
 
     # The proximal operator of $F(y) = ||y||_1$ is also tabulated in
     # Ref. [2], sec. 6.5.2.
     # It is the soft thresholding function
     # $\text{prox}_{\sigma F}(v) = (v - \sigma)_+ - (-v - \sigma)_+$
-    #prox_F = lambda v: np.clip(v - sigma*Lambda, a_min=0, a_max=None) - np.clip(-v - sigma*Lambda, a_min=0, a_max=None)
+    prox_F = lambda v: np.clip(v - sigma*Lambda, a_min=0, a_max=None) - np.clip(-v - sigma*Lambda, a_min=0, a_max=None)
 
     # But we need instead the proximal operator of $F^\star$, which we can calculate
     # using the Moreau decomposition (Ref. [2], sec. 2.5)
     # $\text{prox}_{\sigma F^\star}(v) = v - \text{prox}_{\sigma F}(v)
-    #prox_Fs = lambda v: v - prox_F(v)
+    prox_Fs = lambda v: v - prox_F(v)
 
     # K is the gradient operator in 1D
     #K = convolution_matrix(np.array([1.0, -1.0])/2.0, N, mode='same')
-    #gradT = lambda v: np.concatenate([np.diff(v, axis=0)/2.0, np.zeros((1, v.shape[-1]))], axis=0)
+    gradT = lambda v: np.concatenate([np.diff(v, axis=0)/2.0, np.zeros((1, v.shape[-1]))], axis=0)
     grad = lambda v: np.concatenate([np.zeros((1, v.shape[-1])), -np.diff(v, axis=0)/2.0], axis=0)
 
     # initialize the temporary variables
-    #x = np.copy(b)
-    # use standard deconvolution to initialize x
-    snr2 = 25
-    hl2 = np.roll(hl, -len(hl)//2, axis=-1)
-    H = np.fft.fft(hl2)
-    H2 = np.abs(H)**2
-    W = snr2*np.conj(H)/(snr2*H2 + 1)
-    x = np.fft.ifft(W[:,None]*np.fft.fft(b, axis=0), axis=0)
-    x = np.abs(x)
-
+    x = np.copy(b)
     x_bar = np.copy(x)
 
     # the dual variable
-    y = 0*b #*(A.T @ b)
+    y = np.copy(x)
 
-    gx_tmp = 0*x_bar
-    gy_tmp = 0*y
     for k in range(0, n_iter):
         # no need to cache x_bar and x_old if omega = 1
-        #x_old = np.copy(x)
+        x_old = np.copy(x)
         #x = prox_G(x - tau*(K.T @ y))
-        ##x = prox_G(x - tau*gradT(y))
-        #x_bar = x + 1*(x - x_old)
-        #x = 2*prox_G(x - tau*gradT(y)) - x
-        gy_tmp[:-1, :] = np.diff(y, axis=0)/2
-        #x = 2*prox_G(x - tau*gy_tmp) - x
-        x = 2*clip_at_zero(GG @ (x - tau*gy_tmp + tau*ATb)) - x
+        x = prox_G(x - tau*gradT(y))
+        x_bar = x + 1*(x - x_old)
 
         #y = prox_Fs(y + sigma*(K @ x_bar))
-        #y = prox_Fs(y + sigma*grad(x_bar))
-        gx_tmp[1:, :] = -np.diff(x_bar, axis=0)/2
-        y += sigma*gx_tmp
-        y -= (clip_at_zero(y - sigma*Lambda) - clip_at_zero(-y - sigma*Lambda))
+        y = prox_Fs(y + sigma*grad(x_bar))
 
         # Calculate norms
         if k%20 == 0:
             fidelity = np.mean(0.5*np.sqrt(np.mean((A @ x - b)**2, axis=0)), axis=-1)
-            tv = np.mean(np.sum(np.abs(grad(x)), axis=0), axis=-1)
-            energy = 1.0*fidelity + Lambda*tv
-            logging.info("[%4d] : energy %e \t fidelity %e \t TV %e" %(k,energy,fidelity,tv))
-    if is1d:
-        return x[:,0]
-
-    return np.transpose(x)
-
-def tv_deconvolution_fft(data: np.ndarray, h: np.ndarray, Lambda: float=1.0, n_iter: int=4000, n_shift: int=0):
-    r'''
-    Chambolle-Pock algorithm for the minimization of the objective function
-        $\min_x 1/2||h \otimes x - data||^2 + Lambda TV(x)$
-
-    This is an almost equivalent version of the code above (except for a hift of a sample) using FFT.
-    This is only more efficient for large h (len(h) > 500 samples), which is not often the conditions one is
-    interested in.
-
-    This is formulated as the following primal optimization objective:
-        $min_x G(x) + Lambda * F(K x)$       (P)
-
-    Where:
-        $G(x) = 1/2||A x - b||^2$
-        $A =$ matrix representation of the convolution
-        $b =$ input data
-        $F(y) = ||y||_1$, which is the 1-norm of y
-        $y = K x =$ difference between one element of x and the next
-        $K =$ gradient matrix
-
-    This is done, so that $TV(x) = F(K(x))$
-
-    The problem is solved using the Chambolle-Pock algorithm, which uss the primal-dual formulation
-    of the optimization objective:
-        min_x max_y G(x) + <K x, y> - F*(y)
-
-    The algorithm to solve this problem is:
-        $x_{i+1} = (I + \tau \partial G)^{-1} (x_i - \tau K^\star y_i)$
-        $\bar{x}_{i+1} = x_{i+1} + \omega(x_{i+1} - x_i)$
-        $y_{i+1} = (I + \sigma \partial F^\star)^{-1}(y_i + \sigma K \bar{x})$
-
-    It converges if $\tau \sigma L^2 \leq 1$.
-
-    References:
-    [1] Chambolle, A., Pock, T. A First-Order Primal-Dual Algorithm for Convex
-        Problems with Applications to Imaging.
-        J Math Imaging Vis 40, 120–145 (2011).
-        https://doi.org/10.1007/s10851-010-0251-1
-    [2] N. Parikh and S. Boyd. Proximal Algorithms.
-        Foundations and Trends in Optimization,
-        volume 1, issue 3, pp. 127-239, 2014.
-
-    Args:
-        h: Impulse response function of system to deconvolve as a 1D array.
-        data: Data to deconvolve with shape (n_samples) if a single shot is given or
-              (n_shots, n_samples) for multiple shots. It must have n_samples smaller or equal to len(h).
-        Lambda : Weight of the TV penalty.
-        n_iter: Number of iterations.
-        n_shift: At which sample does the impulse response of h start.
-    '''
-
-    # if data includes multiple shots, it will be (n_shots, n_samples)
-    # we need batch multplication with A, so we simply use data.T,
-    # which is shape (n_samples, n_shots), so:
-    # A is (n_samples, n_samples)
-    # x is (n_samples, n_shots)
-    # A @ x is (n_samples, n_shots)
-    # => the desired result would be trasposed
-    is1d = False
-    if len(data.shape) == 1:
-        is1d = True
-        b = data[:, None]
-    elif len(data.shape) == 2:
-        b = np.transpose(data)
-    else:
-        raise ValueError(f"Input data must either be 1D or 2D. The shape sent is {data.shape}.")
-
-    N = b.shape[0]
-
-    # make them the same size
-    if len(h) < N:
-        hl = np.concatenate((h, np.zeros(N - len(h))))
-    elif len(h) >= N:
-        hl = np.copy(h[:N])
-    hl = hl/np.sum(hl**2)
-
-    # roll over to match the effect of fftcovolve
-    #hl = np.roll(hl, -N//2)
-    hl = np.roll(hl, -n_shift+len(hl)//2, axis=-1)
-    # create the matrix representing the convolution
-    # this is expensive, but no easy way comes to mind
-    #A = convolution_matrix(hl, N, mode='same')
-    # ensure the convergence criteria is satisfied
-    # sigma * tau L^2 <= 1
-    #L = np.linalg.norm(A)
-
-    # Frobenius norm is sqrt(sum |a_{ij}|^2) = sqrt(N*sum |h|^2),
-    # since every column of the convolution matrix is just h rolled over
-    L = np.sqrt(np.sum(hl**2)*len(hl))
-    sigma = 1.9/L
-    tau = 0.5/L
-
-    # we need the proximal operator of F and G
-    # The function G(x) is as follows:
-    # $G = 1/2 ||A x - b||^2 = 1/2 x^T A^T A x - b^T A x + 1/2 b^T b$
-    # Its proximal operator is tabulated (see Ref. [2], sec. 6.1.1):
-    # $\text{prox}_{\tau G} (v) = (I + \tau A^T A)^{-1} (v + \tau A^T b)
-    # I = np.eye(N)
-    # GG = np.linalg.pinv(I + tau*(A.T @ A))
-    # ATb = np.ascontiguousarray((A.T @ b))
-    # prox_G = lambda v: np.clip(GG @ (v + tau*ATb), a_min=0, a_max=None)
-
-    # prox_G using FFT should be more efficient
-    # A.T == A for Toeplitz matrices
-    # so (I + tau*A^T A)^{-1} is the deconvolution in Fourier domain of 1 + |H|^2
-    # Therefore (I + tau*A^T A)^{-1} z can be implemented as ifft(1/(1 + tau*|H|^2)* fft(z))
-    # additionally A^T b is the convolution of h and b, or, in the Fourier domain: ifft(H, fft(b))
-    # sums and products by scalars are trivially represented in the Fourier domain
-    H = np.fft.fft(hl)
-    FATb = H[:, None] * np.fft.fft(b, axis=0)
-    H2 = np.abs(H)**2
-    W = 1.0/(tau*H2 + 1)
-    #prox_G = lambda v: np.clip(np.fft.ifft(W[:, None] * (np.fft.fft(v, axis=0) + tau*FATb), axis=0), a_min=0, a_max=None)
-
-    # The proximal operator of $F(y) = ||y||_1$ is also tabulated in
-    # Ref. [2], sec. 6.5.2.
-    # It is the soft thresholding function
-    # $\text{prox}_{\sigma F}(v) = (v - \sigma)_+ - (-v - \sigma)_+$
-    #prox_F = lambda v: np.clip(v - sigma*Lambda, a_min=0, a_max=None) - np.clip(-v - sigma*Lambda, a_min=0, a_max=None)
-
-    # But we need instead the proximal operator of $F^\star$, which we can calculate
-    # using the Moreau decomposition (Ref. [2], sec. 2.5)
-    # $\text{prox}_{\sigma F^\star}(v) = v - \text{prox}_{\sigma F}(v)
-    #prox_Fs = lambda v: v - prox_F(v)
-
-    # K is the gradient operator in 1D
-    #K = convolution_matrix(np.array([1.0, -1.0])/2.0, N, mode='same')
-    #gradT = lambda v: np.concatenate([np.diff(v, axis=0)/2.0, np.zeros((1, v.shape[-1]))], axis=0)
-    grad = lambda v: np.concatenate([np.zeros((1, v.shape[-1])), -np.diff(v, axis=0)/2.0], axis=0)
-
-    # initialize the temporary variables
-    y = 0*b #*(A.T @ b)
-    x = 0*b
-    x_bar = 0*x
-    gx_tmp = 0*x_bar
-    gy_tmp = 0*y
-    for k in range(0, n_iter):
-        # no need to cache x_bar and x_old if omega = 1
-        #x_old = np.copy(x)
-        #x = prox_G(x - tau*(K.T @ y))
-        ##x = prox_G(x - tau*gradT(y))
-        #x_bar = x + 1*(x - x_old)
-        #x = 2*prox_G(x - tau*gradT(y)) - x
-        gy_tmp[:-1, :] = np.diff(y, axis=0)/2
-        #x = 2*prox_G(x - tau*gy_tmp) - x
-        x = 2*clip_at_zero(np.fft.ifft(W[:, None] * (np.fft.fft(x - tau*gy_tmp, axis=0) + tau*FATb), axis=0)) - x
-
-        #y = prox_Fs(y + sigma*(K @ x_bar))
-        #y = prox_Fs(y + sigma*grad(x_bar))
-        gx_tmp[1:, :] = -np.diff(x_bar, axis=0)/2
-        y = y + sigma*gx_tmp
-        y = y - (clip_at_zero(y - sigma*Lambda) - clip_at_zero(-y - sigma*Lambda))
-
-        # Calculate norms
-        if k%20 == 0:
-            fidelity = np.mean(0.5*np.sqrt(np.mean((fftconvolve(hl[:, None], x, axes=0, mode='same') - b)**2, axis=0)), axis=-1)
             tv = np.mean(np.sum(np.abs(grad(x)), axis=0), axis=-1)
             energy = 1.0*fidelity + Lambda*tv
             logging.info("[%4d] : energy %e \t fidelity %e \t TV %e" %(k,energy,fidelity,tv))
@@ -370,7 +294,7 @@ def std_deconvolution(data: np.ndarray, h: np.ndarray, snr: float=5.0, n_shift: 
         hl = np.concatenate((h, np.zeros(N - len(h))))
     elif len(h) >= N:
         hl = np.copy(h[:N])
-    hl = hl/np.sum(hl**2)
+    hl = hl/np.sum(hl)
 
     # roll over to match the effect of fftcovolve
     #hl = np.roll(hl, -N//2)
@@ -588,8 +512,7 @@ class TOFResponse(SerializableMixin):
         plt.ylabel("Intensity [a.u.]")
 
     def apply(self, tof_trace: Union[xr.DataArray, np.ndarray],
-              Lambda: float=0.01,
-              n_iter: int=4000,
+              n_iter: int=500,
               reflection_period: List[int]=list(),
               reflection_amplitude: List[float]=list(),
               method: str="matrix") -> xr.DataArray:
@@ -653,10 +576,8 @@ class TOFResponse(SerializableMixin):
         Args:
           tof_trace: The eTOF data as a DataArray returned by `AdqRawChannel` with shape (pulses, samples), or
                a numpy array of shape (n_pulses, n_samples)
-          Lambda: The regularization strength.
           n_iter: Number of deconvoluton iterations.
-          method: Set to "matrix" for matrix multplications (faster for shorter traces, ie len(trace) < 400).
-                  Use "fft" for the FFT-based method. Warning: the two methods provide similar, but *not identcal* results.
+          method: Set to "matrix" for matrix multiplications (faster for shorter traces, ie len(trace) < 400).
                   Use "standard" for  standard deconvolution.
 
         Returns: The deconvolved data as a DataArray.
@@ -664,29 +585,31 @@ class TOFResponse(SerializableMixin):
         norm = 1
         if isinstance(tof_trace, np.ndarray):
             if len(tof_trace.shape) == 1:
-                norm = np.max(tof_trace)
-                original = xr.DataArray(tof_trace/norm, dims=('sample',))
+                norm = np.sum(tof_trace)
+                original = xr.DataArray(tof_trace, dims=('sample',))
             else:
                 original = xr.DataArray(tof_trace, dims=('pulse', 'sample'))
-                norm = np.max(original.data, axis=0, keepdims=True)
+                norm = np.sum(original.data, axis=-1, keepdims=True)
                 original.data /= norm
         elif isinstance(tof_trace, xr.DataArray):
             original = tof_trace.copy()
-            norm = np.max(original.data, axis=0, keepdims=True)
+            norm = np.sum(original.data, axis=-1, keepdims=True)
             original.data /= norm
         else:
             raise ValueError("Expect `tof_trace` to be a numpy array or xarray DataArray.")
         h = self.get_response(reflection_period=reflection_period, reflection_amplitude=reflection_amplitude)
-        if method == "tv_matrix":
-            result_trace = tv_deconvolution(original.data, h=h, Lambda=Lambda, n_iter=n_iter, n_shift=self.n_filter)
+        if method == "nn_matrix":
+            result_trace = nn_deconvolution(original.data, h=h, n_iter=n_iter, n_shift=self.n_filter, **kwargs)
+        elif method == "tv_matrix":
+            result_trace = tv_deconvolution(original.data, h=h, n_iter=n_iter, n_shift=self.n_filter, **kwargs)
         elif method == "standard":
-            result_trace = std_deconvolution(original.data, h=h, n_shift=self.n_filter)
-        elif method == "tv_fft":
-            result_trace = tv_deconvolution_fft(original.data, h=h, Lambda=Lambda, n_iter=n_iter, n_shift=self.n_filter)
+            result_trace = std_deconvolution(original.data, h=h, n_shift=self.n_filter, **kwargs)
         else:
             raise ValueError("Unknown method.")
-        result = original
-        result.data = result_trace*norm
+        result_norm = np.sum(result_trace, axis=-1, keepdims=True)
+        result_trace /= result_norm
+        result = xr.DataArray(result_trace*norm, dims=original.dims, coords=original.coords)
+
         return result
 
 class TOFAnalogResponse(SerializableMixin):
@@ -739,7 +662,7 @@ class TOFAnalogResponse(SerializableMixin):
       n_samples: Total number of samples use for impulse response.
     """
     def __init__(self,
-                 roi: slice,
+                 roi: Optional[slice]=None,
                  n_samples: int=300,
                  n_filter: int=75,
                  ):
@@ -837,11 +760,11 @@ class TOFAnalogResponse(SerializableMixin):
         plt.legend(frameon=False)
 
     def apply(self, tof_trace: Union[xr.DataArray, np.ndarray],
-              Lambda: float=0.01,
-              n_iter: int=4000,
+              n_iter: int=500,
               reflection_period: List[int]=list(),
               reflection_amplitude: List[float]=list(),
-              method: str="matrix") -> xr.DataArray:
+              method: str="nn_matrix",
+              **kwargs) -> xr.DataArray:
         """
         Apply TV-deconvolution on TOF data taken in *analog* mode,
         assuming the given parameter setting and using the Lambda parameter
@@ -902,10 +825,8 @@ class TOFAnalogResponse(SerializableMixin):
         Args:
           tof_trace: The eTOF data as a DataArray returned by `AdqRawChannel` with shape (pulses, samples), or
                a numpy array of shape (n_pulses, n_samples)
-          Lambda: The regularization strength.
           n_iter: Number of deconvoluton iterations.
-          method: Set to "matrix" for matrix multplications (faster for shorter traces, ie len(trace) < 400).
-                  Use "fft" for the FFT-based method. Warning: the two methods provide similar, but *not identcal* results.
+          method: Set to "matrix" for matrix multiplications (faster for shorter traces, ie len(trace) < 400).
                   Use "standard" for  standard deconvolution.
 
         Returns: The deconvolved data as a DataArray.
@@ -913,27 +834,29 @@ class TOFAnalogResponse(SerializableMixin):
         norm = 1
         if isinstance(tof_trace, np.ndarray):
             if len(tof_trace.shape) == 1:
-                norm = np.max(tof_trace)
-                original = xr.DataArray(tof_trace/norm, dims=('sample',))
+                norm = np.sum(tof_trace)
+                original = xr.DataArray(tof_trace, dims=('sample',))
             else:
                 original = xr.DataArray(tof_trace, dims=('pulse', 'sample'))
-                norm = np.max(original.data, axis=0, keepdims=True)
+                norm = np.sum(original.data, axis=-1, keepdims=True)
                 original.data /= norm
         elif isinstance(tof_trace, xr.DataArray):
             original = tof_trace.copy()
-            norm = np.max(original.data, axis=0, keepdims=True)
+            norm = np.sum(original.data, axis=-1, keepdims=True)
             original.data /= norm
         else:
             raise ValueError("Expect `tof_trace` to be a numpy array or xarray DataArray.")
         h = self.get_response(reflection_period=reflection_period, reflection_amplitude=reflection_amplitude)
-        if method == "tv_matrix":
-            result_trace = tv_deconvolution(original.data, h=h, Lambda=Lambda, n_iter=n_iter, n_shift=self.n_filter)
+        if method == "nn_matrix":
+            result_trace = nn_deconvolution(original.data, h=h, n_iter=n_iter, n_shift=self.n_filter, **kwargs)
+        elif method == "tv_matrix":
+            result_trace = tv_deconvolution(original.data, h=h, n_iter=n_iter, n_shift=self.n_filter, **kwargs)
         elif method == "standard":
-            result_trace = std_deconvolution(original.data, h=h, n_shift=self.n_filter)
-        elif method == "tv_fft":
-            result_trace = tv_deconvolution_fft(original.data, h=h, Lambda=Lambda, n_iter=n_iter, n_shift=self.n_filter)
+            result_trace = std_deconvolution(original.data, h=h, n_shift=self.n_filter, **kwargs)
         else:
             raise ValueError("Unknown method.")
-        result = original
-        result.data = result_trace*norm
+        result_norm = np.sum(result_trace, axis=-1, keepdims=True)
+        result_trace /= result_norm
+        result = xr.DataArray(result_trace*norm, dims=original.dims, coords=original.coords)
+
         return result
