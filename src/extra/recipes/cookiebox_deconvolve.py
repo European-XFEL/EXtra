@@ -512,7 +512,7 @@ class TOFResponse(SerializableMixin):
         plt.ylabel("Intensity [a.u.]")
 
     def apply(self, tof_trace: Union[xr.DataArray, np.ndarray],
-              n_iter: int=500,
+              n_iter: int=100,
               reflection_period: List[int]=list(),
               reflection_amplitude: List[float]=list(),
               method: str="nn_matrix", **kwargs) -> xr.DataArray:
@@ -587,13 +587,17 @@ class TOFResponse(SerializableMixin):
             if len(tof_trace.shape) == 1:
                 norm = np.sum(tof_trace)
                 original = xr.DataArray(tof_trace, dims=('sample',))
+                if np.abs(norm) < 1e-6:
+                    norm = 1
             else:
                 original = xr.DataArray(tof_trace, dims=('pulse', 'sample'))
                 norm = np.sum(original.data, axis=-1, keepdims=True)
+                norm[np.abs(norm)<1e-6] = 1
                 original.data /= norm
         elif isinstance(tof_trace, xr.DataArray):
             original = tof_trace.copy()
             norm = np.sum(original.data, axis=-1, keepdims=True)
+            norm[np.abs(norm)<1e-6] = 1
             original.data /= norm
         else:
             raise ValueError("Expect `tof_trace` to be a numpy array or xarray DataArray.")
@@ -760,7 +764,7 @@ class TOFAnalogResponse(SerializableMixin):
         plt.legend(frameon=False)
 
     def apply(self, tof_trace: Union[xr.DataArray, np.ndarray],
-              n_iter: int=500,
+              n_iter: int=100,
               reflection_period: List[int]=list(),
               reflection_amplitude: List[float]=list(),
               method: str="nn_matrix",
@@ -836,13 +840,17 @@ class TOFAnalogResponse(SerializableMixin):
             if len(tof_trace.shape) == 1:
                 norm = np.sum(tof_trace)
                 original = xr.DataArray(tof_trace, dims=('sample',))
+                if np.abs(norm) < 1e-6:
+                    norm = 1
             else:
                 original = xr.DataArray(tof_trace, dims=('pulse', 'sample'))
                 norm = np.sum(original.data, axis=-1, keepdims=True)
+                norm[np.abs(norm)<1e-6] = 1
                 original.data /= norm
         elif isinstance(tof_trace, xr.DataArray):
             original = tof_trace.copy()
             norm = np.sum(original.data, axis=-1, keepdims=True)
+            norm[np.abs(norm)<1e-6] = 1
             original.data /= norm
         else:
             raise ValueError("Expect `tof_trace` to be a numpy array or xarray DataArray.")
