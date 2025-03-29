@@ -677,6 +677,7 @@ class TOFAnalogResponse(SerializableMixin):
         self._version = 1
         self._all_fields = [
                             "h",
+                            "h_unc",
                             "n_samples",
                             "n_filter",
                             "_version",
