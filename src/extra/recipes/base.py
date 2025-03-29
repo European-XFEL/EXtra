@@ -17,6 +17,10 @@ def save_dict(h5grp, obj: Dict[str, Any]):
             new_v = asdict(v)
             newgrp = h5grp.create_group(f"{k}")
             save_dict(newgrp, new_v)
+        elif isinstance(v, SerializableMixin):
+            new_v = v._asdict()
+            newgrp = h5grp.create_group(f"{k}")
+            save_dict(newgrp, new_v)
         else:
             h5grp[f"{k}"] = v
 
@@ -50,12 +54,18 @@ class SerializableMixin(object):
 
         """
         with h5py.File(filename, "w") as fid:
-            all_data = {k: v for k, v in self.__dict__.items() if k in self._all_fields}
+            all_data = self._asdict()
             save_dict(fid, all_data)
 
-    def _post_load(self):
+    def _asdict(self):
         """
-        Actions after loading a file.
+        Return serializable dict.
+        """
+        pass
+
+    def _fromdict(self, all_data):
+        """
+        Rebuild it from dict.
         """
         pass
 
@@ -67,9 +77,7 @@ class SerializableMixin(object):
         obj = cls()
         with h5py.File(filename, "r") as fid:
             all_data = load_dict(fid)
-            for k, v in all_data.items():
-                setattr(obj, k, v)
-        obj._post_load()
+            obj._fromdict(all_data)
 
         return obj
 
