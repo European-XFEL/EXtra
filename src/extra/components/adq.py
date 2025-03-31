@@ -390,8 +390,8 @@ class AdqRawChannel:
 
         # Generate offsets of first pulse and last pulse of each
         # train relative to all pulses.
-        pulse_first = num_pulses.cumsum() - num_pulses.iloc[0]
-        pulse_last = pulse_first + num_pulses
+        pulse_last = num_pulses.cumsum()
+        pulse_first = pulse_last - num_pulses
 
         # Combine pulse layout into a single dataframe.
         # TODO: samples_per_pulses is currently assumed to be constant
