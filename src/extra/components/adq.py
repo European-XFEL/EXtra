@@ -411,7 +411,7 @@ class AdqRawChannel:
 
         if pulses_end > data.shape[-1]:
             raise ValueError(f'trace axis too short for {num_pulses} pulses '
-                             f'located at {pulses_start}:{pulses_end}]')
+                             f'located at {pulses_start}:{pulses_end}')
 
         return data[..., pulses_start:pulses_end].reshape(
             *data.shape[:-1], num_pulses, samples_per_pulse)
