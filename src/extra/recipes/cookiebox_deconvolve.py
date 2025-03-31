@@ -300,10 +300,13 @@ def std_deconvolution(data: np.ndarray, h: np.ndarray, snr: float=5.0, n_shift: 
     #hl = np.roll(hl, -N//2)
     hl = np.roll(hl, -n_shift, axis=-1)
 
-    snr2 = snr**2
     H = np.fft.fft(hl)
-    H2 = np.abs(H)**2
-    W = snr2*np.conj(H)/(snr2*H2 + 1)
+    if np.isinf(snr):
+        W = 1.0/(H+1e-20)
+    else:
+        snr2 = snr**2
+        H2 = np.abs(H)**2
+        W = snr2*np.conj(H)/(snr2*H2 + 1)
 
     x = np.fft.ifft(W[:,None]*np.fft.fft(b, axis=0), axis=0)
     x = np.abs(x)
@@ -515,6 +518,7 @@ class TOFResponse(SerializableMixin):
               n_iter: int=100,
               reflection_period: List[int]=list(),
               reflection_amplitude: List[float]=list(),
+              extra_shift: int=2,
               method: str="nn_matrix", **kwargs) -> xr.DataArray:
         """
         Apply TV-deconvolution on TOF data taken in *analog* mode,
@@ -577,8 +581,10 @@ class TOFResponse(SerializableMixin):
           tof_trace: The eTOF data as a DataArray returned by `AdqRawChannel` with shape (pulses, samples), or
                a numpy array of shape (n_pulses, n_samples)
           n_iter: Number of deconvoluton iterations.
-          method: Set to "matrix" for matrix multiplications (faster for shorter traces, ie len(trace) < 400).
+          method: Set to "nn_matrix" for non-negative deconvolution with matrix multiplications.
+                  Set to "tv_matrix' for Total Variaton deconvolution.
                   Use "standard" for  standard deconvolution.
+          extra_shift: Number of samples to shift the impulse response to additionally for alignment.
 
         Returns: The deconvolved data as a DataArray.
         """
@@ -603,11 +609,11 @@ class TOFResponse(SerializableMixin):
             raise ValueError("Expect `tof_trace` to be a numpy array or xarray DataArray.")
         h = self.get_response(reflection_period=reflection_period, reflection_amplitude=reflection_amplitude)
         if method == "nn_matrix":
-            result_trace = nn_deconvolution(original.data, h=h, n_iter=n_iter, n_shift=self.n_filter, **kwargs)
+            result_trace = nn_deconvolution(original.data, h=h, n_iter=n_iter, n_shift=self.n_filter+extra_shift, **kwargs)
         elif method == "tv_matrix":
-            result_trace = tv_deconvolution(original.data, h=h, n_iter=n_iter, n_shift=self.n_filter, **kwargs)
+            result_trace = tv_deconvolution(original.data, h=h, n_iter=n_iter, n_shift=self.n_filter+extra_shift, **kwargs)
         elif method == "standard":
-            result_trace = std_deconvolution(original.data, h=h, n_shift=self.n_filter, **kwargs)
+            result_trace = std_deconvolution(original.data, h=h, n_shift=self.n_filter+extra_shift, **kwargs)
         else:
             raise ValueError("Unknown method.")
         result_norm = np.sum(result_trace, axis=-1, keepdims=True)
@@ -769,6 +775,7 @@ class TOFAnalogResponse(SerializableMixin):
               reflection_period: List[int]=list(),
               reflection_amplitude: List[float]=list(),
               method: str="nn_matrix",
+              extra_shift: int=2,
               **kwargs) -> xr.DataArray:
         """
         Apply TV-deconvolution on TOF data taken in *analog* mode,
@@ -831,8 +838,10 @@ class TOFAnalogResponse(SerializableMixin):
           tof_trace: The eTOF data as a DataArray returned by `AdqRawChannel` with shape (pulses, samples), or
                a numpy array of shape (n_pulses, n_samples)
           n_iter: Number of deconvoluton iterations.
-          method: Set to "matrix" for matrix multiplications (faster for shorter traces, ie len(trace) < 400).
+          method: Set to "nn_matrix" for non-negative matrix multiplications.
+                  Set to "tv_matrix" for Total Variatio deconvolution.
                   Use "standard" for  standard deconvolution.
+          extra_shift: Shift the impulse response function by this many points before using it to align the data.
 
         Returns: The deconvolved data as a DataArray.
         """
@@ -857,11 +866,11 @@ class TOFAnalogResponse(SerializableMixin):
             raise ValueError("Expect `tof_trace` to be a numpy array or xarray DataArray.")
         h = self.get_response(reflection_period=reflection_period, reflection_amplitude=reflection_amplitude)
         if method == "nn_matrix":
-            result_trace = nn_deconvolution(original.data, h=h, n_iter=n_iter, n_shift=self.n_filter, **kwargs)
+            result_trace = nn_deconvolution(original.data, h=h, n_iter=n_iter, n_shift=self.n_filter+extra_shift, **kwargs)
         elif method == "tv_matrix":
-            result_trace = tv_deconvolution(original.data, h=h, n_iter=n_iter, n_shift=self.n_filter, **kwargs)
+            result_trace = tv_deconvolution(original.data, h=h, n_iter=n_iter, n_shift=self.n_filter+extra_shift, **kwargs)
         elif method == "standard":
-            result_trace = std_deconvolution(original.data, h=h, n_shift=self.n_filter, **kwargs)
+            result_trace = std_deconvolution(original.data, h=h, n_shift=self.n_filter+extra_shift, **kwargs)
         else:
             raise ValueError("Unknown method.")
         result_norm = np.sum(result_trace, axis=-1, keepdims=True)
