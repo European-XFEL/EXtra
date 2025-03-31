@@ -193,7 +193,7 @@ class AdqRawChannel:
             cm_period = int(cm_period)
 
         self._cm_period = cm_period
-        self._extra_cm_period = extra_cm_period
+        self._extra_cm_period = list(extra_cm_period)
         self._baselevel = baselevel
         self._baseline = baseline
 
@@ -355,7 +355,7 @@ class AdqRawChannel:
 
         if self._cm_period > 0:
             # Apply common mode corrections (includes baselevel).
-            self._correct_cm_by_train(data, out, [self._cm_period] + self._extra_cm_period,
+            self._correct_cm_by_train(data, out, [self._cm_period] + list(self._extra_cm_period),
                                       self._baseline, self._baselevel)
 
         elif self._baselevel is not None:
