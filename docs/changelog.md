@@ -23,6 +23,7 @@ Added:
 
 Fixed:
 - Fixed [PumpProbePattern.is_constant_pattern()][extra.components.PumpProbePattern.is_constant_pattern] to properly take pump probe flags into account when determining whether a pattern is constant (!313).
+- [AdqRawChannel.pulse_edges()][extra.components.AdqRawChannel.pulse_edges] now also supports data where the trace is too short for the actual number of pulses present (!312).
 - Fixed issues with pulse separation in [AdqRawChannel][extra.components.AdqRawChannel] with variable pulse patterns and those with trains missing ADQ data (!310).
 - [AdqRawChanne][extra.components.AdqRawChannel] now properly enumerates channels starting with 1 rather than 0 as in the Karabo device.
 - Fixed reading of the
