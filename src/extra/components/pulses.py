@@ -315,8 +315,15 @@ class PulsePattern:
         if pids_by_train.count().unique().size > 1:
             return False
 
-        # Are the pulse IDs in each pulse position identical?
-        if any([len(x) > 1 for x in pulse_ids.groupby(level=1).unique()]):
+        # Is the pulse data (ID and any other index flags) in each pulse
+        # position identical?
+        # To do this, move any indices beyond train and pulse into
+        # columns, and then group by pulse.
+        pulse_data = pulse_ids.reset_index(pulse_ids.index.names[2:])
+        data_by_pulse = pulse_data.groupby(level=1)
+        if any([len(unique_rows) > 1
+                for column in pulse_data.columns
+                for unique_rows in data_by_pulse[column].unique()]):
             return False
 
         if include_empty_trains:
