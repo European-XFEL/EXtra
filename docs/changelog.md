@@ -22,6 +22,7 @@ Added:
 - Exposed detector data components from `extra_data` in `extra.components` (AGIPD1M, AGIPD500K, DSSC1M, JUNGFRAU, LPD1M).
 
 Fixed:
+- Fixed [PumpProbePattern.is_constant_pattern()][extra.components.PumpProbePattern.is_constant_pattern] to properly take pump probe flags into account when determining whether a pattern is constant (!313).
 - Fixed issues with pulse separation in [AdqRawChannel][extra.components.AdqRawChannel] with variable pulse patterns and those with trains missing ADQ data (!310).
 - [AdqRawChanne][extra.components.AdqRawChannel] now properly enumerates channels starting with 1 rather than 0 as in the Karabo device.
 - Fixed reading of the
