@@ -40,7 +40,7 @@ def fwhm(x: np.ndarray, y: np.ndarray) -> float:
     half_max = 0.5*np.amax(y)
     idx = np.where(y > half_max)[0]
     if len(idx) < 2:
-        return 999
+        return -1
     left_idx = idx[0]
     right_idx = idx[-1]
     return x[right_idx] - x[left_idx]
