@@ -621,7 +621,7 @@ class VSLight(SerializableMixin):
                          fmt='o',
                          lw=2, label=f"eTOF {tof_id}")
         plt.xlabel("Energy [eV]")
-        plt.ylabel("Resolutison [eV]")
+        plt.ylabel("Resolution [eV]")
         plt.legend(frameon=False, ncols=2)
         plt.tight_layout()
         plt.show()
