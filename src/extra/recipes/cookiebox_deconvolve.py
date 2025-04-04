@@ -31,23 +31,8 @@ def nn_deconvolution(data: np.ndarray, h: np.ndarray, n_iter: int=4000, n_shift:
         $y = x $
 
 
-    The problem is solved using the Chambolle-Pock algorithm, which uss the primal-dual formulation
-    of the optimization objective:
-        min_x max_y G(x) + <x, y> - F*(y)
-
-    The algorithm to solve this problem is:
-        $x_{i+1} = (I + \tau \partial G)^{-1} (x_i - \tau y_i)$
-        $\bar{x}_{i+1} = x_{i+1} + \omega(x_{i+1} - x_i)$
-        $y_{i+1} = (I + \sigma \partial F^\star)^{-1}(y_i + \sigma \bar{x})$
-
-    It converges if $\tau \sigma L^2 \leq 1$.
-
     References:
-    [1] Chambolle, A., Pock, T. A First-Order Primal-Dual Algorithm for Convex
-        Problems with Applications to Imaging.
-        J Math Imaging Vis 40, 120–145 (2011).
-        https://doi.org/10.1007/s10851-010-0251-1
-    [2] N. Parikh and S. Boyd. Proximal Algorithms.
+    [1] N. Parikh and S. Boyd. Proximal Algorithms.
         Foundations and Trends in Optimization,
         volume 1, issue 3, pp. 127-239, 2014.
 
@@ -116,7 +101,7 @@ def nn_deconvolution(data: np.ndarray, h: np.ndarray, n_iter: int=4000, n_shift:
         return x[:,0]
 
     return np.transpose(x)
-    
+
 def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=0.0, n_iter: int=4000, n_shift: int=0, nonneg: bool=True):
     r'''
     Chambolle-Pock algorithm for the minimization of the objective function
@@ -329,12 +314,12 @@ class TOFResponse(SerializableMixin):
     Given a run with the Cookiebox in counting mode, obtain its impulse response.
 
     Example usage:
-    ```
+    ```python
     tof_id = 4
     channel = "3_A"
     digitizer = "SQS_DIGITIZER_UTC4/ADC/1:network"
     calib_run = open_run(proposal=900485, run=320)
-    calib_run = calib_run.select([digitizer, mpod_source], require_all=True)
+    calib_run = calib_run.select([digitizer], require_all=True)
     tof = AdqRawChannel(calib_run,
                         channel=channel,
                         digitizer=digitizer,
@@ -423,7 +408,7 @@ class TOFResponse(SerializableMixin):
         Args:
           tof: `AdqRawChannel` used to access data for a given eTOF.
         """
-        
+
         # get pulse data
         logging.info("Get pulse data ...")
         this_tof_data = tof.pulse_data(pulse_dim='pulseIndex')
@@ -528,7 +513,7 @@ class TOFResponse(SerializableMixin):
         This could be coupled with the `CookieboxCalibration` object to deconvolve
         and denoise spectra before calibration.
 
-        ```
+        ```python
         # open a new run
         run = open_run(proposal=900485, run=349)
         # get the calibration constants
@@ -627,7 +612,7 @@ class TOFAnalogResponse(SerializableMixin):
     Given a run with the Cookiebox in analog mode, obtain its impulse response.
 
     Example usage:
-    ```
+    ```python
     tof_id = 4
     channel = "3_A"
     digitizer = "SQS_DIGITIZER_UTC4/ADC/1:network"
@@ -715,13 +700,12 @@ class TOFAnalogResponse(SerializableMixin):
           tof: `AdqRawChannel` used to access data for a given eTOF.
           scan: `Scan` used to detect which regions cotain which energies.
         """
-        
+
         # get pulse data
         logging.info("Get pulse data ...")
         this_tof_data = -tof.pulse_data(pulse_dim='pulseIndex')
         if self.roi is not None:
             this_tof_data = this_tof_data.isel(sample=self.roi)
-        this_tof_data = this_tof_data.isel(sample=np.s_[:self.n_samples])
         this_tof_data = this_tof_data.unstack('pulse')
 
         # get means
@@ -785,7 +769,7 @@ class TOFAnalogResponse(SerializableMixin):
         This could be coupled with the `CookieboxCalibration` object to deconvolve
         and denoise spectra before calibration.
 
-        ```
+        ```python
         # open a new run
         run = open_run(proposal=900485, run=349)
         # get the calibration constants
