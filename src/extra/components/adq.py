@@ -1302,23 +1302,36 @@ class AdqRawChannel:
         if max_edges is None:
             max_edges = pulse_layout['length'].max() // 100
 
+        # Convert to unlabelled array for use in native code later.
+        pulse_ids = pulse_ids.to_numpy()
+
         # Set-up pasha for parallel processing.
         psh = self._prepare_pasha(parallel)
-        trace_out = np.zeros(raw_key.entry_shape, dtype=np.float32)
         edges = psh.alloc(shape=(len(pulse_ids), max_edges),
                           dtype=np.float32, fill=np.nan)
         amplitudes = psh.alloc(like=edges, fill=np.nan)
 
+        # These buffers are only used locally and not in shared memory!
+        trace_out = np.zeros(raw_key.entry_shape, dtype=np.float32)
+        trace_split = np.zeros(
+            (pulse_layout['count'].max(), pulse_layout['length'].max()),
+            dtype=np.float32)
+
         def digitize_hits(wid, train_index, train_id, trace_in):
-            layout = pulse_layout.iloc[train_index]
+            _, first, last, pulse_len = pulse_layout.iloc[train_index]
 
-            pulse_traces = self._reshape_pulses_by_train(
-                self._preprocess(trace_in, trace_out),
-                layout['count'], layout['length'])
-            pulse_sel = range(layout['first'], layout['last'])
+            self._reshape_flat_pulses(
+                self._preprocess(trace_in, trace_out)[np.newaxis, :],
+                trace_split, pulse_ids[first:last], pulse_len)
 
-            for pulse_trace, pulse_index in zip(pulse_traces, pulse_sel):
-                edge_func(signal=pulse_trace, edges=edges[pulse_index],
+            # No need to slice trace_split to the actual number of
+            # pulses, as first:last limits the loop. It's still
+            # important to limit the sample axis to the actual length
+            # of pulses in this train, as the reshape above would leave
+            # any samples after the actual length untouched from an
+            # earlier train with potentially longer pulses.
+            for signal, pulse_index in zip(trace_split, range(first, last)):
+                edge_func(signal=signal[:pulse_len], edges=edges[pulse_index],
                           amplitudes=amplitudes[pulse_index], **edge_kw)
 
         psh.map(digitize_hits, raw_key)
