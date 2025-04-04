@@ -2,10 +2,10 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from extra.recipes import CookieboxCalibration
+from extra.recipes import VSLight
 from extra_data import open_run
 
-def test_cookiebox_calibration():
+def test_vs_light():
     # calibrate a given run
     pes1 = 'SQS_DIGITIZER_UTC4/ADC/1:network'
     pes2 = 'SQS_DIGITIZER_UTC5/ADC/1:network'
@@ -15,7 +15,7 @@ def test_cookiebox_calibration():
     calib_run = calib_run[0].union(*calib_run[1:])
 
     energy_axis = np.linspace(968, 1026, 160)
- 
+
     create_channel = lambda digi, ch: AdqRawChannel(calib_run,
                                                     ch,
                                                     digitizer=digi,
@@ -44,23 +44,16 @@ def test_cookiebox_calibration():
            15: create_channel(pes2, "4_C"),
            }
 
-    cal = CookieboxCalibration(
-                    # these were chosen by eye
-                    # if set to None, automatic discovery is used
-                    # but it may fail
-                    auger_start_roi=150,
-                    start_roi=200,
-                    stop_roi=320,
-                    interleaved=True,
-    )
+    cal = VSLight()
 
     # do calibration
     cal.setup(run=calib_run, energy_axis=energy_axis, tof_settings=tof_settings,
               xgm=XGM(calib_run, "SQS_DIAG1_XGMD/XGM/DOOCS"),
-              scan=Scan(calib_run["SA3_XTD10_MONO/MDL/PHOTON_ENERGY", "actualEnergy"]))
+              energy=calib_run["SA3_XTD10_MONO/MDL/PHOTON_ENERGY", "actualEnergy"]
+              )
 
-    cal.to_file('cookiebox_calib.h5')
-    cal_read = CookieboxCalibration.from_file('cookiebox_calib.h5')
+    cal.to_file('vs_light.h5')
+    cal_read = VSLight.from_file('vs_light.h5')
 
     r188 = open_run(proposal=8697, run=188).select(cal_read.sources, require_all=True).select_trains(np.s_[:5])
     r188_cal = cal_read.apply(r188)
@@ -71,5 +64,5 @@ def test_cookiebox_calibration():
     #xr.testing.assert_allclose(r188_cal, old_r188_cal)
 
 if __name__ == '__main__':
-    test_cookiebox_calibration()
+    test_vs_light()
 
