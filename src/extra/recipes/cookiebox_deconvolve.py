@@ -716,7 +716,7 @@ class TOFAnalogResponse(SerializableMixin):
             mono_data = this_tof_data.sel(trainId=scan.positions_train_ids[k]).mean('trainId').mean('pulseIndex').to_numpy()
             mono_data /= np.amax(mono_data)
             m = np.argmax(mono_data)
-            xi = np.arange(self.n_samples) - m + self.n_filter
+            xi = np.arange(mono_data.shape[-1]) - m + self.n_filter
             h += [np.interp(h_axis, xi, mono_data)]
         h = np.stack(h, axis=0)
         h_unc = h.std(0)
