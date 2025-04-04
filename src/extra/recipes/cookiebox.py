@@ -1040,7 +1040,7 @@ class CookieboxCalibration(SerializableMixin):
                  Its axes are expected to be ('trainId', 'pulseIndex', 'sample', 'tof').
                  It is recommended to use always `load_trace` to obtain this.
 
-        Returns: the calibrated data as an xarray DataArray. The DataArray obs cotains the calibrated data.
+        Returns: the calibrated data as an xarray DataArray.
                  The axes of the output are ('trainId', 'pulseIndex', 'energy', 'tof').
         """
         tof_idx = [idx
