@@ -374,7 +374,10 @@ class AdqRawChannel:
         pids_by_train = pulse_ids.groupby(level=0)
 
         # Number of pulses per train.
-        num_pulses = pids_by_train.count()
+        # Note that using .pulse_counts() is different than
+        # pids_by_train.count(), as the latter may miss trains due to
+        # having no pulses while still having the record of that.
+        num_pulses = self._pulses.pulse_counts()
 
         # Align pulses to passed train IDs of actual data.
         try:
