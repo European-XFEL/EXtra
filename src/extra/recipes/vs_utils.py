@@ -35,7 +35,7 @@ class TruncatedIncrementalPCA(IncrementalPCA):
         self.svd_solver = svd_solver
         if n_components is not None:
             self.svd = self.create_svd(n_components)
-            
+
     def create_svd(self,n_components):
         if self.svd_solver == 'blas':
             svd = partial(np.linalg.svd, full_matrices=False)
@@ -177,7 +177,7 @@ class TruncatedIncrementalPCA(IncrementalPCA):
         #print(f'rest = {time.time()-start}s')
         return self
 
-def _fit_estimator(estimator, X: np.ndarray, y: np.ndarray, w: Optional[np.ndarray]=None):
+def _fit_estimator(y: np.ndarray, X: np.ndarray, estimator, w: Optional[np.ndarray]=None):
     from sklearn.base import clone
     estimator = clone(estimator)
     if w is None:
@@ -207,18 +207,17 @@ class MultiOutputGenericWithStd(MetaEstimatorMixin, BaseEstimator):
 
         Returns: self.
         """
-        from joblib import Parallel, delayed
+        from multiprocessing import Pool
+        from functools import partial
         if y.ndim == 1:
             raise ValueError(
                 "y must have at least two dimensions for "
                 "multi-output regression but has only one."
             )
-        self.estimators_ = Parallel(n_jobs=self.n_jobs)(
-            delayed(_fit_estimator)(
-                self.estimator, X, y[:, i], weights
-            )
-            for i in range(y.shape[1])
-        )
+        with Pool(self.n_jobs) as p:
+            this_fit_estimator = partial(_fit_estimator, X=X, estimator=self.estimator, w=weights)
+            y_split = np.split(y, y.shape[1], axis=1)
+            self.estimators_ = p.map(this_fit_estimator, y_split)
 
         return self
 
