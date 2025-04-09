@@ -1107,7 +1107,8 @@ class AdqRawChannel:
         pulse_ids = pulse_ids.to_numpy()
 
         # Temporary buffer for a single iteration.
-        tmp = np.zeros((200,) + self._raw_key.entry_shape, dtype=out.dtype)
+        tmp = np.zeros((200,) + roi_shape(
+            self._raw_key.entry_shape, train_roi), dtype=out.dtype)
 
         for kd in raw_key.split_trains(trains_per_part=200):
             pulse_sel = np.s_[pulse_layout.loc[kd.train_ids[0]]['first']:
