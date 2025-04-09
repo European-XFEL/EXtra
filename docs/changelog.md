@@ -7,23 +7,30 @@
 
 ## [Unreleased]
 
-<!-- !!! note -->
-<!--     All of the changes here are deployed to our current environment, even though -->
-<!--     a release hasn't been made for them yet. If you want to have these updates -->
-<!--     in a personal environment you'll need to install the package from git. -->
+!!! note
+    All of the changes here are deployed to our current environment, even though
+    a release hasn't been made for them yet. If you want to have these updates
+    in a personal environment you'll need to install the package from git.
 
-<!--     ```bash title="Installation command" -->
-<!--     pip install git+https://github.com/European-XFEL/EXtra.git -->
-<!--     ``` -->
+    ```bash title="Installation command"
+    pip install git+https://github.com/European-XFEL/EXtra.git
+    ```
 
 Added:
 - [TOFResponse][extra.recipes.TOFResponse] to estimate, deconvolve and denoise the instrumental response in eTOFs (!304).
 - [VSLight][extra.recipes.VSLight] to calibrate and deconvolve eTOFs from a continuous monochromator scan (!304).
 - [CookieboxCalibration][extra.recipes.CookieboxCalibration] to calibrate data from eTOFs after taking a calibration run (!284).
 - [Grating2DCalibration][extra.recipes.Grating2DCalibration] to calibrate data from a 2D grating detector (!284).
+- Exposed detector data components from `extra_data` in `extra.components` (AGIPD1M, AGIPD500K, DSSC1M, JUNGFRAU, LPD1M).
 
 Fixed:
+- Fixed [PumpProbePattern.is_constant_pattern()][extra.components.PumpProbePattern.is_constant_pattern] to properly take pump probe flags into account when determining whether a pattern is constant (!313).
+- [AdqRawChannel.pulse_edges()][extra.components.AdqRawChannel.pulse_edges] now also supports data where the trace is too short for the actual number of pulses present (!312).
+- Fixed issues with pulse separation in [AdqRawChannel][extra.components.AdqRawChannel] with variable pulse patterns and those with trains missing ADQ data (!310).
 - [AdqRawChanne][extra.components.AdqRawChannel] now properly enumerates channels starting with 1 rather than 0 as in the Karabo device.
+- Fixed reading of the
+  [Scantool.acquisition_time][extra.components.Scantool.acquisition_time]
+  property for newer Scantool versions (!303).
 
 ## [2024.2]
 Added:

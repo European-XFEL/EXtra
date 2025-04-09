@@ -710,7 +710,7 @@ def test_pump_probe_basic(mock_spb_aux_run, source):
 
 
 def test_pump_probe_specials(mock_spb_aux_run, mock_sqs_remi_run):
-    # Test full pulse IDs using defautl arguments.
+    # Test full pulse IDs using default arguments.
     run = mock_spb_aux_run.select('SPB*').select_trains(np.s_[10:])
     np.testing.assert_equal(
         PumpProbePulses(run, pulse_offset=1).pulse_ids()[run.train_ids[0]],
@@ -724,3 +724,19 @@ def test_pump_probe_specials(mock_spb_aux_run, mock_sqs_remi_run):
     # Test single pulse case with pulse_offset != 0 (fails).
     with pytest.raises(ValueError):
         PumpProbePulses(run, pulse_offset=1).pulse_ids()
+
+    # Test a pattern constant in pulse IDs, but having different pump
+    # probe flags (e.g. an alternating laser on/off pattern).
+    pulses = PumpProbePulses(mock_sqs_remi_run[10:], pulse_offset=0)
+
+    # Inject custom cached pulse ID, but make sure to use the same trains.
+    train_ids = pulses._get_train_ids()
+    pulse_indices = np.arange(20)
+    pulses._pulse_ids = pd.Series(
+        np.tile(1000 + pulse_indices * 8, len(train_ids)),
+        pd.MultiIndex.from_tuples(
+            [(train_id, pulse_idx, True, (train_id % 2) == 0)
+            for train_id in train_ids for pulse_idx in pulse_indices],
+            names=('trainId', 'pulseIndex', 'fel', 'ppl')))
+
+    assert not pulses.is_constant_pattern()
