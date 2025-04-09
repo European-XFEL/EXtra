@@ -232,10 +232,12 @@ class MultiOutputGenericWithStd(MetaEstimatorMixin, BaseEstimator):
             Multi-output targets predicted across multiple predictors.
             Note: Separate models are generated for each predictor.
         """
-        from joblib import Parallel, delayed
-        y = Parallel(n_jobs=self.n_jobs)(
-            delayed(e.predict)(X, return_std) for e in self.estimators_
-        )
+        from multiprocessing import Pool
+        from functools import partial
+        def smap(e):
+            return e.predict(X, return_std)
+        with Pool(self.n_jobs) as p:
+            y = p.map(smap, self.estimators_)
         if return_std:
             y, unc = zip(*y)
             return np.asarray(y).T, np.asarray(unc).T
