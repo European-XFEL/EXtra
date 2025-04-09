@@ -186,6 +186,9 @@ def _fit_estimator(y: np.ndarray, X: np.ndarray, estimator, w: Optional[np.ndarr
         estimator.fit(X, y, w)
     return estimator
 
+def smap(e, X, return_std):
+    return e.predict(X, return_std)
+
 def get_properties(model):
     return {k: v for k, v in model.__dict__.items() if k.endswith('_')}
 
@@ -234,10 +237,8 @@ class MultiOutputGenericWithStd(MetaEstimatorMixin, BaseEstimator):
         """
         from multiprocessing import Pool
         from functools import partial
-        def smap(e):
-            return e.predict(X, return_std)
         with Pool(self.n_jobs) as p:
-            y = p.map(smap, self.estimators_)
+            y = p.map(partial(smap, X=X, return_std=return_std), self.estimators_)
         if return_std:
             y, unc = zip(*y)
             return np.asarray(y).T, np.asarray(unc).T
