@@ -92,6 +92,8 @@ class AdqRawChannel:
             to, None by default. Note that common mode corrections
             if enabled always pull the baselevel to zero unless
             specified otherwise here.
+        extra_cm_period (list, optional): Apply the common mode correction
+            sequentially with the settings in the list.
     """
 
     # 4.5 Mhz, see extra.components.pulses.
@@ -108,7 +110,8 @@ class AdqRawChannel:
     def __init__(self, data, channel, digitizer=None, pulses=None,
                  interleaved=None, clock_ratio=None, sample_dim='sample',
                  first_pulse_offset=10000, single_pulse_length=25000,
-                 cm_period=None, baselevel=None, baseline=np.s_[:1000]):
+                 cm_period=None, baselevel=None, baseline=np.s_[:1000],
+                 extra_cm_period = list()):
         if digitizer is None or digitizer not in data.instrument_sources:
             digitizer = self._find_adq_pipeline(data, digitizer or '')
 
@@ -190,6 +193,7 @@ class AdqRawChannel:
             cm_period = int(cm_period)
 
         self._cm_period = cm_period
+        self._extra_cm_period = list(extra_cm_period)
         self._baselevel = baselevel
         self._baseline = baseline
 
@@ -236,12 +240,15 @@ class AdqRawChannel:
         # going to be float64 and not castable via `safe`.
         baseline = baseline.astype(out.dtype, copy=False)
 
-        for offset in range(period):
-            sel = np.s_[offset::period]
-            np.subtract(
-                signal[..., sel],
-                baseline[..., sel].mean(axis=signal.ndim - 1)[..., None],
-                out=out[..., sel], casting='safe')
+        if isinstance(period, int):
+            period = [period]
+        for p in period:
+            for offset in range(p):
+                sel = np.s_[offset::p]
+                np.subtract(
+                    signal[..., sel],
+                    baseline[..., sel].mean(axis=signal.ndim - 1)[..., None],
+                    out=out[..., sel], casting='safe')
 
     @staticmethod
     def _correct_cm_by_mean(signal, out, period, baseline, baselevel=None):
@@ -348,7 +355,7 @@ class AdqRawChannel:
 
         if self._cm_period > 0:
             # Apply common mode corrections (includes baselevel).
-            self._correct_cm_by_train(data, out, self._cm_period,
+            self._correct_cm_by_train(data, out, [self._cm_period] + list(self._extra_cm_period),
                                       self._baseline, self._baselevel)
 
         elif self._baselevel is not None:
