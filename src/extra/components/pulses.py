@@ -1507,6 +1507,59 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
         else:
             raise ValueError(f"{field=!r} parameter was not 'fel'/'ppl'/None")
 
+    def pumped_pulses_ratios(self, ppl_only_value=np.nan, labelled=True):
+        """Determine ratio of pumped pulses per train.
+
+        Args:
+            ppl_only_value (float, optional): Value for trains only
+                containing PPL pulses, same value as for pulses without
+                any pulses (np.nan) by default.
+            labelled (bool, optional): Whether a labelled pandas Series
+                (default) or unlabelled numpy array is returned.
+
+        Returns:
+            (pandas.Series or numpy.ndarray): Number of pulses per
+                train, indexed by train ID if labelled is True.
+        """
+
+        pids = self.pulse_ids(copy=False)
+
+        try:
+            fel_count = pids[:, :, True, :].groupby('trainId').count()
+        except KeyError:
+            fel_count = pd.Series([])
+
+        try:
+            pumped_count = pids[:, :, True, True].groupby('trainId').count()
+        except KeyError:
+            pumped_count = pd.Series([])
+
+        # Compute the ratio for trains with at least one pumped pulse.
+        ratios = pumped_count / fel_count.loc[pumped_count.index]
+
+        # Extend the series to all expected trains, filling with NaN.
+        ratios = self._extend_all_trains(ratios, np.nan)
+
+        # Set those trains with all unpumped pulses to 0.0.
+        fel_only_index = fel_count.index.difference(pumped_count.index)
+        ratios.loc[fel_only_index] = 0.0
+
+        # Set those trains with no FEL pulses to the desired fill value.
+        if ppl_only_value is not np.nan:
+            # If one only cares for the index labels of a groupby,
+            # pd.SeriesGroupBy.count() is indeed faster than
+            # pd.SeriesGroupBy.groups, likely due additional objects
+            # created by the latter.
+            try:
+                ppl_only_index = pids[:, :, :, True].groupby('trainId') \
+                    .count().index.difference(fel_count.index)
+            except KeyError:
+                pass
+            else:
+                ratios.loc[ppl_only_index] = ppl_only_value
+
+        return ratios if labelled else ratios.to_numpy()
+
 
 class DldPulses(PulsePattern):
     """An interface to pulses from DLD reconstruction.

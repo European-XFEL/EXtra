@@ -740,3 +740,28 @@ def test_pump_probe_specials(mock_spb_aux_run, mock_sqs_remi_run):
             names=('trainId', 'pulseIndex', 'fel', 'ppl')))
 
     assert not pulses.is_constant_pattern()
+
+    # Test pumped pulses ratios.
+    pulses = PumpProbePulses(mock_sqs_remi_run[10:], pulse_offset=0)
+    pulses._get_train_ids = lambda: [1000, 1001, 1002, 1003, 1004]
+    pulses._pulse_ids = pd.Series(
+        [300, 310, 300, 300, 300, 310],
+        index=pd.MultiIndex.from_tuples([
+            (1000, 0, True, True),
+            (1000, 0, True, False),
+            (1001, 0, True, False),
+            (1002, 0, False, True),
+            (1003, 0, True, True),
+            (1003, 0, True, True),
+        ], names=['trainId', 'pulseIndex', 'fel', 'ppl']))
+
+    ratios = pulses.pumped_pulses_ratios()
+    assert np.all(ratios.index == [1000, 1001, 1002, 1003, 1004])
+    assert np.all(ratios.loc[[1000, 1001, 1003]] == [0.5, 0.0, 1.0])
+    assert np.all(ratios.loc[[1002, 1004]].isna())
+
+    ratios = pulses.pumped_pulses_ratios(np.inf)
+    assert np.all(ratios.index == [1000, 1001, 1002, 1003, 1004])
+    assert np.all(
+        ratios.loc[[1000, 1001, 1002, 1003]] == [0.5, 0.0, np.inf, 1.0])
+    assert np.all(ratios.loc[[1004]].isna())
