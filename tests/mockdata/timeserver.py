@@ -32,6 +32,10 @@ def _fill_bunch_pattern_table(table, N, offset=10):
     # LP_SPB
     table[offset//2:, 0:300:6] |= int(PPL_BITS.LP_SPB)
 
+    # LP_SASE
+    table[:N//2, 0:200:8] |= int(PPL_BITS.LP_SASE2)
+    table[N//2:N//2+N//4, 0:200:16] |= int(PPL_BITS.LP_SASE2)
+
 
 class Timeserver(DeviceBase):
     control_keys = [

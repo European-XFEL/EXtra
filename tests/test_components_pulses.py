@@ -470,8 +470,8 @@ def test_optical_laser_specials(mock_spb_aux_run):
     assert (pulses.pulse_counts() == 0).all()
 
     # Different laser seed by string.
-    pulses = OpticalLaserPulses(run, ppl_seed='MID')
-    assert pulses.ppl_seed == PPL_BITS.LP_SASE2
+    pulses = OpticalLaserPulses(run, ppl_seed='SQS')
+    assert pulses.ppl_seed == PPL_BITS.LP_SQS
     assert (pulses.pulse_counts() == 0).all()
 
     # Full run with two timeservers.
@@ -746,21 +746,29 @@ def test_pump_probe_specials(mock_spb_aux_run, mock_sqs_remi_run):
     with pytest.raises(ValueError):
         PumpProbePulses(run, pulse_offset=1).pulse_ids()
 
-    # Test a pattern constant in pulse IDs, but having different pump
-    # probe flags (e.g. an alternating laser on/off pattern).
-    pulses = PumpProbePulses(mock_sqs_remi_run[10:], pulse_offset=0)
+    # Test changing patterns
+    # SASE2 FEL and PPL have four train regions:
+    # - 0:10 with no FEL but PPL
+    # - 10:50 with 63 FEL and 25 PPL
+    # - 50:75 with 63 FEL and 13 PPL
+    # - 75:100 with 63 FEL and no PPL
+    pulses = PumpProbePulses(mock_spb_aux_run.select('SPB*'),
+                             instrument='MID', bunch_table_position=1500)
 
-    # Inject custom cached pulse ID, but make sure to use the same trains.
-    train_ids = pulses._get_train_ids()
-    pulse_indices = np.arange(20)
-    pulses._pulse_ids = pd.Series(
-        np.tile(1000 + pulse_indices * 8, len(train_ids)),
-        pd.MultiIndex.from_tuples(
-            [(train_id, pulse_idx, True, (train_id % 2) == 0)
-            for train_id in train_ids for pulse_idx in pulse_indices],
-            names=('trainId', 'pulseIndex', 'fel', 'ppl')))
+    assert pulses.select_trains(np.s_[:10]).is_constant_pattern()
+    assert not pulses.select_trains(np.s_[:15]).is_constant_pattern()
+    assert pulses.select_trains(np.s_[10:50]).is_constant_pattern()
+    assert not pulses.select_trains(np.s_[45:55]).is_constant_pattern()
+    assert pulses.select_trains(np.s_[50:75]).is_constant_pattern()
+    assert not pulses.select_trains(np.s_[70:80]).is_constant_pattern()
+    assert pulses.select_trains(np.s_[75:]).is_constant_pattern()
 
-    assert not pulses.is_constant_pattern()
+    for args, cmp in [((), np.isnan), ((np.inf,), np.isinf)]:
+        ratios = pulses.pumped_pulses_ratios(*args)
+        assert cmp(ratios.iloc[:10]).all()
+        np.testing.assert_allclose(ratios.iloc[10:50], 25/63)
+        np.testing.assert_allclose(ratios.iloc[50:75], 13/63)
+        np.testing.assert_allclose(ratios.iloc[75:], 0.0)
 
 
 def test_manual_pulses():

@@ -18,6 +18,8 @@
 
 Added:
 
+- [PumpProbePattern.pumped_pulses_ratios()][extra.components.PumpProbePattern.pumped_pulses_ratios]
+  determining the ratio of pumped pulses per train (!317).
 - [TimeserverPulses.plot_xray_patterns][extra.components.pulses.TimeserverPulses.plot_xray_patterns]
   to visualize the X-ray pulse patterns present in timeserver data (!499).
 - [AdqRawChannel.train_data][extra.components.AdqRawChannel.train_data] and
