@@ -1682,3 +1682,12 @@ class DldPulses(PulsePattern):
         warn("Use triggers() instead of get_triggers()",
              DeprecationWarning, stacklevel=2)
         return self.triggers(*args, **kwargs)
+
+    @wraps(PumpProbePulses.pumped_pulses_ratios)
+    def pumped_pulses_ratios(self, *args, **kwargs):
+        pids = self.pulse_ids(copy=False)
+
+        if 'ppl' not in pids.index.names:
+            raise ValueError('only available with PPL information')
+
+        return PumpProbePulses.pumped_pulses_ratios(self, *args, **kwargs)
