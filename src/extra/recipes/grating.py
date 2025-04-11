@@ -9,7 +9,7 @@ import xarray as xr
 import h5py
 
 from extra_data import open_run, by_id, DataCollection, KeyData
-from extra.components import Scan
+from extra.components import Scan, XrayPulses
 
 from .base import SerializableMixin
 
