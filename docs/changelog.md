@@ -17,6 +17,7 @@
     ```
 
 Added:
+- [PumpProbePattern.pumped_pulses_ratios()][extra.components.PumpProbePattern.pumped_pulses_ratios] determining the ratio of pumped pulses per train (!317).
 - [TOFResponse][extra.recipes.TOFResponse] to estimate, deconvolve and denoise the instrumental response in eTOFs (!304).
 - [VSLight][extra.recipes.VSLight] to calibrate and deconvolve eTOFs from a continuous monochromator scan (!304).
 - [CookieboxCalibration][extra.recipes.CookieboxCalibration] to calibrate data from eTOFs after taking a calibration run (!284).
