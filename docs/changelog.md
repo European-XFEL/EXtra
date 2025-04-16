@@ -31,6 +31,8 @@ Fixed:
 - Fixed reading of the
   [Scantool.acquisition_time][extra.components.Scantool.acquisition_time]
   property for newer Scantool versions (!303).
+- Fixed [Scan.plot_bin_by_steps()][extra.components.Scan.plot_bin_by_steps] to show 2D
+  data (!320).
 
 ## [2024.2]
 Added:
