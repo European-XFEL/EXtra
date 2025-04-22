@@ -10,7 +10,7 @@ kiwisolver<1.5
 matplotlib==3.10.1
 msgpack==1.1.0
 msgpack-numpy==0.4.8
-mypy-extensions==1.0.0
+mypy-extensions==1.1.0
 numpy<=2.2.4
 packaging==25.0
 pandas==2.2.3
