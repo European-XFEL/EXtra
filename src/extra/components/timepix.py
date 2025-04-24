@@ -410,17 +410,18 @@ class Timepix3:
     def centroid_labels_key(self):
         return self.centroids_instrument_src['data.labels']
 
-    def spatial_bins(self, min_pos=0, max_pos=256, bins_per_px=1):
+    @staticmethod
+    def spatial_bins(min_pos=0, max_pos=255, bins_per_px=1):
         """Build suitable bin edges for Timepix position data.
 
-        The bins are centered around integer pixel position to avoid
-        binning artifacts.
+        The bins are centered around pixel position to avoid binning
+        artifacts otherwise commonly appearing with Timepix data.
 
         Args:
             min_pos (int, optional): Lower spatial boundary,
                 0 by default.
             max_pos (int, optional): Upper spatial boundary,
-                256 by default.
+                255 by default.
             bins_per_px (int, optional): Number of bins per pixel,
                 1 by default
 
@@ -428,7 +429,8 @@ class Timepix3:
             bins (numpy.ndarray): Spatial bin edges.
         """
 
-        return np.arange(min_pos, max_pos, 1/bins_per_px) - 0.5/bins_per_px
+        return np.arange(min_pos, max_pos + 2 / bins_per_px, 1 / bins_per_px) \
+            - 0.5 / bins_per_px
 
     def pixel_events(self, pulse_dim='pulseId', toa_offset=0.0,
                      timewalk_lut=None, out_of_pulse_events=False,

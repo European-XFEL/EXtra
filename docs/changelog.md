@@ -23,6 +23,9 @@ Added:
 - [Grating2DCalibration][extra.recipes.Grating2DCalibration] to calibrate data from a 2D grating detector (!284).
 - Exposed detector data components from `extra_data` in `extra.components` (AGIPD1M, AGIPD500K, DSSC1M, JUNGFRAU, LPD1M).
 
+Changed:
+- [Timepix3.spatial_bins()] is now a static method.
+
 Fixed:
 - Fixed [PumpProbePattern.is_constant_pattern()][extra.components.PumpProbePattern.is_constant_pattern] to properly take pump probe flags into account when determining whether a pattern is constant (!313).
 - [AdqRawChannel.pulse_edges()][extra.components.AdqRawChannel.pulse_edges] now also supports data where the trace is too short for the actual number of pulses present (!312).
@@ -37,9 +40,6 @@ Added:
 
 - [Timepix3][extra.components.Timepix3] to access raw hits and centroids from the Timepix3 detector (!231).
 - [Scan.plot()][extra.components.Scan.plot] now allows passing a `figsize` (!262).
-
-Added:
-
 - [JF4MHalfMotors][extra.components.JF4MHalfMotors] to access positions of motors moving halfs of Jungfrau detector (!224).
 
 Fixed:
