@@ -46,7 +46,7 @@ class Timepix3:
 
     # Only support single-chip detectors for now.
     _instrument_re = re.compile(
-        r'^(\w{3}_\w+_TIMEPIX)\/(CAM|DET|CAL)\/\w+:daqOutput.chip0$')
+        r'^(\w{3,6}_\w+_TIMEPIX)\/(CAM|DET|CAL)\/\w+:daqOutput.chip0$')
 
     def __init__(self, data, detector=None, pulses=None, **kwargs):
         # Always run detection to potentially find the raw and
