@@ -25,6 +25,9 @@ Added:
 - Exposed detector data components from `extra_data` in `extra.components`
   (AGIPD1M, AGIPD500K, DSSC1M, JUNGFRAU, LPD1M) (!177).
 
+Changed:
+- [Timepix3.spatial_bins()] is now a static method.
+
 Fixed:
 
 - Fixed [PumpProbePulses.is_constant_pattern()][extra.components.PumpProbePulses.is_constant_pattern] to properly take pump probe flags into account when determining whether a pattern is constant (!313).
@@ -42,9 +45,6 @@ Added:
 
 - [Timepix3][extra.components.Timepix3] to access raw hits and centroids from the Timepix3 detector (!231).
 - [Scan.plot()][extra.components.Scan.plot] now allows passing a `figsize` (!262).
-
-Added:
-
 - [JF4MHalfMotors][extra.components.JF4MHalfMotors] to access positions of motors moving halfs of Jungfrau detector (!224).
 
 Fixed:
