@@ -3,6 +3,8 @@ from itertools import product
 
 import pytest
 import numpy as np
+import xarray as xr
+import pandas as pd
 
 from extra.components import AdqRawChannel, XrayPulses
 
@@ -140,22 +142,22 @@ def test_adq_correct_common_mode(mock_sqs_remi_run, in_dtype):
 
     # Default baselevel (i.e. 0).
     out = ch.correct_common_mode(traces, 5, np.s_[:50])
-    assert np.allclose(out, 0.0)
+    np.testing.assert_allclose(out, 0.0)
     assert out.shape == traces.shape
     assert out.dtype == expected_dtype
-    
+
     # Custom baselevel.
     out = ch.correct_common_mode(traces, 5, np.s_[:50], 17.14)
-    assert np.allclose(out, 17.14)
+    np.testing.assert_allclose(out, 17.14)
     assert out.shape == traces.shape
     assert out.dtype == expected_dtype
 
     # Also test the raveled array.
     out = ch.correct_common_mode(traces.ravel(), 5, np.s_[:50])
-    assert np.allclose(out, 0.0)
+    np.testing.assert_allclose(out, 0.0)
     assert out.shape == (traces.size,)
     assert out.dtype == expected_dtype
-    
+
 
 @pytest.mark.parametrize('in_dtype', [np.int16, np.float32, np.float64])
 def test_pull_baseline(mock_sqs_remi_run, in_dtype):
@@ -174,3 +176,132 @@ def test_pull_baseline(mock_sqs_remi_run, in_dtype):
 
     for i, j in product(range(2), range(3)):
         np.testing.assert_allclose(out[i, j], single_trace - 24.5)
+
+
+def test_train_data(mock_sqs_remi_run):
+    ch = AdqRawChannel(mock_sqs_remi_run, '3B', digitizer='SQS_DIGITIZER_UTC2')
+    assert ch.raw_samples_key[0].ndarray()[0, 0] == -100
+
+    xr_data = ch.train_data(roi=(np.s_[:30000],))
+    assert isinstance(xr_data, xr.DataArray)
+    assert xr_data.dims == ('trainId', 'sample')
+
+    # Test unlabelled and non-tuple roi.
+    np_data = ch.train_data(labelled=False, roi=np.s_[:30000])
+    assert isinstance(np_data, np.ndarray)
+
+    for data in [xr_data.data, np_data]:
+        assert data.shape == (100, 30000)
+        assert data.dtype == np.float32
+
+        assert np.isclose(data[0, 0], 0.0)
+        assert np.isclose(data.min(), 0.0)
+        assert np.isclose(data.max(), 5.0)
+        np.testing.assert_array_equal(data.argmax(axis=1), 8974)
+
+
+def test_pulse_data(mock_sqs_remi_run):
+    pulses = XrayPulses(mock_sqs_remi_run, sase=1)
+    ch = AdqRawChannel(mock_sqs_remi_run, '3B', digitizer='SQS_DIGITIZER_UTC2',
+                       pulses=pulses, first_pulse_offset=2000,
+                       baseline=np.s_[-10000:])
+
+    xr_data = ch.pulse_data(train_roi=(np.s_[:-100],))
+    assert isinstance(xr_data, xr.DataArray)
+    assert xr_data.dims == ('pulse', 'sample')
+
+    np_data = ch.pulse_data(labelled=False, train_roi=np.s_[:-100])
+    assert isinstance(np_data, np.ndarray)
+
+    for data in [xr_data.data, np_data]:
+        assert data.shape == (pulses.pulse_counts().sum(),
+                              ch.samples_per_pulse())
+        assert data.dtype == np.float32
+
+        max_by_pulse = data.max(axis=1)
+
+        # Test whether the peak was put in the right pulse.
+        assert np.isclose(
+            max_by_pulse[:20],
+            [0.0, 0.0, 5.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]).all()
+
+        # Test whether all pulses after the trace are nan.
+        assert np.isnan(max_by_pulse[21:50]).all()
+
+
+def test_train_edge_array(mock_sqs_remi_run):
+    ch = AdqRawChannel(mock_sqs_remi_run, '3B', digitizer='SQS_DIGITIZER_UTC2')
+
+    ds = ch.train_edge_array(threshold=1.0)
+    assert isinstance(ds, xr.Dataset)
+    assert ds.edges.shape == (100, 1)
+    assert ds.amplitudes.shape == (100, 1)
+    assert list(ds.coords.keys()) == ['trainId', 'edge']
+
+    np_edges, np_amplitudes = ch.train_edge_array(
+        threshold=1.0, labelled=False)
+    assert isinstance(np_edges, np.ndarray)
+    assert isinstance(np_amplitudes, np.ndarray)
+    assert np_edges.shape == (100, 1)
+    assert np_amplitudes.shape == (100, 1)
+
+    for edges, amplitudes in [
+        (ds.edges.data, ds.amplitudes.data),
+        (np_edges, np_amplitudes)
+    ]:
+        finite_mask = np.isfinite(edges)
+        np.testing.assert_allclose(edges[finite_mask], 8944.0)
+        np.testing.assert_allclose(amplitudes[finite_mask], 5.0)
+
+
+def test_train_edges(mock_sqs_remi_run):
+    ch = AdqRawChannel(mock_sqs_remi_run, '3B', digitizer='SQS_DIGITIZER_UTC2')
+    df = ch.train_edges(threshold=1.0)
+
+    assert isinstance(df, pd.DataFrame)
+    np.testing.assert_array_equal(df.columns, ['edge', 'amplitude'])
+    np.testing.assert_array_equal(df.index.names, ['trainId', 'edgeIndex'])
+    assert len(df) == 100
+
+    np.testing.assert_allclose(df['edge'], 8944.0)
+    np.testing.assert_allclose(df['amplitude'], 5.0)
+
+
+def test_pulse_edge_array(mock_sqs_remi_run):
+    pulses = XrayPulses(mock_sqs_remi_run, sase=1)
+    ch = AdqRawChannel(mock_sqs_remi_run, '3B', digitizer='SQS_DIGITIZER_UTC2',
+                       pulses=pulses, first_pulse_offset=1000,
+                       baseline=np.s_[-10000:])
+    ds = ch.pulse_edge_array(threshold=0.5)
+
+    assert isinstance(ds, xr.Dataset)
+    assert ds.edges.shape == (pulses.pulse_counts().sum(), 1)
+    assert ds.amplitudes.shape == (pulses.pulse_counts().sum(), 1)
+    assert list(ds.coords.keys()) == ['pulse', 'trainId', 'pulseId', 'edge']
+
+    finite_mask = np.isfinite(ds.edges.data)
+    np.testing.assert_allclose(ds.edges.data[finite_mask], 888.0)
+    np.testing.assert_allclose(ds.amplitudes.data[finite_mask], 5.0)
+
+
+def test_pulse_edges(mock_sqs_remi_run):
+    pulses = XrayPulses(mock_sqs_remi_run, sase=1)
+    ch = AdqRawChannel(mock_sqs_remi_run, '3B', digitizer='SQS_DIGITIZER_UTC2',
+                       pulses=pulses, first_pulse_offset=1000,
+                       baseline=np.s_[-10000:])
+    df = ch.pulse_edges(threshold=0.5)
+
+    assert isinstance(df, pd.DataFrame)
+    np.testing.assert_array_equal(df.columns, ['edge', 'amplitude'])
+    np.testing.assert_array_equal(
+        df.index.names, ['trainId', 'pulseId', 'edgeIndex'])
+    assert len(df) == 40
+
+    np.testing.assert_array_equal(
+        df.index.get_level_values('trainId'), np.r_[10010:10050])
+    np.testing.assert_array_equal(df.index.get_level_values('pulseId'), 1018)
+    np.testing.assert_array_equal(
+        df.groupby(['trainId', 'pulseId']).count(), 1)
+    np.testing.assert_allclose(df['edge'], 888.0)
+    np.testing.assert_allclose(df['amplitude'], 5.0)
