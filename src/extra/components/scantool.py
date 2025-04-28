@@ -1,4 +1,5 @@
 import ast
+import logging
 from warnings import warn
 
 from extra_data import SourceData
@@ -43,14 +44,34 @@ class Scantool:
             else:
                 raise RuntimeError(f"Found multiple possible scantools, please pass one explicitly with the `src` argument: {', '.join(possible_devices)}")
 
-        values = run.get_run_values(src)
+        self._source_name = src
+        self._source = run[src]
+
+        # If the run is a union then we have to use the CONTROL values rather
+        # than RUN values.
+        run_values = run.get_run_values(src) if run.is_single_run else { }
+        if not run.is_single_run:
+            logging.warning("The passed DataCollection represents multiple runs, "
+                            "but this component will only take the Scantool settings from the first train.")
+
+        def get_value(key, raise_on_missing=True, is_str=False):
+            if key in run_values:
+                return run_values[key]
+            elif key in self._source:
+                arr = self._source[key][0].ndarray().squeeze()
+                return arr.item().decode() if is_str else arr
+            elif not raise_on_missing:
+                return None
+
+            raise KeyError(f"Could not find key '{key}' in either the RUN or CONTROL section")
 
         def get_first_value(keys):
             for key in keys:
-                if key in values:
-                    return values[key]
+                x = get_value(key, raise_on_missing=False)
+                if x is not None:
+                    return x
 
-            raise KeyError(f"Could not find any of these RUN section keys: {', '.join(keys)}")
+            raise KeyError(f"Could not find any of these keys in the RUN or CONTROL section: {', '.join(keys)}")
 
         # These are a list of possible property names for different versions of
         # the scantool. So far we've only seen the names being different, the
@@ -60,10 +81,8 @@ class Scantool:
         active_motors_keys = ["deviceEnv.activeMotors.value", "activeMotors.value"]
 
         # Get scan metadata and list of motors
-        self._source_name = src
-        self._source = run[src]
         self._active = self.source["isMoving"].ndarray().any()
-        self._scan_type = values["scanEnv.scanType.value"]
+        self._scan_type = get_value("scanEnv.scanType.value", is_str=True)
         self._motors = [x.decode() for x in get_first_value(active_motors_keys) if len(x) > 0]
 
         # The acquisition time vector gives the length of each step, unless the
@@ -73,14 +92,14 @@ class Scantool:
         # - https://git.xfel.eu/karaboDevices/Karabacon/-/blob/bd22d4a69bf7a401856f49920789ef42fda14ad2/src/karabacon/enums.py#L67
         self._acquisition_time = get_first_value(acquisition_time_keys)
         if _isinstance_no_import(self._acquisition_time, "numpy", "ndarray"):
-            if "Continuous" in values["deviceEnv.acquisitionMode.value"]:
+            if "Continuous" in get_value("deviceEnv.acquisitionMode.value", is_str=True):
                 self._acquisition_time = self._acquisition_time[0]
 
         # The deviceEnv.activeMotors property stores the motor aliases,
         # but we can try to get the actual device names from the
         # actualConfiguration property.
         self._motor_devices = None
-        motors_line = [x for x in values["actualConfiguration.value"].split("---") if "Motors:" in x]
+        motors_line = [x for x in get_value("actualConfiguration.value", is_str=True).split("---") if "Motors:" in x]
         device_names_warning = "Couldn't extract the Karabo device names for the active motors."
         if len(motors_line) == 1:
             try:
@@ -95,11 +114,11 @@ class Scantool:
         # Get the number of steps and start/stop positions for each motor
         n_motors = len(self.motors)
         self._steps = dict(zip(self.motors,
-                               values["scanEnv.steps.value"][:n_motors]))
+                               get_value("scanEnv.steps.value")[:n_motors]))
         self._start_positions = dict(zip(self.motors,
-                                         values["scanEnv.startPoints.value"][:n_motors]))
+                                         get_value("scanEnv.startPoints.value")[:n_motors]))
         self._stop_positions = dict(zip(self.motors,
-                                        values["scanEnv.stopPoints.value"][:n_motors]))
+                                        get_value("scanEnv.stopPoints.value")[:n_motors]))
 
     @property
     def source_name(self) -> str:

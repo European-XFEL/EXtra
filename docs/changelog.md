@@ -24,6 +24,8 @@ Added:
 - [Grating2DCalibration][extra.recipes.Grating2DCalibration] to calibrate data from a 2D grating detector (!284).
 - Exposed detector data components from `extra_data` in `extra.components`
   (AGIPD1M, AGIPD500K, DSSC1M, JUNGFRAU, LPD1M) (!177).
+- Added support for passing a union of runs to
+  [Scantool][extra.components.Scantool] (!327).
 
 Changed:
 - [Timepix3.spatial_bins()] is now a static method.

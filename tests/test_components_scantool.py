@@ -1,3 +1,4 @@
+import logging
 from unittest.mock import MagicMock
 
 from extra.components import Scantool
@@ -5,7 +6,7 @@ from extra.components import Scantool
 import pytest
 import numpy as np
 
-def test_scantool():
+def test_scantool(mock_scantool_run, mock_spb_aux_run, caplog):
     mock_name = "CRISPY/KARABACON"
     mock_source = MagicMock()
 
@@ -76,6 +77,18 @@ def test_scantool():
 
     scantool = Scantool(mock_run)
     assert scantool.acquisition_time == 20
+
+    # Test creating a Scantool from a union of two runs with only control data,
+    # see mockdata/karabacon.py for the settings it was created with.
+    with caplog.at_level(logging.WARNING):
+        scantool = Scantool(mock_scantool_run.union(mock_spb_aux_run))
+        assert len(caplog.records) == 1
+
+    assert scantool.scan_type == "dscan"
+    assert scantool.motors == ["ppl_odl"]
+    assert scantool.acquisition_time == 30
+    assert scantool.start_positions == { "ppl_odl": -15 }
+    assert scantool.stop_positions == { "ppl_odl": 25 }
 
     # Smoke tests
     scantool.info()
