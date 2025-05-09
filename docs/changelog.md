@@ -39,6 +39,8 @@ Fixed:
   property for newer Scantool versions (!303).
 - Fixed [Scan.plot_bin_by_steps()][extra.components.Scan.plot_bin_by_steps] to show 2D
   data (!320).
+- Restrict the version of Cython used to build while we figure out an issue with
+  Cython 3.1 (!328).
 
 ## [2024.2]
 Added:
