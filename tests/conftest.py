@@ -18,6 +18,7 @@ from .mockdata.dld import ReconstructedDld
 from .mockdata.timepix import Timepix3Receiver, Timepix3Centroids
 from .mockdata.timeserver import PulsePatternDecoder, Timeserver
 from .mockdata.xgm import XGM, XGMD, XGMReduced
+from .mockdata.karabacon import Karabacon
 
 
 @pytest.fixture(scope='session')
@@ -156,3 +157,13 @@ def mock_timepix_exceeded_buffer_run(mock_sqs_timepix_directory):
             size_dset[np.argmax(size_dset)] += tpx_root['data/x'].shape[1]
 
         yield RunDirectory(td).deselect('SQS_EXTRA*')
+
+@pytest.fixture(scope="function")
+def mock_scantool_run():
+    sources = [
+        Karabacon("FXE_DAQ_SCAN/MDL/KARABACON"),
+    ]
+
+    with TemporaryDirectory() as td:
+        write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 100)
+        yield RunDirectory(td)
