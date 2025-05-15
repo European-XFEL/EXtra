@@ -71,9 +71,9 @@ class Grating1DCalibration(SerializableMixin):
 
     def setup(self,
               grating_signal: KeyData,
-              grating_bkg: KeyData,
               scan: Scan,
-              pulses: XrayPulses
+              pulses: XrayPulses,
+              grating_bkg: Optional[KeyData]=None,
               ):
         """
         Setup calibration.
@@ -83,12 +83,12 @@ class Grating1DCalibration(SerializableMixin):
           run: The calibration run.
           grating_signal: Where to read the grating data from.
                    Example: `signal_run["SQS_EXP_GH2-2/CORR/RECEIVER:daqOutput", "data.adc"]`
-          grating_bkg: Where to read the grating background data from.
-               Example: `bkg_run["SQS_EXP_GH2-2/CORR/RECEIVER:daqOutput", "data.adc"]`
           scan: Scan object identfying where to read the undulator energy from.
                 Example: `Scan(run["SA3_XTD10_MONO/MDL/PHOTON_ENERGY", "actualEnergy"])`
           pulses: Object with bunch pattern table.
                 Example: `XrayPulses(run)`
+          grating_bkg: Where to read the grating background data from.
+               Example: `bkg_run["SQS_EXP_GH2-2/CORR/RECEIVER:daqOutput", "data.adc"]`
         """
         self.grating_source = grating_signal.source
         self.grating_key = grating_signal.key
@@ -157,7 +157,10 @@ class Grating1DCalibration(SerializableMixin):
     def get_background_template(self):
         """Get the background template.
         """
-        self.bkg = self._grating_bkg.ndarray().mean(0)
+        if self._grating_bkg is None:
+            self.bkg = None
+        else:
+            self.bkg = self._grating_bkg.ndarray().mean(0)
 
     def load_data(self):
         """Load calibration data."""
@@ -171,7 +174,8 @@ class Grating1DCalibration(SerializableMixin):
         with ProcessPoolExecutor() as p:
             data = np.stack(list(p.map(fn, energy_ids)), axis=0)
         # subtract the background
-        self.calibration_data = data - self.bkg
+        if self.bkg is not None:
+            self.calibration_data = data - self.bkg
         # skip offset and collect pulse data each pulse_period samples only
         self.calibration_data = self.calibration_data[:, self.offset::self.pulse_period, :]
         # average over pulses
@@ -200,7 +204,8 @@ class Grating1DCalibration(SerializableMixin):
         for i, (tid, data) in enumerate(run.trains()):
             #print(f"Train {tid}, idx {i}")
             d = data[self.grating_source][self.grating_key]
-            d = d - self.bkg
+            if self.bkg is not None:
+                d = d - self.bkg
             # skip offset and collect pulse data each pulse_period samples only
             d = d[self.offset::pulse_period, :]
             trainId += [tid]
@@ -243,8 +248,9 @@ class Grating2DCalibration(SerializableMixin):
 
     def setup(self,
               grating_signal: KeyData,
-              grating_bkg: KeyData,
-              scan: Scan):
+              scan: Scan,
+              grating_bkg: Optional[KeyData]=None,
+              ):
         """
         Setup calibration.
 
@@ -253,10 +259,10 @@ class Grating2DCalibration(SerializableMixin):
           run: The calibration run.
           grating_signal: Where to read the grating data from.
                    Example: `signal_run["SQS_DIAG3_BIU/CAM/CAM_6:daqOutput, "data.image.pixels"]`
-          grating_bkg: Where to read the grating background data from.
-               Example: `bkg_run["SQS_DIAG3_BIU/CAM/CAM_6:daqOutput, "data.image.pixels"]`
           scan: Scan object identfying where to read the undulator energy from.
                 Example: `Scan(run["SA3_XTD10_MONO/MDL/PHOTON_ENERGY", "actualEnergy"])`
+          grating_bkg: Where to read the grating background data from.
+               Example: `bkg_run["SQS_DIAG3_BIU/CAM/CAM_6:daqOutput, "data.image.pixels"]`
         """
         self.grating_source = grating_signal.source
         self.grating_key = grating_signal.key
@@ -307,7 +313,10 @@ class Grating2DCalibration(SerializableMixin):
     def get_background_template(self):
         """Get the background template.
         """
-        self.bkg = self._grating_bkg.ndarray().mean(0)
+        if self._grating_bkg is None:
+            self.bkg = None
+        else:
+            self.bkg = self._grating_bkg.ndarray().mean(0)
 
     def load_data(self):
         """Load calibration data."""
@@ -319,7 +328,9 @@ class Grating2DCalibration(SerializableMixin):
         energy_ids = np.arange(len(self.calibration_energies))
         with ProcessPoolExecutor() as p:
             data = np.stack(list(p.map(fn, energy_ids)), axis=0)
-        self.calibration_data = rotate(data - self.bkg, self.angle, axes=(-1, -2)).mean(1)
+        if self.bkg is not None:
+            data = data - self.bkg
+        self.calibration_data = rotate(data, self.angle, axes=(-1, -2)).mean(1)
 
     def fit(self):
         """Fit line."""
@@ -344,7 +355,9 @@ class Grating2DCalibration(SerializableMixin):
         for i, (tid, data) in enumerate(run.trains()):
             #print(f"Train {tid}, idx {i}")
             d = data[self.grating_source][self.grating_key]
-            d = rotate(d - self.bkg, self.angle, axes=(-1, -2))
+            if self.bkg is not None:
+                d = d - self.bkg
+            d = rotate(d, self.angle, axes=(-1, -2))
             trainId += [tid]
             out_data += [d.sum(-2)]
         energy = self.energy_axis
