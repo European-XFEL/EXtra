@@ -1,5 +1,11 @@
 [build-system]
-requires = ["setuptools>=61", "wheel", "setuptools_scm[toml]==7.1.0", "numpy", "cython<3.1"]
+requires = [
+    "setuptools>=61",
+    "wheel",
+    "setuptools_scm[toml]==7.1.0",
+    "numpy",
+    "cython!=3.1.0",  # Avoiding https://github.com/cython/cython/issues/6855
+]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
