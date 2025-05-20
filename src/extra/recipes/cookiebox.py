@@ -746,18 +746,21 @@ class CookieboxCalibration(SerializableMixin):
         n_energies = len(energies)
         fig, axes = plt.subplots(nrows=4, ncols=4, clear=True, figsize=(20,20))
         for tof_id in tof_ids:
-            sample_auger = int(np.amin(self.tof_fit_result[tof_id].mu_auger))
             auger_start_roi = self.auger_start_roi[tof_id]
             start_roi = self.start_roi[tof_id]
             stop_roi = self.stop_roi[tof_id]
+            sample_auger = int(np.amin(self.tof_fit_result[tof_id].mu_auger))
             ax = axes.flatten()[tof_id]
-            temp = data[tof_id][:,auger_start_roi:stop_roi].copy()
-            ax.imshow(temp[idx, sample_auger:],
+            temp = data[tof_id].copy()
+            ax.imshow(temp[idx, sample_auger:stop_roi],
                       aspect=(stop_roi - sample_auger)/n_energies,
                       norm=Normalize(vmax=np.amax(temp))
                      )
             ax.set_yticklabels((energies[idx]+0.5).astype(int))
             ax.set_title(f'TOF {tof_id}')
+            ax.set_xlabel("Samples")
+            ax.set_ylabel("Energy [eV]")
+        plt.tight_layout()
         plt.show()
 
     def peak_tof(self, tof_id: int) -> TofFitResult:
@@ -943,7 +946,7 @@ class CookieboxCalibration(SerializableMixin):
         for i, tof_id in enumerate(tof_ids):
             a = ax[i//8]
             c = colors[i%8]
-            a.plot(self.energy_axis, self.transmission[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
+            a.plot(self.energy_axis, self.int_transmission[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
         for a in ax:
             a.set(xlabel="Energy [eV]",
                   ylabel="Transmission [a.u.]")
