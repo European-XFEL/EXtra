@@ -294,7 +294,7 @@ class Grating2DCalibration(SerializableMixin):
         self.energy_axis = None
 
         # estimate pixel positions for cropping
-        self.estimate_crop_roi(*self._grating_signal.shape)
+        self.estimate_crop_roi(*self._grating_signal.shape[-2:])
 
         # background
         logging.info("Load background ...")
@@ -347,8 +347,8 @@ class Grating2DCalibration(SerializableMixin):
         A = np.array([[np.sin(self.angle), np.cos(self.angle)],
                       [np.cos(self.angle), np.sin(self.angle)]])
         c, d = np.linalg.solve(A, np.array([nrows, ncols]))
-        i0 = c*sin(2*u)/2
-        j0 = d*sin(2*u)/2
+        i0 = c*np.sin(2*self.angle)/2
+        j0 = d*np.sin(2*self.angle)/2
         i1, j1 = i0 + d, j0 + c
         self.i0, self.i1 = int(i0), int(i1)
         self.j0, self.j1 = int(j0), int(j1)
