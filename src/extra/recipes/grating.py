@@ -60,9 +60,11 @@ class Grating1DCalibration(SerializableMixin):
                             "e0",
                             "slope",
                             "bkg",
+                            "bkg_unc",
                             "energy_axis",
                             "calibration_energies",
                             "calibration_data",
+                            "calibration_unc",
                             "grating_source",
                             "grating_key",
                             "sources",
@@ -159,8 +161,10 @@ class Grating1DCalibration(SerializableMixin):
         """
         if self._grating_bkg is None:
             self.bkg = None
+            self.bkg_unc = None
         else:
             self.bkg = self._grating_bkg.ndarray().mean(0)
+            self.bkg_unc = self._grating_bkg.ndarray().std(0)
 
     def load_data(self):
         """Load calibration data."""
@@ -174,12 +178,16 @@ class Grating1DCalibration(SerializableMixin):
         with ProcessPoolExecutor() as p:
             data = np.stack(list(p.map(fn, energy_ids)), axis=0)
         # subtract the background
+        bkg_unc = np.zeros_like(data)
         if self.bkg is not None:
             self.calibration_data = data - self.bkg
+            self.calibration_unc = self.bkg_unc
         # skip offset and collect pulse data each pulse_period samples only
         self.calibration_data = self.calibration_data[:, self.offset::self.pulse_period, :]
+        self.calibration_unc = self.calibration_unc[:, self.offset::self.pulse_period, :]
         # average over pulses
         self.calibration_data = np.mean(self.calibration_data, axis=1)
+        self.calibration_unc = np.mean(np.mean(self.calibration_unc, axis=1), axis=0)
 
     def fit(self):
         """Fit line."""
@@ -217,8 +225,9 @@ class Grating1DCalibration(SerializableMixin):
                                         energy=energy
                                         )
                            )
-
-        return out_data
+        out_unc = xr.DataArray(data=self.calibration_unc, dims=('energy'),
+                               coords=dict(energy=energy))
+        return xr.Dataset(data_vars=dict(data=out_data, unc=out_unc))
 
 class Grating2DCalibration(SerializableMixin):
     """
@@ -236,10 +245,12 @@ class Grating2DCalibration(SerializableMixin):
         self._all_fields = ["e0",
                             "slope",
                             "bkg",
+                            "bkg_unc",
                             "angle",
                             "energy_axis",
                             "calibration_energies",
                             "calibration_data",
+                            "calibration_unc",
                             "grating_source",
                             "grating_key",
                             "sources",
@@ -282,6 +293,9 @@ class Grating2DCalibration(SerializableMixin):
         self.slope = 0
         self.energy_axis = None
 
+        # estimate pixel positions for cropping
+        self.estimate_crop_roi(*self._grating_signal.shape)
+
         # background
         logging.info("Load background ...")
         self.get_background_template()
@@ -315,8 +329,29 @@ class Grating2DCalibration(SerializableMixin):
         """
         if self._grating_bkg is None:
             self.bkg = None
+            self.bkg_unc = None
         else:
             self.bkg = self._grating_bkg.ndarray().mean(0)
+            self.bkg_unc = self._grating_bkg.ndarray().std(0)
+
+    def estimate_crop_roi(self, nrows: int, ncols: int):
+        """
+        Calculate rectangle to be selected to crop pictore and avoid
+        edge effects.
+
+        Args:
+          nrows: Number of pixel rows.
+          ncols: Number of pixel columns.
+
+        """
+        A = np.array([[np.sin(self.angle), np.cos(self.angle)],
+                      [np.cos(self.angle), np.sin(self.angle)]])
+        c, d = np.linalg.solve(A, np.array([nrows, ncols]))
+        i0 = c*sin(2*u)/2
+        j0 = d*sin(2*u)/2
+        i1, j1 = i0 + d, j0 + c
+        self.i0, self.i1 = int(i0), int(i1)
+        self.j0, self.j1 = int(j0), int(j1)
 
     def load_data(self):
         """Load calibration data."""
@@ -328,9 +363,25 @@ class Grating2DCalibration(SerializableMixin):
         energy_ids = np.arange(len(self.calibration_energies))
         with ProcessPoolExecutor() as p:
             data = np.stack(list(p.map(fn, energy_ids)), axis=0)
+        bkg_unc = np.zeros_like(data)
         if self.bkg is not None:
             data = data - self.bkg
-        self.calibration_data = rotate(data, self.angle, axes=(-1, -2)).mean(1)
+            bkg_unc = self.bkg_unc
+        self.calibration_data = self.crop(rotate(data, self.angle, axes=(-1, -2))).mean(1)
+        self.calibration_unc = self.crop(rotate(bkg_unc, self.angle, axes=(-1, -2))).mean(1).mean(0)
+
+    def crop(self, data: np.ndarray) -> np.ndarray:
+        """
+        Crop picture after rotation to avoid edges.
+
+        Args:
+          data: The input data.
+
+        Returns: Cropped data.
+        """
+
+        return data[:, self.i0:self.i1, self.j0:self.j1]
+
 
     def fit(self):
         """Fit line."""
@@ -357,7 +408,7 @@ class Grating2DCalibration(SerializableMixin):
             d = data[self.grating_source][self.grating_key]
             if self.bkg is not None:
                 d = d - self.bkg
-            d = rotate(d, self.angle, axes=(-1, -2))
+            d = self.crop(rotate(d, self.angle, axes=(-1, -2)))
             trainId += [tid]
             out_data += [d.sum(-2)]
         energy = self.energy_axis
@@ -367,6 +418,7 @@ class Grating2DCalibration(SerializableMixin):
                                         energy=energy
                                         )
                            )
-
-        return out_data
+        out_unc = xr.DataArray(data=self.calibration_unc, dims=('energy'),
+                               coords=dict(energy=energy))
+        return xr.Dataset(data_vars=dict(data=out_data, unc=out_unc))
 

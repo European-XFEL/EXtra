@@ -25,6 +25,7 @@ class TofFitResult:
     A: np.ndarray
     Aa: np.ndarray
     offset: np.ndarray
+    mu_auger: np.ndarray
 
 
 def search_offset(trace: np.ndarray, sigma: float=20) -> int:
@@ -365,10 +366,10 @@ class CookieboxCalibration(SerializableMixin):
                             "normalization",
                             "transmission",
                             "int_transmission",
-                            "tof_fit_result",
                             "calibration_data",
                             "calibration_mean_xgm",
                             "mask",
+                            "calibration_mask",
                             #"sources",
                             "e_transmission",
                             "calibration_energies",
@@ -391,6 +392,7 @@ class CookieboxCalibration(SerializableMixin):
         self._start_roi = {int(k): v for k, v in self._start_roi.items()}
         self._stop_roi = {int(k): v for k, v in self._stop_roi.items()}
         self.mask = {int(k): v for k, v in self.mask.items()}
+        self.calibration_mask = {int(k): v for k, v in self.calibration_mask.items()}
         self.kwargs_adq = {int(k): v for k, v in self.kwargs_adq.items()}
         # for tof_id in self.kwargs_adq.keys():
         #     self.kwargs_adq[tof_id]["source"] = self.kwargs_adq[tof_id]["source"].decode("utf-8")
@@ -676,7 +678,21 @@ class CookieboxCalibration(SerializableMixin):
 
         self.calibration_data = data
         self.calibration_mean_xgm = mean_xgm
+        self.calibration_mask = {tof_id: np.array([True for _ in energy_ids])
+                                 for tof_id in tof_ids}
 
+    def mask_calibration_point(self, tof_id: int, energy: float, mask: bool=False, tol: float=0.01):
+        """
+        If `mask` is False, the point at a given energy and eTOF is ignored when
+        performing the fit.
+
+        Args:
+          tof_id: eTOF number, as in the `tof_settings`.
+          energy: Energy value, in the same units as provided in `scan`.
+          mask: If True, keep the point. If False, remove it.
+          tol: Tolerance for energy matching.
+        """
+        self.calibration_mask[tof_id][np.abs(energy - self.calibration_energies) < tol] = mask
 
     def find_roi(self, tof_id: int):
         """
@@ -726,19 +742,21 @@ class CookieboxCalibration(SerializableMixin):
         data = self.calibration_data
         tof_ids = list(self.kwargs_adq.keys())
         energies = self.calibration_energies
+        idx = np.argsort(self.calibration_energies)
         n_energies = len(energies)
         fig, axes = plt.subplots(nrows=4, ncols=4, clear=True, figsize=(20,20))
         for tof_id in tof_ids:
+            sample_auger = int(np.amin(self.tof_fit_result[tof_id].mu_auger))
             auger_start_roi = self.auger_start_roi[tof_id]
             start_roi = self.start_roi[tof_id]
             stop_roi = self.stop_roi[tof_id]
             ax = axes.flatten()[tof_id]
             temp = data[tof_id][:,auger_start_roi:stop_roi].copy()
-            ax.imshow(temp,
-                      aspect=(stop_roi - auger_start_roi)/n_energies,
+            ax.imshow(temp[idx, sample_auger:],
+                      aspect=(stop_roi - sample_auger)/n_energies,
                       norm=Normalize(vmax=np.amax(temp))
                      )
-            ax.set_yticklabels((energies+0.5).astype(int))
+            ax.set_yticklabels((energies[idx]+0.5).astype(int))
             ax.set_title(f'TOF {tof_id}')
         plt.show()
 
@@ -761,6 +779,7 @@ class CookieboxCalibration(SerializableMixin):
         Aa = list()
         energy = list()
         offset = list()
+        mu_auger = list()
         auger_start_roi = self.auger_start_roi[tof_id]
         start_roi = self.start_roi[tof_id]
         stop_roi = self.stop_roi[tof_id]
@@ -791,13 +810,15 @@ class CookieboxCalibration(SerializableMixin):
             sigma += [result.best_values["sigma"]]
             energy += [energies[e]]
             offset += [result.best_values["c"]]
+            mu_auger += [resulta.best_values["center"]]
         energy = np.array(energy)
         mu = np.array(mu)
+        mu_auger = np.array(mu_auger)
         sigma = np.array(sigma)
         A = np.array(A)
         Aa = np.array(Aa)
         offset = np.array(offset)
-        return TofFitResult(energy, mu, sigma, A, Aa, offset)
+        return TofFitResult(energy, mu, sigma, A, Aa, offset, mu_auger)
 
     def calculate_calibration_and_transmission(self, tof_id: int):
         """
@@ -809,15 +830,17 @@ class CookieboxCalibration(SerializableMixin):
         from scipy.interpolate import CubicSpline
 
         energy_ids = np.arange(len(self._scan.positions))
+        mask = self.calibration_mask[tof_id]
         # fit calibration
-        c, e0, t0 = fit(self.tof_fit_result[tof_id].mu, self.tof_fit_result[tof_id].energy, t0_bounds=[-3000, 3000])
+        c, e0, t0 = fit(self.tof_fit_result[tof_id].mu[mask],
+                        self.tof_fit_result[tof_id].energy[mask], t0_bounds=[-3000, 3000])
         self.model_params[tof_id] = np.array([c, e0, t0], dtype=np.float64)
         self.jacobian[tof_id] = 0.5*c/(np.sqrt(c/(self.energy_axis - e0)))/(self.energy_axis - e0)**2
 
         # interpolate offset
-        eidx = np.argsort(self.tof_fit_result[tof_id].energy)
-        ee = self.tof_fit_result[tof_id].energy[eidx]
-        eo = self.tof_fit_result[tof_id].offset[eidx]
+        eidx = np.argsort(self.tof_fit_result[tof_id].energy[mask])
+        ee = self.tof_fit_result[tof_id].energy[mask][eidx]
+        eo = self.tof_fit_result[tof_id].offset[mask][eidx]
 
         self.offset[tof_id] = CubicSpline(ee, eo)(self.energy_axis)
         #self.offset[tof_id] = eo
@@ -828,14 +851,14 @@ class CookieboxCalibration(SerializableMixin):
         # interpolate amplitude as given by the
         # Auger+Valence (related to the cross section and pulse intensity)
         # normalized by the XGM mean intensity
-        en = self.tof_fit_result[tof_id].Aa[eidx]/self.calibration_mean_xgm[tof_id][eidx]
+        en = self.tof_fit_result[tof_id].Aa[mask][eidx]/self.calibration_mean_xgm[tof_id][mask][eidx]
         # self.normalization[tof_id] = np.interp(self.energy_axis,
         #                                        ee,
         #                                        en, left=0, right=0)
         self.normalization[tof_id] = CubicSpline(ee, en)(self.energy_axis)
 
         # calculate transmission
-        self.transmission[tof_id] = self.tof_fit_result[tof_id].A/self.tof_fit_result[tof_id].Aa
+        self.transmission[tof_id] = self.tof_fit_result[tof_id].A[mask]/self.tof_fit_result[tof_id].Aa[mask]
 
         # interpolate transmission for the given energy axis
         et = self.transmission[tof_id][eidx]
@@ -843,6 +866,37 @@ class CookieboxCalibration(SerializableMixin):
         #                                           ee,
         #                                           et, left=0, right=0)
         self.int_transmission[tof_id] = CubicSpline(ee, et)(self.energy_axis)
+
+    def plot_calibrations(self):
+        """
+        Diagnostics plots for finding the energy peaks in a scan.
+        """
+        import matplotlib.pyplot as plt
+        from itertools import product
+        colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        lw = 3
+        ls = '-'
+
+        fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
+
+        tof_ids = list(self._tof.keys())
+        for i, tof_id in enumerate(tof_ids):
+            a = ax[i//8]
+            c = colors[i%8]
+            auger_start_roi = self.auger_start_roi[tof_id]
+            start_roi = self.start_roi[tof_id]
+            stop_roi = self.stop_roi[tof_id]
+            ts = np.arange(start_roi, stop_roi)
+            e = model(ts, *self.model_params[tof_id])
+            a.scatter(self.tof_fit_result[tof_id].mu,
+                        self.tof_fit_result[tof_id].energy,
+                        c=c)
+            a.plot(ts, e, c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
+        for a in ax:
+            a.set(xlabel="Samples",
+                  ylabel="Energy [eV]")
+            a.legend(frameon=False, ncols=2)
+        plt.show()
 
     def plot_diagnostics(self, tof_id: int):
         """
@@ -985,6 +1039,12 @@ class CookieboxCalibration(SerializableMixin):
         plt.show()
 
     def load_trace(self, run: DataCollection, **extra_kwargs_adq: Dict[str, Any]) -> xr.Dataset:
+        """
+        See `load_datal`.
+        """
+        return load_data(run, **extra_kwargs_adq)
+
+    def load_data(self, run: DataCollection, **extra_kwargs_adq: Dict[str, Any]) -> xr.Dataset:
         """
         Only load region of interest for the same settings in a new run and output a Dataset with it.
         This is the recommended way to load data from a new run before applying the calibration.

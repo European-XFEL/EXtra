@@ -102,7 +102,7 @@ def nn_deconvolution(data: np.ndarray, h: np.ndarray, n_iter: int=4000, n_shift:
 
     return np.transpose(x)
 
-def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=0.0, n_iter: int=4000, n_shift: int=0, nonneg: bool=True):
+def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=10.0, n_iter: int=4000, n_shift: int=0, nonneg: bool=True):
     r'''
     Chambolle-Pock algorithm for the minimization of the objective function
         $\min_x 1/2||h \otimes x - data||^2 + Lambda TV(x)$
@@ -755,10 +755,10 @@ class TOFAnalogResponse(SerializableMixin):
         plt.legend(frameon=False)
 
     def apply(self, tof_trace: Union[xr.DataArray, np.ndarray],
-              n_iter: int=100,
+              n_iter: int=5000,
               reflection_period: List[int]=list(),
               reflection_amplitude: List[float]=list(),
-              method: str="nn_matrix",
+              method: str="tv_matrix",
               extra_shift: int=2,
               **kwargs) -> xr.DataArray:
         """
