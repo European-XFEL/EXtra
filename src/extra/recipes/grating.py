@@ -254,6 +254,7 @@ class Grating2DCalibration(SerializableMixin):
                             "grating_source",
                             "grating_key",
                             "sources",
+                            "i0", "i1", "j0", "j1",
                             "_version",
                            ]
 
@@ -367,8 +368,8 @@ class Grating2DCalibration(SerializableMixin):
         if self.bkg is not None:
             data = data - self.bkg
             bkg_unc = self.bkg_unc
-        self.calibration_data = self.crop(rotate(data, self.angle, axes=(-1, -2))).mean(1)
-        self.calibration_unc = self.crop(rotate(bkg_unc, self.angle, axes=(-1, -2))).mean(1).mean(0)
+        self.calibration_data = self.crop(rotate(data, self.angle, axes=(-1, -2))).mean(-2)
+        self.calibration_unc = self.crop(rotate(bkg_unc, self.angle, axes=(-1, -2))).mean(-2)
 
     def crop(self, data: np.ndarray) -> np.ndarray:
         """
@@ -380,7 +381,7 @@ class Grating2DCalibration(SerializableMixin):
         Returns: Cropped data.
         """
 
-        return data[:, self.i0:self.i1, self.j0:self.j1]
+        return data[..., self.i0:self.i1, self.j0:self.j1]
 
 
     def fit(self):
