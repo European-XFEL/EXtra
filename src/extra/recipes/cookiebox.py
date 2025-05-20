@@ -928,80 +928,93 @@ class CookieboxCalibration(SerializableMixin):
             a.set_title(f"TOF {tof_id}")
         plt.show()
 
-    def plot_all_transmissions(self, tof_ids: Optional[List[int]]=None):
+    def plot_transmissions(self):
         """
         Plot all transmissions in the same plot.
-
-        Args:
-          tof_ids: List of eTOF IDs to plot. If none, show all.
         """
         import matplotlib.pyplot as plt
-        fig = plt.figure(figsize=(20, 10))
-        for tof_id, transmission in self.int_transmission.items():
-            if tof_ids is not None:
-                if tof_id not in tof_ids:
-                    continue
-            plt.plot(self.energy_axis, transmission, lw=2, label=f"eTOF {tof_id}")
-        plt.xlabel("Energy [eV]")
-        plt.ylabel("Transmission [a.u.]")
-        plt.legend()
+        colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        lw = 3
+        ls = '-'
+
+        fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
+
+        tof_ids = list(self._tof.keys())
+        for i, tof_id in enumerate(tof_ids):
+            a = ax[i//8]
+            c = colors[i%8]
+            a.plot(self.energy_axis, self.transmission[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
+        for a in ax:
+            a.set(xlabel="Energy [eV]",
+                  ylabel="Transmission [a.u.]")
+            a.legend(frameon=False, ncols=2)
         plt.show()
 
-    def plot_all_offsets(self, tof_ids: Optional[List[int]]=None):
+    def plot_offsets(self):
         """
         Plot all offset in the same plot.
-
-        Args:
-          tof_ids: List of eTOF IDs to plot. If none, show all.
         """
         import matplotlib.pyplot as plt
-        fig = plt.figure(figsize=(20, 10))
-        for tof_id, offset in self.offset.items():
-            if tof_ids is not None:
-                if tof_id not in tof_ids:
-                    continue
-            plt.plot(self.energy_axis, offset, lw=2, label=f"eTOF {tof_id}")
-        plt.xlabel("Energy [eV]")
-        plt.ylabel("Offset [a.u.]")
-        plt.legend()
+        colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        lw = 3
+        ls = '-'
+
+        fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
+
+        tof_ids = list(self._tof.keys())
+        for i, tof_id in enumerate(tof_ids):
+            a = ax[i//8]
+            c = colors[i%8]
+            a.plot(self.energy_axis, self.offset[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
+        for a in ax:
+            a.set(xlabel="Energy [eV]",
+                  ylabel="Offset [a.u.]")
+            a.legend(frameon=False, ncols=2)
         plt.show()
 
-    def plot_all_jacobians(self, tof_ids: Optional[List[int]]=None):
+    def plot_jacobians(self):
         """
-        Plot all offset in the same plot.
+        Plot all jacobians in the same plot.
 
-        Args:
-          tof_ids: List of eTOF IDs to plot. If none, show all.
         """
         import matplotlib.pyplot as plt
-        fig = plt.figure(figsize=(20, 10))
-        for tof_id, jacobian in self.jacobian.items():
-            if tof_ids is not None:
-                if tof_id not in tof_ids:
-                    continue
-            plt.plot(self.energy_axis, jacobian, lw=2, label=f"eTOF {tof_id}")
-        plt.xlabel("Energy [eV]")
-        plt.ylabel("Jacobian [1/eV]")
-        plt.legend()
+        colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        lw = 3
+        ls = '-'
+
+        fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
+
+        tof_ids = list(self._tof.keys())
+        for i, tof_id in enumerate(tof_ids):
+            a = ax[i//8]
+            c = colors[i%8]
+            a.plot(self.energy_axis, self.jacobian[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
+        for a in ax:
+            a.set(xlabel="Energy [eV]",
+                  ylabel="Jacobian [1/eV]")
+            a.legend(frameon=False, ncols=2)
         plt.show()
 
-    def plot_all_normalizations(self, tof_ids: Optional[List[int]]=None):
+    def plot_normalizations(self):
         """
         Plot all normalizations in the same plot.
-
-        Args:
-          tof_ids: List of eTOF IDs to plot. If none, show all.
         """
         import matplotlib.pyplot as plt
-        fig = plt.figure(figsize=(20, 10))
-        for tof_id, normalization in self.normalization.items():
-            if tof_ids is not None:
-                if tof_id not in tof_ids:
-                    continue
-            plt.plot(self.energy_axis, normalization, lw=2, label=f"eTOF {tof_id}")
-        plt.xlabel("Energy [eV]")
-        plt.ylabel("Normalization [a.u.]")
-        plt.legend()
+        colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        lw = 3
+        ls = '-'
+
+        fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
+
+        tof_ids = list(self._tof.keys())
+        for i, tof_id in enumerate(tof_ids):
+            a = ax[i//8]
+            c = colors[i%8]
+            a.plot(self.energy_axis, self.normalization[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
+        for a in ax:
+            a.set(xlabel="Energy [eV]",
+                  ylabel="Normalization [a.u.]")
+            a.legend(frameon=False, ncols=2)
         plt.show()
 
     def plot_fit(self, tof_id: int):
