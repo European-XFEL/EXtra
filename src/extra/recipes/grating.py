@@ -364,10 +364,13 @@ class Grating2DCalibration(SerializableMixin):
         energy_ids = np.arange(len(self.calibration_energies))
         with ProcessPoolExecutor() as p:
             data = np.stack(list(p.map(fn, energy_ids)), axis=0)
-        bkg_unc = np.zeros_like(data)
+        bkg_unc = np.zeros_like(data).mean(0)
         if self.bkg is not None:
             data = data - self.bkg
             bkg_unc = self.bkg_unc
+        else:
+            self.bkg_unc = bkg_unc
+            self.bkg = np.zeros_like(data).mean(0)
         self.calibration_data = self.crop(rotate(data, self.angle, axes=(-1, -2))).mean(-2)
         self.calibration_unc = self.crop(rotate(bkg_unc, self.angle, axes=(-1, -2))).mean(-2)
 
@@ -394,6 +397,22 @@ class Grating2DCalibration(SerializableMixin):
         self.slope = res.slope
         self.e0 = res.intercept
         self.energy_axis = self.e0 + self.slope*sample
+
+    def plot(self):
+        """
+        Plot fit.
+        """
+        import matplotlib.pyplot as plt
+        plt.figure(figsize=(10, 8))
+        sample = np.arange(self.calibration_data.shape[-1])
+        sample_mode = np.argmax(self.calibration_data, axis=-1)
+        plt.plot(sample, self.energy_axis, lw=2, label="Fit")
+        plt.xlabel("Pixel")
+        plt.ylabel("Energy [eV]")
+        plt.scatter(sample_mode, self.calibration_energies, s=200, marker='x', c='r', label="Data")
+        plt.legend(frameon=False)
+        plt.grid()
+        plt.show()
 
     def apply(self, run: DataCollection) -> xr.Dataset:
         """
