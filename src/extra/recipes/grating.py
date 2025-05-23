@@ -371,8 +371,11 @@ class Grating2DCalibration(SerializableMixin):
         else:
             self.bkg_unc = bkg_unc
             self.bkg = np.zeros_like(data).mean(0)
-        self.calibration_data = self.crop(rotate(data, self.angle, axes=(-1, -2))).mean(-2)
-        self.calibration_unc = self.crop(rotate(bkg_unc, self.angle, axes=(-1, -2))).mean(-2)
+        if self.angle != 0:
+            data = self.crop(rotate(data, self.angle, axes=(-1, -2)))
+            bkg_unc = self.crop(rotate(bkg_unc, self.angle, axes=(-1, -2)))
+        self.calibration_data = data.mean(-2)
+        self.calibration_unc = bkg_unc.mean(-2)
 
     def crop(self, data: np.ndarray) -> np.ndarray:
         """
@@ -428,7 +431,8 @@ class Grating2DCalibration(SerializableMixin):
             d = data[self.grating_source][self.grating_key]
             if self.bkg is not None:
                 d = d - self.bkg
-            d = self.crop(rotate(d, self.angle, axes=(-1, -2)))
+            if self.angle != 0:
+                d = self.crop(rotate(d, self.angle, axes=(-1, -2)))
             trainId += [tid]
             out_data += [d.sum(-2)]
         energy = self.energy_axis
