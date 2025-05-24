@@ -286,8 +286,9 @@ class Grating1DCalibration(SerializableMixin):
             out_data = np.stack(out_data, axis=0)
         energy = self.energy_axis
         out_data = xr.DataArray(data=out_data,
-                            dims=('trainId', 'energy'),
+                            dims=('trainId', 'pulseIndex', 'energy'),
                             coords=dict(trainId=np.array(trainId),
+                                        pulseIndex=np.arange(out_data.shape[1]),
                                         energy=energy
                                         )
                            )
