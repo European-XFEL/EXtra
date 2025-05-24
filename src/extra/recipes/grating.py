@@ -210,7 +210,7 @@ class Grating1DCalibration(SerializableMixin):
         self.calibration_unc = self.calibration_unc[self.offset::self.pulse_period, self.min_pixel:self.max_pixel]
         # average over pulses
         self.calibration_data = np.mean(self.calibration_data, axis=1)
-        self.calibration_unc = np.mean(np.mean(self.calibration_unc, axis=1), axis=0)
+        self.calibration_unc = np.mean(self.calibration_unc, axis=1)
         self.calibration_mask = np.array([True for _ in range(self.calibration_data.shape[0])])
 
     def mask_calibration_point(self, energy: float, mask: bool=False, tol: float=1.0):
