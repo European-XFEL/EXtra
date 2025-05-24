@@ -213,7 +213,7 @@ class Grating1DCalibration(SerializableMixin):
         # do it per train to avoid memory overflow
         pulse_period = XrayPulses(run)
         if load_all:
-            out_data = data[self.grating_source, self.grating_key].xarray()
+            out_data = run[self.grating_source, self.grating_key].xarray()
             trainId = out_data.trainId.to_numpy()
             out_data = out_data.to_numpy() - self.bkg
             out_data = out_data[self.offset::pulse_period, :]
@@ -441,7 +441,7 @@ class Grating2DCalibration(SerializableMixin):
         """
         from scipy.ndimage import rotate
         if load_all:
-            out_data = data[self.grating_source, self.grating_key].xarray()
+            out_data = run[self.grating_source, self.grating_key].xarray()
             trainId = out_data.trainId.to_numpy()
             out_data = out_data.to_numpy() - self.bkg
             if self.angle != 0:
