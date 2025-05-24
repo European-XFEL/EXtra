@@ -270,7 +270,7 @@ class Grating1DCalibration(SerializableMixin):
             out_data = run[self.grating_source, self.grating_key].xarray()
             trainId = out_data.trainId.to_numpy()
             out_data = out_data.to_numpy() - self.bkg
-            out_data = out_data[self.offset::pulse_period, self.min_pixel:self.max_pixel]
+            out_data = out_data[:, self.offset::pulse_period, self.min_pixel:self.max_pixel]
         else:
             trainId = list()
             out_data = list()
