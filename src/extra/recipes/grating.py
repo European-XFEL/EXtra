@@ -200,26 +200,38 @@ class Grating1DCalibration(SerializableMixin):
         self.e0 = res.intercept
         self.energy_axis = self.e0 + self.slope*sample
 
-    def apply(self, run: DataCollection) -> xr.Dataset:
+    def apply(self, run: DataCollection, load-all: bool=True) -> xr.Dataset:
         """
         Apply calibration to a new analysis run.
         It is assumed it contains the same settings.
+
+        Args:
+          run: Input run.
+          load_all: If True, load all data in memory at once. This is faste, but uses more memory.
+                    Disable if not enough memory is available.
         """
         # do it per train to avoid memory overflow
         pulse_period = XrayPulses(run)
-        trainId = list()
-        out_data = list()
-        for i, (tid, data) in enumerate(run.trains()):
-            #print(f"Train {tid}, idx {i}")
-            d = data[self.grating_source][self.grating_key]
-            if self.bkg is not None:
-                d = d - self.bkg
-            # skip offset and collect pulse data each pulse_period samples only
-            d = d[self.offset::pulse_period, :]
-            trainId += [tid]
-            out_data += [d]
+        if load_all:
+            out_data = data[self.grating_source, self.grating_key].xarray()
+            trainId = out_data.trainId.to_numpy()
+            out_data = out_data.to_numpy() - self.bkg
+            out_data = out_data[self.offset::pulse_period, :]
+        else:
+            trainId = list()
+            out_data = list()
+            for i, (tid, data) in enumerate(run.trains()):
+                #print(f"Train {tid}, idx {i}")
+                d = data[self.grating_source][self.grating_key]
+                if self.bkg is not None:
+                    d = d - self.bkg
+                # skip offset and collect pulse data each pulse_period samples only
+                d = d[self.offset::pulse_period, :]
+                trainId += [tid]
+                out_data += [d]
+            out_data = np.stack(out_data, axis=0)
         energy = self.energy_axis
-        out_data = xr.DataArray(data=np.stack(out_data, axis=0),
+        out_data = xr.DataArray(data=out_data,
                             dims=('trainId', 'energy'),
                             coords=dict(trainId=np.array(trainId),
                                         energy=energy
@@ -417,26 +429,40 @@ class Grating2DCalibration(SerializableMixin):
         plt.grid()
         plt.show()
 
-    def apply(self, run: DataCollection) -> xr.Dataset:
+    def apply(self, run: DataCollection, load_all: bool=True) -> xr.Dataset:
         """
         Apply calibration to a new analysis run.
         It is assumed it contains the same settings.
+
+        Args:
+          run: Input run.
+          load_all: If True, load all data in memory at once. This is faster, but uses more memory.
+                    Disable if not enugh memory is available.
         """
         from scipy.ndimage import rotate
-        # do it per train to avoid memory overflow
-        trainId = list()
-        out_data = list()
-        for i, (tid, data) in enumerate(run.trains()):
-            #print(f"Train {tid}, idx {i}")
-            d = data[self.grating_source][self.grating_key]
-            if self.bkg is not None:
-                d = d - self.bkg
+        if load_all:
+            out_data = data[self.grating_source, self.grating_key].xarray()
+            trainId = out_data.trainId.to_numpy()
+            out_data = out_data.to_numpy() - self.bkg
             if self.angle != 0:
-                d = self.crop(rotate(d, self.angle, axes=(-1, -2)))
-            trainId += [tid]
-            out_data += [d.sum(-2)]
+                out_data = self.crop(rotate(out_data, self.angle, axes=(-1, -2)))
+            out_data = out_data.sum(-2)
+        else:
+            # do it per train to avoid memory overflow
+            trainId = list()
+            out_data = list()
+            for i, (tid, data) in enumerate(run.trains()):
+                #print(f"Train {tid}, idx {i}")
+                d = data[self.grating_source][self.grating_key]
+                if self.bkg is not None:
+                    d = d - self.bkg
+                if self.angle != 0:
+                    d = self.crop(rotate(d, self.angle, axes=(-1, -2)))
+                trainId += [tid]
+                out_data += [d.sum(-2)]
+            out_data = np.stack(out_data, axis=0)
         energy = self.energy_axis
-        out_data = xr.DataArray(data=np.stack(out_data, axis=0),
+        out_data = xr.DataArray(data=out_data,
                             dims=('trainId', 'energy'),
                             coords=dict(trainId=np.array(trainId),
                                         energy=energy
