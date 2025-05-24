@@ -197,10 +197,13 @@ class Grating1DCalibration(SerializableMixin):
         with ProcessPoolExecutor() as p:
             data = np.stack(list(p.map(fn, energy_ids)), axis=0)
         # subtract the background
-        bkg_unc = np.zeros_like(data)
+        bkg_unc = np.zeros_like(data).mean(0)
         if self.bkg is not None:
-            self.calibration_data = data - self.bkg
+            data = data - self.bkg
             bkg_unc = self.bkg_unc
+        else:
+            self.bkg_unc = bkg_unc
+            self.bkg = np.zeros_like(data).mean(0)
         self.calibration_unc = bkg_unc
         # skip offset and collect pulse data each pulse_period samples only
         self.calibration_data = data[:, self.offset::self.pulse_period, self.min_pixel:self.max_pixel]
