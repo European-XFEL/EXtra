@@ -265,7 +265,7 @@ class Grating1DCalibration(SerializableMixin):
                     Disable if not enough memory is available.
         """
         # do it per train to avoid memory overflow
-        pulse_period = XrayPulses(run)
+        pulse_period = self.pulse_period
         if load_all:
             out_data = run[self.grating_source, self.grating_key].xarray()
             trainId = out_data.trainId.to_numpy()
