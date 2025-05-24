@@ -200,7 +200,7 @@ class Grating1DCalibration(SerializableMixin):
         self.e0 = res.intercept
         self.energy_axis = self.e0 + self.slope*sample
 
-    def apply(self, run: DataCollection, load-all: bool=True) -> xr.Dataset:
+    def apply(self, run: DataCollection, load_all: bool=True) -> xr.Dataset:
         """
         Apply calibration to a new analysis run.
         It is assumed it contains the same settings.
