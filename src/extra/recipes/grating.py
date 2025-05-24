@@ -14,7 +14,8 @@ from extra.components import Scan, XrayPulses
 from .base import SerializableMixin
 
 def calc_mean(energy_id: int, scan: Scan,
-             grating: KeyData) -> np.ndarray:
+             grating: KeyData,
+             ) -> np.ndarray:
     """
     Calculate mean over train IDs with a given energy value.
 
@@ -51,12 +52,16 @@ class Grating1DCalibration(SerializableMixin):
     grating_calib.apply(new_run)
     ```
     """
-    def __init__(self, offset: int=22):
+    def __init__(self, offset: Optional[int]=None, min_pixel: int=500, max_pixel: int=1000):
         self._version = 1
         self.offset = offset
+        self.min_pixel = min_pixel
+        self.max_pixel = max_pixel
         self._all_fields = [
                             "pulse_period",
                             "offset",
+                            "min_pixel",
+                            "max_pixel",
                             "e0",
                             "slope",
                             "bkg",
@@ -110,6 +115,10 @@ class Grating1DCalibration(SerializableMixin):
         self.slope = 0
         self.energy_axis = None
 
+        if self.offset is None:
+            logging.info("Guess offset")
+            self.guess_offset()
+
         # pulse delta
         logging.info("Extract bunch pattern table")
         self.pulse_period = self.get_pulse_period(pulses)
@@ -141,6 +150,14 @@ class Grating1DCalibration(SerializableMixin):
         """
         for k, v in all_data.items():
             setattr(self, k, v)
+
+    def guess_offset(self):
+        """
+        Guess offset.
+        """
+        I = self._grating_signal.xarray().sel(dim_1=np.s_[min_pixel:max_pixel]).mean('dim_1').mean('trainId')
+        threshold = np.median(I)
+        self.offset = np.where(I > threshold)[0][0]
 
     def get_pulse_period(self, pulses: XrayPulses):
         """
@@ -181,10 +198,11 @@ class Grating1DCalibration(SerializableMixin):
         bkg_unc = np.zeros_like(data)
         if self.bkg is not None:
             self.calibration_data = data - self.bkg
-            self.calibration_unc = self.bkg_unc
+            bkg_unc = self.bkg_unc
+        self.calibration_unc = bkg_unc
         # skip offset and collect pulse data each pulse_period samples only
-        self.calibration_data = self.calibration_data[:, self.offset::self.pulse_period, :]
-        self.calibration_unc = self.calibration_unc[:, self.offset::self.pulse_period, :]
+        self.calibration_data = data[:, self.offset::self.pulse_period, self.min_pixel:self.max_pixel]
+        self.calibration_unc = self.calibration_unc[:, self.offset::self.pulse_period, self.min_pixel:self.max_pixel]
         # average over pulses
         self.calibration_data = np.mean(self.calibration_data, axis=1)
         self.calibration_unc = np.mean(np.mean(self.calibration_unc, axis=1), axis=0)
@@ -199,6 +217,22 @@ class Grating1DCalibration(SerializableMixin):
         self.slope = res.slope
         self.e0 = res.intercept
         self.energy_axis = self.e0 + self.slope*sample
+
+    def plot(self):
+        """
+        Plot fit.
+        """
+        import matplotlib.pyplot as plt
+        plt.figure(figsize=(10, 8))
+        sample = np.arange(self.calibration_data.shape[-1])
+        sample_mode = np.argmax(self.calibration_data, axis=-1)
+        plt.plot(sample, self.energy_axis, lw=2, label="Fit")
+        plt.xlabel("Pixel")
+        plt.ylabel("Energy [eV]")
+        plt.scatter(sample_mode, self.calibration_energies, s=200, marker='x', c='r', label="Data")
+        plt.legend(frameon=False)
+        plt.grid()
+        plt.show()
 
     def apply(self, run: DataCollection, load_all: bool=True) -> xr.Dataset:
         """
