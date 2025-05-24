@@ -207,7 +207,7 @@ class Grating1DCalibration(SerializableMixin):
         self.calibration_unc = bkg_unc
         # skip offset and collect pulse data each pulse_period samples only
         self.calibration_data = data[:, self.offset::self.pulse_period, self.min_pixel:self.max_pixel]
-        self.calibration_unc = self.calibration_unc[:, self.offset::self.pulse_period, self.min_pixel:self.max_pixel]
+        self.calibration_unc = self.calibration_unc[self.offset::self.pulse_period, self.min_pixel:self.max_pixel]
         # average over pulses
         self.calibration_data = np.mean(self.calibration_data, axis=1)
         self.calibration_unc = np.mean(np.mean(self.calibration_unc, axis=1), axis=0)
