@@ -1188,6 +1188,7 @@ class CookieboxCalibration(SerializableMixin):
             #o = o - self.offset[tof_id][None, None, :]
             # apply Jacobian
             o = o*self.jacobian[tof_id][None, None, :]
+            o[np.isnan(o)] = 0.0
             # regenerate DataArray
             return xr.DataArray(data=o,
                              dims=('trainId', 'pulseIndex', 'energy'),
