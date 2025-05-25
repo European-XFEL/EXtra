@@ -100,7 +100,7 @@ def norm_diff_t0(ts: np.ndarray, energies: np.ndarray, t0: float) -> float:
     Returns: Norm of difference between observation and prediction.
     """
     c,e0,_ = lin_fit(ts,energies,t0)
-    return np.linalg.norm(model(ts,c,e0,t0) - energies)
+    return np.linalg.norm(model(ts,c,e0,t0) - energies, ord=1)
 
 def fit(peak_ids: np.ndarray, energies: np.ndarray, t0_bounds: Tuple[float, float]) -> Tuple[float, float, float]:
     """
@@ -428,9 +428,18 @@ class CookieboxCalibration(SerializableMixin):
         self._xgm = xgm
         self._scan = scan
 
-        self._auger_start_roi = {tof_id: self._init_auger_start_roi for tof_id in self._tof_settings.keys()}
-        self._start_roi = {tof_id: self._init_start_roi for tof_id in self._tof_settings.keys()}
-        self._stop_roi = {tof_id: self._init_stop_roi for tof_id in self._tof_settings.keys()}
+        if isinstance(self._init_auger_start_roi, dict):
+            self._auger_start_roi = {tof_id: self._init_auger_start_roi[tof_id] for tof_id in self._tof_settings.keys()}
+        else:
+            self._auger_start_roi = {tof_id: self._init_auger_start_roi for tof_id in self._tof_settings.keys()}
+        if isinstance(self._init_start_roi, dict):
+            self._start_roi = {tof_id: self._init_start_roi[tof_id] for tof_id in self._tof_settings.keys()}
+        else:
+            self._start_roi = {tof_id: self._init_start_roi for tof_id in self._tof_settings.keys()}
+        if isinstance(self._init_stop_roi, dict):
+            self._stop_roi = {tof_id: self._init_stop_roi[tof_id] for tof_id in self._tof_settings.keys()}
+        else:
+            self._stop_roi = {tof_id: self._init_stop_roi for tof_id in self._tof_settings.keys()}
 
         # now do the full analysis, step by step
         # update eTOF data reading objects
@@ -664,7 +673,7 @@ class CookieboxCalibration(SerializableMixin):
                      )
 
 
-        with ProcessPoolExecutor() as p:
+        with ProcessPoolExecutor(max_workers=10) as p:
             itr_gen = list(itertools.product(tof_ids, energy_ids))
             #data_gen = map(fn, itr_gen)
             data_gen = p.map(fn, itr_gen)
@@ -692,7 +701,7 @@ class CookieboxCalibration(SerializableMixin):
           mask: If True, keep the point. If False, remove it.
           tol: Tolerance for energy matching.
         """
-        self.calibration_mask[tof_id][np.abs(energy - self.calibration_energies) < tol] = mask
+        self.calibration_mask[tof_id][np.abs(energy - self.tof_fit_result[tof_id].energy) < tol] = mask
 
     def find_roi(self, tof_id: int):
         """
@@ -836,7 +845,7 @@ class CookieboxCalibration(SerializableMixin):
         mask = self.calibration_mask[tof_id]
         # fit calibration
         c, e0, t0 = fit(self.tof_fit_result[tof_id].mu[mask],
-                        self.tof_fit_result[tof_id].energy[mask], t0_bounds=[-3000, 3000])
+                        self.tof_fit_result[tof_id].energy[mask], t0_bounds=[-3000, 0])
         self.model_params[tof_id] = np.array([c, e0, t0], dtype=np.float64)
         self.jacobian[tof_id] = 0.5*c/(np.sqrt(c/(self.energy_axis - e0)))/(self.energy_axis - e0)**2
 
@@ -884,6 +893,8 @@ class CookieboxCalibration(SerializableMixin):
 
         tof_ids = list(self._tof.keys())
         for i, tof_id in enumerate(tof_ids):
+            if not self.mask[tof_id]:
+                continue
             a = ax[i//8]
             c = colors[i%8]
             auger_start_roi = self.auger_start_roi[tof_id]
@@ -944,6 +955,8 @@ class CookieboxCalibration(SerializableMixin):
 
         tof_ids = list(self._tof.keys())
         for i, tof_id in enumerate(tof_ids):
+            if not self.mask[tof_id]:
+                continue
             a = ax[i//8]
             c = colors[i%8]
             a.plot(self.energy_axis, self.int_transmission[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
@@ -966,6 +979,8 @@ class CookieboxCalibration(SerializableMixin):
 
         tof_ids = list(self._tof.keys())
         for i, tof_id in enumerate(tof_ids):
+            if not self.mask[tof_id]:
+                continue
             a = ax[i//8]
             c = colors[i%8]
             a.plot(self.energy_axis, self.offset[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
@@ -989,6 +1004,8 @@ class CookieboxCalibration(SerializableMixin):
 
         tof_ids = list(self._tof.keys())
         for i, tof_id in enumerate(tof_ids):
+            if not self.mask[tof_id]:
+                continue
             a = ax[i//8]
             c = colors[i%8]
             a.plot(self.energy_axis, self.jacobian[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
@@ -1011,6 +1028,8 @@ class CookieboxCalibration(SerializableMixin):
 
         tof_ids = list(self._tof.keys())
         for i, tof_id in enumerate(tof_ids):
+            if not self.mask[tof_id]:
+                continue
             a = ax[i//8]
             c = colors[i%8]
             a.plot(self.energy_axis, self.normalization[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
@@ -1151,12 +1170,9 @@ class CookieboxCalibration(SerializableMixin):
             if self.model_params[tof_id][0] == 0:
                 return np.zeros((n_trains, n_pulses, n_e), dtype=np.float32)
             # create energy axis
-            start_roi = self.start_roi[tof_id]
-            stop_roi = self.stop_roi[tof_id]
-            ts = np.arange(start_roi, stop_roi)
+            ts = coords['sample']
             e = model(ts, *self.model_params[tof_id])
 
-    
             # interpolate
             # o = np.apply_along_axis(lambda arr: CubicSpline(e[::-1], arr[::-1])(self.energy_axis),
             #                        axis=1,
