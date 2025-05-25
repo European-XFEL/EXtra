@@ -762,10 +762,11 @@ class CookieboxCalibration(SerializableMixin):
             ax = axes.flatten()[tof_id]
             temp = data[tof_id].copy()
             ax.imshow(temp[idx, sample_auger:stop_roi],
-                      aspect=(stop_roi - sample_auger)/n_energies,
-                      norm=Normalize(vmax=np.amax(temp))
+                      extent=[sample_auger, stop_roi, np.amin(energies), np.amax(energies)],
+                      aspect="auto",
+                      norm=Normalize(vmax=np.amax(temp)),
                      )
-            ax.set_yticklabels((energies[idx]+0.5).astype(int))
+            #ax.set_yticklabels((energies[idx]+0.5).astype(int))
             ax.set_title(f'TOF {tof_id}')
             ax.set_xlabel("Samples")
             ax.set_ylabel("Energy [eV]")
@@ -854,30 +855,30 @@ class CookieboxCalibration(SerializableMixin):
         ee = self.tof_fit_result[tof_id].energy[mask][eidx]
         eo = self.tof_fit_result[tof_id].offset[mask][eidx]
 
-        self.offset[tof_id] = CubicSpline(ee, eo)(self.energy_axis)
+        self.offset[tof_id] = np.interp(self.energy_axis,
+                                        ee,
+                                        eo)
+        #self.offset[tof_id] = CubicSpline(ee, eo)(self.energy_axis)
         #self.offset[tof_id] = eo
 
-        # self.offset[tof_id] = np.interp(self.energy_axis,
-        #                                 ee,
-        #                                 eo, left=0, right=0)
         # interpolate amplitude as given by the
         # Auger+Valence (related to the cross section and pulse intensity)
         # normalized by the XGM mean intensity
         en = self.tof_fit_result[tof_id].Aa[mask][eidx]/self.calibration_mean_xgm[tof_id][mask][eidx]
-        # self.normalization[tof_id] = np.interp(self.energy_axis,
-        #                                        ee,
-        #                                        en, left=0, right=0)
-        self.normalization[tof_id] = CubicSpline(ee, en)(self.energy_axis)
+        self.normalization[tof_id] = np.interp(self.energy_axis,
+                                               ee,
+                                               en)
+        #self.normalization[tof_id] = CubicSpline(ee, en)(self.energy_axis)
 
         # calculate transmission
         self.transmission[tof_id] = self.tof_fit_result[tof_id].A[mask]/self.tof_fit_result[tof_id].Aa[mask]
 
         # interpolate transmission for the given energy axis
         et = self.transmission[tof_id][eidx]
-        # self.int_transmission[tof_id] = np.interp(self.energy_axis,
-        #                                           ee,
-        #                                           et, left=0, right=0)
-        self.int_transmission[tof_id] = CubicSpline(ee, et)(self.energy_axis)
+        self.int_transmission[tof_id] = np.interp(self.energy_axis,
+                                                  ee,
+                                                  et)
+        #self.int_transmission[tof_id] = CubicSpline(ee, et)(self.energy_axis)
 
     def plot_calibrations(self):
         """
@@ -891,7 +892,7 @@ class CookieboxCalibration(SerializableMixin):
 
         fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
 
-        tof_ids = list(self._tof.keys())
+        tof_ids = list(self.model_params.keys())
         for i, tof_id in enumerate(tof_ids):
             if not self.mask[tof_id]:
                 continue
@@ -953,7 +954,7 @@ class CookieboxCalibration(SerializableMixin):
 
         fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
 
-        tof_ids = list(self._tof.keys())
+        tof_ids = list(self.model_params.keys())
         for i, tof_id in enumerate(tof_ids):
             if not self.mask[tof_id]:
                 continue
@@ -977,7 +978,7 @@ class CookieboxCalibration(SerializableMixin):
 
         fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
 
-        tof_ids = list(self._tof.keys())
+        tof_ids = list(self.model_params.keys())
         for i, tof_id in enumerate(tof_ids):
             if not self.mask[tof_id]:
                 continue
@@ -1002,7 +1003,7 @@ class CookieboxCalibration(SerializableMixin):
 
         fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
 
-        tof_ids = list(self._tof.keys())
+        tof_ids = list(self.model_params.keys())
         for i, tof_id in enumerate(tof_ids):
             if not self.mask[tof_id]:
                 continue
@@ -1026,7 +1027,7 @@ class CookieboxCalibration(SerializableMixin):
 
         fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
 
-        tof_ids = list(self._tof.keys())
+        tof_ids = list(self.model_params.keys())
         for i, tof_id in enumerate(tof_ids):
             if not self.mask[tof_id]:
                 continue
