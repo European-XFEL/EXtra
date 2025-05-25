@@ -157,7 +157,7 @@ class Grating1DCalibration(SerializableMixin):
         """
         Guess offset.
         """
-        I = self._grating_signal.xarray().sel(dim_1=np.s_[min_pixel:max_pixel]).mean('dim_1').mean('trainId')
+        I = self._grating_signal.xarray().sel(dim_1=np.s_[self.min_pixel:self.max_pixel]).mean('dim_1').mean('trainId')
         threshold = np.median(I)
         self.offset = np.where(I > threshold)[0][0]
 
