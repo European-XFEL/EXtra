@@ -160,6 +160,7 @@ class Grating1DCalibration(SerializableMixin):
         I = self._grating_signal.xarray().sel(dim_1=np.s_[self.min_pixel:self.max_pixel]).mean('dim_1').mean('trainId')
         threshold = np.median(I)
         self.offset = np.where(I > threshold)[0][0]
+        logging.info(f"Offset estimated at {self.offset}")
 
     def get_pulse_period(self, pulses: XrayPulses):
         """
@@ -172,7 +173,8 @@ class Grating1DCalibration(SerializableMixin):
         """
         pulse_ids = pulses.pulse_ids(labelled=True)
         pids_by_train = pulse_ids.groupby(level=0)
-        pulse_period = int(pids_by_train.diff().min())
+        pulse_period = int(pids_by_train.diff().min())*3
+        logging.info(f"Pulse period estimated at {pulse_period}")
         return pulse_period
 
     def get_background_template(self):

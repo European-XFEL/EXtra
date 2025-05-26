@@ -102,7 +102,7 @@ def nn_deconvolution(data: np.ndarray, h: np.ndarray, n_iter: int=4000, n_shift:
 
     return np.transpose(x)
 
-def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=1e-5, n_iter: int=4000, n_shift: int=0, nonneg: bool=True):
+def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=1e-5, n_iter: int=5000, n_shift: int=0, nonneg: bool=True):
     r'''
     Chambolle-Pock algorithm for the minimization of the objective function
         $\min_x 1/2||h \otimes x - data||^2 + Lambda TV(x)$
@@ -235,7 +235,7 @@ def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=1e-5, n_iter
         y = prox_Fs(y + sigma*grad(x_bar))
 
         # Calculate norms
-        if k%20 == 0:
+        if k % 100 == 0:
             fidelity = np.mean(0.5*np.sqrt(np.mean((A @ x - b)**2, axis=0)), axis=-1)
             tv = np.mean(np.sum(np.abs(grad(x)), axis=0), axis=-1)
             energy = 1.0*fidelity + Lambda*tv
