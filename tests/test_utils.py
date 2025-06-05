@@ -1,12 +1,15 @@
-
 import numpy as np
+import xarray as xr
 
 from extra.utils import imshow2, fit_gaussian, gaussian
 
 
-def test_scaled_imshow():
+def test_imshow2():
     # Smoke test
     image = np.random.rand(100, 100)
+    imshow2(image)
+
+    image = xr.DataArray(image, dims=("foo", "bar"))
     imshow2(image)
 
 

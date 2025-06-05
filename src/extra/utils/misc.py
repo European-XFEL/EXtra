@@ -1,7 +1,8 @@
-
 import numpy as np
 
 from typing import Any
+
+from ..components.utils import _isinstance_no_import
 
 
 def find_nearest_index(array, value: Any) -> np.int64:
@@ -55,9 +56,8 @@ def imshow2(image, *args, lognorm=False, ax=None, **kwargs):
         ax (matplotlib.axes.Axes): The axis to plot the image in. This will
             default to [plt][matplotlib.pyplot] if none is explicitly passed.
     """
-    if ax is None:
-        import matplotlib.pyplot as plt
-        ax = plt
+    import matplotlib.pyplot as plt
+    is_dataarray = _isinstance_no_import(image, "xarray", "DataArray")
 
     # Disable interpolation by default
     if "interpolation" not in kwargs:
@@ -77,10 +77,16 @@ def imshow2(image, *args, lognorm=False, ax=None, **kwargs):
             vmax = np.nanquantile(image, 0.99)
             kwargs["vmax"] = vmax
 
-    # Set a default aspect ratio
-    if "aspect" not in kwargs:
+    # Set a default aspect ratio (except for DataArray's because it doesn't
+    # support string `aspect` values).
+    if "aspect" not in kwargs and not is_dataarray:
         aspect_ratio = max(image.shape) / min(image.shape)
         if aspect_ratio > 4:
             kwargs["aspect"] = "auto"
 
-    return ax.imshow(image, *args, **kwargs)
+    if is_dataarray:
+        return image.plot.imshow(*args, ax=ax, **kwargs)
+    else:
+        if ax is None:
+            ax = plt
+        return ax.imshow(image, *args, **kwargs)

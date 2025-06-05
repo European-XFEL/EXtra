@@ -587,11 +587,9 @@ class XGM:
         pulse_energy = self.pulse_energy(sase)
 
         from extra.utils import imshow2
-        im = imshow2(pulse_energy, ax=ax, aspect="auto")
+        im = imshow2(pulse_energy, ax=ax)
 
         self._set_plot_title("XGM pulse energy heatmap", ax, sase, minimal_title)
-        ax.set_xlabel("Pulse")
-        ax.set_ylabel("Train")
 
         colorbar = fig.colorbar(im)
         colorbar.ax.set_ylabel("Energy [μJ]")
