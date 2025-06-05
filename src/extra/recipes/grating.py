@@ -173,7 +173,7 @@ class Grating1DCalibration(SerializableMixin):
         """
         pulse_ids = pulses.pulse_ids(labelled=True)
         pids_by_train = pulse_ids.groupby(level=0)
-        pulse_period = int(pids_by_train.diff().min())*3
+        pulse_period = int(pids_by_train.diff().min())
         logging.info(f"Pulse period estimated at {pulse_period}")
         return pulse_period
 
@@ -267,7 +267,7 @@ class Grating1DCalibration(SerializableMixin):
                     Disable if not enough memory is available.
         """
         # do it per train to avoid memory overflow
-        pulse_period = self.pulse_period
+        pulse_period = self.get_pulse_period(XrayPulses(run))
         if load_all:
             out_data = run[self.grating_source, self.grating_key].xarray()
             trainId = out_data.trainId.to_numpy()
@@ -313,6 +313,7 @@ class Grating2DCalibration(SerializableMixin):
         self._version = 1
         self._all_fields = ["e0",
                             "slope",
+                            "slope_motor",
                             "bkg",
                             "bkg_unc",
                             "angle",
@@ -322,6 +323,8 @@ class Grating2DCalibration(SerializableMixin):
                             "calibration_unc",
                             "grating_source",
                             "grating_key",
+                            "grating_motor_source",
+                            "grating_motor_key",
                             "sources",
                             "i0", "i1", "j0", "j1",
                             "_version",
@@ -331,6 +334,7 @@ class Grating2DCalibration(SerializableMixin):
               grating_signal: KeyData,
               scan: Scan,
               grating_bkg: Optional[KeyData]=None,
+              grating_motor: Optional[KeyData]=None,
               ):
         """
         Setup calibration.
@@ -344,6 +348,8 @@ class Grating2DCalibration(SerializableMixin):
                 Example: `Scan(run["SA3_XTD10_MONO/MDL/PHOTON_ENERGY", "actualEnergy"])`
           grating_bkg: Where to read the grating background data from.
                Example: `bkg_run["SQS_DIAG3_BIU/CAM/CAM_6:daqOutput, "data.image.pixels"]`
+          grating_motor: KeyData corresponding to the motor position.
+               Example: `signal_run['SQS_DIAG3_SCAM/MOTOR/ST_AXIS_X', 'encoderPosition.value']`
         """
         self.grating_source = grating_signal.source
         self.grating_key = grating_signal.key
@@ -354,6 +360,16 @@ class Grating2DCalibration(SerializableMixin):
                         self.grating_source,
                        ]
 
+        if grating_motor is not None:
+            self.grating_motor_source = grating_motor.source
+            self.grating_motor_key = grating_motor.key
+            self._grating_motor = grating_motor
+            self.sources += [self.grating_motor_source]
+        else:
+            self.grating_motor_source = ""
+            self.grating_motor_key = ""
+            self._grating_motor = None
+
         # create scan object
         self._scan = scan
         self.calibration_energies = self._scan.positions
@@ -361,6 +377,7 @@ class Grating2DCalibration(SerializableMixin):
         # outputs
         self.e0 = 0
         self.slope = 0
+        self.slope_motor = 0
         self.energy_axis = None
 
         # estimate pixel positions for cropping
@@ -430,9 +447,17 @@ class Grating2DCalibration(SerializableMixin):
                      scan=self._scan,
                      grating=self._grating_signal,
                      )
+        fn_motor = partial(calc_mean,
+                     scan=self._scan,
+                     grating=self._grating_motor,
+                     )
         energy_ids = np.arange(len(self.calibration_energies))
         with ProcessPoolExecutor() as p:
             data = np.stack(list(p.map(fn, energy_ids)), axis=0)
+            if self.grating_motor_source != "":
+                data_motor = np.stack(list(p.map(fn_motor, energy_ids)), axis=0)
+            else:
+                data_motor = np.zeros((data.shape[0]))
         bkg_unc = np.zeros_like(data).mean(0)
         if self.bkg is not None:
             data = data - self.bkg
@@ -445,6 +470,7 @@ class Grating2DCalibration(SerializableMixin):
             bkg_unc = self.crop(rotate(bkg_unc, self.angle, axes=(-1, -2)))
         self.calibration_data = data.mean(-2)
         self.calibration_unc = bkg_unc.mean(-2)
+        self.calibration_motor = data_motor
 
     def crop(self, data: np.ndarray) -> np.ndarray:
         """
@@ -461,14 +487,22 @@ class Grating2DCalibration(SerializableMixin):
 
     def fit(self):
         """Fit line."""
-        from scipy.stats import linregress
+        from scipy.optimize import least_squares
         sample = np.arange(self.calibration_data.shape[-1])
         sample_mode = np.argmax(self.calibration_data, axis=-1)
+        motor_position = self.calibration_motor
         #sample_mode = snp.sum(self.calibration_data*sample, axis=-1)/np.sum(self.calibration_data, axis=-1)
-        res = linregress(sample_mode, self.calibration_energies)
-        self.slope = res.slope
-        self.e0 = res.intercept
-        self.energy_axis = self.e0 + self.slope*sample
+        fun = lambda par, x, y: par[0] + par[1]*x[0] + par[2]*x[1] - y
+        par = np.array([np.amin(sample_mode), # e0
+                        0.0,                  # slope
+                        0.0])                 # slope_motor
+        x = np.stack((sample_mode, motor_position), axis=0)
+        #res = least_squares(fun, par, loss='soft_l1', f_scale=0.1, args=(x, self.calibration_energies))
+        res = least_squares(fun, par, loss='linear', args=(x, self.calibration_energies))
+        self.slope_motor = res.x[2]
+        self.slope = res.x[1]
+        self.e0 = res.x[0]
+        self.energy_axis = self.e0 + self.slope*sample + self.slope_motor*motor_position.mean()
 
     def plot(self):
         """
@@ -478,9 +512,12 @@ class Grating2DCalibration(SerializableMixin):
         plt.figure(figsize=(10, 8))
         sample = np.arange(self.calibration_data.shape[-1])
         sample_mode = np.argmax(self.calibration_data, axis=-1)
-        plt.plot(sample, self.energy_axis, lw=2, label="Fit")
+        motor_position = self.calibration_motor
+        plt.plot(sample, self.energy_axis, lw=2, label="Fit for mean motor position")
         plt.xlabel("Pixel")
         plt.ylabel("Energy [eV]")
+        plt.scatter(sample_mode, self.e0 + self.slope*sample_mode + self.slope_motor*motor_position,
+                    s=200, marker='o', facecolors='w', edgecolors="k", label="Prediction (w. motor)")
         plt.scatter(sample_mode, self.calibration_energies, s=200, marker='x', c='r', label="Data")
         plt.legend(frameon=False)
         plt.grid()
@@ -497,6 +534,16 @@ class Grating2DCalibration(SerializableMixin):
                     Disable if not enugh memory is available.
         """
         from scipy.ndimage import rotate
+        if self.grating_motor_source != "":
+            out_data_motor = run[self.grating_motor_source, self.grating_motor_key].xarray()
+            logging.info(f"Motor position being assumed fixed at {out_data_motor.mean()}. "
+                         f"I detect a rms variation of {out_data_motor.std()}. "
+                         f"This should be compatible with zero!")
+            motor_position = out_data_motor.mean().to_numpy()
+        else:
+            motor_position = 0.0
+        sample = np.arange(self.calibration_data.shape[-1])
+        energy = self.e0 + self.slope*sample + self.slope_motor*motor_position
         if load_all:
             out_data = run[self.grating_source, self.grating_key].xarray()
             trainId = out_data.trainId.to_numpy()
@@ -518,7 +565,6 @@ class Grating2DCalibration(SerializableMixin):
                 trainId += [tid]
                 out_data += [d.sum(-2)]
             out_data = np.stack(out_data, axis=0)
-        energy = self.energy_axis
         out_data = xr.DataArray(data=out_data,
                             dims=('trainId', 'energy'),
                             coords=dict(trainId=np.array(trainId),
