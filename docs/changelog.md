@@ -41,6 +41,9 @@ Fixed:
   data (!320).
 - Restrict the version of Cython used to build while we figure out an issue with
   Cython 3.1 (!328).
+- Fixed behaviour of
+  [Scan.plot_bin_by_steps()][extra.components.Scan.plot_bin_by_steps] when
+  passed a custom axis (!334).
 
 ## [2024.2]
 Added:
