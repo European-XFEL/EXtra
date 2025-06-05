@@ -286,7 +286,7 @@ class Scan:
 
         if binned_data.ndim == 1:
             uncertainty_label = "standard deviation" if uncertainty_method == "std" else "standard error"
-            binned_data.plot.line("-o", markersize=4, label=f"Uncertainty: {uncertainty_label}")
+            binned_data.plot.line("-o", markersize=4, label=f"Uncertainty: {uncertainty_label}", ax=ax)
             ax.fill_between(binned_data.position,
                             binned_data - binned_data.uncertainty,
                             binned_data + binned_data.uncertainty,
