@@ -38,6 +38,7 @@ nav:
   - karabo-bridge.md
   - calibration.md
   - signal.md
+  - gui.md
   - utilities.md
   - changelog.md
 
@@ -46,6 +47,8 @@ watch:
 
 markdown_extensions:
   - admonition
+  - codehilite:
+      guess_lang: false
   - pymdownx.arithmatex:
       generic: true
   - pymdownx.details
