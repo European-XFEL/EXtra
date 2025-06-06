@@ -306,7 +306,7 @@ class Scan:
             if title is None:
                 title = f"{yaxis} vs {self.name}"
         else:  # 2D
-            binned_data.plot()
+            binned_data.plot(ax=ax)
 
             if ylabel is None:
                 ylabel = self.name
