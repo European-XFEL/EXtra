@@ -24,6 +24,8 @@ Added:
 - [Grating2DCalibration][extra.recipes.Grating2DCalibration] to calibrate data from a 2D grating detector (!284).
 - Exposed detector data components from `extra_data` in `extra.components`
   (AGIPD1M, AGIPD500K, DSSC1M, JUNGFRAU, LPD1M) (!177).
+- [imshow2][extra.utils.imshow2] now supports plotting 2D
+  [DataArray][xarray.DataArray]s properly (!333).
 
 Changed:
 - [Timepix3.spatial_bins()] is now a static method.
