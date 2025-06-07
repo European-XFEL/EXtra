@@ -229,6 +229,14 @@ def test_pulse_data(mock_sqs_remi_run):
         # Test whether all pulses after the trace are nan.
         assert np.isnan(max_by_pulse[21:50]).all()
 
+    # Use pulse information with not all trains available.
+    ch = AdqRawChannel(
+        mock_sqs_remi_run, '3B', digitizer='SQS_DIGITIZER_UTC2',
+        pulses=XrayPulses(mock_sqs_remi_run.select_trains(np.s_[:-5])))
+
+    with pytest.raises(ValueError):
+        ch.pulse_data()
+
 
 def test_train_edge_array(mock_sqs_remi_run):
     ch = AdqRawChannel(mock_sqs_remi_run, '3B', digitizer='SQS_DIGITIZER_UTC2')
