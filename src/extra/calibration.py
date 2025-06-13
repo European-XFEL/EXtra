@@ -1055,10 +1055,9 @@ class LPDConditions(ConditionsBase):
         "Pixels X",
         "Pixels Y",
         "Feedback capacitor",
-        "Parallel gain",
     ]
     _dark_parameters = _base_params + [
-        "Memory cell order",
+        "Memory cell order", "Parallel gain"
     ]
     _illuminated_parameters = _base_params + ["Source Energy", "category"]
 
