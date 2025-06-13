@@ -10,7 +10,7 @@ h5py==3.14.0
 karabo-bridge==0.7.0
 kiwisolver<1.5
 matplotlib==3.10.1
-msgpack==1.1.0
+msgpack==1.1.1
 msgpack-numpy==0.4.8
 mypy-extensions==1.1.0
 numpy<=2.2.4
