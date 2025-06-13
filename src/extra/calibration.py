@@ -1129,15 +1129,16 @@ class JUNGFRAUConditions(ConditionsBase):
         "Pixels X",
         "Pixels Y",
         "Integration Time",
-        "Exposure timeout",
         "Sensor temperature",
         "Gain Setting",
         "Gain mode",
     ]
+    _dark_params = _params + ["Exposure timeout"]
+
     calibration_types = {
-        "Offset10Hz": _params,
-        "Noise10Hz": _params,
-        "BadPixelsDark10Hz": _params,
+        "Offset10Hz": _dark_params,
+        "Noise10Hz": _dark_params,
+        "BadPixelsDark10Hz": _dark_params,
         "RelativeGain10Hz": _params,
         "BadPixelsFF10Hz": _params,
     }
