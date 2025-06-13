@@ -59,6 +59,10 @@ class CalCatAPIClient:
         # Ensure the base URL has a trailing slash
         self.base_api_url = base_api_url.rstrip("/") + "/"
 
+    def __repr__(self):
+        auth = " (with Oauth)" if self.oauth_client else ""
+        return f"<CalCatAPIClient for {self.base_api_url}{auth}>"
+
     def default_headers(self):
         from . import __version__
         return {
