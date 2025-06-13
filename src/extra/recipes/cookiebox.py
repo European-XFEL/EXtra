@@ -771,7 +771,6 @@ class CookieboxCalibration(SerializableMixin):
             ax.set_xlabel("Samples")
             ax.set_ylabel("Energy [eV]")
         plt.tight_layout()
-        plt.show()
 
     def peak_tof(self, tof_id: int) -> TofFitResult:
         """
@@ -814,7 +813,6 @@ class CookieboxCalibration(SerializableMixin):
             iisig = 10 #np.sqrt(np.sum((x -ii)**2*(y-np.amin(y)))/np.sum(y-np.amin(y)))
             result = gmodel.fit(y, x=x, center=x[ii], amplitude=np.amax(y), sigma=iisig, c=np.median(y))
             #result.plot_fit()
-            #plt.show()
             # we care about the normalization coefficient, not the normalized amplitude
             #A += [result.best_values["amplitude"]/(result.best_values["sigma"]*np.sqrt(2*np.pi))]
             A += [result.best_values["amplitude"]]
@@ -911,7 +909,6 @@ class CookieboxCalibration(SerializableMixin):
             a.set(xlabel="Samples",
                   ylabel="Energy [eV]")
             a.legend(frameon=False, ncols=2)
-        plt.show()
 
     def plot_diagnostics(self, tof_id: int):
         """
@@ -941,7 +938,6 @@ class CookieboxCalibration(SerializableMixin):
         ax[4].set(xlabel="Energy [eV]", ylabel="Jacobian [a.u.]")
         for a in ax:
             a.set_title(f"TOF {tof_id}")
-        plt.show()
 
     def plot_transmissions(self):
         """
@@ -965,7 +961,6 @@ class CookieboxCalibration(SerializableMixin):
             a.set(xlabel="Energy [eV]",
                   ylabel="Transmission [a.u.]")
             a.legend(frameon=False, ncols=2)
-        plt.show()
 
     def plot_offsets(self):
         """
@@ -989,9 +984,8 @@ class CookieboxCalibration(SerializableMixin):
             a.set(xlabel="Energy [eV]",
                   ylabel="Offset [a.u.]")
             a.legend(frameon=False, ncols=2)
-        plt.show()
 
-    def plot_jacobians(self):
+    def plot_jacobians(self, eV_per_sample: bool=True):
         """
         Plot all jacobians in the same plot.
 
@@ -1009,12 +1003,18 @@ class CookieboxCalibration(SerializableMixin):
                 continue
             a = ax[i//8]
             c = colors[i%8]
-            a.plot(self.energy_axis, self.jacobian[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
+            if eV_per_sample:
+                a.plot(self.energy_axis, 1.0/self.jacobian[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
+            else:
+                a.plot(self.energy_axis, self.jacobian[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
         for a in ax:
-            a.set(xlabel="Energy [eV]",
-                  ylabel="Jacobian [1/eV]")
+            if eV_per_sample:
+                a.set(xlabel="Energy [eV]",
+                      ylabel=r"$\left\vert\frac{dE}{dt}\right\vert$ [eV/samp.]")
+            else:
+                a.set(xlabel="Energy [eV]",
+                      ylabel=r"$\left\vert\frac{dt}{dE}\right\vert$ [samp./eV]")
             a.legend(frameon=False, ncols=2)
-        plt.show()
 
     def plot_normalizations(self):
         """
@@ -1038,7 +1038,6 @@ class CookieboxCalibration(SerializableMixin):
             a.set(xlabel="Energy [eV]",
                   ylabel="Normalization [a.u.]")
             a.legend(frameon=False, ncols=2)
-        plt.show()
 
     def plot_fit(self, tof_id: int):
         """
@@ -1072,7 +1071,6 @@ class CookieboxCalibration(SerializableMixin):
         plt.ylabel("Intensty [a.u.]")
         plt.legend()
         plt.title(f"TOF {tof_id}")
-        plt.show()
 
     def load_trace(self, run: DataCollection, **extra_kwargs_adq: Dict[str, Any]) -> xr.Dataset:
         """
