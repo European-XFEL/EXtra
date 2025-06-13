@@ -161,24 +161,31 @@ class CalCatAPIClient:
     # --------------------
     # Shortcuts to find 1 of something by an ID-like field (e.g. name) other
     # than CalCat's own integer IDs. Error on no match or >1 matches.
-    @lru_cache()
-    def detector_by_identifier(self, identifier):
-        # The "identifier", "name" & "karabo_name" fields seem to have the same names
-        res = self.get("detectors", {"identifier": identifier})
+    @lru_cache
+    def _get_by_name(self, endpoint, name, name_key="name"):
+        res = self.get(endpoint, {name_key: name})
         if not res:
-            raise KeyError(f"No detector with identifier {identifier}")
+            raise KeyError(f"No {endpoint[:-1]} with name {name}")
         elif len(res) > 1:
-            raise ValueError(f"Multiple detectors found with identifier {identifier}")
+            raise ValueError(f"Multiple {endpoint} found with name {name}")
         return res[0]
 
-    @lru_cache()
+    def detector_by_identifier(self, identifier):
+        return self._get_by_name(
+            "detectors", identifier, name_key="identifier")
+
     def calibration_by_name(self, name):
-        res = self.get("calibrations", {"name": name})
-        if not res:
-            raise KeyError(f"No calibration with name {name}")
-        elif len(res) > 1:
-            raise ValueError(f"Multiple calibrations found with name {name}")
-        return res[0]
+        return self._get_by_name("calibrations", name)
+
+    def parameter_by_name(self, name):
+        return self._get_by_name("parameters", name)
+
+    def detector_type_by_name(self, name):
+        return self._get_by_name("detector_types", name)
+
+    def pdu_by_name(self, name):
+        return self._get_by_name(
+            "physical_detector_units", name, name_key="physical_name")
 
 
 global_client = None
