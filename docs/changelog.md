@@ -26,9 +26,16 @@ Added:
   (AGIPD1M, AGIPD500K, DSSC1M, JUNGFRAU, LPD1M) (!177).
 - [imshow2][extra.utils.imshow2] now supports plotting 2D
   [DataArray][xarray.DataArray]s properly (!333).
+- [ShimadzuHPVX2Conditions][extra.calibration.ShimadzuHPVX2Conditions] to
+  retrieve constants for dynamic flat-field correction (!254).
 
 Changed:
 - [Timepix3.spatial_bins()] is now a static method.
+- [LPDConditions][extra.calibration.LPDConditions] now accepts
+  `parallel_gain` (!254).
+- [JUNGFRAUConditions][extra.calibration.JUNGFRAUConditions] now accepts
+  `exposure_timeout` (!254).
+- `CalibrationData.from_condition` has a new `begin_at_strategy` parameter (!254).
 
 Fixed:
 
