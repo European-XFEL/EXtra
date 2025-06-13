@@ -42,6 +42,9 @@ class ModuleNameError(KeyError):
 
 class CalCatAPIError(requests.HTTPError):
     """Used when the response includes error details as JSON"""
+    @property
+    def status_code(self):
+        return self.response.status_code
 
 
 class CalCatAPIClient:
@@ -108,7 +111,8 @@ class CalCatAPIClient:
             else:
                 raise CalCatAPIError(
                     f"Error {resp.status_code} from API: "
-                    f"{d.get('info', 'missing details')}"
+                    f"{d.get('info', 'missing details')}",
+                    response=resp
                 )
 
         if resp.content == b"":
