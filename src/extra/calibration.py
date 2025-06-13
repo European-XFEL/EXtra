@@ -717,6 +717,10 @@ class CalibrationData(Mapping):
     def __len__(self):
         return len(self.constant_groups)
 
+    def __bool__(self):
+        # Do we have any constants of any type?
+        return any(bool(grp) for grp in self.constant_groups.values())
+
     def __contains__(self, item):
         return item in self.constant_groups
 
