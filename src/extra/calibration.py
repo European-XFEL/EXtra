@@ -848,8 +848,6 @@ class CalibrationData(Mapping):
             module_naming (str): modnum, aggregator or qm, to change how the
                 modules are labelled in the table. Defaults to modnum.
         """
-        from tabulate import tabulate
-
         if module_naming == "aggregator":
             modules = self.aggregator_names
         elif module_naming == "modnum":
