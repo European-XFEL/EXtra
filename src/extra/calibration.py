@@ -759,7 +759,10 @@ class CalibrationData(Mapping):
         """Drop any modules missing the specified constant types"""
         mods = set(self.aggregator_names)
         for cal_type in calibrations:
-            mods.intersection_update(self[cal_type].constants)
+            if cal_type in self:
+                mods.intersection_update(self[cal_type].constants)
+            else:
+                mods = set()  # None of this found
         return self.select_modules(aggregator_names=mods)
 
     def select_modules(
