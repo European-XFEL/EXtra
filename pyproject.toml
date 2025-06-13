@@ -4,7 +4,8 @@ requires = [
     "wheel",
     "setuptools_scm[toml]==7.1.0",
     "numpy",
-    "cython!=3.1.0",  # Avoiding https://github.com/cython/cython/issues/6855
+    "cython !=3.1.0,!=3.1.1",  # Avoiding https://github.com/cython/cython/issues/6855
+                               # and https://github.com/cython/cython/issues/6897
 ]
 build-backend = "setuptools.build_meta"
 
