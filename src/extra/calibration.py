@@ -83,6 +83,8 @@ class CalCatAPIClient:
             return dt.astimezone(timezone.utc).isoformat()
         elif isinstance(dt, date):
             return cls.format_time(datetime.combine(dt, time()))
+        elif dt is None:
+            return ""  # Not specified - for searches, this usually means now
         elif not isinstance(dt, str):
             raise TypeError(
                 f"Timestamp parameter ({dt!r}) must be a string, datetime or "
