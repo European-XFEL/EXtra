@@ -93,7 +93,7 @@ class CalCatAPIClient:
 
         return dt
 
-    def get_request(self, relative_url, params=None, headers=None, **kwargs):
+    def request(self, method, relative_url, params=None, headers=None, **kwargs):
         """Make a GET request, return the HTTP response object"""
         # Base URL may include e.g. '/api/'. This is a prefix for all URLs;
         # even if they look like an absolute path.
@@ -101,7 +101,9 @@ class CalCatAPIClient:
         _headers = self.default_headers()
         if headers:
             _headers.update(headers)
-        return self.session.get(url, params=params, headers=_headers, **kwargs)
+        return self.session.request(
+            method, url, params=params, headers=_headers, **kwargs
+        )
 
     @staticmethod
     def _parse_response(resp: requests.Response):
@@ -124,7 +126,7 @@ class CalCatAPIClient:
 
     def get(self, relative_url, params=None, **kwargs):
         """Make a GET request, return response content from JSON"""
-        resp = self.get_request(relative_url, params, **kwargs)
+        resp = self.request('GET', relative_url, params, **kwargs)
         return self._parse_response(resp)
 
     _pagination_headers = (
@@ -136,7 +138,7 @@ class CalCatAPIClient:
 
     def get_paged(self, relative_url, params=None, **kwargs):
         """Make a GET request, return response content & pagination info"""
-        resp = self.get_request(relative_url, params, **kwargs)
+        resp = self.request('GET', relative_url, params, **kwargs)
         content = self._parse_response(resp)
         pagination_info = {
             k[2:].lower().replace("-", "_"): int(resp.headers[k])
@@ -144,6 +146,11 @@ class CalCatAPIClient:
             if k in resp.headers
         }
         return content, pagination_info
+
+    def post(self, relative_url, json, **kwargs):
+        """Make a POST request, return response content from JSON"""
+        resp = self.request('POST', relative_url, json=json, **kwargs)
+        return self._parse_response(resp)
 
     # ------------------
     # Cached wrappers for simple ID lookups of fixed-ish info
@@ -239,7 +246,7 @@ def setup_client(
     if oauth_client is None and base_url == CALCAT_PROXY_URL:
         try:
             # timeout=(connect_timeout, read_timeout)
-            global_client.get_request("me", timeout=(1, 5))
+            global_client.request("GET", "me", timeout=(1, 5))
         except requests.ConnectionError as e:
             raise RuntimeError(
                 "Could not connect to calibration catalog proxy. This proxy allows "
