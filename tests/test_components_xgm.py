@@ -73,22 +73,22 @@ def test_multisase_xgm(multi_xgm_run):
     # Test results without setting `default_sase`
     xgm = XGM(run, control)
     # It should automatically pick SASE 3 based on the source name
-    assert xgm.pulse_energy().name == f"{instrument}.data.intensitySa3TD"
+    assert xgm.pulse_energy().name == "Energy"
     assert xgm.pulse_counts().name == f"{control}.pulseEnergy.numberOfSa3BunchesActual"
     assert xgm.slow_train_energy().name == f"{control}.controlData.slowTrainSa3"
 
     # And with a `default_sase`
     xgm = XGM(run, control, default_sase=1)
-    assert xgm.pulse_energy().name == f"{instrument}.data.intensitySa1TD"
+    assert xgm.pulse_energy().name == "Energy"
     assert xgm.pulse_counts().name == f"{control}.pulseEnergy.numberOfSa1BunchesActual"
     assert xgm.slow_train_energy().name == f"{control}.controlData.slowTrainSa1"
 
     # Test specifying an explicit non-default SASE
-    assert xgm.pulse_energy(0).name == f"{instrument}.data.intensityTD"
+    assert xgm.pulse_energy(0).name == "Energy"
     assert xgm.pulse_counts(0).name == f"{control}.pulseEnergy.numberOfBunchesActual"
     assert xgm.slow_train_energy(0).name == f"{control}.controlData.slowTrain"
 
-    assert xgm.pulse_energy(3).name == f"{instrument}.data.intensitySa3TD"
+    assert xgm.pulse_energy(3).name == "Energy"
     assert xgm.pulse_counts(3).name == f"{control}.pulseEnergy.numberOfSa3BunchesActual"
     assert xgm.slow_train_energy(3).name == f"{control}.controlData.slowTrainSa3"
 
