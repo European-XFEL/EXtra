@@ -5,17 +5,25 @@
 
 # Changelog
 
+## [Unreleased]
+
+!!! note
+    All of the changes here are deployed to our current environment, even though
+    a release hasn't been made for them yet. If you want to have these updates
+    in a personal environment you'll need to install the package from git.
+
+    ```bash title="Installation command"
+    pip install git+https://github.com/European-XFEL/EXtra.git
+    ```
+
+Changed:
+
+- [XGM.pulse_energy()][extra.components.XGM.pulse_energy] will now insert NaNs
+  instead of zeros as a fill value for runs with a varying number of pulses
+  (!347).
+
+
 ## [2025.1]
-
-<!-- !!! note -->
-<!--     All of the changes here are deployed to our current environment, even though -->
-<!--     a release hasn't been made for them yet. If you want to have these updates -->
-<!--     in a personal environment you'll need to install the package from git. -->
-
-<!--     ```bash title="Installation command" -->
-<!--     pip install git+https://github.com/European-XFEL/EXtra.git -->
-<!--     ``` -->
-
 
 Added:
 
