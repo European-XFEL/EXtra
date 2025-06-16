@@ -5,16 +5,16 @@
 
 # Changelog
 
-## [Unreleased]
+## [2025.1]
 
-!!! note
-    All of the changes here are deployed to our current environment, even though
-    a release hasn't been made for them yet. If you want to have these updates
-    in a personal environment you'll need to install the package from git.
+<!-- !!! note -->
+<!--     All of the changes here are deployed to our current environment, even though -->
+<!--     a release hasn't been made for them yet. If you want to have these updates -->
+<!--     in a personal environment you'll need to install the package from git. -->
 
-    ```bash title="Installation command"
-    pip install git+https://github.com/European-XFEL/EXtra.git
-    ```
+<!--     ```bash title="Installation command" -->
+<!--     pip install git+https://github.com/European-XFEL/EXtra.git -->
+<!--     ``` -->
 
 
 Added:
@@ -34,7 +34,8 @@ Added:
   retrieve constants for dynamic flat-field correction (!254).
 
 Changed:
-- [Timepix3.spatial_bins()] is now a static method.
+
+- [Timepix3.spatial_bins()][extra.components.Timepix3.spatial_bins] is now a static method.
 - The [XGM][extra.components.XGM] component will now emit warnings when it
   detects the wrong number of pulses have been saved in the slow data
   property. There is also a new `force_slow_data` argument to
@@ -191,7 +192,8 @@ Added:
   [EXtra-geom](detector-geometry.md), and [karabo-bridge-py](karabo-bridge.md).
 
 
-[Unreleased]: https://github.com/European-XFEL/EXtra/compare/2024.2...master
+[Unreleased]: https://github.com/European-XFEL/EXtra/compare/2025.1...master
+[2025.1]: https://github.com/European-XFEL/EXtra/releases/tag/2025.1
 [2024.2]: https://github.com/European-XFEL/EXtra/releases/tag/2024.2
 [2024.1.2]: https://github.com/European-XFEL/EXtra/releases/tag/2024.1.2
 [2024.1.1]: https://github.com/European-XFEL/EXtra/releases/tag/2024.1.1
