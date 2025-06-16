@@ -34,6 +34,9 @@ Changed:
   property. There is also a new `force_slow_data` argument to
   [XGM.pulse_counts()][extra.XGM.pulse_counts] to always return whatever was
   saved in the slow data (!161).
+- [XGM.pulse_energy()][extra.components.XGM.pulse_energy] will now insert NaNs
+  instead of zeros as a fill value for runs with a varying number of pulses
+  (!347).
 
 Fixed:
 
