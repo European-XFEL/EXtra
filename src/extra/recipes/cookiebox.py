@@ -1,5 +1,7 @@
 from dataclasses import dataclass, asdict, is_dataclass
 
+from typing import Tuple, Dict, Union, List, Optional, Any
+
 import itertools
 from functools import partial
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
