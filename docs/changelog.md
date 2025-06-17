@@ -16,12 +16,14 @@
     pip install git+https://github.com/European-XFEL/EXtra.git
     ```
 
+
 Added:
 
 - [TOFResponse][extra.recipes.TOFResponse] to estimate, deconvolve and denoise the instrumental response in eTOFs (!304).
 - [VSLight][extra.recipes.VSLight] to calibrate and deconvolve eTOFs from a continuous monochromator scan (!304).
 - [CookieboxCalibration][extra.recipes.CookieboxCalibration] to calibrate data from eTOFs after taking a calibration run (!284).
 - [Grating2DCalibration][extra.recipes.Grating2DCalibration] to calibrate data from a 2D grating detector (!284).
+- [Grating1DCalibration][extra.recipes.Grating1DCalibration] to calibrates 1D grating information (e.g.: collected from the Gotthard detector in SQS) (!318).
 - Exposed detector data components from `extra_data` in `extra.components`
   (AGIPD1M, AGIPD500K, DSSC1M, JUNGFRAU, LPD1M) (!177).
 - [imshow2][extra.utils.imshow2] now supports plotting 2D
@@ -44,6 +46,12 @@ Fixed:
 - Fixed reading of the
   [Scantool.acquisition_time][extra.components.Scantool.acquisition_time]
   property for newer Scantool versions (!303).
+- [CookieboxCalibration][extra.recipes.CookieboxCalibration]: allow flagging of bad calibration points, to allow using others in the `mask_calibration_point(tof_id, energy)` function (!318).
+- [CookieboxCalibration][extra.recipes.CookieboxCalibration]: Order `plot_calibration_data` y axis by energy to avoid unordered axis in case the energy scan was done out of monotonically increasing order (!318).
+- [CookieboxCalibration][extra.recipes.CookieboxCalibration]: Use Auger-Meitner mean to align all plots in `plot_calibration_data` by the Auger-Meitner peak (!318).
+- [CookieboxCalibration][extra.recipes.CookieboxCalibration]: New function `plot_calibrations`, which plots only the calibration factors in the same plot for diagnostics. Often this is all that one is interested in (!318).
+- [Grating2DCalibration][extra.recipes.Grating2DCalibration]: Crop image based on rotation angle to avoid artifacts caused by out-of-bound effects. Add background root-mean-squared error as uncertainty band in the output (!318).
+- [Grating2DCalibration][extra.recipes.Grating2DCalibration]: If provided, use extra motor information as independent variable in the fit (useful when data includes motor movements additionally) (!318).
 - Fixed [Scan.plot_bin_by_steps()][extra.components.Scan.plot_bin_by_steps] to show 2D
   data (!320).
 - Restrict the version of Cython used to build while we figure out an issue with
