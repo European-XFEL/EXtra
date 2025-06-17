@@ -423,7 +423,7 @@ class Grating2DCalibration(SerializableMixin):
 
     def estimate_crop_roi(self, nrows: int, ncols: int):
         """
-        Calculate rectangle to be selected to crop pictore and avoid
+        Calculate rectangle to be selected to crop the image and avoid
         edge effects.
 
         Args:
