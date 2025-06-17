@@ -54,7 +54,7 @@ def search_roi(roi: np.ndarray) -> np.ndarray:
     Returns: Peak position.
     """
     import scipy
-    p, _ = scipy.signal.find_peaks(roi, prominence=(0.25*np.amax(roi), None))
+    p, _ = scipy.signal.find_peaks(roi, prominence=(0.25*np.max(roi), None))
     return p
 
 def model(ts: np.ndarray, c: float, e0: float, t0: float) -> np.ndarray:
@@ -758,13 +758,13 @@ class CookieboxCalibration(SerializableMixin):
             auger_start_roi = self.auger_start_roi[tof_id]
             start_roi = self.start_roi[tof_id]
             stop_roi = self.stop_roi[tof_id]
-            sample_auger = int(np.amin(self.tof_fit_result[tof_id].mu_auger))
+            sample_auger = int(np.min(self.tof_fit_result[tof_id].mu_auger))
             ax = axes.flatten()[tof_id]
             temp = data[tof_id].copy()
             ax.imshow(temp[idx, sample_auger:stop_roi],
-                      extent=[sample_auger, stop_roi, np.amin(energies), np.amax(energies)],
+                      extent=[sample_auger, stop_roi, np.min(energies), np.max(energies)],
                       aspect="auto",
-                      norm=Normalize(vmax=np.amax(temp)),
+                      norm=Normalize(vmax=np.max(temp)),
                      )
             #ax.set_yticklabels((energies[idx]+0.5).astype(int))
             ax.set_title(f'TOF {tof_id}')
@@ -801,17 +801,17 @@ class CookieboxCalibration(SerializableMixin):
             ya = data[e, auger_start_roi:start_roi]
             gamodel = GaussianModel() + ConstantModel()
             ii = np.argmax(ya)
-            #ii = np.sum(xa*(ya-np.amin(ya)))/np.sum(ya-np.amin(ya))
-            iisig = 2 #np.sqrt(np.sum((xa -ii)**2*(ya-np.amin(ya)))/np.sum(ya-np.amin(ya)))
-            resulta = gamodel.fit(ya, x=xa, center=xa[ii], amplitude=np.amax(ya), sigma=iisig, c=np.median(ya))
+            #ii = np.sum(xa*(ya-np.min(ya)))/np.sum(ya-np.min(ya))
+            iisig = 2 #np.sqrt(np.sum((xa -ii)**2*(ya-np.min(ya)))/np.sum(ya-np.min(ya)))
+            resulta = gamodel.fit(ya, x=xa, center=xa[ii], amplitude=np.max(ya), sigma=iisig, c=np.median(ya))
             # fit data
             x = np.arange(start_roi, stop_roi)
             y = data[e, start_roi:stop_roi]
             gmodel = GaussianModel() + ConstantModel()
             ii = np.argmax(y)
-            #ii = np.sum(x*(y-np.amin(y)))/np.sum(y-np.amin(y))
-            iisig = 10 #np.sqrt(np.sum((x -ii)**2*(y-np.amin(y)))/np.sum(y-np.amin(y)))
-            result = gmodel.fit(y, x=x, center=x[ii], amplitude=np.amax(y), sigma=iisig, c=np.median(y))
+            #ii = np.sum(x*(y-np.min(y)))/np.sum(y-np.min(y))
+            iisig = 10 #np.sqrt(np.sum((x -ii)**2*(y-np.min(y)))/np.sum(y-np.min(y)))
+            result = gmodel.fit(y, x=x, center=x[ii], amplitude=np.max(y), sigma=iisig, c=np.median(y))
             #result.plot_fit()
             # we care about the normalization coefficient, not the normalized amplitude
             #A += [result.best_values["amplitude"]/(result.best_values["sigma"]*np.sqrt(2*np.pi))]
