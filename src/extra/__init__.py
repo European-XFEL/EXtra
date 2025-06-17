@@ -45,7 +45,7 @@ __all__ = ["__version__"]
 import pint
 
 ureg = pint.UnitRegistry(cache_folder=":auto:")
-ureg.default_format = '~'
+ureg.formatter.default_format = '~'
 
 def length_to_ev(ureg, x):
     numerator = (ureg.planck_constant * ureg.c / ureg.e * 1).to_base_units().magnitude

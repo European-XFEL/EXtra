@@ -374,7 +374,10 @@ class AdqRawChannel:
         pids_by_train = pulse_ids.groupby(level=0)
 
         # Number of pulses per train.
-        num_pulses = pids_by_train.count()
+        # Note that using .pulse_counts() is different than
+        # pids_by_train.count(), as the latter may miss trains due to
+        # having no pulses while still having the record of that.
+        num_pulses = self._pulses.pulse_counts()
 
         # Align pulses to passed train IDs of actual data.
         try:
@@ -1104,7 +1107,8 @@ class AdqRawChannel:
         pulse_ids = pulse_ids.to_numpy()
 
         # Temporary buffer for a single iteration.
-        tmp = np.zeros((200,) + self._raw_key.entry_shape, dtype=out.dtype)
+        tmp = np.zeros((200,) + roi_shape(
+            self._raw_key.entry_shape, train_roi), dtype=out.dtype)
 
         for kd in raw_key.split_trains(trains_per_part=200):
             pulse_sel = np.s_[pulse_layout.loc[kd.train_ids[0]]['first']:

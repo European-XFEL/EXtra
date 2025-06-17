@@ -284,25 +284,39 @@ class Scan:
 
         binned_data = self.bin_by_steps(data)
 
-        uncertainty_label = "standard deviation" if uncertainty_method == "std" else "standard error"
-        ax.plot(binned_data.position, binned_data, "-o", markersize=4, label=f"Uncertainty: {uncertainty_label}")
-        ax.fill_between(binned_data.position,
-                        binned_data - binned_data.uncertainty,
-                        binned_data + binned_data.uncertainty,
-                        alpha=0.5)
-        ax.grid()
-        ax.set_xlabel(self.name if xlabel is None else xlabel)
+        if binned_data.ndim == 1:
+            uncertainty_label = "standard deviation" if uncertainty_method == "std" else "standard error"
+            binned_data.plot.line("-o", markersize=4, label=f"Uncertainty: {uncertainty_label}", ax=ax)
+            ax.fill_between(binned_data.position,
+                            binned_data - binned_data.uncertainty,
+                            binned_data + binned_data.uncertainty,
+                            alpha=0.5)
+            ax.grid()
+            ax.legend()
 
+            if binned_data.name is not None:
+                yaxis = binned_data.name
+            else:
+                ylabel = "Signal [arb. u.]" if ylabel is None else ylabel
+                yaxis = "Signal"
 
-        if binned_data.name is not None:
-            ax.set_ylabel(binned_data.name if ylabel is None else ylabel)
-            yaxis = binned_data.name
-        else:
-            ax.set_ylabel("Signal [arb. u.]" if ylabel is None else ylabel)
-            yaxis = "Signal"
+            if xlabel is None:
+                xlabel = self.name
 
-        ax.legend()
-        ax.set_title(f"{yaxis} vs {self.name}" if title is None else title)
+            if title is None:
+                title = f"{yaxis} vs {self.name}"
+        else:  # 2D
+            binned_data.plot(ax=ax)
+
+            if ylabel is None:
+                ylabel = self.name
+
+        if title:
+            ax.set_title(title)
+        if xlabel:
+            ax.set_xlabel(xlabel)
+        if ylabel:
+            ax.set_ylabel(ylabel)
 
         return ax
 

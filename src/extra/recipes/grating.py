@@ -340,8 +340,6 @@ class Grating2DCalibration(SerializableMixin):
         Setup calibration.
 
         Args:
-          bkg_run: The background run.
-          run: The calibration run.
           grating_signal: Where to read the grating data from.
                    Example: `signal_run["SQS_DIAG3_BIU/CAM/CAM_6:daqOutput, "data.image.pixels"]`
           scan: Scan object identfying where to read the undulator energy from.

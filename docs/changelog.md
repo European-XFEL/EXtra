@@ -18,18 +18,31 @@
 
 
 Added:
+
 - [TOFResponse][extra.recipes.TOFResponse] to estimate, deconvolve and denoise the instrumental response in eTOFs (!304).
 - [VSLight][extra.recipes.VSLight] to calibrate and deconvolve eTOFs from a continuous monochromator scan (!304).
 - [CookieboxCalibration][extra.recipes.CookieboxCalibration] to calibrate data from eTOFs after taking a calibration run (!284).
 - [Grating2DCalibration][extra.recipes.Grating2DCalibration] to calibrate data from a 2D grating detector (!284).
 - [Grating1DCalibration][extra.recipes.Grating1DCalibration] to calibrates 1D grating information (e.g.: collected from the Gotthard detector in SQS) (!318).
-- Exposed detector data components from `extra_data` in `extra.components` (AGIPD1M, AGIPD500K, DSSC1M, JUNGFRAU, LPD1M).
+- Exposed detector data components from `extra_data` in `extra.components`
+  (AGIPD1M, AGIPD500K, DSSC1M, JUNGFRAU, LPD1M) (!177).
+- [imshow2][extra.utils.imshow2] now supports plotting 2D
+  [DataArray][xarray.DataArray]s properly (!333).
+
+Changed:
+- [Timepix3.spatial_bins()] is now a static method.
+- The [XGM][extra.components.XGM] component will now emit warnings when it
+  detects the wrong number of pulses have been saved in the slow data
+  property. There is also a new `force_slow_data` argument to
+  [XGM.pulse_counts()][extra.XGM.pulse_counts] to always return whatever was
+  saved in the slow data (!161).
 
 Fixed:
-- Fixed [PumpProbePattern.is_constant_pattern()][extra.components.PumpProbePattern.is_constant_pattern] to properly take pump probe flags into account when determining whether a pattern is constant (!313).
+
+- Fixed [PumpProbePulses.is_constant_pattern()][extra.components.PumpProbePulses.is_constant_pattern] to properly take pump probe flags into account when determining whether a pattern is constant (!313).
 - [AdqRawChannel.pulse_edges()][extra.components.AdqRawChannel.pulse_edges] now also supports data where the trace is too short for the actual number of pulses present (!312).
 - Fixed issues with pulse separation in [AdqRawChannel][extra.components.AdqRawChannel] with variable pulse patterns and those with trains missing ADQ data (!310).
-- [AdqRawChanne][extra.components.AdqRawChannel] now properly enumerates channels starting with 1 rather than 0 as in the Karabo device.
+- [AdqRawChannel][extra.components.AdqRawChannel] now properly enumerates channels starting with 1 rather than 0 as in the Karabo device.
 - Fixed reading of the
   [Scantool.acquisition_time][extra.components.Scantool.acquisition_time]
   property for newer Scantool versions (!303).
@@ -39,15 +52,19 @@ Fixed:
 - [CookieboxCalibration][extra.recipes.CookieboxCalibration]: New function `plot_calibrations`, which plots only the calibration factors in the same plot for diagnostics. Often this is all that one is interested in (!318).
 - [Grating2DCalibration][extra.recipes.Grating2DCalibration]: Crop image based on rotation angle to avoid artifacts caused by out-of-bound effects. Add background root-mean-squared error as uncertainty band in the output (!318).
 - [Grating2DCalibration][extra.recipes.Grating2DCalibration]: If provided, use extra motor information as independent variable in the fit (useful when data includes motor movements additionally) (!318).
+- Fixed [Scan.plot_bin_by_steps()][extra.components.Scan.plot_bin_by_steps] to show 2D
+  data (!320).
+- Restrict the version of Cython used to build while we figure out an issue with
+  Cython 3.1 (!328).
+- Fixed behaviour of
+  [Scan.plot_bin_by_steps()][extra.components.Scan.plot_bin_by_steps] when
+  passed a custom axis (!334).
 
 ## [2024.2]
 Added:
 
 - [Timepix3][extra.components.Timepix3] to access raw hits and centroids from the Timepix3 detector (!231).
 - [Scan.plot()][extra.components.Scan.plot] now allows passing a `figsize` (!262).
-
-Added:
-
 - [JF4MHalfMotors][extra.components.JF4MHalfMotors] to access positions of motors moving halfs of Jungfrau detector (!224).
 
 Fixed:

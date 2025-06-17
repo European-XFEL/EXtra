@@ -121,3 +121,6 @@ def test_scan_bin_multidimensional(mock_spb_aux_run):
     # pulse is present as a dimension, but doesn't have coordinates
     assert set(binned.coords.keys()) == {"position", "uncertainty", "counts"}
     assert binned.shape == (10, 1000)
+
+    # Smoke test
+    s.plot_bin_by_steps(xgm_intensity)
