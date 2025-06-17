@@ -1,4 +1,3 @@
-from typing import Optional, Union, Dict, List, Tuple, Any
 from dataclasses import dataclass, asdict, is_dataclass
 
 import itertools
@@ -172,21 +171,17 @@ def apply_filter(data: np.ndarray, frequencies: List[float]) -> np.ndarray:
     Returns: Filtered data in the same shape as input.
     """
     from scipy.signal import kaiserord, filtfilt, firwin
-    #from scipy.signal import butter
     nyq_rate = 0.5
     ripple_db = 10.0
     out = data
     order = 5
     for f in frequencies:
         df = 0.1*f
-        #sif f - df < 0 or f + df > 0.5:
-        #    df = 0.1*f
         N, beta = kaiserord(ripple_db, df)
         if N % 2 == 0:
             N -= 1
         a = firwin(N, [f-df/2, f+df/2], window='hamming', pass_zero='bandstop', fs=1)
         b = 1
-        #b, a = butter(order, [f-df/2, f+df/2], fs=1.0, btype='bandstop')
         out = filtfilt(a, b, out, axis=-1)
     return out
 
@@ -394,9 +389,6 @@ class CookieboxCalibration(SerializableMixin):
         self.mask = {int(k): v for k, v in self.mask.items()}
         self.calibration_mask = {int(k): v for k, v in self.calibration_mask.items()}
         self.kwargs_adq = {int(k): v for k, v in self.kwargs_adq.items()}
-        # for tof_id in self.kwargs_adq.keys():
-        #     self.kwargs_adq[tof_id]["source"] = self.kwargs_adq[tof_id]["source"].decode("utf-8")
-        #     self.kwargs_adq[tof_id]["name"] = self.kwargs_adq[tof_id]["name"].decode("utf-8")
 
     def setup(self,
               run: DataCollection,
@@ -766,7 +758,6 @@ class CookieboxCalibration(SerializableMixin):
                       aspect="auto",
                       norm=Normalize(vmax=np.max(temp)),
                      )
-            #ax.set_yticklabels((energies[idx]+0.5).astype(int))
             ax.set_title(f'TOF {tof_id}')
             ax.set_xlabel("Samples")
             ax.set_ylabel("Energy [eV]")
@@ -801,7 +792,6 @@ class CookieboxCalibration(SerializableMixin):
             ya = data[e, auger_start_roi:start_roi]
             gamodel = GaussianModel() + ConstantModel()
             ii = np.argmax(ya)
-            #ii = np.sum(xa*(ya-np.min(ya)))/np.sum(ya-np.min(ya))
             iisig = 2 #np.sqrt(np.sum((xa -ii)**2*(ya-np.min(ya)))/np.sum(ya-np.min(ya)))
             resulta = gamodel.fit(ya, x=xa, center=xa[ii], amplitude=np.max(ya), sigma=iisig, c=np.median(ya))
             # fit data
@@ -809,12 +799,9 @@ class CookieboxCalibration(SerializableMixin):
             y = data[e, start_roi:stop_roi]
             gmodel = GaussianModel() + ConstantModel()
             ii = np.argmax(y)
-            #ii = np.sum(x*(y-np.min(y)))/np.sum(y-np.min(y))
             iisig = 10 #np.sqrt(np.sum((x -ii)**2*(y-np.min(y)))/np.sum(y-np.min(y)))
             result = gmodel.fit(y, x=x, center=x[ii], amplitude=np.max(y), sigma=iisig, c=np.median(y))
-            #result.plot_fit()
             # we care about the normalization coefficient, not the normalized amplitude
-            #A += [result.best_values["amplitude"]/(result.best_values["sigma"]*np.sqrt(2*np.pi))]
             A += [result.best_values["amplitude"]]
             Aa += [resulta.best_values["amplitude"]]
             mu += [result.best_values["center"]]
@@ -856,8 +843,6 @@ class CookieboxCalibration(SerializableMixin):
         self.offset[tof_id] = np.interp(self.energy_axis,
                                         ee,
                                         eo)
-        #self.offset[tof_id] = CubicSpline(ee, eo)(self.energy_axis)
-        #self.offset[tof_id] = eo
 
         # interpolate amplitude as given by the
         # Auger+Valence (related to the cross section and pulse intensity)
@@ -866,7 +851,6 @@ class CookieboxCalibration(SerializableMixin):
         self.normalization[tof_id] = np.interp(self.energy_axis,
                                                ee,
                                                en)
-        #self.normalization[tof_id] = CubicSpline(ee, en)(self.energy_axis)
 
         # calculate transmission
         self.transmission[tof_id] = self.tof_fit_result[tof_id].A[mask]/self.tof_fit_result[tof_id].Aa[mask]
@@ -876,7 +860,6 @@ class CookieboxCalibration(SerializableMixin):
         self.int_transmission[tof_id] = np.interp(self.energy_axis,
                                                   ee,
                                                   et)
-        #self.int_transmission[tof_id] = CubicSpline(ee, et)(self.energy_axis)
 
     def plot_calibrations(self):
         """
@@ -1061,7 +1044,6 @@ class CookieboxCalibration(SerializableMixin):
             plt.scatter(ts, data[e,start_roi:stop_roi], c=c, label=f"{energy:.1f} eV")
             mu = self.tof_fit_result[tof_id].mu[e]
             amplitude = self.tof_fit_result[tof_id].A[e]
-            #Aa = self.tof_fit_result[tof_id].Aa[e]
             sigma = self.tof_fit_result[tof_id].sigma[e]
             offset = self.tof_fit_result[tof_id].offset[e]
             gmodel = GaussianModel() + ConstantModel()
@@ -1173,9 +1155,6 @@ class CookieboxCalibration(SerializableMixin):
             e = model(ts, *self.model_params[tof_id])
 
             # interpolate
-            # o = np.apply_along_axis(lambda arr: CubicSpline(e[::-1], arr[::-1])(self.energy_axis),
-            #                        axis=1,
-            #                        arr=filtered)
             o = np.apply_along_axis(lambda arr: np.interp(self.energy_axis, e[::-1], arr[::-1], left=0, right=0),
                                    axis=1,
                                    arr=pulses)
@@ -1183,7 +1162,7 @@ class CookieboxCalibration(SerializableMixin):
             n_e = len(self.energy_axis)
             o = np.reshape(o, (n_t, n_p, n_e))
             # subtract offset
-            #o = o - self.offset[tof_id][None, None, :]
+            o = o - self.offset[tof_id][None, None, :]
             # apply Jacobian
             o = o*self.jacobian[tof_id][None, None, :]
             o[np.isnan(o)] = 0.0
