@@ -1056,9 +1056,9 @@ class CookieboxCalibration(SerializableMixin):
 
     def load_trace(self, run: DataCollection, **extra_kwargs_adq: Dict[str, Any]) -> xr.Dataset:
         """
-        See `load_datal`.
+        See [load_data][extra.recipes.CookieboxCalibration.load_data].
         """
-        return load_data(run, **extra_kwargs_adq)
+        return self.load_data(run, **extra_kwargs_adq)
 
     def load_data(self, run: DataCollection, **extra_kwargs_adq: Dict[str, Any]) -> xr.Dataset:
         """
