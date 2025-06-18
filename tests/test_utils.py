@@ -1,7 +1,7 @@
 import numpy as np
 import xarray as xr
 
-from extra.utils import imshow2, fit_gaussian, gaussian
+from extra.utils import imshow2, hyperslicer2, fit_gaussian, gaussian
 
 
 def test_imshow2():
@@ -12,6 +12,11 @@ def test_imshow2():
     image = xr.DataArray(image, dims=("foo", "bar"))
     imshow2(image)
 
+
+def test_hyperslicer2():
+    # Smoke test
+    images = np.random.rand(10, 100, 100)
+    hyperslicer2(images)
 
 def test_fit_gaussian():
     # Test with auto-generated xdata and nans/infs
