@@ -20,6 +20,8 @@ else.
 
 ::: extra.utils.imshow2
 
+::: extra.utils.hyperslicer2
+
 ## Fitting functions
 
 ::: extra.utils.fit_gaussian
