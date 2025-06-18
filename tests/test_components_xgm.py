@@ -73,22 +73,22 @@ def test_multisase_xgm(multi_xgm_run):
     # Test results without setting `default_sase`
     xgm = XGM(run, control)
     # It should automatically pick SASE 3 based on the source name
-    assert xgm.pulse_energy().name == f"{instrument}.data.intensitySa3TD"
+    assert xgm.pulse_energy().name == "Energy"
     assert xgm.pulse_counts().name == f"{control}.pulseEnergy.numberOfSa3BunchesActual"
     assert xgm.slow_train_energy().name == f"{control}.controlData.slowTrainSa3"
 
     # And with a `default_sase`
     xgm = XGM(run, control, default_sase=1)
-    assert xgm.pulse_energy().name == f"{instrument}.data.intensitySa1TD"
+    assert xgm.pulse_energy().name == "Energy"
     assert xgm.pulse_counts().name == f"{control}.pulseEnergy.numberOfSa1BunchesActual"
     assert xgm.slow_train_energy().name == f"{control}.controlData.slowTrainSa1"
 
     # Test specifying an explicit non-default SASE
-    assert xgm.pulse_energy(0).name == f"{instrument}.data.intensityTD"
+    assert xgm.pulse_energy(0).name == "Energy"
     assert xgm.pulse_counts(0).name == f"{control}.pulseEnergy.numberOfBunchesActual"
     assert xgm.slow_train_energy(0).name == f"{control}.controlData.slowTrain"
 
-    assert xgm.pulse_energy(3).name == f"{instrument}.data.intensitySa3TD"
+    assert xgm.pulse_energy(3).name == "Energy"
     assert xgm.pulse_counts(3).name == f"{control}.pulseEnergy.numberOfSa3BunchesActual"
     assert xgm.slow_train_energy(3).name == f"{control}.controlData.slowTrainSa3"
 
@@ -147,3 +147,34 @@ def test_xgm_pulse_energy_series(mock_spb_aux_run):
                           run.train_ids[:10])
     assert np.array_equal(energy_series.index.get_level_values(1).unique(),
                           np.arange(10))
+
+def test_wrong_pulse_counts(mock_spb_aux_run):
+    run = mock_spb_aux_run
+    xgm = XGM(mock_spb_aux_run)
+
+    # Create a mock pulse_counts array
+    n_trains = len(run.train_ids)
+    mock_pulse_counts = xr.DataArray(np.ones(n_trains),
+                                     dims=("trainId",),
+                                     coords={"trainId": run.train_ids},
+                                     name="slow_counts")
+
+    # And a mock pulse_energy array with a different number of pulses
+    mock_pulse_energy = xr.DataArray(np.ones((n_trains, 100)),
+                                     dims=("trainId", "pulseIndex"),
+                                     coords={"trainId": run.train_ids})
+
+    with patch("extra.components.xgm.KeyData.xarray", return_value=mock_pulse_counts), \
+         patch.object(xgm, "pulse_energy", return_value=mock_pulse_energy):
+        with pytest.warns():
+            # npulses() will call pulse_counts() internally which should emit a
+            # warning when the number of pulses differ.
+            assert xgm.npulses() == 100
+
+            # pulse_counts() should use the fast data array by default, which
+            # will not have a name.
+            assert xgm.pulse_counts().name == None
+
+            # Otherwise it should return the slow data counts which should have
+            # a name.
+            assert xgm.pulse_counts(force_slow_data=True).name == mock_pulse_counts.name

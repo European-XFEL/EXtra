@@ -1,5 +1,6 @@
-from typing import Optional, Union, Dict, List, Tuple, Any
 from dataclasses import dataclass, asdict, is_dataclass
+
+from typing import Tuple, Dict, Union, List, Optional, Any
 
 import itertools
 from functools import partial
@@ -25,6 +26,7 @@ class TofFitResult:
     A: np.ndarray
     Aa: np.ndarray
     offset: np.ndarray
+    mu_auger: np.ndarray
 
 
 def search_offset(trace: np.ndarray, sigma: float=20) -> int:
@@ -53,7 +55,7 @@ def search_roi(roi: np.ndarray) -> np.ndarray:
     Returns: Peak position.
     """
     import scipy
-    p, _ = scipy.signal.find_peaks(roi, prominence=(0.25*np.amax(roi), None))
+    p, _ = scipy.signal.find_peaks(roi, prominence=(0.25*np.max(roi), None))
     return p
 
 def model(ts: np.ndarray, c: float, e0: float, t0: float) -> np.ndarray:
@@ -99,7 +101,7 @@ def norm_diff_t0(ts: np.ndarray, energies: np.ndarray, t0: float) -> float:
     Returns: Norm of difference between observation and prediction.
     """
     c,e0,_ = lin_fit(ts,energies,t0)
-    return np.linalg.norm(model(ts,c,e0,t0) - energies)
+    return np.linalg.norm(model(ts,c,e0,t0) - energies, ord=1)
 
 def fit(peak_ids: np.ndarray, energies: np.ndarray, t0_bounds: Tuple[float, float]) -> Tuple[float, float, float]:
     """
@@ -171,21 +173,17 @@ def apply_filter(data: np.ndarray, frequencies: List[float]) -> np.ndarray:
     Returns: Filtered data in the same shape as input.
     """
     from scipy.signal import kaiserord, filtfilt, firwin
-    #from scipy.signal import butter
     nyq_rate = 0.5
     ripple_db = 10.0
     out = data
     order = 5
     for f in frequencies:
         df = 0.1*f
-        #sif f - df < 0 or f + df > 0.5:
-        #    df = 0.1*f
         N, beta = kaiserord(ripple_db, df)
         if N % 2 == 0:
             N -= 1
         a = firwin(N, [f-df/2, f+df/2], window='hamming', pass_zero='bandstop', fs=1)
         b = 1
-        #b, a = butter(order, [f-df/2, f+df/2], fs=1.0, btype='bandstop')
         out = filtfilt(a, b, out, axis=-1)
     return out
 
@@ -365,10 +363,10 @@ class CookieboxCalibration(SerializableMixin):
                             "normalization",
                             "transmission",
                             "int_transmission",
-                            "tof_fit_result",
                             "calibration_data",
                             "calibration_mean_xgm",
                             "mask",
+                            "calibration_mask",
                             #"sources",
                             "e_transmission",
                             "calibration_energies",
@@ -391,10 +389,8 @@ class CookieboxCalibration(SerializableMixin):
         self._start_roi = {int(k): v for k, v in self._start_roi.items()}
         self._stop_roi = {int(k): v for k, v in self._stop_roi.items()}
         self.mask = {int(k): v for k, v in self.mask.items()}
+        self.calibration_mask = {int(k): v for k, v in self.calibration_mask.items()}
         self.kwargs_adq = {int(k): v for k, v in self.kwargs_adq.items()}
-        # for tof_id in self.kwargs_adq.keys():
-        #     self.kwargs_adq[tof_id]["source"] = self.kwargs_adq[tof_id]["source"].decode("utf-8")
-        #     self.kwargs_adq[tof_id]["name"] = self.kwargs_adq[tof_id]["name"].decode("utf-8")
 
     def setup(self,
               run: DataCollection,
@@ -426,9 +422,18 @@ class CookieboxCalibration(SerializableMixin):
         self._xgm = xgm
         self._scan = scan
 
-        self._auger_start_roi = {tof_id: self._init_auger_start_roi for tof_id in self._tof_settings.keys()}
-        self._start_roi = {tof_id: self._init_start_roi for tof_id in self._tof_settings.keys()}
-        self._stop_roi = {tof_id: self._init_stop_roi for tof_id in self._tof_settings.keys()}
+        if isinstance(self._init_auger_start_roi, dict):
+            self._auger_start_roi = {tof_id: self._init_auger_start_roi[tof_id] for tof_id in self._tof_settings.keys()}
+        else:
+            self._auger_start_roi = {tof_id: self._init_auger_start_roi for tof_id in self._tof_settings.keys()}
+        if isinstance(self._init_start_roi, dict):
+            self._start_roi = {tof_id: self._init_start_roi[tof_id] for tof_id in self._tof_settings.keys()}
+        else:
+            self._start_roi = {tof_id: self._init_start_roi for tof_id in self._tof_settings.keys()}
+        if isinstance(self._init_stop_roi, dict):
+            self._stop_roi = {tof_id: self._init_stop_roi[tof_id] for tof_id in self._tof_settings.keys()}
+        else:
+            self._stop_roi = {tof_id: self._init_stop_roi for tof_id in self._tof_settings.keys()}
 
         # now do the full analysis, step by step
         # update eTOF data reading objects
@@ -662,7 +667,7 @@ class CookieboxCalibration(SerializableMixin):
                      )
 
 
-        with ProcessPoolExecutor() as p:
+        with ProcessPoolExecutor(max_workers=10) as p:
             itr_gen = list(itertools.product(tof_ids, energy_ids))
             #data_gen = map(fn, itr_gen)
             data_gen = p.map(fn, itr_gen)
@@ -676,7 +681,21 @@ class CookieboxCalibration(SerializableMixin):
 
         self.calibration_data = data
         self.calibration_mean_xgm = mean_xgm
+        self.calibration_mask = {tof_id: np.array([True for _ in energy_ids])
+                                 for tof_id in tof_ids}
 
+    def mask_calibration_point(self, tof_id: int, energy: float, mask: bool=False, tol: float=0.01):
+        """
+        If `mask` is False, the point at a given energy and eTOF is ignored when
+        performing the fit.
+
+        Args:
+          tof_id: eTOF number, as in the `tof_settings`.
+          energy: Energy value, in the same units as provided in `scan`.
+          mask: If True, keep the point. If False, remove it.
+          tol: Tolerance for energy matching.
+        """
+        self.calibration_mask[tof_id][np.abs(energy - self.tof_fit_result[tof_id].energy) < tol] = mask
 
     def find_roi(self, tof_id: int):
         """
@@ -726,21 +745,25 @@ class CookieboxCalibration(SerializableMixin):
         data = self.calibration_data
         tof_ids = list(self.kwargs_adq.keys())
         energies = self.calibration_energies
+        idx = np.argsort(self.calibration_energies)
         n_energies = len(energies)
         fig, axes = plt.subplots(nrows=4, ncols=4, clear=True, figsize=(20,20))
         for tof_id in tof_ids:
             auger_start_roi = self.auger_start_roi[tof_id]
             start_roi = self.start_roi[tof_id]
             stop_roi = self.stop_roi[tof_id]
+            sample_auger = int(np.min(self.tof_fit_result[tof_id].mu_auger))
             ax = axes.flatten()[tof_id]
-            temp = data[tof_id][:,auger_start_roi:stop_roi].copy()
-            ax.imshow(temp,
-                      aspect=(stop_roi - auger_start_roi)/n_energies,
-                      norm=Normalize(vmax=np.amax(temp))
+            temp = data[tof_id].copy()
+            ax.imshow(temp[idx, sample_auger:stop_roi],
+                      extent=[sample_auger, stop_roi, np.min(energies), np.max(energies)],
+                      aspect="auto",
+                      norm=Normalize(vmax=np.max(temp)),
                      )
-            ax.set_yticklabels((energies+0.5).astype(int))
             ax.set_title(f'TOF {tof_id}')
-        plt.show()
+            ax.set_xlabel("Samples")
+            ax.set_ylabel("Energy [eV]")
+        plt.tight_layout()
 
     def peak_tof(self, tof_id: int) -> TofFitResult:
         """
@@ -761,6 +784,7 @@ class CookieboxCalibration(SerializableMixin):
         Aa = list()
         energy = list()
         offset = list()
+        mu_auger = list()
         auger_start_roi = self.auger_start_roi[tof_id]
         start_roi = self.start_roi[tof_id]
         stop_roi = self.stop_roi[tof_id]
@@ -770,34 +794,31 @@ class CookieboxCalibration(SerializableMixin):
             ya = data[e, auger_start_roi:start_roi]
             gamodel = GaussianModel() + ConstantModel()
             ii = np.argmax(ya)
-            #ii = np.sum(xa*(ya-np.amin(ya)))/np.sum(ya-np.amin(ya))
-            iisig = 2 #np.sqrt(np.sum((xa -ii)**2*(ya-np.amin(ya)))/np.sum(ya-np.amin(ya)))
-            resulta = gamodel.fit(ya, x=xa, center=xa[ii], amplitude=np.amax(ya), sigma=iisig, c=np.median(ya))
+            iisig = 2 #np.sqrt(np.sum((xa -ii)**2*(ya-np.min(ya)))/np.sum(ya-np.min(ya)))
+            resulta = gamodel.fit(ya, x=xa, center=xa[ii], amplitude=np.max(ya), sigma=iisig, c=np.median(ya))
             # fit data
             x = np.arange(start_roi, stop_roi)
             y = data[e, start_roi:stop_roi]
             gmodel = GaussianModel() + ConstantModel()
             ii = np.argmax(y)
-            #ii = np.sum(x*(y-np.amin(y)))/np.sum(y-np.amin(y))
-            iisig = 10 #np.sqrt(np.sum((x -ii)**2*(y-np.amin(y)))/np.sum(y-np.amin(y)))
-            result = gmodel.fit(y, x=x, center=x[ii], amplitude=np.amax(y), sigma=iisig, c=np.median(y))
-            #result.plot_fit()
-            #plt.show()
+            iisig = 10 #np.sqrt(np.sum((x -ii)**2*(y-np.min(y)))/np.sum(y-np.min(y)))
+            result = gmodel.fit(y, x=x, center=x[ii], amplitude=np.max(y), sigma=iisig, c=np.median(y))
             # we care about the normalization coefficient, not the normalized amplitude
-            #A += [result.best_values["amplitude"]/(result.best_values["sigma"]*np.sqrt(2*np.pi))]
             A += [result.best_values["amplitude"]]
             Aa += [resulta.best_values["amplitude"]]
             mu += [result.best_values["center"]]
             sigma += [result.best_values["sigma"]]
             energy += [energies[e]]
             offset += [result.best_values["c"]]
+            mu_auger += [resulta.best_values["center"]]
         energy = np.array(energy)
         mu = np.array(mu)
+        mu_auger = np.array(mu_auger)
         sigma = np.array(sigma)
         A = np.array(A)
         Aa = np.array(Aa)
         offset = np.array(offset)
-        return TofFitResult(energy, mu, sigma, A, Aa, offset)
+        return TofFitResult(energy, mu, sigma, A, Aa, offset, mu_auger)
 
     def calculate_calibration_and_transmission(self, tof_id: int):
         """
@@ -809,40 +830,70 @@ class CookieboxCalibration(SerializableMixin):
         from scipy.interpolate import CubicSpline
 
         energy_ids = np.arange(len(self._scan.positions))
+        mask = self.calibration_mask[tof_id]
         # fit calibration
-        c, e0, t0 = fit(self.tof_fit_result[tof_id].mu, self.tof_fit_result[tof_id].energy, t0_bounds=[-3000, 3000])
+        c, e0, t0 = fit(self.tof_fit_result[tof_id].mu[mask],
+                        self.tof_fit_result[tof_id].energy[mask], t0_bounds=[-3000, 3000])
         self.model_params[tof_id] = np.array([c, e0, t0], dtype=np.float64)
         self.jacobian[tof_id] = 0.5*c/(np.sqrt(c/(self.energy_axis - e0)))/(self.energy_axis - e0)**2
 
         # interpolate offset
-        eidx = np.argsort(self.tof_fit_result[tof_id].energy)
-        ee = self.tof_fit_result[tof_id].energy[eidx]
-        eo = self.tof_fit_result[tof_id].offset[eidx]
+        eidx = np.argsort(self.tof_fit_result[tof_id].energy[mask])
+        ee = self.tof_fit_result[tof_id].energy[mask][eidx]
+        eo = self.tof_fit_result[tof_id].offset[mask][eidx]
 
-        self.offset[tof_id] = CubicSpline(ee, eo)(self.energy_axis)
-        #self.offset[tof_id] = eo
+        self.offset[tof_id] = np.interp(self.energy_axis,
+                                        ee,
+                                        eo)
 
-        # self.offset[tof_id] = np.interp(self.energy_axis,
-        #                                 ee,
-        #                                 eo, left=0, right=0)
         # interpolate amplitude as given by the
         # Auger+Valence (related to the cross section and pulse intensity)
         # normalized by the XGM mean intensity
-        en = self.tof_fit_result[tof_id].Aa[eidx]/self.calibration_mean_xgm[tof_id][eidx]
-        # self.normalization[tof_id] = np.interp(self.energy_axis,
-        #                                        ee,
-        #                                        en, left=0, right=0)
-        self.normalization[tof_id] = CubicSpline(ee, en)(self.energy_axis)
+        en = self.tof_fit_result[tof_id].Aa[mask][eidx]/self.calibration_mean_xgm[tof_id][mask][eidx]
+        self.normalization[tof_id] = np.interp(self.energy_axis,
+                                               ee,
+                                               en)
 
         # calculate transmission
-        self.transmission[tof_id] = self.tof_fit_result[tof_id].A/self.tof_fit_result[tof_id].Aa
+        self.transmission[tof_id] = self.tof_fit_result[tof_id].A[mask]/self.tof_fit_result[tof_id].Aa[mask]
 
         # interpolate transmission for the given energy axis
         et = self.transmission[tof_id][eidx]
-        # self.int_transmission[tof_id] = np.interp(self.energy_axis,
-        #                                           ee,
-        #                                           et, left=0, right=0)
-        self.int_transmission[tof_id] = CubicSpline(ee, et)(self.energy_axis)
+        self.int_transmission[tof_id] = np.interp(self.energy_axis,
+                                                  ee,
+                                                  et)
+
+    def plot_calibrations(self):
+        """
+        Diagnostics plots for finding the energy peaks in a scan.
+        """
+        import matplotlib.pyplot as plt
+        from itertools import product
+        colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        lw = 3
+        ls = '-'
+
+        fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
+
+        tof_ids = list(self.model_params.keys())
+        for i, tof_id in enumerate(tof_ids):
+            if not self.mask[tof_id]:
+                continue
+            a = ax[i//8]
+            c = colors[i%8]
+            auger_start_roi = self.auger_start_roi[tof_id]
+            start_roi = self.start_roi[tof_id]
+            stop_roi = self.stop_roi[tof_id]
+            ts = np.arange(start_roi, stop_roi)
+            e = model(ts, *self.model_params[tof_id])
+            a.scatter(self.tof_fit_result[tof_id].mu,
+                        self.tof_fit_result[tof_id].energy,
+                        c=c)
+            a.plot(ts, e, c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
+        for a in ax:
+            a.set(xlabel="Samples",
+                  ylabel="Energy [eV]")
+            a.legend(frameon=False, ncols=2)
 
     def plot_diagnostics(self, tof_id: int):
         """
@@ -872,83 +923,106 @@ class CookieboxCalibration(SerializableMixin):
         ax[4].set(xlabel="Energy [eV]", ylabel="Jacobian [a.u.]")
         for a in ax:
             a.set_title(f"TOF {tof_id}")
-        plt.show()
 
-    def plot_all_transmissions(self, tof_ids: Optional[List[int]]=None):
+    def plot_transmissions(self):
         """
         Plot all transmissions in the same plot.
-
-        Args:
-          tof_ids: List of eTOF IDs to plot. If none, show all.
         """
         import matplotlib.pyplot as plt
-        fig = plt.figure(figsize=(20, 10))
-        for tof_id, transmission in self.int_transmission.items():
-            if tof_ids is not None:
-                if tof_id not in tof_ids:
-                    continue
-            plt.plot(self.energy_axis, transmission, lw=2, label=f"eTOF {tof_id}")
-        plt.xlabel("Energy [eV]")
-        plt.ylabel("Transmission [a.u.]")
-        plt.legend()
-        plt.show()
+        colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        lw = 3
+        ls = '-'
 
-    def plot_all_offsets(self, tof_ids: Optional[List[int]]=None):
+        fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
+
+        tof_ids = list(self.model_params.keys())
+        for i, tof_id in enumerate(tof_ids):
+            if not self.mask[tof_id]:
+                continue
+            a = ax[i//8]
+            c = colors[i%8]
+            a.plot(self.energy_axis, self.int_transmission[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
+        for a in ax:
+            a.set(xlabel="Energy [eV]",
+                  ylabel="Transmission [a.u.]")
+            a.legend(frameon=False, ncols=2)
+
+    def plot_offsets(self):
         """
         Plot all offset in the same plot.
-
-        Args:
-          tof_ids: List of eTOF IDs to plot. If none, show all.
         """
         import matplotlib.pyplot as plt
-        fig = plt.figure(figsize=(20, 10))
-        for tof_id, offset in self.offset.items():
-            if tof_ids is not None:
-                if tof_id not in tof_ids:
-                    continue
-            plt.plot(self.energy_axis, offset, lw=2, label=f"eTOF {tof_id}")
-        plt.xlabel("Energy [eV]")
-        plt.ylabel("Offset [a.u.]")
-        plt.legend()
-        plt.show()
+        colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        lw = 3
+        ls = '-'
 
-    def plot_all_jacobians(self, tof_ids: Optional[List[int]]=None):
+        fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
+
+        tof_ids = list(self.model_params.keys())
+        for i, tof_id in enumerate(tof_ids):
+            if not self.mask[tof_id]:
+                continue
+            a = ax[i//8]
+            c = colors[i%8]
+            a.plot(self.energy_axis, self.offset[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
+        for a in ax:
+            a.set(xlabel="Energy [eV]",
+                  ylabel="Offset [a.u.]")
+            a.legend(frameon=False, ncols=2)
+
+    def plot_jacobians(self, eV_per_sample: bool=True):
         """
-        Plot all offset in the same plot.
+        Plot all jacobians in the same plot.
 
-        Args:
-          tof_ids: List of eTOF IDs to plot. If none, show all.
         """
         import matplotlib.pyplot as plt
-        fig = plt.figure(figsize=(20, 10))
-        for tof_id, jacobian in self.jacobian.items():
-            if tof_ids is not None:
-                if tof_id not in tof_ids:
-                    continue
-            plt.plot(self.energy_axis, jacobian, lw=2, label=f"eTOF {tof_id}")
-        plt.xlabel("Energy [eV]")
-        plt.ylabel("Jacobian [1/eV]")
-        plt.legend()
-        plt.show()
+        colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        lw = 3
+        ls = '-'
 
-    def plot_all_normalizations(self, tof_ids: Optional[List[int]]=None):
+        fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
+
+        tof_ids = list(self.model_params.keys())
+        for i, tof_id in enumerate(tof_ids):
+            if not self.mask[tof_id]:
+                continue
+            a = ax[i//8]
+            c = colors[i%8]
+            if eV_per_sample:
+                a.plot(self.energy_axis, 1.0/self.jacobian[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
+            else:
+                a.plot(self.energy_axis, self.jacobian[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
+        for a in ax:
+            if eV_per_sample:
+                a.set(xlabel="Energy [eV]",
+                      ylabel=r"$\left\vert\frac{dE}{dt}\right\vert$ [eV/samp.]")
+            else:
+                a.set(xlabel="Energy [eV]",
+                      ylabel=r"$\left\vert\frac{dt}{dE}\right\vert$ [samp./eV]")
+            a.legend(frameon=False, ncols=2)
+
+    def plot_normalizations(self):
         """
         Plot all normalizations in the same plot.
-
-        Args:
-          tof_ids: List of eTOF IDs to plot. If none, show all.
         """
         import matplotlib.pyplot as plt
-        fig = plt.figure(figsize=(20, 10))
-        for tof_id, normalization in self.normalization.items():
-            if tof_ids is not None:
-                if tof_id not in tof_ids:
-                    continue
-            plt.plot(self.energy_axis, normalization, lw=2, label=f"eTOF {tof_id}")
-        plt.xlabel("Energy [eV]")
-        plt.ylabel("Normalization [a.u.]")
-        plt.legend()
-        plt.show()
+        colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        lw = 3
+        ls = '-'
+
+        fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
+
+        tof_ids = list(self.model_params.keys())
+        for i, tof_id in enumerate(tof_ids):
+            if not self.mask[tof_id]:
+                continue
+            a = ax[i//8]
+            c = colors[i%8]
+            a.plot(self.energy_axis, self.normalization[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
+        for a in ax:
+            a.set(xlabel="Energy [eV]",
+                  ylabel="Normalization [a.u.]")
+            a.legend(frameon=False, ncols=2)
 
     def plot_fit(self, tof_id: int):
         """
@@ -972,7 +1046,6 @@ class CookieboxCalibration(SerializableMixin):
             plt.scatter(ts, data[e,start_roi:stop_roi], c=c, label=f"{energy:.1f} eV")
             mu = self.tof_fit_result[tof_id].mu[e]
             amplitude = self.tof_fit_result[tof_id].A[e]
-            #Aa = self.tof_fit_result[tof_id].Aa[e]
             sigma = self.tof_fit_result[tof_id].sigma[e]
             offset = self.tof_fit_result[tof_id].offset[e]
             gmodel = GaussianModel() + ConstantModel()
@@ -982,9 +1055,14 @@ class CookieboxCalibration(SerializableMixin):
         plt.ylabel("Intensty [a.u.]")
         plt.legend()
         plt.title(f"TOF {tof_id}")
-        plt.show()
 
     def load_trace(self, run: DataCollection, **extra_kwargs_adq: Dict[str, Any]) -> xr.Dataset:
+        """
+        See [load_data][extra.recipes.CookieboxCalibration.load_data].
+        """
+        return self.load_data(run, **extra_kwargs_adq)
+
+    def load_data(self, run: DataCollection, **extra_kwargs_adq: Dict[str, Any]) -> xr.Dataset:
         """
         Only load region of interest for the same settings in a new run and output a Dataset with it.
         This is the recommended way to load data from a new run before applying the calibration.
@@ -1075,16 +1153,10 @@ class CookieboxCalibration(SerializableMixin):
             if self.model_params[tof_id][0] == 0:
                 return np.zeros((n_trains, n_pulses, n_e), dtype=np.float32)
             # create energy axis
-            start_roi = self.start_roi[tof_id]
-            stop_roi = self.stop_roi[tof_id]
-            ts = np.arange(start_roi, stop_roi)
+            ts = coords['sample']
             e = model(ts, *self.model_params[tof_id])
 
-    
             # interpolate
-            # o = np.apply_along_axis(lambda arr: CubicSpline(e[::-1], arr[::-1])(self.energy_axis),
-            #                        axis=1,
-            #                        arr=filtered)
             o = np.apply_along_axis(lambda arr: np.interp(self.energy_axis, e[::-1], arr[::-1], left=0, right=0),
                                    axis=1,
                                    arr=pulses)
@@ -1092,9 +1164,10 @@ class CookieboxCalibration(SerializableMixin):
             n_e = len(self.energy_axis)
             o = np.reshape(o, (n_t, n_p, n_e))
             # subtract offset
-            #o = o - self.offset[tof_id][None, None, :]
+            o = o - self.offset[tof_id][None, None, :]
             # apply Jacobian
             o = o*self.jacobian[tof_id][None, None, :]
+            np.nan_to_num(o, copy=False)
             # regenerate DataArray
             return xr.DataArray(data=o,
                              dims=('trainId', 'pulseIndex', 'energy'),
