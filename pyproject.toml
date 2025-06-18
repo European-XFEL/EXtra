@@ -31,6 +31,7 @@ dependencies = [
     "oauth2-xfel-client >=6.1",
     "pandas",
     "xarray",
+    "mpl_interactions",
     "pasha",
     "pint",
     "requests",
