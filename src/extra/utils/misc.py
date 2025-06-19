@@ -1,8 +1,8 @@
+import sys
+
 import numpy as np
 
 from typing import Any
-
-from ..components.utils import _isinstance_no_import
 
 
 def find_nearest_index(array, value: Any) -> np.int64:
@@ -56,6 +56,15 @@ def reorder_axes_to_shape(a, target_shape):
 
     order = tuple([a.shape.index(l) for l in t])
     return a.transpose(order)
+
+
+def _isinstance_no_import(obj, mod: str, cls: str):
+    """Check if isinstance(obj, mod.cls) without loading mod"""
+    m = sys.modules.get(mod)
+    if m is None:
+        return False
+
+    return isinstance(obj, getattr(m, cls))
 
 
 def imshow2(image, *args, lognorm=False, ax=None, **kwargs):
