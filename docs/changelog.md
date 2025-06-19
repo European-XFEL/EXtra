@@ -28,6 +28,7 @@ Added:
   (AGIPD1M, AGIPD500K, DSSC1M, JUNGFRAU, LPD1M) (!177).
 - [imshow2][extra.utils.imshow2] now supports plotting 2D
   [DataArray][xarray.DataArray]s properly (!333).
+- [reorder_axes_to_shape][extra.utils.reorder_axes_to_shape] utility function (!349).
 
 Changed:
 - [Timepix3.spatial_bins()] is now a static method.
