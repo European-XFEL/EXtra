@@ -69,3 +69,6 @@ def test_reorder_axes_to_shape():
 
     with pytest.raises(ValueError):
         reorder_axes_to_shape(arr, (None, None, 1024))  # Only 1 None allowed
+
+    with pytest.raises(ValueError):
+        reorder_axes_to_shape(arr, (None, 256, 1024))  # Wildcard & wrong number
