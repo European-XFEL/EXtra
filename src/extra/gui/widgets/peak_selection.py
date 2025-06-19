@@ -1,9 +1,12 @@
+import logging
 import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backend_bases import MouseButton
 from matplotlib.lines import Line2D
+
+log = logging.getLogger(__name__)
 
 warnings.filterwarnings("ignore", message="Unable to determine Axes to steal")
 
@@ -159,11 +162,11 @@ class PeakSelectorWidget:
     def _notify_peak_update(self):
         """Calls the registered peak update callback function, if any."""
         if callable(self._peak_update_callback):
-            print("XESPeakSelector: Notifying peak update...")
+            log.debug("Notifying peak update...")
             try:
                 self._peak_update_callback()
-            except Exception as e:
-                print(f"XESPeakSelector: Error in peak update callback: {e}")
+            except Exception:
+                log.exception(f"Error in peak update callback")
 
     # Plotting Methods
     def _plot_projections(self):
@@ -238,8 +241,8 @@ class PeakSelectorWidget:
             peak_info = roi_data["peaks"][peak_list_idx]
         except IndexError:
             # This might happen if called during deletion before list is updated, handle gracefully
-            print(
-                f"Warning: Peak index {peak_list_idx} out of bounds for ROI {roi_idx}. Skipping visual update."
+            log.warning(
+                f"Peak index {peak_list_idx} out of bounds for ROI {roi_idx}. Skipping visual update."
             )
             return None, None
 
@@ -377,7 +380,7 @@ class PeakSelectorWidget:
         roi_orig_idx = self.rois_data[roi_idx]["roi_index"]
         peak_number = peak_list_idx + 1
 
-        print(f"Initiating drag for Peak {peak_number} of ROI {roi_orig_idx}")
+        log.debug(f"Initiating drag for Peak {peak_number} of ROI {roi_orig_idx}")
 
         # Highlight dragged line and label
         x_pixel = self.rois_data[roi_idx]["peaks"][peak_list_idx]["pixel"]
@@ -476,7 +479,7 @@ class PeakSelectorWidget:
             else self.rois_data[roi_idx]["peaks"][peak_list_idx]["pixel"]
         )
 
-        print(
+        log.debug(
             f"Finished drag for Peak {peak_number} of ROI {roi_orig_idx} at pixel {final_x_pixel:.1f}"
         )
 
@@ -506,7 +509,7 @@ class PeakSelectorWidget:
         new_peak_list_idx = len(roi_data["peaks"])
         peak_number = new_peak_list_idx + 1
 
-        print(
+        log.debug(
             f"Adding Peak {peak_number} for ROI {roi_orig_idx} at pixel {x_pixel:.1f}"
         )
 
@@ -537,7 +540,7 @@ class PeakSelectorWidget:
         roi_orig_idx = roi_data["roi_index"]
 
         if 0 <= peak_list_idx < len(roi_data["peaks"]):
-            print(
+            log.debug(
                 f"Deleting Peak {peak_list_idx + 1} (List Index {peak_list_idx}) from ROI {roi_orig_idx}"
             )
 
@@ -550,8 +553,8 @@ class PeakSelectorWidget:
             # Renumber and update labels for subsequent peaks in the same ROI
             self._renumber_and_update_labels(roi_idx, start_list_idx=peak_list_idx)
         else:
-            print(
-                f"Error: Attempted to delete non-existent peak index {peak_list_idx} in ROI {roi_idx}"
+            log.error(
+                f"Attempted to delete non-existent peak index {peak_list_idx} in ROI {roi_idx}"
             )
 
     def _find_nearby_marker(self, event):
@@ -625,7 +628,7 @@ class PeakSelectorWidget:
             return None
         # Return the internal index of the closest line vertically
         candidate_lines.sort(key=lambda x: x["dist_sq"])
-        # print(f"Clicked near ROIs: {candidate_lines}. Closest: ROI index {candidate_lines[0]['roi_idx']}")
+
         return candidate_lines[0]["roi_idx"]
 
     def _is_click(self, event, tolerance=None):
@@ -671,7 +674,7 @@ class PeakSelectorWidget:
 
     def close(self):
         """Close the plot window and disconnect events."""
-        print("PeakSelectorWidget: Closing figure and disconnecting events.")
+        log.debug("Closing figure and disconnecting events.")
         if hasattr(self, "cid_press") and self.cid_press:
             self.fig.canvas.mpl_disconnect(self.cid_press)
             self.cid_press = None

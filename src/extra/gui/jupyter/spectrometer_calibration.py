@@ -1,4 +1,5 @@
 import datetime
+import logging
 import re
 import sys
 from collections import defaultdict
@@ -15,6 +16,8 @@ from IPython.display import clear_output, display
 
 from extra.gui.widgets.peak_selection import PeakSelectorWidget
 from extra.gui.widgets.roi_selection import ROISelectorWidget
+
+log = logging.getLogger(__name__)
 
 
 class CalibratedPlotter:
@@ -79,7 +82,7 @@ class CalibratedPlotter:
                 "If 'labels' are provided, length must match 'projections'."
             )
         if not all(isinstance(p, np.ndarray) and p.ndim == 1 for p in projections):
-            print(projections)
+            log.debug(projections)
             raise TypeError("All items in 'projections' must be 1D numpy arrays.")
         if not all(
             isinstance(c, dict) and "slope" in c and "intercept" in c
@@ -90,7 +93,7 @@ class CalibratedPlotter:
             )
 
         if not projections:
-            print("Warning: No projections provided to plot.")
+            log.warning("No projections provided to plot.")
             return None, None
 
         # Create Plot
@@ -99,7 +102,7 @@ class CalibratedPlotter:
 
         for i, projection in enumerate(projections):
             if projection.size == 0:
-                print(f"Warning: Projection {i} is empty, skipping.")
+                log.warning(f"Projection {i} is empty, skipping.")
                 continue
 
             calib = calibrations[i]
@@ -114,7 +117,7 @@ class CalibratedPlotter:
             plotted_something = True
 
         if not plotted_something:
-            print("Warning: No valid projections were plotted.")
+            log.warning("No valid projections were plotted.")
             plt.close(fig)
             return None, None
 
@@ -375,9 +378,9 @@ class SpectrometerCalibrationWidget:
 
                 self.roi_widget_instance.register_roi_update_callback(self._roi_updated)
                 display(self.roi_widget_instance.fig.canvas)
-                print("ROI Selector Initialized in Tab 1.")
-            except Exception as e:
-                print(f"Error initializing ROI Selector: {e}")
+                log.debug("ROI Selector Initialized in Tab 1.")
+            except Exception:
+                log.exception(f"Error initializing ROI Selector")
 
     def _init_peak_widget(self, rois):
         with self.output_tab2:
@@ -391,31 +394,26 @@ class SpectrometerCalibrationWidget:
                     self.peak_widget_instance.close()
 
                 if not rois:
-                    print("Peak Selector: No ROIs defined yet.")
+                    log.warning("Peak Selector: No ROIs defined yet.")
                     self.peak_widget_instance = None
                     self._update_calibration_tab_display()
                     return
 
-                print(f"Initializing Peak Selector with {len(rois)} ROIs.")
-                self.peak_widget_instance = PeakSelectorWidget(
-                    self.processed_image_data, rois
-                )
+                log.debug(f"Initializing Peak Selector with {len(rois)} ROIs.")
+                with plt.ioff():
+                    self.peak_widget_instance = PeakSelectorWidget(
+                        self.processed_image_data, rois
+                    )
+
                 self.peak_widget_instance.register_peak_update_callback(
                     self._update_calibration_tab_display
                 )
                 display(self.peak_widget_instance.fig.canvas)
-                print("Peak Selector Initialized in Tab 2.")
+                log.debug("Peak Selector Initialized in Tab 2.")
                 self._update_calibration_tab_display()
 
-            except ValueError as e:
-                print(f"Peak Selector: Cannot initialize - {e}")
-                self.peak_widget_instance = None
-                self._update_calibration_tab_display()
-            except Exception as e:
-                import traceback
-
-                traceback.print_exc()
-                print(f"Error initializing Peak Selector: {e}")
+            except Exception:
+                log.exception(f"Error initializing Peak Selector")
                 self.peak_widget_instance = None
                 self._update_calibration_tab_display()
 
@@ -427,7 +425,7 @@ class SpectrometerCalibrationWidget:
 
     # Update Logic
     def _roi_updated(self):
-        print("ROI update detected. Re-initializing Peak Selector...")
+        log.debug("ROI update detected. Re-initializing Peak Selector...")
         if self.roi_widget_instance:
             current_rois = self.roi_widget_instance.get_rois()
             # Update the processed image to reflect any flips in the ROI widget
@@ -436,11 +434,11 @@ class SpectrometerCalibrationWidget:
             )
             self._init_peak_widget(current_rois)
         else:
-            print("ROI widget instance not found.")
+            log.warning("ROI widget instance not found.")
 
     def _update_calibration_tab_display(self):
         """Updates peak display and generates energy inputs based on MAX peak index."""
-        print("Updating calibration tab display...")
+        log.debug("Updating calibration tab display...")
 
         # Clear previous dynamic widgets and data
         self.energy_input_container.children = []
@@ -607,15 +605,15 @@ class SpectrometerCalibrationWidget:
                    Returns empty lists if data cannot be prepared.
         """
         if not self.calibration_results:
-            print("DEBUG Save/Plot: No successful calibration results available.")
+            log.debug("Save/Plot: No successful calibration results available.")
             return [], [], [], []
         if not self.roi_widget_instance:
-            print(
-                "DEBUG Save/Plot: ROI definitions not available (ROI widget missing)."
+            log.debug(
+                "Save/Plot: ROI definitions not available (ROI widget missing)."
             )
             return [], [], [], []
         if self.processed_image_data is None:
-            print("DEBUG Save/Plot: Image data is missing.")
+            log.debug("Save/Plot: Image data is missing.")
             return [], [], [], []
 
         all_energy_axes = []
@@ -637,8 +635,8 @@ class SpectrometerCalibrationWidget:
         ):  # Sort for consistent order
             roi_def = roi_defs_dict.get(roi_idx)
             if not roi_def:
-                print(
-                    f"DEBUG Save/Plot: Could not find ROI definition for calibrated ROI {roi_idx}."
+                log.debug(
+                    f"Save/Plot: Could not find ROI definition for calibrated ROI {roi_idx}."
                 )
                 continue
 
@@ -646,8 +644,8 @@ class SpectrometerCalibrationWidget:
             y_end = int(min(img_height, np.ceil(roi_def["y_end"])))
 
             if y_end <= y_start:
-                print(
-                    f"DEBUG Save/Plot: ROI {roi_idx} has invalid height ({y_start}-{y_end})."
+                log.debug(
+                    f"Save/Plot: ROI {roi_idx} has invalid height ({y_start}-{y_end})."
                 )
                 continue
 
@@ -730,20 +728,20 @@ class SpectrometerCalibrationWidget:
         if self.roi_widget_instance:
             try:
                 rois = self.roi_widget_instance.get_rois()
-            except Exception as e:
-                print(f"Warning: Could not get ROI definitions: {e}")
+            except Exception:
+                log.exception(f"Could not get ROI definitions")
         else:
-            print("Warning: ROI widget instance not available.")
+            log.error("ROI widget instance not available.")
 
         # 2. Peak Selections
         peaks_data_raw = []
         if self.peak_widget_instance:
             try:
                 peaks_data_raw = self.peak_widget_instance.get_selected_peaks()
-            except Exception as e:
-                print(f"Warning: Could not get peak selections: {e}")
+            except Exception:
+                log.exception(f"Could not get peak selections")
         else:
-            print("Warning: Peak widget instance not available.")
+            log.error("Peak widget instance not available.")
 
         # 3. Entered Reference Energies
         ref_energies_input = self.get_entered_peak_index_energies()
@@ -875,8 +873,8 @@ class SpectrometerCalibrationWidget:
                         sorted_energy, return_index=True
                     )
                     if len(unique_energies) < 2:
-                        print(
-                            f"# Warning: Not enough unique energy points for ROI {original_roi_idx} to interpolate for saving. Skipping spectrum."
+                        log.warning(
+                            f"Not enough unique energy points for ROI {original_roi_idx} to interpolate for saving. Skipping spectrum."
                         )
                         # Fill with NaNs if skipping or add a placeholder
                         spectra_df_data[f"Intensity_ROI_{original_roi_idx}"] = (
@@ -995,7 +993,7 @@ class SpectrometerCalibrationWidget:
     # Cleanup
     def close_all(self):
         """Close all widget figures."""
-        print("Closing all widget figures...")
+        log.debug("Closing all widget figures...")
         if (
             self.roi_widget_instance
             and hasattr(self.roi_widget_instance, "fig")
@@ -1014,7 +1012,7 @@ class SpectrometerCalibrationWidget:
         self.output_tab1.clear_output()
         self.output_tab2.clear_output()
         self.output_tab3.clear_output(wait=True)
-        print("Widgets closed and outputs cleared.")
+        log.debug("Widgets closed and outputs cleared.")
 
 
 def plot_from_calibration_file(filepath):
@@ -1038,10 +1036,10 @@ def plot_from_calibration_file(filepath):
         with open(filepath, "r") as f:
             lines = f.readlines()
     except FileNotFoundError:
-        print(f"Error: File not found at '{filepath}'")
+        log.error(f"File not found at '{filepath}'")
         return None, None
-    except Exception as e:
-        print(f"Error reading file: {e}")
+    except Exception:
+        log.exception()
         return None, None
 
     # Find the start of the CSV data section
@@ -1057,8 +1055,8 @@ def plot_from_calibration_file(filepath):
             + 1
         )
     except StopIteration:
-        print(
-            "Error: Could not find the '[Calibrated Spectra Data (CSV Format)]' section in the file."
+        log.error(
+            "Could not find the '[Calibrated Spectra Data (CSV Format)]' section in the file."
         )
         return None, None
 
@@ -1074,10 +1072,10 @@ def plot_from_calibration_file(filepath):
     try:
         df = pd.read_csv(StringIO(csv_string_block))
     except pd.errors.EmptyDataError:
-        print("Error: The CSV data section in the file is empty.")
+        log.error("The CSV data section in the file is empty.")
         return None, None
-    except Exception as e:
-        print(f"Error parsing CSV data with pandas: {e}")
+    except Exception:
+        log.exception(f"Error parsing CSV data with pandas")
         return None, None
 
     # Extract Calibration Fit Info for Legend
@@ -1098,7 +1096,7 @@ def plot_from_calibration_file(filepath):
                     roi_idx, slope, intercept = match.groups()
                     fit_info[int(roi_idx)] = (float(slope), float(intercept))
     except (StopIteration, ValueError, IndexError):
-        print("Warning: Could not parse calibration fit results for the legend.")
+        log.warning("Could not parse calibration fit results for the legend.")
 
     # Create Plot
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -1106,8 +1104,8 @@ def plot_from_calibration_file(filepath):
     # The first column is assumed to be the energy axis
     x_col_name = df.columns[0]
     if "energy" not in x_col_name.lower():
-        print(
-            f"Warning: The first column is named '{x_col_name}', assuming it is the energy axis."
+        log.warning(
+            f"The first column is named '{x_col_name}', assuming it is the energy axis."
         )
 
     energy_axis = df[x_col_name]
@@ -1133,7 +1131,7 @@ def plot_from_calibration_file(filepath):
             plotted_something = True
 
     if not plotted_something:
-        print("Error: No intensity columns found to plot.")
+        log.error("No intensity columns found to plot.")
         plt.close(fig)
         return None, None
 

@@ -1,9 +1,13 @@
+import logging
+
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import matplotlib.widgets as widgets
 import numpy as np
 from extra.utils import imshow2
 from matplotlib.backend_bases import MouseButton
+
+log = logging.getLogger(__name__)
 
 PATCH_COLOR = "red"
 UNSELECTED_COLOR = "lime"
@@ -102,11 +106,11 @@ class ROISelectorWidget:
         Passes the current image data to the callback.
         """
         if callable(self._roi_update_callback):
-            print("ROISelectorWidget: Notifying ROI update...")
+            log.debug("Notifying ROI update...")
             try:
                 self._roi_update_callback()
-            except Exception as e:
-                print(f"ROISelectorWidget: Error in ROI update callback: {e}")
+            except Exception:
+                log.exception(f"Error in ROI update callback")
 
     def _update_image_display(self):
         """Regenerates the displayed image from the original based on flip flags.
@@ -127,7 +131,7 @@ class ROISelectorWidget:
 
         # Check if vertical flip state changed
         if new_v_status != self._is_flipped_v:
-            print("Toggling vertical flip.")
+            log.debug("Toggling vertical flip.")
             # Transform all existing ROIs
             img_height = self.img_height
             for roi_data in self.rois:
@@ -142,7 +146,7 @@ class ROISelectorWidget:
 
         # Check if horizontal flip state changed
         if new_h_status != self._is_flipped_h:
-            print("Toggling horizontal flip.")
+            log.debug("Toggling horizontal flip.")
             self._is_flipped_h = new_h_status
 
         # Update display based on new states
@@ -215,7 +219,7 @@ class ROISelectorWidget:
                         break
                 if not is_on_patch:
                     # Clicked on background, deselect
-                    print(f"Deselecting ROI {self.selected_roi_index}")
+                    log.debug(f"Deselecting ROI {self.selected_roi_index}")
                     self._update_selection(None)  # Deselect visually
 
             # Cleanup in case something went wrong with motion/press state
@@ -245,7 +249,7 @@ class ROISelectorWidget:
         # Optional: Ignore tiny ROIs
         min_height = 1.0
         if abs(y_start - y_end) < min_height:
-            print("ROI too small, ignoring.")
+            log.warning("ROI too small, ignoring.")
             self.fig.canvas.draw_idle()
             return
 
@@ -274,7 +278,7 @@ class ROISelectorWidget:
         self.rois.append(roi_data)
         self.ax.add_patch(roi_patch)
 
-        print(f"Added ROI {new_roi_index}: y=[{y_start:.2f}, {y_end:.2f}]")
+        log.debug(f"Added ROI {new_roi_index}: y=[{y_start:.2f}, {y_end:.2f}]")
         # Deselect any previously selected ROI when adding a new one
         self._update_selection(None)
 
@@ -298,10 +302,10 @@ class ROISelectorWidget:
             # Update selection state
             if self.selected_roi_index == picked_index:
                 # Clicked on already selected ROI - deselect it
-                print(f"Deselecting ROI {picked_index}")
+                log.debug(f"Deselecting ROI {picked_index}")
                 self._update_selection(None)
             else:
-                print(f"Selected ROI {picked_index}")
+                log.debug(f"Selected ROI {picked_index}")
                 self._update_selection(picked_index)
 
             self.fig.canvas.draw_idle()
@@ -319,8 +323,8 @@ class ROISelectorWidget:
                 old_patch.set_facecolor(UNSELECTED_COLOR)
                 old_patch.set_linewidth(1.5)
             except IndexError:
-                print(
-                    f"Warning: Could not find patch for previously selected index {self.selected_roi_index}"
+                log.warning(
+                    f"Could not find patch for previously selected index {self.selected_roi_index}"
                 )
 
         self.selected_roi_index = new_selected_index
@@ -333,25 +337,25 @@ class ROISelectorWidget:
                 new_patch.set_facecolor(SELECTED_COLOR)
                 new_patch.set_linewidth(2.0)
             except IndexError:
-                print(
-                    f"Warning: Could not find patch for newly selected index {self.selected_roi_index}"
+                log.warning(
+                    f"Could not find patch for newly selected index {self.selected_roi_index}"
                 )
                 self.selected_roi_index = None  # Reset if index is bad
 
     def delete_selected_roi(self, event):
         """Callback for the delete button."""
         if self.selected_roi_index is None:
-            print("No ROI selected to delete.")
+            logging.warning("No ROI selected to delete.")
             return
 
         if self.selected_roi_index < 0 or self.selected_roi_index >= len(self.rois):
-            print(
-                f"Error: Invalid selected index {self.selected_roi_index}. Cannot delete."
+            log.error(
+                f"Invalid selected index {self.selected_roi_index}. Cannot delete."
             )
             self.selected_roi_index = None  # Reset selection
             return
 
-        print(f"Deleting ROI {self.selected_roi_index}...")
+        log.debug(f"Deleting ROI {self.selected_roi_index}...")
 
         # Get the ROI data to remove
         roi_to_remove = self.rois[self.selected_roi_index]
@@ -369,7 +373,7 @@ class ROISelectorWidget:
         # Reset selection
         self.selected_roi_index = None
 
-        print("Deletion complete.")
+        log.debug("Deletion complete.")
         self.fig.canvas.draw_idle()
         self._notify_roi_update()
 
@@ -389,7 +393,7 @@ class ROISelectorWidget:
         plt.show()
 
     def close(self):
-        print("ROISelectorWidget: Closing figure.")
+        log.debug("Closing figure.")
         plt.close(self.fig)
 
 
