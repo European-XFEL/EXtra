@@ -1,5 +1,4 @@
 import warnings
-from typing import overload
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -137,13 +136,13 @@ class PeakSelectorWidget:
 
         # Connect Events
         self.cid_press = self.fig.canvas.mpl_connect(
-            "button_press_event", self.on_press
+            "button_press_event", self._on_press
         )
         self.cid_motion = self.fig.canvas.mpl_connect(
-            "motion_notify_event", self.on_motion
+            "motion_notify_event", self._on_motion
         )
         self.cid_release = self.fig.canvas.mpl_connect(
-            "button_release_event", self.on_release
+            "button_release_event", self._on_release
         )
 
         print("Peak Selector Widget Initialized.")
@@ -339,8 +338,7 @@ class PeakSelectorWidget:
                 label_obj.set_text(new_text)
 
     # Event Handlers
-    @overload
-    def on_press(self, event):
+    def _on_press(self, event):
         """Handle mouse button press for marker placement, deletion, drag initiation."""
         if not self._is_valid_axes_interaction(event):
             return
@@ -386,8 +384,7 @@ class PeakSelectorWidget:
         self._update_peak_visuals(roi_idx, peak_list_idx, x_pixel, highlight=True)
         self.fig.canvas.draw_idle()
 
-    @overload
-    def on_motion(self, event):
+    def _on_motion(self, event):
         """Handle mouse motion for dragging markers and their labels."""
         if not self._is_active_drag(event):
             return
@@ -422,8 +419,7 @@ class PeakSelectorWidget:
         # Update the visuals (vline and label) with highlight
         self._update_peak_visuals(roi_idx, peak_list_idx, x_pixel, highlight=True)
 
-    @overload
-    def on_release(self, event):
+    def _on_release(self, event):
         """Handle mouse button release for placing/deleting markers or ending drag."""
         if not self._click_info or event.inaxes != self.ax_proj:
             self._reset_interaction_state()

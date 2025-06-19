@@ -162,7 +162,7 @@ class SpectrometerCalibrationWidget:
     from extra.gui.jupyter import SpectrometerCalibrationWidget
 
     # Create an instance of the widget.
-    # You can either provide data from an EuXFEL run 
+    # You can either provide data from an EuXFEL run
     widget = SpectrometerCalibrationWidget(
         proposal=1234, # Your proposal number
         run=10,        # Your run number
@@ -186,7 +186,7 @@ class SpectrometerCalibrationWidget:
 
     # Widget interraction
     ## Tab 1: ROI selection
-    
+
     - Click and drag vertically on the image to define rectangular ROIs.
     - To remove an ROI, click an existing ROI to select it (turns red), then use
       the "Delete Selected ROI" button.
@@ -240,6 +240,7 @@ class SpectrometerCalibrationWidget:
         self.image_data = image_data or self._load_data(
             proposal, run, source, use_cache
         )
+        self.processed_image_data = self.image_data.copy()
         self.roi_widget_instance = None
         self.peak_widget_instance = None
         self.peak_index_energy_inputs = {}
@@ -393,7 +394,9 @@ class SpectrometerCalibrationWidget:
                     return
 
                 print(f"Initializing Peak Selector with {len(rois)} ROIs.")
-                self.peak_widget_instance = PeakSelectorWidget(self.image_data, rois)
+                self.peak_widget_instance = PeakSelectorWidget(
+                    self.processed_image_data, rois
+                )
                 self.peak_widget_instance.register_peak_update_callback(
                     self._update_calibration_tab_display
                 )
@@ -424,6 +427,10 @@ class SpectrometerCalibrationWidget:
         print("ROI update detected. Re-initializing Peak Selector...")
         if self.roi_widget_instance:
             current_rois = self.roi_widget_instance.get_rois()
+            # Update the processed image to reflect any flips in the ROI widget
+            self.processed_image_data = (
+                self.roi_widget_instance.get_current_image_data()
+            )
             self._init_peak_widget(current_rois)
         else:
             print("ROI widget instance not found.")
@@ -604,7 +611,7 @@ class SpectrometerCalibrationWidget:
                 "DEBUG Save/Plot: ROI definitions not available (ROI widget missing)."
             )
             return [], [], [], []
-        if self.image_data is None:
+        if self.processed_image_data is None:
             print("DEBUG Save/Plot: Image data is missing.")
             return [], [], [], []
 
@@ -614,7 +621,7 @@ class SpectrometerCalibrationWidget:
         all_roi_indices = []  # Keep track of which ROI index corresponds to which spectrum
 
         all_roi_defs = self.roi_widget_instance.get_rois()
-        img_height, img_width = self.image_data.shape
+        img_height, img_width = self.processed_image_data.shape
         pixel_axis = np.arange(img_width)
         roi_defs_dict = {
             roi.get("roi_index"): roi
@@ -641,7 +648,7 @@ class SpectrometerCalibrationWidget:
                 )
                 continue
 
-            projection = np.sum(self.image_data[y_start:y_end, :], axis=0)
+            projection = np.sum(self.processed_image_data[y_start:y_end, :], axis=0)
             energy_axis = CalibratedPlotter.pixel_to_energy(
                 pixel_axis, calib_params["slope"], calib_params["intercept"]
             )

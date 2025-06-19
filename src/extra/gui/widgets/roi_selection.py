@@ -1,5 +1,3 @@
-from typing import overload
-
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import matplotlib.widgets as widgets
@@ -19,7 +17,8 @@ class ROISelectorWidget:
     typically used for analyzing detector data in X-ray Spectroscopy.
 
     Allows adding ROIs by clicking and dragging vertically, selecting existing
-    ROIs by clicking on them, and deleting the selected ROI using a button.
+    ROIs by clicking on them, deleting the selected ROI, and flipping the
+    image horizontally or vertically using checkboxes.
     """
 
     def __init__(self, image_data):
@@ -31,7 +30,11 @@ class ROISelectorWidget:
         if image_data.ndim != 2:
             raise ValueError("Input image_data must be a 2D numpy array.")
 
-        self.image_data = image_data
+        self.original_image_data = image_data
+        self.image_data = image_data.copy()
+        self._is_flipped_v = False
+        self._is_flipped_h = False
+
         self.rois = []  # ROI definitions: {'patch': patch, 'y_start': y1, 'y_end': y2}
         self.press_y = None
         self.current_rect = None  # Temporary rectangle during drag
@@ -52,35 +55,52 @@ class ROISelectorWidget:
 
         # Connect Events
         self.cid_press = self.fig.canvas.mpl_connect(
-            "button_press_event", self.on_press
+            "button_press_event", self._on_press
         )
         self.cid_release = self.fig.canvas.mpl_connect(
-            "button_release_event", self.on_release
+            "button_release_event", self._on_release
         )
         self.cid_motion = self.fig.canvas.mpl_connect(
-            "motion_notify_event", self.on_motion
+            "motion_notify_event", self._on_motion
         )
-        self.cid_pick = self.fig.canvas.mpl_connect("pick_event", self.on_pick)
+        self.cid_pick = self.fig.canvas.mpl_connect(
+            "pick_event", self._on_pick
+        )
 
         # Callbacks
         self._roi_update_callback = None
 
-        # Add Delete Button
-        ax_delete = plt.axes([0.7, 0.05, 0.2, 0.075])  # [left, bottom, width, height]
+        # Add Buttons
+        # Flip Checkboxes
+        ax_check = plt.axes([0.1, 0.05, 0.45, 0.075])
+        self.check_flip = widgets.CheckButtons(
+            ax_check, ["Flip Vertical", "Flip Horizontal"], [False, False]
+        )
+        self.check_flip.on_clicked(self._on_flip_toggled)
+
+        # Delete Button
+        ax_delete = plt.axes([0.65, 0.05, 0.25, 0.075])
         self.btn_delete = widgets.Button(ax_delete, "Delete Selected ROI")
         self.btn_delete.on_clicked(self.delete_selected_roi)
 
         print("Widget Initialized. Instructions:")
         print("- Click and drag vertically on the image to define an ROI.")
         print("- Click on an existing ROI rectangle to select it (it will turn red).")
-        print("- Click the 'Delete Selected ROI' button to remove the selected ROI.")
+        print("- Use the checkboxes to flip the image or the button to delete the selected ROI.")
 
     def register_roi_update_callback(self, callback):
-        """Register a function to be called when ROIs are updated."""
+        """Register a function to be called when ROIs are updated.
+
+        Note: The callback will receive the current (potentially flipped)
+        image data as its only argument.
+        """
         self._roi_update_callback = callback
 
     def _notify_roi_update(self):
-        """Calls the registered callback function, if any."""
+        """Calls the registered callback function, if any.
+
+        Passes the current image data to the callback.
+        """
         if callable(self._roi_update_callback):
             print("ROISelectorWidget: Notifying ROI update...")
             try:
@@ -88,8 +108,48 @@ class ROISelectorWidget:
             except Exception as e:
                 print(f"ROISelectorWidget: Error in ROI update callback: {e}")
 
-    @overload
-    def on_press(self, event):
+    def _update_image_display(self):
+        """Regenerates the displayed image from the original based on flip flags.
+        """
+        img = self.original_image_data.copy()
+        if self._is_flipped_v:
+            img = np.flipud(img)
+        if self._is_flipped_h:
+            img = np.fliplr(img)
+
+        self.image_data = img  # Update the working copy
+        self.im_display.set_data(self.image_data)
+        self.fig.canvas.draw_idle()
+
+    def _on_flip_toggled(self, label):
+        """Callback for the flip checkboxes."""
+        new_v_status, new_h_status = self.check_flip.get_status()
+
+        # Check if vertical flip state changed
+        if new_v_status != self._is_flipped_v:
+            print("Toggling vertical flip.")
+            # Transform all existing ROIs
+            img_height = self.img_height
+            for roi_data in self.rois:
+                y_start, y_end = roi_data["y_start"], roi_data["y_end"]
+                new_y_start, new_y_end = img_height - y_end, img_height - y_start
+                roi_data["y_start"], roi_data["y_end"] = new_y_start, new_y_end
+                # Update the visual patch
+                roi_data["patch"].set_y(new_y_start)
+                roi_data["patch"].set_height(new_y_end - new_y_start)
+
+            self._is_flipped_v = new_v_status
+
+        # Check if horizontal flip state changed
+        if new_h_status != self._is_flipped_h:
+            print("Toggling horizontal flip.")
+            self._is_flipped_h = new_h_status
+
+        # Update display based on new states
+        self._update_image_display()
+        self._notify_roi_update()
+
+    def _on_press(self, event):
         """Callback for mouse button press events."""
         # Ignore clicks outside the main axes or with the wrong button
         if event.inaxes != self.ax or event.button != MouseButton.LEFT:
@@ -119,8 +179,7 @@ class ROISelectorWidget:
         self.ax.add_patch(self.current_rect)
         self.fig.canvas.draw_idle()
 
-    @overload
-    def on_motion(self, event):
+    def _on_motion(self, event):
         """Callback for mouse motion events."""
         # Only act if dragging within the axes
         if self.press_y is None or event.inaxes != self.ax or self.current_rect is None:
@@ -137,8 +196,7 @@ class ROISelectorWidget:
 
         self.fig.canvas.draw_idle()
 
-    @overload
-    def on_release(self, event):
+    def _on_release(self, event):
         """Callback for mouse button release events."""
         # Check if we were dragging to create a new ROI
         if (
@@ -223,8 +281,7 @@ class ROISelectorWidget:
         self.fig.canvas.draw_idle()
         self._notify_roi_update()
 
-    @overload
-    def on_pick(self, event):
+    def _on_pick(self, event):
         """Callback for pick events (clicking on a patch)."""
         # Ensure the picked artist is one of our ROI patches
         if isinstance(event.artist, patches.Rectangle) and hasattr(
@@ -322,6 +379,10 @@ class ROISelectorWidget:
             {"roi_index": index, "y_start": roi["y_start"], "y_end": roi["y_end"]}
             for index, roi in enumerate(self.rois)
         ]
+    
+    def get_current_image_data(self) -> np.ndarray:
+        """Returns the current image data, which may be flipped."""
+        return self.image_data
 
     def show(self):
         """Display the plot."""
