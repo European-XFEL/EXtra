@@ -6,6 +6,8 @@ import numpy as np
 from matplotlib.backend_bases import MouseButton
 from matplotlib.lines import Line2D
 
+__all__ = ['PeakSelectorWidget']
+
 log = logging.getLogger(__name__)
 
 warnings.filterwarnings("ignore", message="Unable to determine Axes to steal")
@@ -148,7 +150,6 @@ class PeakSelectorWidget:
             "button_release_event", self._on_release
         )
 
-        print("Peak Selector Widget Initialized.")
         print("- Left-Click on a trace to place a new peak marker.")
         print("- Right-Click near an existing marker to delete it.")
         print("- Click and drag an existing marker to move it.")

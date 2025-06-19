@@ -7,6 +7,8 @@ import numpy as np
 from extra.utils import imshow2
 from matplotlib.backend_bases import MouseButton
 
+__all__ = ['ROISelectorWidget']
+
 log = logging.getLogger(__name__)
 
 PATCH_COLOR = "red"
@@ -87,7 +89,7 @@ class ROISelectorWidget:
         self.btn_delete = widgets.Button(ax_delete, "Delete Selected ROI")
         self.btn_delete.on_clicked(self.delete_selected_roi)
 
-        print("Widget Initialized. Instructions:")
+        print("Instructions:")
         print("- Click and drag vertically on the image to define an ROI.")
         print("- Click on an existing ROI rectangle to select it (it will turn red).")
         print("- Use the checkboxes to flip the image or the button to delete the selected ROI.")

@@ -2,7 +2,7 @@
 
 ## Jupyter
 
-::: extra.gui.jupyter.SpectrometerCalibrationWidget
+::: extra.gui.jupyter.SpectrometerCalibration
 
 ## Widgets
 

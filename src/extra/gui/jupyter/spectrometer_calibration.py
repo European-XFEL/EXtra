@@ -17,6 +17,8 @@ from IPython.display import clear_output, display
 from extra.gui.widgets.peak_selection import PeakSelectorWidget
 from extra.gui.widgets.roi_selection import ROISelectorWidget
 
+__all__ = ['SpectrometerCalibration', 'plot_from_calibration_file']
+
 log = logging.getLogger(__name__)
 
 
@@ -131,7 +133,7 @@ class CalibratedPlotter:
         return fig, ax
 
 
-class SpectrometerCalibrationWidget:
+class SpectrometerCalibration:
     """
     An interactive Jupyter widget for performing energy calibration on 2D X-ray
     spectrometer detector data.
@@ -155,25 +157,25 @@ class SpectrometerCalibrationWidget:
 
     `image_data` will be used first if provided. If data is loaded from a run,
     the generated average will be cached at
-    `${Proposal}/scratch/.SpectrometerCalibrationWidget-cache`
+    `${Proposal}/scratch/.EXtra-gui-jupyter-SpectrometerCalibration-cache`
 
     ```python
     # Ensure the ipympl backend is active for interactive plots
     %matplotlib widget
 
     import numpy as np
-    from extra.gui.jupyter import SpectrometerCalibrationWidget
+    from extra.gui.jupyter import SpectrometerCalibration
 
     # Create an instance of the widget.
     # You can either provide data from an EuXFEL run
-    widget = SpectrometerCalibrationWidget(
+    widget = SpectrometerCalibration(
         proposal=1234, # Your proposal number
         run=10,        # Your run number
         source=('SQS_NQS_PNCCD1MP/CAL/PNCCD_FOC_SUM', 'image.data')  # Example source
     )
     # or a pre-loaded NumPy array
     my_xes_image = np.load("my_data.npy")
-    widget = SpectrometerCalibrationWidget(image_data=my_xes_image)
+    widget = SpectrometerCalibration(image_data=my_xes_image)
 
     # Display the widget in your Jupyter cell
     widget.display()
@@ -343,7 +345,7 @@ class SpectrometerCalibrationWidget:
         # define cache location
         cache_path = (
             Path(find_proposal(f"p{proposal:06}"))
-            / "scratch/.SpectrometerCalibrationWidget-cache"
+            / "scratch/.EXtra-gui-jupyter-SpectrometerCalibration-cache"
         )
         str_src = re.sub(r"[^a-zA-Z0-9_-]", "-", "-".join(source))
         fname = f"spec-p{proposal:06}-r{run:04}-{str_src}-mean.npy"
@@ -1017,7 +1019,7 @@ class SpectrometerCalibrationWidget:
 
 def plot_from_calibration_file(filepath):
     """
-    Reads the output file from the SpectrometerCalibrationWidget and plots the
+    Reads the output file from the SpectrometerCalibration widget and plots the
     calibrated spectra.
 
     This function looks for the "[Calibrated Spectra Data (CSV Format)]" section
@@ -1159,5 +1161,5 @@ if __name__ == "__main__":
     mask2 = (yy > 50) & (yy < 65)
     dummy_image[mask2] += 60 * np.exp(-((xx[mask2] - 185) ** 2 / (2 * 12**2)))
 
-    combined_widget = SpectrometerCalibrationWidget(image_data=dummy_image)
+    combined_widget = SpectrometerCalibration(image_data=dummy_image)
     combined_widget.display()
