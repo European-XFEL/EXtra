@@ -16,6 +16,8 @@ else.
 
 ::: extra.utils.find_nearest_value
 
+::: extra.utils.reorder_axes_to_shape
+
 ## Plotting functions
 
 ::: extra.utils.imshow2
