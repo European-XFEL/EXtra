@@ -369,7 +369,10 @@ class SpectrometerCalibrationWidget:
                     and plt.fignum_exists(self.roi_widget_instance.fig.number)
                 ):
                     self.roi_widget_instance.close()
-                self.roi_widget_instance = ROISelectorWidget(self.image_data)
+
+                with plt.ioff():
+                    self.roi_widget_instance = ROISelectorWidget(self.image_data)
+
                 self.roi_widget_instance.register_roi_update_callback(self._roi_updated)
                 display(self.roi_widget_instance.fig.canvas)
                 print("ROI Selector Initialized in Tab 1.")

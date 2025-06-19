@@ -310,8 +310,8 @@ class ROISelectorWidget:
         """Internal helper to visually update selected/deselected ROIs."""
         # Deselect the old one (if any)
         if (
-                self.selected_roi_index is not None and
-                self.selected_roi_index < len(self.rois)
+            self.selected_roi_index is not None
+            and self.selected_roi_index < len(self.rois)
         ):
             try:
                 old_patch = self.rois[self.selected_roi_index]["patch"]
@@ -379,7 +379,7 @@ class ROISelectorWidget:
             {"roi_index": index, "y_start": roi["y_start"], "y_end": roi["y_end"]}
             for index, roi in enumerate(self.rois)
         ]
-    
+
     def get_current_image_data(self) -> np.ndarray:
         """Returns the current image data, which may be flipped."""
         return self.image_data
