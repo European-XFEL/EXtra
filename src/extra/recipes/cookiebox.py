@@ -1138,10 +1138,12 @@ class CookieboxCalibration(SerializableMixin):
             #o = np.apply_along_axis(lambda arr: np.interp(self.energy_axis, e[::-1], arr[::-1], left=0, right=0),
             #                       axis=1,
             #                       arr=pulses)
+            bad = np.isnan(pulses)
+            np.nan_to_num(pulses, copy=False)
             o = np.apply_along_axis(lambda arr: PchipInterpolator(e[::-1], arr[::-1], extrapolate=False)(self.energy_axis),
                                    axis=1,
                                    arr=pulses)
-
+            pulses[bad] = np.nan
             n_e = len(self.energy_axis)
             o = np.reshape(o, (n_t, n_p, n_e))
             # subtract offset
