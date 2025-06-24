@@ -290,6 +290,12 @@ class SingleConstant:
         """Load the constant data as a Numpy array"""
         return self.dataset_obj(caldb_root)[:]
 
+    def dimensions(self, caldb_root=None):
+        try:
+            return self.dataset_obj(caldb_root).attrs['dims'].tolist()
+        except KeyError:
+            return None
+
     def _load_calcat_metadata(self, client=None):
         client = client or get_client()
         calcat_meta = client.get(f"calibration_constant_versions/{self.ccv_id}")
@@ -468,6 +474,15 @@ class MultiModuleConstant(Mapping):
         load_ctx.map(_load_constant_dataset, self.aggregator_names)
         return arr
 
+    def dimensions(self, caldb_root=None):
+        # We'll assume the constants for different modules have the same axis
+        # order. The ndarray and xarray methods also assume this.
+        kda = next(iter(self.constants))
+        mod_dims = self.constants[kda].dimensions(caldb_root)
+        if mod_dims is None:
+            return None
+        return ["module"] + mod_dims
+
     def xarray(self, module_naming="modnum", caldb_root=None, *, parallel=0):
         """Load this constant as an xarray DataArray.
 
@@ -493,7 +508,9 @@ class MultiModuleConstant(Mapping):
         ndarr = self.ndarray(caldb_root, parallel=parallel)
 
         # Dimension labels
-        dims = ["module"] + ["dim_%d" % i for i in range(ndarr.ndim - 1)]
+        dims = self.dimensions(caldb_root) or (
+                ["module"] + ["dim_%d" % i for i in range(ndarr.ndim - 1)]
+        )
         coords = {"module": modules}
         name = self.calibration_name
 
