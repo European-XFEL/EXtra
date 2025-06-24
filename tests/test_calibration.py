@@ -157,6 +157,14 @@ def test_AGIPD_load_data():
     xr.testing.assert_identical(arr_p, arr)
 
 
+@pytest.mark.skipif(not os.path.isdir("/gpfs/exfel/d"), reason="GPFS not available")
+@pytest.mark.vcr
+def test_JUNGFRAU_dimension_labels():
+    jf_cd = CalibrationData.from_report(7673)
+    offset = jf_cd["Offset10Hz"]
+    assert offset["JNGFR02"].dimensions() == ["fast_scan", "slow_scan", "cell", "gain"]
+
+
 @pytest.mark.vcr
 def test_DSSC_modules_missing():
     dssc_cd = CalibrationData.from_condition(
