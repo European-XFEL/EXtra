@@ -163,6 +163,7 @@ def test_JUNGFRAU_dimension_labels():
     jf_cd = CalibrationData.from_report(7673)
     offset = jf_cd["Offset10Hz"]
     assert offset["JNGFR02"].dimensions() == ["fast_scan", "slow_scan", "cell", "gain"]
+    assert offset.dimensions() == ["module", "fast_scan", "slow_scan", "cell", "gain"]
 
 
 @pytest.mark.vcr
