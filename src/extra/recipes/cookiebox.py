@@ -827,7 +827,7 @@ class CookieboxCalibration(SerializableMixin):
         Args:
           tof_id: eTOF ID.
         """
-        from scipy.interpolate import CubicSpline
+        from scipy.interpolate import PchipInterpolator
 
         energy_ids = np.arange(len(self._scan.positions))
         mask = self.calibration_mask[tof_id]
@@ -941,7 +941,7 @@ class CookieboxCalibration(SerializableMixin):
                 continue
             a = ax[i//8]
             c = colors[i%8]
-            a.plot(self.energy_axis, self.int_transmission[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
+            a.plot(self.energy_axis, self.normalization[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
         for a in ax:
             a.set(xlabel="Energy [eV]",
                   ylabel="Transmission [a.u.]")
@@ -999,29 +999,6 @@ class CookieboxCalibration(SerializableMixin):
             else:
                 a.set(xlabel="Energy [eV]",
                       ylabel=r"$\left\vert\frac{dt}{dE}\right\vert$ [samp./eV]")
-            a.legend(frameon=False, ncols=2)
-
-    def plot_normalizations(self):
-        """
-        Plot all normalizations in the same plot.
-        """
-        import matplotlib.pyplot as plt
-        colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
-        lw = 3
-        ls = '-'
-
-        fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
-
-        tof_ids = list(self.model_params.keys())
-        for i, tof_id in enumerate(tof_ids):
-            if not self.mask[tof_id]:
-                continue
-            a = ax[i//8]
-            c = colors[i%8]
-            a.plot(self.energy_axis, self.normalization[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
-        for a in ax:
-            a.set(xlabel="Energy [eV]",
-                  ylabel="Normalization [a.u.]")
             a.legend(frameon=False, ncols=2)
 
     def plot_fit(self, tof_id: int):
@@ -1105,7 +1082,7 @@ class CookieboxCalibration(SerializableMixin):
 
         return outdata
 
-    def calibrate(self, trace: xr.DataArray) -> xr.DataArray:
+    def calibrate(self, trace: xr.DataArray, normalization: bool=True) -> xr.DataArray:
         """
         Takes a trace separated with axes ('trainId', 'pulseIndex', 'sample', 'tof'),
         as given by `load_trace` and applies the calibration.
@@ -1117,6 +1094,7 @@ class CookieboxCalibration(SerializableMixin):
           trace: A pre-processed trace retrieved with the *same* `AdqRawChannel` settings as this calibration object.
                  Its axes are expected to be ('trainId', 'pulseIndex', 'sample', 'tof').
                  It is recommended to use always `load_trace` to obtain this.
+          normalization: Whether to normalize by the transmission.
 
         Returns: the calibrated data as an xarray DataArray.
                  The axes of the output are ('trainId', 'pulseIndex', 'energy', 'tof').
@@ -1130,7 +1108,6 @@ class CookieboxCalibration(SerializableMixin):
         norm = np.stack([v
                          for k, v in self.normalization.items()
                          if k in tof_ids], axis=-1)
-        norm *= self.e_transmission[:, tof_idx]
         norm = xr.DataArray(data=norm,
                             dims=('energy', 'tof'),
                             coords=dict(energy=self.energy_axis,
@@ -1140,6 +1117,7 @@ class CookieboxCalibration(SerializableMixin):
             """
             Apply the energy calibration and transmission correction for a given eTOF.
             """
+            from scipy.interpolate import PchipInterpolator
             logging.info(f"Correcting eTOF {tof_id} ...")
             # get it in the right order
             pulses = tof_trace.transpose('trainId', 'pulseIndex', 'sample')
@@ -1157,7 +1135,10 @@ class CookieboxCalibration(SerializableMixin):
             e = model(ts, *self.model_params[tof_id])
 
             # interpolate
-            o = np.apply_along_axis(lambda arr: np.interp(self.energy_axis, e[::-1], arr[::-1], left=0, right=0),
+            #o = np.apply_along_axis(lambda arr: np.interp(self.energy_axis, e[::-1], arr[::-1], left=0, right=0),
+            #                       axis=1,
+            #                       arr=pulses)
+            o = np.apply_along_axis(lambda arr: PchipInterpolator(e[::-1], arr[::-1], extrapolate=False)(self.energy_axis),
                                    axis=1,
                                    arr=pulses)
 
@@ -1181,7 +1162,10 @@ class CookieboxCalibration(SerializableMixin):
                    for tof_id in tof_ids]
         outdata = xr.concat(outdata, pd.Index(tof_ids, name="tof"))
         outdata = outdata.transpose('trainId', 'pulseIndex', 'energy', 'tof')
-        outdata_corr = outdata/norm.to_numpy()[None, None, :, :]
+        if normalization:
+            outdata_corr = outdata/norm.to_numpy()[None, None, :, :]
+        else:
+            outdata_corr= outdata
 
         return outdata_corr
 
