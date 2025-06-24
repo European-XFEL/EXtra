@@ -90,3 +90,73 @@ def imshow2(image, *args, lognorm=False, ax=None, **kwargs):
         if ax is None:
             ax = plt
         return ax.imshow(image, *args, **kwargs)
+
+def hyperslicer2(arr, *args, ax=None, lognorm=False, colorbar=True, **kwargs):
+    """Interactively visualize arrays of images.
+
+    This is a lightweight wrapper around
+    [hyperslicer()][mpl_interactions.generic.hyperslicer] with some useful defaults:
+
+    - Try to set `vmin`/`vmax` to reasonable values. Note that setting
+      `vmin`/`vmax` is incompatible with the `norm` argument, so they will only
+      be set if `norm` is not passed.
+    - Set `interpolation="none"`.
+    - Enable the play buttons.
+    - Draw a colorbar.
+
+    Example usage:
+    ```python
+    plt.figure()
+    # Note the trailing semi-colon to swallow the return value. hyperslicer2()
+    # returns a `controls` object by default that displays the play buttons, so
+    # returning it from a notebook cell will end up displaying the play buttons
+    # twice.
+    hyperslicer2(images);
+    ```
+    ![](../images/hyperslicer2.gif)
+
+    All arguments other than the ones listed below are passed to
+    [hyperslicer()][mpl_interactions.generic.hyperslicer], and explicitly
+    passing any of `vmin`/`vmax`/`interpolation`/`play_buttons` will override
+    the defaults.
+
+    Args:
+        arr (array_like): The array of images to display. Should have at least
+            three dimensions.
+        ax (matplotlib.axes.Axes): The axis to plot the image in.
+        lognorm (bool): Whether to display the images in a log color scale.
+        colorbar (bool): Whether to display a colorbar.
+    """
+    import matplotlib.pyplot as plt
+    from mpl_interactions import hyperslicer
+
+    # Enable the controls by default
+    if "play_buttons" not in kwargs:
+        kwargs["play_buttons"] = True
+
+    # Disable interpolation by default
+    if "interpolation" not in kwargs:
+        kwargs["interpolation"] = "none"
+
+    # Enable log color scale if requested and `norm` is not already set
+    if lognorm and "norm" not in kwargs:
+        from matplotlib.colors import LogNorm
+        kwargs["norm"] = LogNorm()
+
+    # Set the vmin/vmax if we're not using `norm`
+    if "norm" not in kwargs and np.issubdtype(arr.dtype, np.number):
+        if "vmin" not in kwargs:
+            kwargs["vmin"] = np.nanquantile(arr, 0.01)
+        if "vmax" not in kwargs:
+            kwargs["vmax"] = np.nanquantile(arr, 0.99)
+
+    if ax is None:
+        ax = plt.gca()
+    fig = ax.get_figure()
+
+    controls = hyperslicer(arr, *args, ax=ax, **kwargs)
+
+    if colorbar:
+        fig.colorbar(ax.get_images()[-1], ax=ax)
+
+    return controls
