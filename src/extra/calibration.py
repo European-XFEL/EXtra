@@ -327,6 +327,12 @@ class SingleConstant:
         """Load the constant data as a Numpy array"""
         return self.dataset_obj(caldb_root)[:]
 
+    def dimensions(self, caldb_root=None):
+        try:
+            return self.dataset_obj(caldb_root).attrs['dims'].tolist()
+        except KeyError:
+            return None
+
     def _load_calcat_metadata(self, client=None):
         client = client or get_client()
         calcat_meta = client.get(f"calibration_constant_versions/{self.ccv_id}")
