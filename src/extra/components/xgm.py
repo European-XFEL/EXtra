@@ -307,10 +307,13 @@ class XGM:
 
         If `series=False` (the default) this will return a 2D
         [DataArray][xarray.DataArray] with dimensions of `(trainId,
-        pulseIndex)`. For runs with a varying number of pulses, the data will be
-        sliced to the *maximum number* of pulses. e.g. if a run has 100 trains
-        with only one train containing 10 pulses and all the others 0, the
-        returned array will have a shape of `(100, 10)`.
+        pulseIndex)`.
+
+        For runs with a varying number of pulses, the data will be sliced to the
+        *maximum number* of pulses. e.g. if a run has 100 trains with only one
+        train containing 10 pulses and all the others 0, the returned array will
+        have a shape of `(100, 10)`. The fill value for the missing pulses will
+        be NaN.
 
         If `series=True` this will return a 1D [Series][pandas.Series] where all
         entries with 0 pulses have been dropped, indexed by `trainId` and
@@ -356,8 +359,8 @@ class XGM:
 
             # Assign a pulseIndex dimension and coordinate
             pulse_energy = pulse_energy.rename(dim_0="pulseIndex").assign_coords(pulseIndex=np.arange(max_pulses))
-            # Replace the default fill value of 1 with 0
-            pulse_energy.data[pulse_energy.data == 1] = 0
+            # Replace the default fill value of 1 with nan
+            pulse_energy.data[pulse_energy.data == 1] = np.nan
             # Add units
             pulse_energy.attrs["units"] = self.instrument_source[key].units or "µJ"
             # Set a meaningful name
