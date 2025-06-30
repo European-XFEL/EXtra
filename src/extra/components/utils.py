@@ -1,4 +1,4 @@
-import sys
+from ..utils.misc import _isinstance_no_import
 
 # Source prefixes in use at each SASE.
 SASE_TOPICS = {
@@ -61,15 +61,6 @@ def _instrument_to_sase(instrument):
         return 2
     elif instrument in {'SA3', 'LA3', 'SCS', 'SQS', 'SXP'}:
         return 3
-
-
-def _isinstance_no_import(obj, mod: str, cls: str):
-    """Check if isinstance(obj, mod.cls) without loading mod"""
-    m = sys.modules.get(mod)
-    if m is None:
-        return False
-
-    return isinstance(obj, getattr(m, cls))
 
 
 def _select_subcomponent_trains(src, keys, dst=None):
