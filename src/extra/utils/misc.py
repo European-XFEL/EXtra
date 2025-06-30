@@ -67,7 +67,7 @@ def _isinstance_no_import(obj, mod: str, cls: str):
     return isinstance(obj, getattr(m, cls))
 
 
-def imshow2(image, *args, lognorm=False, ax=None, **kwargs):
+def imshow2(image, *args, colorbar=True, lognorm=False, ax=None, **kwargs):
     """Display an image with reasonable defaults.
 
     This function wraps [plt.imshow()][matplotlib.axes.Axes.imshow] to
@@ -79,6 +79,7 @@ def imshow2(image, *args, lognorm=False, ax=None, **kwargs):
     - Use an `auto` aspect ratio if the images aspect ratio is too skewed
       (useful for displaying heatmaps).
     - Set `interpolation="none"`.
+    - Draw a colorbar.
 
     All arguments other than the ones listed below are passed to
     [plt.imshow()][matplotlib.axes.Axes.imshow], and explicitly passing any of
@@ -86,9 +87,9 @@ def imshow2(image, *args, lognorm=False, ax=None, **kwargs):
 
     Args:
         image (array_like): The image to display.
+        colorbar (bool): Whether to draw a colorbar.
         lognorm (bool): Whether to display the image in a log color scale.
-        ax (matplotlib.axes.Axes): The axis to plot the image in. This will
-            default to [plt][matplotlib.pyplot] if none is explicitly passed.
+        ax (matplotlib.axes.Axes): The axis to plot the image in.
     """
     import matplotlib.pyplot as plt
     is_dataarray = _isinstance_no_import(image, "xarray", "DataArray")
@@ -118,12 +119,21 @@ def imshow2(image, *args, lognorm=False, ax=None, **kwargs):
         if aspect_ratio > 4:
             kwargs["aspect"] = "auto"
 
+    if ax is None:
+        ax = plt.gca()
+    fig = ax.get_figure()
+
     if is_dataarray:
-        return image.plot.imshow(*args, ax=ax, **kwargs)
+        im = image.plot.imshow(*args, ax=ax, **kwargs)
     else:
-        if ax is None:
-            ax = plt
-        return ax.imshow(image, *args, **kwargs)
+        im = ax.imshow(image, *args, **kwargs)
+
+    # Xarray will automatically add a colorbar so we only need to add one
+    # explicitly for regular arrays.
+    if colorbar and not is_dataarray:
+        fig.colorbar(im, ax=ax)
+
+    return im
 
 def hyperslicer2(arr, *args, ax=None, lognorm=False, colorbar=True, **kwargs):
     """Interactively visualize arrays of images.

@@ -39,6 +39,7 @@ Changed:
   property. There is also a new `force_slow_data` argument to
   [XGM.pulse_counts()][extra.XGM.pulse_counts] to always return whatever was
   saved in the slow data (!161).
+- [imshow2()][extra.utils.imshow2] will now add a colorbar automatically (!351).
 
 Fixed:
 
