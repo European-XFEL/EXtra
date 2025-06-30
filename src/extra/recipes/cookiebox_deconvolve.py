@@ -760,6 +760,7 @@ class TOFAnalogResponse(SerializableMixin):
               reflection_amplitude: List[float]=list(),
               method: str="tv_matrix",
               extra_shift: int=2,
+              normalization: str="integral",
               **kwargs) -> xr.DataArray:
         """
         Apply TV-deconvolution on TOF data taken in *analog* mode,
@@ -829,21 +830,29 @@ class TOFAnalogResponse(SerializableMixin):
 
         Returns: The deconvolved data as a DataArray.
         """
+        if normalization == "integral":
+            get_norm = lambda x_in: np.sum(x_in, axis=-1, keepdims=True)
+        elif normalization == "maximum":
+            get_norm = lambda x_in: np.amax(x_in, axis=-1, keepdims=True)
+
         norm = 1
         if isinstance(tof_trace, np.ndarray):
             if len(tof_trace.shape) == 1:
-                norm = np.sum(tof_trace)
+                #norm = np.sum(tof_trace)
+                norm = get_norm(tof_trace)
                 original = xr.DataArray(tof_trace, dims=('sample',))
                 if np.abs(norm) < 1e-6:
                     norm = 1
             else:
                 original = xr.DataArray(tof_trace, dims=('pulse', 'sample'))
-                norm = np.sum(original.data, axis=-1, keepdims=True)
+                #norm = np.sum(original.data, axis=-1, keepdims=True)
+                norm = get_norm(original.data)
                 norm[np.abs(norm)<1e-6] = 1
                 original.data /= norm
         elif isinstance(tof_trace, xr.DataArray):
             original = tof_trace.copy()
-            norm = np.sum(original.data, axis=-1, keepdims=True)
+            #norm = np.sum(original.data, axis=-1, keepdims=True)
+            norm = get_norm(original.data)
             norm[np.abs(norm)<1e-6] = 1
             original.data /= norm
         else:
@@ -857,7 +866,8 @@ class TOFAnalogResponse(SerializableMixin):
             result_trace = std_deconvolution(original.data, h=h, n_shift=self.n_filter+extra_shift, **kwargs)
         else:
             raise ValueError("Unknown method.")
-        result_norm = np.sum(result_trace, axis=-1, keepdims=True)
+        #result_norm = np.sum(result_trace, axis=-1, keepdims=True)
+        result_norm = get_norm(result_trace)
         result_trace /= result_norm
         result = xr.DataArray(result_trace*norm, dims=original.dims, coords=original.coords)
 

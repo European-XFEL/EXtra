@@ -213,9 +213,7 @@ class CookieboxCalibration(SerializableMixin):
       spectrum intensity distribution, so that the probability
       of photo-electrons observed in a range of energies agrees with the
       probability in the corresponding time-of-flight range.
-    - Calculate a transmission correction due to the eTOF quantum
-      efficiency as "photo-electron integral/Auger+Valence integral".
-    - Calculate a normalization correction due to the pulse energy
+    - Calculate a transmission correction due to the pulse energy
        as taken from the XGM: "Auger+Valence integral/XGM pulse energy".
 
     The concrete steps taken when the `obj.apply(other_run)` is called with a run to be calibrated are:
@@ -224,7 +222,6 @@ class CookieboxCalibration(SerializableMixin):
     - Scale data by the inverse of the absolute value of the Jacobian per eTOF,
       following the change-of-variable theorem in statistics.
     - Divide by the transmission per eTOF.
-    - Divide by the normalization correction.
 
     The variables calculated can be visualized using `obj.plot_diagnostics()`
     and similar other functions for validation and other cross-checks.
@@ -340,8 +337,6 @@ class CookieboxCalibration(SerializableMixin):
         self.jacobian = dict()
         self.offset = dict()
         self.normalization = dict()
-        self.transmission = dict()
-        self.int_transmission = dict()
 
         # what we need to save it all
         self._version = 1
@@ -361,14 +356,11 @@ class CookieboxCalibration(SerializableMixin):
                             "jacobian",
                             "offset",
                             "normalization",
-                            "transmission",
-                            "int_transmission",
                             "calibration_data",
                             "calibration_mean_xgm",
                             "mask",
                             "calibration_mask",
                             #"sources",
-                            "e_transmission",
                             "calibration_energies",
                             "_version",
                            ]
@@ -644,13 +636,6 @@ class CookieboxCalibration(SerializableMixin):
         for tof_id in self.kwargs_adq.keys():
             self.calculate_calibration_and_transmission(tof_id)
 
-        # summarize it for later
-        n_tof = len(self.kwargs_adq.keys())
-        n_e = len(self.energy_axis)
-        self.e_transmission = np.zeros((n_e, n_tof), dtype=np.float32)
-        for idx, tof_id in enumerate(self.kwargs_adq.keys()):
-            self.e_transmission[:,idx] = self.int_transmission[tof_id]
-
     def select_calibration_data(self):
         """
         Select data for calibration.
@@ -805,12 +790,17 @@ class CookieboxCalibration(SerializableMixin):
             result = gmodel.fit(y, x=x, center=x[ii], amplitude=np.max(y), sigma=iisig, c=np.median(y))
             # we care about the normalization coefficient, not the normalized amplitude
             A += [result.best_values["amplitude"]]
-            Aa += [resulta.best_values["amplitude"]]
             mu += [result.best_values["center"]]
             sigma += [result.best_values["sigma"]]
             energy += [energies[e]]
             offset += [result.best_values["c"]]
             mu_auger += [resulta.best_values["center"]]
+            # integrate Auger
+            m = resulta.best_values["center"]
+            s = resulta.best_values["sigma"]
+            norm_auger = np.sum(ya[int(m-2*s):int(m+2*s)])
+            #Aa += [resulta.best_values["amplitude"]]
+            Aa += [norm_auger]
         energy = np.array(energy)
         mu = np.array(mu)
         mu_auger = np.array(mu_auger)
@@ -854,15 +844,6 @@ class CookieboxCalibration(SerializableMixin):
                                                ee,
                                                en)
 
-        # calculate transmission
-        self.transmission[tof_id] = self.tof_fit_result[tof_id].A[mask]/self.tof_fit_result[tof_id].Aa[mask]
-
-        # interpolate transmission for the given energy axis
-        et = self.transmission[tof_id][eidx]
-        self.int_transmission[tof_id] = np.interp(self.energy_axis,
-                                                  ee,
-                                                  et)
-
     def plot_calibrations(self):
         """
         Diagnostics plots for finding the energy peaks in a scan.
@@ -905,22 +886,19 @@ class CookieboxCalibration(SerializableMixin):
         stop_roi = self.stop_roi[tof_id]
         ts = np.arange(start_roi, stop_roi)
         e = model(ts, *self.model_params[tof_id])
-        fig, ax = plt.subplots(nrows=3, ncols=2, figsize=(20,25))
+        fig, ax = plt.subplots(nrows=3, ncols=2, figsize=(20,20))
         ax = ax.flatten()
         ax[0].scatter(self.tof_fit_result[tof_id].mu, self.tof_fit_result[tof_id].energy, label="Peak center")
         ax[0].plot(ts, e, lw=2, label="Model fit")
         ax[0].set(xlabel="Samples", ylabel="Energy [eV]")
         ax[1].scatter(self.tof_fit_result[tof_id].energy, self.transmission[tof_id], label="Transmission")
-        ax[1].plot(self.energy_axis, self.int_transmission[tof_id], lw=2, label="Interpolated transmission")
+        ax[1].plot(self.energy_axis, self.normalization[tof_id], lw=2, label="Interpolated transmission")
         ax[1].set(xlabel="Energy [eV]", ylabel="Transmission [a.u.]")
         ax[2].scatter(self.tof_fit_result[tof_id].energy, self.tof_fit_result[tof_id].offset, label="Offset")
         ax[2].plot(self.energy_axis, self.offset[tof_id], lw=2, label="Offset")
         ax[2].set(xlabel="Samples", ylabel="Offset to subtract [a.u.]")
-        ax[3].scatter(self.tof_fit_result[tof_id].energy, self.tof_fit_result[tof_id].Aa/self.calibration_mean_xgm[tof_id], label="Normalization")
-        ax[3].plot(self.energy_axis, self.normalization[tof_id], lw=2, label="Interpolated normalization")
-        ax[3].set(xlabel="Energy [eV]", ylabel="(Auger+valence)/pulse energy [a.u.]")
-        ax[4].plot(self.energy_axis, self.jacobian[tof_id], lw=2, label="Interpolated Jacobian")
-        ax[4].set(xlabel="Energy [eV]", ylabel="Jacobian [a.u.]")
+        ax[3].plot(self.energy_axis, self.jacobian[tof_id], lw=2, label="Interpolated Jacobian")
+        ax[3].set(xlabel="Energy [eV]", ylabel="Jacobian [a.u.]")
         for a in ax:
             a.set_title(f"TOF {tof_id}")
 
@@ -1082,7 +1060,7 @@ class CookieboxCalibration(SerializableMixin):
 
         return outdata
 
-    def calibrate(self, trace: xr.DataArray, normalization: bool=True) -> xr.DataArray:
+    def calibrate(self, trace: xr.DataArray, normalization: bool=True, subtract_offset: bool=False) -> xr.DataArray:
         """
         Takes a trace separated with axes ('trainId', 'pulseIndex', 'sample', 'tof'),
         as given by `load_trace` and applies the calibration.
@@ -1095,6 +1073,7 @@ class CookieboxCalibration(SerializableMixin):
                  Its axes are expected to be ('trainId', 'pulseIndex', 'sample', 'tof').
                  It is recommended to use always `load_trace` to obtain this.
           normalization: Whether to normalize by the transmission.
+          subtract_offset: Whether to subtract a offset.
 
         Returns: the calibrated data as an xarray DataArray.
                  The axes of the output are ('trainId', 'pulseIndex', 'energy', 'tof').
@@ -1139,7 +1118,7 @@ class CookieboxCalibration(SerializableMixin):
             #                       axis=1,
             #                       arr=pulses)
             bad = np.isnan(pulses)
-            np.nan_to_num(pulses, copy=False)
+            pulses = np.nan_to_num(pulses)
             o = np.apply_along_axis(lambda arr: PchipInterpolator(e[::-1], arr[::-1], extrapolate=False)(self.energy_axis),
                                    axis=1,
                                    arr=pulses)
@@ -1147,7 +1126,8 @@ class CookieboxCalibration(SerializableMixin):
             n_e = len(self.energy_axis)
             o = np.reshape(o, (n_t, n_p, n_e))
             # subtract offset
-            o = o - self.offset[tof_id][None, None, :]
+            if subtract_offset:
+                o = o - self.offset[tof_id][None, None, :]
             # apply Jacobian
             o = o*self.jacobian[tof_id][None, None, :]
             np.nan_to_num(o, copy=False)
