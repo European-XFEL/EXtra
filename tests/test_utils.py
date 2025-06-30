@@ -72,3 +72,9 @@ def test_reorder_axes_to_shape():
 
     with pytest.raises(ValueError):
         reorder_axes_to_shape(arr, (None, 256, 1024))  # Wildcard & wrong number
+
+    # Check we've transposed, not reshaped
+    arr = np.arange(15).reshape(3, 5)
+    res = reorder_axes_to_shape(arr, (5, 3))
+    assert res.shape == (5, 3)
+    np.testing.assert_array_equal(res[0], [0, 5, 10])
