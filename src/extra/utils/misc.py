@@ -194,3 +194,65 @@ def hyperslicer2(arr, *args, ax=None, lognorm=False, colorbar=True, **kwargs):
         fig.colorbar(ax.get_images()[-1], ax=ax)
 
     return controls
+
+
+def ridgeline_plot(data, *, overlap=0.5, xlabel=None, ylabel=None, stack_label=None, stack_ticklabels=None):
+    import matplotlib.pyplot as plt
+    import matplotlib.gridspec as grid_spec
+    from matplotlib.transforms import blended_transform_factory
+
+    if data.ndim != 2:
+        raise TypeError(f"Expected a 2D array (got {data.ndim}D)")
+
+    gs = grid_spec.GridSpec(len(data), 1, hspace=-overlap)
+    fig = plt.figure(figsize=(8, 6))
+
+    if _isinstance_no_import(data, "xarray", "DataArray"):
+        x_data = data.coords[data.dims[1]]
+        xlabel = xlabel or data.dims[1]
+        stack_label = stack_label or data.dims[0]
+        if stack_ticklabels is None and data.dims[0] in data.coords:
+            stack_ticklabels = data.coords[data.dims[0]].values
+    else:
+        x_data = np.arange(data.shape[1])
+
+    x_range = x_data.min(), x_data.max()
+    y_range = data.min(), data.max()
+
+    for i, trace in enumerate(data):
+        ax = fig.add_subplot(gs[i:i + 1, 0:])
+        ax.patch.set_alpha(0)  # Transparent background
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+
+        ax.plot(x_data, trace)
+
+        # Draw a light line at zero for each axis
+        ax.axhline(color='0.7', linewidth=1., zorder=0)
+
+        # Use the same scale on each axes
+        ax.set_ylim(*y_range)
+        ax.set_xlim(*x_range)
+
+        if i < len(data) - 1:
+            # Clear stuff from all but the bottom axes
+            ax.set_xticklabels([])
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax.set_yticklabels([])
+            ax.spines['left'].set_visible(False)
+            ax.spines['bottom'].set_visible(False)
+        else:
+            # Bottom axes
+            ax.set_xlabel(xlabel)
+            ax.set_ylabel(ylabel)
+
+        # the x coords of this transformation are axes, and the y coords are data
+        if stack_ticklabels is not None:
+            trans = blended_transform_factory(ax.transAxes, ax.transData)
+            ax.text(1.02, 0, str(stack_ticklabels[i]), ha="left", va="center", transform=trans)
+
+    if stack_label:
+        fig.supylabel(stack_label, x=1., ha="right")
+    fig.tight_layout()
+    return fig
