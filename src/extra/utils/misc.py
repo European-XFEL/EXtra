@@ -201,6 +201,8 @@ def ridgeline_plot(data, *, overlap=0.5, xlabel=None, ylabel=None, stack_label=N
     import matplotlib.gridspec as grid_spec
     from matplotlib.transforms import blended_transform_factory
 
+    if isinstance(data, (list, tuple)):
+        data = np.asarray(data)
     if data.ndim != 2:
         raise TypeError(f"Expected a 2D array (got {data.ndim}D)")
 
@@ -213,7 +215,7 @@ def ridgeline_plot(data, *, overlap=0.5, xlabel=None, ylabel=None, stack_label=N
         stack_label = stack_label or data.dims[0]
         if stack_ticklabels is None and data.dims[0] in data.coords:
             stack_ticklabels = data.coords[data.dims[0]].values
-    else:
+    else:  # Numpy array
         x_data = np.arange(data.shape[1])
 
     x_range = x_data.min(), x_data.max()
