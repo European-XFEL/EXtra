@@ -196,7 +196,8 @@ def hyperslicer2(arr, *args, ax=None, lognorm=False, colorbar=True, **kwargs):
     return controls
 
 
-def ridgeplot(data, *, overlap=0.5, xlabel=None, ylabel=None, stack_label=None, stack_ticklabels=None):
+def ridgeplot(data, *, overlap=0.5, xlabel=None, ylabel="Per-line values",
+              stack_label=None, stack_ticklabels=None):
     """Make a ridgeline plot showing a sequence of similar lines
 
     A ridgeline plot spreads out the different lines vertically to make their
