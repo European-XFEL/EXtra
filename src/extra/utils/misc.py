@@ -196,7 +196,25 @@ def hyperslicer2(arr, *args, ax=None, lognorm=False, colorbar=True, **kwargs):
     return controls
 
 
-def ridgeline_plot(data, *, overlap=0.5, xlabel=None, ylabel=None, stack_label=None, stack_ticklabels=None):
+def ridgeplot(data, *, overlap=0.5, xlabel=None, ylabel=None, stack_label=None, stack_ticklabels=None):
+    """Make a ridgeline plot showing a sequence of similar lines
+
+    A ridgeline plot spreads out the different lines vertically to make their
+    order clear, but allowing them to overlap. It's an alternative to a heatmap,
+    especially if there are relatively few rows (around 5-20).
+
+    Args:
+        data (array_like): A 2D array, each row of which will be plotted as one
+            line, starting at the top of the plot. Pass an xarray DataArray to
+            use its labels by default.
+        overlap (float): Number from 0 (no overlap) to 1, the fraction of each
+            plot's area covered by the next plot.
+        xlabel (str): Label for the shared x axis.
+        ylabel (str): Label for the y axis (drawn on the bottom plot).
+        stack_label (str): Label for the stacking axis (shown on the right)
+        stack_ticklabels (array_like): Labels for each line (shown on the right
+            next to the zero line of each plot).
+    """
     import matplotlib.pyplot as plt
     import matplotlib.gridspec as grid_spec
     from matplotlib.transforms import blended_transform_factory
