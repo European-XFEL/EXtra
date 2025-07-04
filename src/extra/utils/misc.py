@@ -196,7 +196,7 @@ def hyperslicer2(arr, *args, ax=None, lognorm=False, colorbar=True, **kwargs):
     return controls
 
 
-def ridgeplot(data, *, overlap=0.5, xlabel=None, ylabel="Per-line values",
+def ridgeplot(data, *, fig=None, overlap=0.5, xlabel=None, ylabel="Per-line values",
               stack_label=None, stack_ticklabels=None):
     """Make a ridgeline plot showing a sequence of similar lines
 
@@ -208,6 +208,7 @@ def ridgeplot(data, *, overlap=0.5, xlabel=None, ylabel="Per-line values",
         data (array_like): A 2D array, each row of which will be plotted as one
             line, starting at the top of the plot. Pass an xarray DataArray to
             use its labels by default.
+        fig (matplotlib.figure.Figure): Plot into an existing matplotlib figure.
         overlap (float): Number from 0 (no overlap) to 1, the fraction of each
             plot's area covered by the next plot.
         xlabel (str): Label for the shared x axis.
@@ -225,8 +226,10 @@ def ridgeplot(data, *, overlap=0.5, xlabel=None, ylabel="Per-line values",
     if data.ndim != 2:
         raise TypeError(f"Expected a 2D array (got {data.ndim}D)")
 
+    if fig is None:
+        fig = plt.figure(figsize=(8, 6), layout="constrained")
+
     gs = grid_spec.GridSpec(len(data), 1, hspace=-overlap)
-    fig = plt.figure(figsize=(8, 6))
 
     if _isinstance_no_import(data, "xarray", "DataArray"):
         x_data = data.coords[data.dims[1]]
@@ -275,5 +278,4 @@ def ridgeplot(data, *, overlap=0.5, xlabel=None, ylabel="Per-line values",
 
     if stack_label:
         fig.supylabel(stack_label, x=1., ha="right")
-    fig.tight_layout()
     return fig
