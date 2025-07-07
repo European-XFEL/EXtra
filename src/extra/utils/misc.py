@@ -196,8 +196,10 @@ def hyperslicer2(arr, *args, ax=None, lognorm=False, colorbar=True, **kwargs):
     return controls
 
 
-def ridgeplot(data, *, fig=None, overlap=0.5, xlabel=None, ylabel="Per-line values",
-              stack_label=None, stack_ticklabels=None):
+def ridgeplot(
+        data, *, fig=None, overlap=0.5, xlabel=None, ylabel="Per-line values",
+        ylim=None, yline=None, stack_label=None, stack_ticklabels=None
+):
     """Make a ridgeline plot showing a sequence of similar lines
 
     A ridgeline plot spreads out the different lines vertically to make their
@@ -213,6 +215,8 @@ def ridgeplot(data, *, fig=None, overlap=0.5, xlabel=None, ylabel="Per-line valu
             plot's area covered by the next plot.
         xlabel (str): Label for the shared x axis.
         ylabel (str): Label for the y axis (drawn on the bottom plot).
+        ylim (tuple): Lower & upper limits for the y axis of each line.
+        yline (float): Y value at which to draw a horizontal marker for each line.
         stack_label (str): Label for the stacking axis (shown on the right)
         stack_ticklabels (array_like): Labels for each line (shown on the right
             next to the zero line of each plot).
@@ -241,7 +245,20 @@ def ridgeplot(data, *, fig=None, overlap=0.5, xlabel=None, ylabel="Per-line valu
         x_data = np.arange(data.shape[1])
 
     x_range = x_data.min(), x_data.max()
-    y_range = data.min(), data.max()
+    if ylim is not None:
+        y_min, y_max = ylim
+    else:
+        y_min, y_max = data.min(), data.max()
+        if y_min > 0 and (y_max / y_min) > 20:
+            y_min = 0  # Data from just above 0
+        elif y_max < 0 and (y_min / y_max) > 20:
+            y_max = 0  # Data from just below 0
+
+    if yline is None:
+        if y_min <= 0 <= y_max:
+            yline = 0
+        else:
+            yline = np.median(data)
 
     for i, trace in enumerate(data):
         ax = fig.add_subplot(gs[i:i + 1, 0:])
@@ -251,11 +268,11 @@ def ridgeplot(data, *, fig=None, overlap=0.5, xlabel=None, ylabel="Per-line valu
 
         ax.plot(x_data, trace)
 
-        # Draw a light line at zero for each axis
-        ax.axhline(color='0.7', linewidth=1., zorder=0)
+        # Draw a light line to mark each separate dataset
+        ax.axhline(yline, color='0.7', linewidth=1., zorder=0)
 
         # Use the same scale on each axes
-        ax.set_ylim(*y_range)
+        ax.set_ylim(y_min, y_max)
         ax.set_xlim(*x_range)
 
         if i < len(data) - 1:
@@ -274,7 +291,7 @@ def ridgeplot(data, *, fig=None, overlap=0.5, xlabel=None, ylabel="Per-line valu
         # the x coords of this transformation are axes, and the y coords are data
         if stack_ticklabels is not None:
             trans = blended_transform_factory(ax.transAxes, ax.transData)
-            ax.text(1.02, 0, str(stack_ticklabels[i]), ha="left", va="center", transform=trans)
+            ax.text(1.02, yline, str(stack_ticklabels[i]), ha="left", va="center", transform=trans)
 
     if stack_label:
         fig.supylabel(stack_label, x=1., ha="right")
