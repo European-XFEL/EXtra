@@ -530,6 +530,9 @@ class MultiModuleConstant(Mapping):
     def dimension_names(self, caldb_root=None):
         """Get the order of dimensions for this constant (if it was saved)
 
+        Possible dimension names include "module", "cell", "gain", "fast_scan"
+        and "slow_scan".
+
         This is the same as the .dimensions property, but allows passing the
         root directory for calibration files.
         """
