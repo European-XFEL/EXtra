@@ -40,6 +40,11 @@ class ModuleNameError(KeyError):
         return f"No module named {self.name!r}"
 
 
+
+class NoDimensionLabelsError(ValueError):
+    pass
+
+
 class CalCatAPIError(requests.HTTPError):
     """Used when the response includes error details as JSON"""
     @property
@@ -327,11 +332,23 @@ class SingleConstant:
         """Load the constant data as a Numpy array"""
         return self.dataset_obj(caldb_root)[:]
 
-    def dimensions(self, caldb_root=None):
+    def dimension_names(self, caldb_root=None):
+        """Get the order of dimensions from the constant file (if it was saved)
+
+        This is the same as the .dimensions property, but allows passing the
+        root directory for calibration files.
+        """
         try:
-            return self.dataset_obj(caldb_root).attrs['dims'].tolist()
+            return tuple(self.dataset_obj(caldb_root).attrs['dims'].tolist())
         except KeyError:
-            return None
+            raise NoDimensionLabelsError(
+                "This constant was saved without dimension labels"
+            )
+
+    @property
+    def dimensions(self):
+        """Get the order of dimensions from the constant file (if it was saved)"""
+        return self.dimension_names()
 
     def _load_calcat_metadata(self, client=None):
         client = client or get_client()
@@ -510,14 +527,21 @@ class MultiModuleConstant(Mapping):
         load_ctx.map(_load_constant_dataset, self.aggregator_names)
         return arr
 
-    def dimensions(self, caldb_root=None):
+    def dimension_names(self, caldb_root=None):
+        """Get the order of dimensions for this constant (if it was saved)
+
+        This is the same as the .dimensions property, but allows passing the
+        root directory for calibration files.
+        """
         # We'll assume the constants for different modules have the same axis
         # order. The ndarray and xarray methods also assume this.
         kda = next(iter(self.constants))
-        mod_dims = self.constants[kda].dimensions(caldb_root)
-        if mod_dims is None:
-            return None
-        return ["module"] + mod_dims
+        return ("module",) + self.constants[kda].dimension_names(caldb_root)
+
+    @property
+    def dimensions(self):
+        """Get the order of dimensions for this constant (if it was saved)"""
+        return self.dimension_names()
 
     def xarray(self, module_naming="modnum", caldb_root=None, *, parallel=0):
         """Load this constant as an xarray DataArray.
