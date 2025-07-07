@@ -3,7 +3,7 @@ import pytest
 import xarray as xr
 
 from extra.utils import (
-    imshow2, hyperslicer2, fit_gaussian, gaussian, reorder_axes_to_shape,
+    imshow2, hyperslicer2, ridgeplot, fit_gaussian, gaussian, reorder_axes_to_shape,
 )
 
 
@@ -20,6 +20,15 @@ def test_hyperslicer2():
     # Smoke test
     images = np.random.rand(10, 100, 100)
     hyperslicer2(images)
+
+
+def test_ridgeplot():
+    arr = xr.DataArray(np.random.normal(size=(8, 100)), dims=("foo", "bar"),
+                       coords={"foo": np.arange(8) * 5})
+
+    fig = ridgeplot(arr)
+    assert len(fig.axes) == 8
+
 
 def test_fit_gaussian():
     # Test with auto-generated xdata and nans/infs
