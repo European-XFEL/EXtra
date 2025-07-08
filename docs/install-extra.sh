@@ -13,3 +13,4 @@ module load exfel pixi
 module load exfel exfel-python/202502
 
 pixi update euxfel-extra --manifest-path ${PIXI_PROJECT_ROOT}
+pixi install --manifest-path ${PIXI_PROJECT_ROOT}
