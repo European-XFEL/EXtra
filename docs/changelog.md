@@ -31,6 +31,8 @@ Added:
 - Added [hyperslicer2()][extra.utils.hyperslicer2] to make plotting image arrays
   easier (!348).
 - [reorder_axes_to_shape][extra.utils.reorder_axes_to_shape] utility function (!349).
+- [ShimadzuHPVX2Conditions][extra.calibration.ShimadzuHPVX2Conditions] to
+  retrieve constants for dynamic flat-field correction (!254).
 
 Changed:
 - [Timepix3.spatial_bins()] is now a static method.
@@ -39,6 +41,11 @@ Changed:
   property. There is also a new `force_slow_data` argument to
   [XGM.pulse_counts()][extra.XGM.pulse_counts] to always return whatever was
   saved in the slow data (!161).
+- [LPDConditions][extra.calibration.LPDConditions] now accepts
+  `parallel_gain` (!254).
+- [JUNGFRAUConditions][extra.calibration.JUNGFRAUConditions] now accepts
+  `exposure_timeout` (!254).
+- `CalibrationData.from_condition` has a new `begin_at_strategy` parameter (!254).
 
 Fixed:
 
