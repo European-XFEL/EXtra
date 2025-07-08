@@ -6,6 +6,7 @@ import re
 import numpy as np
 import pandas as pd
 
+from extra_data import by_id
 from extra_data.read_machinery import roi_shape
 from .pulses import XrayPulses
 from .utils import _isinstance_no_import
@@ -370,18 +371,14 @@ class AdqRawChannel:
             raise RuntimeError('component must be initialized with pulse '
                                'information for this operation')
 
-        pulse_ids = self._pulses.pulse_ids(labelled=True)
-        pids_by_train = pulse_ids.groupby(level=0)
+        aligned_pulses = self._pulses.select_trains(by_id[train_ids])
 
-        # Number of pulses per train.
-        # Note that using .pulse_counts() is different than
-        # pids_by_train.count(), as the latter may miss trains due to
-        # having no pulses while still having the record of that.
-        num_pulses = self._pulses.pulse_counts()
+        pulse_ids = aligned_pulses.pulse_ids(labelled=True)
+        num_pulses = aligned_pulses.pulse_counts()
 
-        # Align pulses to passed train IDs of actual data.
+        # Ensure pulse data is available for all trains.
         try:
-            num_pulses = num_pulses.loc[train_ids]
+            num_pulses.loc[train_ids]
         except KeyError:
             raise ValueError('missing pulse information for one or more '
                              'trains') from None
@@ -391,7 +388,7 @@ class AdqRawChannel:
         # protected against out-of-bounds access.
         try:
             # Beware, pulse_period is not aligned to train_ids here!
-            pulse_period = int(pids_by_train.diff().min())
+            pulse_period = int(pulse_ids.groupby(level=0).diff().min())
         except ValueError:
             samples_per_pulse = self._single_pulse_length
         else:
@@ -410,7 +407,7 @@ class AdqRawChannel:
                                      'last': pulse_last,
                                      'length': samples_per_pulse})
 
-        return pulse_ids, pulse_layout
+        return aligned_pulses, pulse_layout
 
     def _reshape_pulses_by_train(self, data, num_pulses, samples_per_pulse,
                                  first_pulse_offset=None):
@@ -1097,14 +1094,12 @@ class AdqRawChannel:
         raw_key = self._raw_key.drop_empty_trains()
 
         # Obtain information about pulse layout.
-        pulse_ids, pulse_layout = self._prepare_pulses(raw_key.train_ids)
+        pulses, pulse_layout = self._prepare_pulses(raw_key.train_ids)
+        pulse_ids = pulses.pulse_ids(labelled=False)
 
         # Prepare output buffer.
         out_shape = (len(pulse_ids), pulse_layout['length'].max())
         out = self._validate_out(out, out_shape)
-
-        # Convert to unlabelled array for use in native code later.
-        pulse_ids = pulse_ids.to_numpy()
 
         # Temporary buffer for a single iteration.
         tmp = np.zeros((200,) + roi_shape(
@@ -1125,7 +1120,7 @@ class AdqRawChannel:
         if not labelled:
             return out
 
-        coords = {'pulse': self._pulses.build_pulse_index(pulse_dim)}
+        coords = {'pulse': pulses.build_pulse_index(pulse_dim)}
         coords.update(self._build_sample_coords(out))
 
         import xarray as xr
@@ -1308,13 +1303,11 @@ class AdqRawChannel:
         raw_key = self._raw_key.drop_empty_trains()
 
         # Obtain information about pulse layout.
-        pulse_ids, pulse_layout = self._prepare_pulses(raw_key.train_ids)
+        pulses, pulse_layout = self._prepare_pulses(raw_key.train_ids)
+        pulse_ids = pulses.pulse_ids(labelled=False)
 
         if max_edges is None:
             max_edges = pulse_layout['length'].max() // 100
-
-        # Convert to unlabelled array for use in native code later.
-        pulse_ids = pulse_ids.to_numpy()
 
         # Set-up pasha for parallel processing.
         psh = self._prepare_pasha(parallel)
@@ -1352,5 +1345,5 @@ class AdqRawChannel:
 
         return self._shape_edge_array(
             edges, amplitudes,
-            {'pulse':  self._pulses.build_pulse_index(pulse_dim)},
+            {'pulse':  pulses.build_pulse_index(pulse_dim)},
             labelled, squeeze_edges)
