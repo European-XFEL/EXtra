@@ -147,7 +147,7 @@ def hyperslicer2(arr, *args, ax=None, lognorm=False, colorbar=True, **kwargs):
     # twice.
     hyperslicer2(images);
     ```
-    ![](../images/hyperslicer2.gif)
+    ![](images/hyperslicer2.gif)
 
     All arguments other than the ones listed below are passed to
     [hyperslicer()][mpl_interactions.generic.hyperslicer], and explicitly
