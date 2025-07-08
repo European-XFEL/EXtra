@@ -571,28 +571,18 @@ class PeakSelectorWidget:
         if not (ymin <= event.ydata <= clickable_ymax):
             return None
 
-        # Tolerance in display coords squared
-        min_dist_sq = (self.MARKER_PICKER_TOLERANCE / self.fig.dpi) ** 2
-
         for roi_idx, roi_data in enumerate(self.rois_data):
             for peak_list_idx, peak_info in enumerate(roi_data["peaks"]):
                 vline = peak_info.get("vline")
                 pixel_pos = peak_info.get("pixel")
                 if vline and pixel_pos is not None and vline.get_visible():
-                    # Check horizontal distance in data coordinates first
+                    # Check horizontal distance in data coordinates
                     if abs(event.xdata - pixel_pos) < self.MARKER_PICKER_TOLERANCE:
-                        # More robust check: distance in display coordinates
-                        x_display, _ = vline.get_transform().transform((pixel_pos, 0))
-                        # Only check horizontal distance for vline picking
-                        dist_sq = (event.x - x_display) ** 2
-
-                        # If we find a candidate within tolerance, return it
-                        if dist_sq < min_dist_sq * 100:
-                            return {
-                                "roi_idx": roi_idx,
-                                "peak_list_idx": peak_list_idx,
-                                "vline": vline,
-                            }
+                        return {
+                            "roi_idx": roi_idx,
+                            "peak_list_idx": peak_list_idx,
+                            "vline": vline,
+                        }
 
         return None  # No marker found nearby
 

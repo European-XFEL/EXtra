@@ -112,7 +112,7 @@ class ROISelectorWidget:
             try:
                 self._roi_update_callback()
             except Exception:
-                log.exception(f"Error in ROI update callback")
+                log.exception("Error in ROI update callback")
 
     def _update_image_display(self):
         """Regenerates the displayed image from the original based on flip flags.
@@ -160,7 +160,9 @@ class ROISelectorWidget:
         # Ignore clicks outside the main axes or with the wrong button
         if event.inaxes != self.ax or event.button != MouseButton.LEFT:
             return
-        if self.fig.canvas.toolbar.mode != "":
+
+        toolbar = getattr(self.fig.canvas, "toolbar", None)
+        if toolbar is not None and toolbar.mode != "":
             return
 
         # Check if the click was specifically on any existing patch
