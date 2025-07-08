@@ -25,6 +25,7 @@ dependencies = [
     "euxfel_bunch_pattern",
     "extra_data>=1.13",
     "extra_geom",
+    "extra_proposal",
     "h5py",
     "karabo_bridge",
     "lmfit",
