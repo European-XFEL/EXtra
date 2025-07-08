@@ -27,7 +27,6 @@ Changed:
 
 Added:
 
-- [TOFResponse][extra.recipes.TOFResponse] to estimate, deconvolve and denoise the instrumental response in eTOFs (!304).
 - [CookieboxCalibration][extra.recipes.CookieboxCalibration] to calibrate data from eTOFs after taking a calibration run (!284).
 - [Grating2DCalibration][extra.recipes.Grating2DCalibration] to calibrate data from a 2D grating detector (!284).
 - [Grating1DCalibration][extra.recipes.Grating1DCalibration] to calibrates 1D grating information (e.g.: collected from the Gotthard detector in SQS) (!318).
