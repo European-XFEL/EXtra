@@ -201,11 +201,14 @@ class VSLight(SerializableMixin):
 
     The concrete steps taken when the object is initialized
     (`obj = VSLight(); obj.setup(calib_run)`) from a calibration run are:
+
     - Select principal components from the calibration run per eTOF.
     - Apply Automatic Relevance Determination to the calibration runs,
       setting Gaussians at the undulator energies with given width as targets.
 
-    The concrete steps taken when the `obj.apply(other_run)` is called with a run to be calibrated are:
+    The concrete steps taken when the `obj.apply(other_run)` is called with a
+    run to be calibrated are:
+
     - Use derived map on the intensity axis.
 
     Example usage:
@@ -786,7 +789,8 @@ class VSLight(SerializableMixin):
           run: The run to calibrate.
           extra_kwargs_adq: Extra keyword arguments for the `AdqRawChannel` object if one wishes to override settings.
 
-        Returns: An xarray DataArray with the traces containing axes ('trainId', 'pulseIndex', 'sample', 'tof').
+        Returns:
+          A [DataArray][xarray.DataArray] with the traces containing axes `('trainId', 'pulseIndex', 'sample', 'tof')`.
         """
 
         tof_ids = sorted([tof_id for idx, tof_id in enumerate(self.kwargs_adq.keys()) if self.mask[tof_id]])
@@ -814,7 +818,7 @@ class VSLight(SerializableMixin):
 
     def calibrate(self, trace: xr.DataArray) -> xr.DataArray:
         """
-        Takes a trace separated with axes ('trainId', 'pulseIndex', 'sample', 'tof'),
+        Takes a trace separated with axes `('trainId', 'pulseIndex', 'sample', 'tof')`,
         as given by `load_trace` and applies the calibration.
         The method `apply` provides a direct way to retrieve the trace and calbrate it.
         The methods `load_trace` and `calibrate` allow one to apply an intermediate processing
@@ -825,8 +829,8 @@ class VSLight(SerializableMixin):
                  Its axes are expected to be ('trainId', 'pulseIndex', 'sample', 'tof').
                  It is recommended to use always `load_trace` to obtain this.
 
-        Returns: the calibrated data as an xarray DataArray. The DataArray obs cotains the calibrated data.
-                 The axes of the output are ('trainId', 'pulseIndex', 'energy', 'tof').
+        Returns:
+          The calibrated data as a [DataArray][xarray.DataArray]. The axes of the output are `('trainId', 'pulseIndex', 'energy', 'tof')`.
         """
         tof_idx = [idx
                    for idx, tof_id in enumerate(self.kwargs_adq.keys())
@@ -881,7 +885,8 @@ class VSLight(SerializableMixin):
         Args:
           run: The run to calibrate.
 
-        Returns: The xarray Dataset.
+        Returns:
+          The calibrated data.
         """
         # fetch the trace with the same settings
         trace = self.load_trace(run)

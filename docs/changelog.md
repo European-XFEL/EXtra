@@ -5,22 +5,21 @@
 
 # Changelog
 
-## [Unreleased]
+## [2025.1]
 
-!!! note
-    All of the changes here are deployed to our current environment, even though
-    a release hasn't been made for them yet. If you want to have these updates
-    in a personal environment you'll need to install the package from git.
+<!-- !!! note -->
+<!--     All of the changes here are deployed to our current environment, even though -->
+<!--     a release hasn't been made for them yet. If you want to have these updates -->
+<!--     in a personal environment you'll need to install the package from git. -->
 
-    ```bash title="Installation command"
-    pip install git+https://github.com/European-XFEL/EXtra.git
-    ```
+<!--     ```bash title="Installation command" -->
+<!--     pip install git+https://github.com/European-XFEL/EXtra.git -->
+<!--     ``` -->
 
 
 Added:
 
 - [TOFResponse][extra.recipes.TOFResponse] to estimate, deconvolve and denoise the instrumental response in eTOFs (!304).
-- [VSLight][extra.recipes.VSLight] to calibrate and deconvolve eTOFs from a continuous monochromator scan (!304).
 - [CookieboxCalibration][extra.recipes.CookieboxCalibration] to calibrate data from eTOFs after taking a calibration run (!284).
 - [Grating2DCalibration][extra.recipes.Grating2DCalibration] to calibrate data from a 2D grating detector (!284).
 - [Grating1DCalibration][extra.recipes.Grating1DCalibration] to calibrates 1D grating information (e.g.: collected from the Gotthard detector in SQS) (!318).
@@ -35,17 +34,18 @@ Added:
   retrieve constants for dynamic flat-field correction (!254).
 
 Changed:
-- [Timepix3.spatial_bins()] is now a static method.
+
+- [Timepix3.spatial_bins()][extra.components.Timepix3.spatial_bins] is now a static method.
 - The [XGM][extra.components.XGM] component will now emit warnings when it
   detects the wrong number of pulses have been saved in the slow data
   property. There is also a new `force_slow_data` argument to
-  [XGM.pulse_counts()][extra.XGM.pulse_counts] to always return whatever was
+  [XGM.pulse_counts()][extra.components.XGM.pulse_counts] to always return whatever was
   saved in the slow data (!161).
 - [LPDConditions][extra.calibration.LPDConditions] now accepts
   `parallel_gain` (!254).
 - [JUNGFRAUConditions][extra.calibration.JUNGFRAUConditions] now accepts
   `exposure_timeout` (!254).
-- `CalibrationData.from_condition` has a new `begin_at_strategy` parameter (!254).
+- [CalibrationData.from_condition][extra.calibration.CalibrationData.from_condition] has a new `begin_at_strategy` parameter (!254).
 
 Fixed:
 
@@ -192,7 +192,8 @@ Added:
   [EXtra-geom](detector-geometry.md), and [karabo-bridge-py](karabo-bridge.md).
 
 
-[Unreleased]: https://github.com/European-XFEL/EXtra/compare/2024.2...master
+[Unreleased]: https://github.com/European-XFEL/EXtra/compare/2025.1...master
+[2025.1]: https://github.com/European-XFEL/EXtra/releases/tag/2025.1
 [2024.2]: https://github.com/European-XFEL/EXtra/releases/tag/2024.2
 [2024.1.2]: https://github.com/European-XFEL/EXtra/releases/tag/2024.1.2
 [2024.1.1]: https://github.com/European-XFEL/EXtra/releases/tag/2024.1.1

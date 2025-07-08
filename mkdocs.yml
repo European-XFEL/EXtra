@@ -35,6 +35,7 @@ nav:
     - recipes/index.md
     - recipes/cookiebox.md
     - recipes/grating.md
+    - recipes/cookiebox_deconvolve.md
   - karabo-bridge.md
   - calibration.md
   - signal.md
