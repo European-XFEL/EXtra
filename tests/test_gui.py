@@ -1,3 +1,5 @@
+import os
+import tempfile
 from unittest.mock import Mock, patch
 
 import matplotlib.patches as patches
@@ -6,6 +8,9 @@ import numpy as np
 import pytest
 from matplotlib.backend_bases import MouseButton
 
+from extra.gui.jupyter import SpectrometerCalibration
+from extra.gui.jupyter.spectrometer_calibration import (
+    CalibratedPlotter, plot_from_calibration_file)
 from extra.gui.widgets.peak_selection import PeakSelectorWidget
 from extra.gui.widgets.roi_selection import ROISelectorWidget
 
@@ -622,3 +627,301 @@ class TestROISelectorWidget:
         # Should not start ROI creation
         assert widget.press_y is None
         assert widget.current_rect is None
+
+
+class TestCalibratedPlotter:
+
+    def test_pixel_to_energy_conversion(self):
+        pixels = np.array([0, 100, 200])
+        slope = -0.1
+        intercept = 7000
+
+        expected_energies = np.array([7000, 6990, 6980])
+        result = CalibratedPlotter.pixel_to_energy(pixels, slope, intercept)
+
+        np.testing.assert_array_almost_equal(result, expected_energies)
+
+    def test_plot_calibrated_projections_valid_input(self):
+        plotter = CalibratedPlotter()
+
+        # Create test data
+        projections = [np.array([1, 2, 3, 4]), np.array([2, 3, 4, 5])]
+        calibrations = [
+            {'slope': -0.1, 'intercept': 7000},
+            {'slope': -0.11, 'intercept': 7100}
+        ]
+        labels = ['ROI 1', 'ROI 2']
+
+        # Mock matplotlib to avoid actual plotting
+        with patch('matplotlib.pyplot.subplots') as mock_subplots:
+            mock_fig = Mock()
+            mock_ax = Mock()
+            mock_subplots.return_value = (mock_fig, mock_ax)
+
+            fig, ax = plotter.plot_calibrated_projections(
+                projections, calibrations, labels
+            )
+
+            # Verify the plot was called correctly
+            assert mock_subplots.called
+            assert mock_ax.plot.call_count == 2
+            assert mock_ax.set_xlabel.called
+            assert mock_ax.set_ylabel.called
+            assert mock_ax.set_title.called
+            assert mock_ax.legend.called
+            assert mock_ax.grid.called
+
+    def test_plot_calibrated_projections_invalid_input(self):
+        plotter = CalibratedPlotter()
+
+        # Test mismatched lengths
+        with pytest.raises(ValueError, match="Length of 'projections' and 'calibrations' must match"):
+            plotter.plot_calibrated_projections(
+                [np.array([1, 2, 3])], 
+                [{'slope': 1, 'intercept': 0}, {'slope': 2, 'intercept': 1}]
+            )
+
+        # Test wrong types
+        with pytest.raises(TypeError, match="'projections' and 'calibrations' must be lists or tuples"):
+            plotter.plot_calibrated_projections(
+                np.array([1, 2, 3]), 
+                [{'slope': 1, 'intercept': 0}]
+            )
+
+        # Test invalid projection type
+        with pytest.raises(TypeError, match="All items in 'projections' must be 1D numpy arrays"):
+            plotter.plot_calibrated_projections(
+                [[1, 2, 3]], 
+                [{'slope': 1, 'intercept': 0}]
+            )
+
+        # Test invalid calibration format
+        with pytest.raises(TypeError, match="All items in 'calibrations' must be dicts"):
+            plotter.plot_calibrated_projections(
+                [np.array([1, 2, 3])], 
+                [{'slope': 1}]  # missing 'intercept'
+            )
+
+    def test_plot_calibrated_projections_empty_projections(self):
+        plotter = CalibratedPlotter()
+
+        fig, ax = plotter.plot_calibrated_projections([], [])
+
+        assert fig is None
+        assert ax is None
+
+
+class TestSpectrometerCalibration:
+
+    @pytest.fixture
+    def dummy_image(self):
+        np.random.seed(42)
+        return np.random.rand(100, 300) * 20
+
+    @pytest.fixture
+    def widget_with_image(self, dummy_image):
+        with patch('matplotlib.pyplot.ioff'), \
+             patch('extra.gui.widgets.roi_selection.ROISelectorWidget'), \
+             patch('extra.gui.widgets.peak_selection.PeakSelectorWidget'):
+            return SpectrometerCalibration(image_data=dummy_image)
+
+    def test_initialization_with_image_data(self, dummy_image):
+        with patch('matplotlib.pyplot.ioff'), \
+             patch('extra.gui.widgets.roi_selection.ROISelectorWidget'), \
+             patch('extra.gui.widgets.peak_selection.PeakSelectorWidget'):
+
+            widget = SpectrometerCalibration(image_data=dummy_image)
+
+            np.testing.assert_array_equal(widget.image_data, dummy_image)
+            assert widget.calibration_results == {}
+            assert widget.peak_index_energy_inputs == {}
+
+    def test_get_entered_peak_index_energies(self, widget_with_image):
+        mock_widget1 = Mock()
+        mock_widget1.value = 7000.0
+        mock_widget2 = Mock()
+        mock_widget2.value = None
+        mock_widget3 = Mock()
+        mock_widget3.value = 6950.0
+
+        widget_with_image.peak_index_energy_inputs = {
+            1: mock_widget1,
+            2: mock_widget2,
+            3: mock_widget3
+        }
+
+        result = widget_with_image.get_entered_peak_index_energies()
+
+        expected = {1: 7000.0, 3: 6950.0}
+        assert result == expected
+
+    def test_get_calibration_results(self, widget_with_image):
+        test_results = {
+            0: {'slope': -0.1, 'intercept': 7000},
+            1: {'slope': -0.11, 'intercept': 7100}
+        }
+        widget_with_image.calibration_results = test_results
+
+        result = widget_with_image.get_calibration_results()
+        assert result == test_results
+
+    def test_prepare_spectra_data_no_calibration(self, widget_with_image):
+        result = widget_with_image._prepare_spectra_data()
+
+        # Should return empty lists
+        assert result == ([], [], [], [])
+
+    def test_prepare_spectra_data_with_calibration(self, widget_with_image):
+        mock_roi = Mock()
+        mock_roi.get_rois.return_value = [
+            {'roi_index': 0, 'y_start': 10, 'y_end': 20}
+        ]
+        widget_with_image.roi_widget_instance = mock_roi
+
+        # Setup calibration results
+        widget_with_image.calibration_results = {
+            0: {'slope': -0.1, 'intercept': 7000}
+        }
+
+        # Setup image data
+        widget_with_image.processed_image_data = np.ones((100, 300)) * 5
+
+        energy_axes, projections, labels, roi_indices = widget_with_image._prepare_spectra_data()
+
+        assert len(energy_axes) == 1
+        assert len(projections) == 1
+        assert len(labels) == 1
+        assert labels[0] == 'ROI 0'
+        assert roi_indices[0] == 0
+        assert len(projections[0]) == 300  # Width of image
+
+    def test_update_calibration_tab_display(self, widget_with_image):
+        mock_peak_widget = Mock()
+        mock_peak_widget.get_selected_peaks.return_value = [
+            {'roi_index': 0, 'peaks': [100.0, 200.0]},
+            {'roi_index': 1, 'peaks': [150.0]}
+        ]
+        widget_with_image.peak_widget_instance = mock_peak_widget
+
+        # Call the method
+        widget_with_image._update_calibration_tab_display()
+
+        # Check that energy input widgets were created (max 2 peaks)
+        assert len(widget_with_image.peak_index_energy_inputs) == 2
+        assert 1 in widget_with_image.peak_index_energy_inputs
+        assert 2 in widget_with_image.peak_index_energy_inputs
+
+    @patch('builtins.open', create=True)
+    def test_save_results_basic(self, mock_open, widget_with_image):
+        # Setup mock file handle
+        mock_file = Mock()
+        mock_open.return_value.__enter__.return_value = mock_file
+
+        # Setup widget state
+        widget_with_image.calibration_results = {
+            0: {'slope': -0.1, 'intercept': 7000}
+        }
+
+        # Mock the ROI widget
+        mock_roi = Mock()
+        mock_roi.get_rois.return_value = [
+            {'roi_index': 0, 'y_start': 10, 'y_end': 20}
+        ]
+        widget_with_image.roi_widget_instance = mock_roi
+
+        # Mock the peak widget
+        mock_peak = Mock()
+        mock_peak.get_selected_peaks.return_value = [
+            {'roi_index': 0, 'peaks': [100.0, 200.0]}
+        ]
+        widget_with_image.peak_widget_instance = mock_peak
+
+        # Call save results
+        widget_with_image._on_save_results_clicked(None)
+
+        # Verify file was opened for writing
+        mock_open.assert_called_once()
+        args, kwargs = mock_open.call_args
+        assert args[1] == 'w'  # Write mode
+
+        # Verify file.write was called multiple times (for different sections)
+        assert mock_file.write.call_count > 10
+
+
+class TestPlotFromCalibrationFile:
+
+    def test_plot_from_calibration_file_valid(self):
+        # Create temporary test file
+        test_content = """# === XES Calibration Widget Results ===
+# Saved on: 2025-01-01_12-00-00
+-------------------------------------
+[ROI Definitions]
+ROI 0: y_start = 10.00, y_end = 20.00
+-------------------------------------
+[Peak Selections (Pixels)]
+ROI 0: [100.000, 200.000]
+-------------------------------------
+[Reference Energies Entered (eV)]
+Peak Index 1: 7000.0000
+Peak Index 2: 6950.0000
+-------------------------------------
+[Calibration Fit Results (per ROI)]
+# Format: Energy = slope * Pixel + intercept
+ROI 0: slope = -0.100000, intercept = 7100.0000
+  - Points Used: (Pix=100.00, E=7000.00), (Pix=200.00, E=6950.00)
+-------------------------------------
+[Calibrated Spectra Data (CSV Format)]
+Energy_eV,Intensity_ROI_0
+7100.0000,10.5
+7099.9000,11.2
+7099.8000,12.1
+7099.7000,13.0
+# === End of Results ===
+"""
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+            f.write(test_content)
+            temp_path = f.name
+
+        try:
+            with patch('matplotlib.pyplot.subplots') as mock_subplots, \
+                 patch('matplotlib.pyplot.show'):
+                mock_fig = Mock()
+                mock_ax = Mock()
+                mock_subplots.return_value = (mock_fig, mock_ax)
+
+                fig, ax = plot_from_calibration_file(temp_path)
+
+                # Verify plot was created
+                assert mock_subplots.called
+                assert mock_ax.plot.called
+                assert mock_ax.set_title.called
+                assert mock_ax.set_xlabel.called
+                assert mock_ax.set_ylabel.called
+                assert mock_ax.legend.called
+                assert mock_ax.grid.called
+        finally:
+            os.unlink(temp_path)
+
+    def test_plot_from_calibration_file_not_found(self):
+        fig, ax = plot_from_calibration_file('/non/existent/file.txt')
+
+        assert fig is None
+        assert ax is None
+
+    def test_plot_from_calibration_file_no_csv_section(self):
+        test_content = """# === XES Calibration Widget Results ===
+Some other content without CSV section
+"""
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+            f.write(test_content)
+            temp_path = f.name
+
+        try:
+            fig, ax = plot_from_calibration_file(temp_path)
+
+            assert fig is None
+            assert ax is None
+        finally:
+            os.unlink(temp_path)

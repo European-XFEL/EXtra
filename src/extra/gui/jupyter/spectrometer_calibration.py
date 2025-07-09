@@ -242,9 +242,10 @@ class SpectrometerCalibration:
             image_data (np.ndarray): 2D array
             use_cache (bool): try loading data from cache if True (default)
         """
-        self.image_data = image_data or self._load_data(
-            proposal, run, source, use_cache
-        )
+        self.image_data = image_data
+        if image_data is None:
+            self.image_data = self._load_data(proposal, run, source, use_cache)
+
         self.processed_image_data = self.image_data.copy()
         self.roi_widget_instance = None
         self.peak_widget_instance = None
