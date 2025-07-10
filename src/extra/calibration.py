@@ -15,6 +15,9 @@ import pasha as psh
 import requests
 from oauth2_xfel_client import Oauth2ClientBackend
 
+from .utils.misc import _isinstance_no_import
+
+
 __all__ = [
     "CalCatAPIError",
     "CalCatAPIClient",
@@ -83,6 +86,8 @@ class CalCatAPIClient:
             return dt.astimezone(timezone.utc).isoformat()
         elif isinstance(dt, date):
             return cls.format_time(datetime.combine(dt, time()))
+        elif _isinstance_no_import(dt, 'extra_data', 'DataCollection'):
+            return cls.format_time(dt[0].train_timestamps(pydatetime=True)[0])
         elif dt is None:
             return ""  # Not specified - for searches, this usually means now
         elif not isinstance(dt, str):
@@ -588,6 +593,11 @@ class CalibrationData(Mapping):
 
         `condition` should be a conditions object for the relevant detector type,
         e.g. `DSSCConditions`.
+
+        `event_at` and `pdu_snapshot_at` should either be an ISO 8601
+        compatible string or a datetime-like object. It may also be a
+        DataCollection object from EXtra-data to use the beginning of the
+        run as a point in time.
         """
         accepted_strategies = ["closest", "prior"]
         if begin_at_strategy not in accepted_strategies:

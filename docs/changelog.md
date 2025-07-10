@@ -16,6 +16,11 @@
     pip install git+https://github.com/European-XFEL/EXtra.git
     ```
 
+Added:
+
+- [CalibrationData.from_condition][extra.calibration.CalibrationData.from_condition] supports `DataCollection` objects to reference a point in time
+
+
 Changed:
 
 - [XGM.pulse_energy()][extra.components.XGM.pulse_energy] will now insert NaNs
