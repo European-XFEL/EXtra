@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import re
 
@@ -6,6 +7,7 @@ import pytest
 import xarray as xr
 
 from extra.calibration import (
+    CalCatAPIClient,
     AGIPDConditions,
     CalibrationData,
     DSSCConditions,
@@ -235,3 +237,8 @@ def test_AGIPD_CalibrationData_report():
     assert set(agipd_cd) == {"Offset", "Noise", "ThresholdsDark", "BadPixelsDark"}
     assert agipd_cd.aggregator_names == [f"AGIPD{n:02}" for n in range(16)]
     assert isinstance(agipd_cd["Offset", "AGIPD00"], SingleConstant)
+
+
+def test_format_time(mock_spb_aux_run):
+    assert CalCatAPIClient.format_time(mock_spb_aux_run).startswith(
+        CalCatAPIClient.format_time(datetime.now())[:8])
