@@ -36,6 +36,7 @@ Added:
   [DataArray][xarray.DataArray]s properly (!333).
 - Added [hyperslicer2()][extra.utils.hyperslicer2] to make plotting image arrays
   easier (!348).
+- Added [ridgeplot()][extra.utils.ridgeplot] function (!354).
 - [reorder_axes_to_shape][extra.utils.reorder_axes_to_shape] utility function (!349).
 - [ShimadzuHPVX2Conditions][extra.calibration.ShimadzuHPVX2Conditions] to
   retrieve constants for dynamic flat-field correction (!254).

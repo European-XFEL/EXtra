@@ -24,6 +24,8 @@ else.
 
 ::: extra.utils.hyperslicer2
 
+::: extra.utils.ridgeplot
+
 ## Fitting functions
 
 ::: extra.utils.fit_gaussian
