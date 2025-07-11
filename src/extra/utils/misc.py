@@ -244,11 +244,11 @@ def ridgeplot(
     else:  # Numpy array
         x_data = np.arange(data.shape[1])
 
-    x_range = x_data.min(), x_data.max()
+    x_range = np.nanmin(x_data), np.nanmax(x_data)
     if ylim is not None:
         y_min, y_max = ylim
     else:
-        y_min, y_max = data.min(), data.max()
+        y_min, y_max = np.nanmin(data), np.nanmax(data)
         if y_min > 0 and (y_max / y_min) > 20:
             y_min = 0  # Data from just above 0
         elif y_max < 0 and (y_min / y_max) > 20:
