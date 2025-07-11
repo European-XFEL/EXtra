@@ -67,6 +67,8 @@ agipd_cd.display_markdown_table()
 
 ::: extra.calibration.LPDConditions
 
+::: extra.calibration.ShimadzuHPVX2Conditions
+
 ## Bad pixel values
 
 The calibration pipeline produces masks along with corrected data, in keys

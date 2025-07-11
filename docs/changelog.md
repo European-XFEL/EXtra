@@ -16,6 +16,15 @@
     pip install git+https://github.com/European-XFEL/EXtra.git
     ```
 
+Changed:
+
+- [XGM.pulse_energy()][extra.components.XGM.pulse_energy] will now insert NaNs
+  instead of zeros as a fill value for runs with a varying number of pulses
+  (!347).
+- [imshow2()][extra.utils.imshow2] will now add a colorbar automatically (!351).
+
+## [2025.1]
+
 Added:
 
 - [SpectrometerCalibration][extra.gui.jupyter.SpectrometerCalibration] to provide a Jupyter widget for energy calibration of 2D X-ray spectrum data (!363).

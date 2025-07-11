@@ -1,4 +1,5 @@
 from enum import Enum
+from warnings import warn
 from textwrap import dedent
 
 import numpy as np
@@ -192,7 +193,8 @@ class XGM:
         self._pulse_energy = { }
         self._slow_train_energy = { }
         self._npulses = { }
-        self._npulses_by_train = { }
+        self._pulse_counts = { }
+        self._slow_pulse_counts = { }
         self._max_pulses = { }
 
         self._proposal = None
@@ -305,10 +307,13 @@ class XGM:
 
         If `series=False` (the default) this will return a 2D
         [DataArray][xarray.DataArray] with dimensions of `(trainId,
-        pulseIndex)`. For runs with a varying number of pulses, the data will be
-        sliced to the *maximum number* of pulses. e.g. if a run has 100 trains
-        with only one train containing 10 pulses and all the others 0, the
-        returned array will have a shape of `(100, 10)`.
+        pulseIndex)`.
+
+        For runs with a varying number of pulses, the data will be sliced to the
+        *maximum number* of pulses. e.g. if a run has 100 trains with only one
+        train containing 10 pulses and all the others 0, the returned array will
+        have a shape of `(100, 10)`. The fill value for the missing pulses will
+        be NaN.
 
         If `series=True` this will return a 1D [Series][pandas.Series] where all
         entries with 0 pulses have been dropped, indexed by `trainId` and
@@ -354,10 +359,12 @@ class XGM:
 
             # Assign a pulseIndex dimension and coordinate
             pulse_energy = pulse_energy.rename(dim_0="pulseIndex").assign_coords(pulseIndex=np.arange(max_pulses))
-            # Replace the default fill value of 1 with 0
-            pulse_energy.data[pulse_energy.data == 1] = 0
+            # Replace the default fill value of 1 with nan
+            pulse_energy.data[pulse_energy.data == 1] = np.nan
             # Add units
             pulse_energy.attrs["units"] = self.instrument_source[key].units or "µJ"
+            # Set a meaningful name
+            pulse_energy.name = "Energy"
 
             self._pulse_energy[pg] = pulse_energy
 
@@ -410,15 +417,7 @@ class XGM:
     def npulses(self, sase=None) -> int:
         """The nominal number of pulses.
 
-        This calls
-        [KeyData.as_single_value()][extra_data.KeyData.as_single_value]
-        internally, which means it will throw an exception if the number of
-        pulses is not constant.
-
-        Note that this returns the number of pulses recorded by the XGM, which
-        can be unreliable. Use something like the
-        [XrayPulses][extra.components.XrayPulses] component to find the real
-        number of pulses from the bunch pattern table.
+        This will throw an exception if the number of pulses is not constant.
 
         Args:
             sase (int): Same meaning as in
@@ -429,39 +428,63 @@ class XGM:
         """
         pg = self._check_sase_arg(sase)
         if pg not in self._npulses:
-            if pg == PropertyGroup.MAIN:
-                key = self._get_main_nbunches_key()
-            else:
-                key = f"pulseEnergy.numberOfSa{pg.value}BunchesActual"
-            self._npulses[pg] = int(self.control_source[key].as_single_value())
+            pulse_counts = self.pulse_counts(sase=sase)
+            if not np.allclose(pulse_counts[0], pulse_counts):
+                raise ValueError("Number of pulses is changing, there is no nominal number.")
+
+            self._npulses[pg] = int(pulse_counts[0])
 
         return self._npulses[pg]
 
-    def pulse_counts(self, sase=None):
+    def pulse_counts(self, sase=None, force_slow_data=False):
         """Return a 1D [DataArray][xarray.DataArray] of the number of pulses in each train.
 
-        See the docs for [XGM.npulses()][extra.components.XGM.npulses]
-        for information on retrieving the true number of pulses.
+        Because the slow data `pulseEnergy.numberOf[SAx]BunchesActual` property
+        can be unreliable this will always check the slow data counts against
+        the counts in the fast data from
+        [XGM.pulse_energy()][extra.components.XGM.pulse_energy] and return the
+        fast data counts if there is a difference. This can be overridden by
+        passing `force_slow_data=True`.
+
+        Warning:
+            Using `force_slow_data=True` can give unreliable results, only use
+            it if you specifically want to find what numbers the XGM
+            recorded. In general, prefer using something like the
+            [XrayPulses][extra.components.XrayPulses] component to find the real
+            number of pulses from the bunch pattern table.
 
         Args:
             sase (int): Same meaning as in
                 [XGM.pulse_energy()][extra.components.XGM.pulse_energy].
         """
+        import xarray as xr
+
         pg = self._check_sase_arg(sase)
-        if pg not in self._npulses_by_train:
+        if pg not in self._pulse_counts:
             if pg == PropertyGroup.MAIN:
                 key = self._get_main_nbunches_key()
             else:
                 key = f"pulseEnergy.numberOfSa{pg.value}BunchesActual"
-            self._npulses_by_train[pg] = self._control_source[key].xarray()
+            slow_counts = self._control_source[key].xarray()
+            self._slow_pulse_counts[pg] = slow_counts
 
-        return self._npulses_by_train[pg]
+            pulse_energy = self.pulse_energy(sase=sase)
+            common_tids = np.intersect1d(pulse_energy.trainId, slow_counts.trainId)
+            fast_counts = np.count_nonzero(pulse_energy.sel(trainId=common_tids), axis=1)
+            fast_counts = xr.DataArray(fast_counts, dims=("trainId",),
+                                       coords={"trainId": pulse_energy.trainId})
+
+            counts_match = np.allclose(fast_counts, slow_counts.sel(trainId=common_tids))
+            if not counts_match:
+                warn(f"Slow data pulse counts ({key}) don't match the counts from fast data (data.intensityTD), data may be invalid!")
+                self._pulse_counts[pg] = fast_counts
+            else:
+                self._pulse_counts[pg] = slow_counts
+
+        return self._pulse_counts[pg] if not force_slow_data else self._slow_pulse_counts[pg]
 
     def max_npulses(self, sase=None) -> int:
         """The maximum number of pulses.
-
-        See the docs for [XGM.npulses()][extra.components.XGM.npulses]
-        for information on retrieving the true number of pulses.
 
         Args:
             sase (int): Same meaning as in
@@ -475,9 +498,6 @@ class XGM:
 
     def is_constant_pulse_count(self, sase=None) -> bool:
         """Return whether or not the number of pulses is constant.
-
-        See the docs for [XGM.npulses()][extra.components.XGM.npulses]
-        for information on retrieving the true number of pulses.
 
         Args:
             sase (int): Same meaning as in
@@ -587,14 +607,10 @@ class XGM:
         pulse_energy = self.pulse_energy(sase)
 
         from extra.utils import imshow2
-        im = imshow2(pulse_energy, ax=ax, aspect="auto")
+        imshow2(pulse_energy, ax=ax)
 
         self._set_plot_title("XGM pulse energy heatmap", ax, sase, minimal_title)
-        ax.set_xlabel("Pulse")
-        ax.set_ylabel("Train")
 
-        colorbar = fig.colorbar(im)
-        colorbar.ax.set_ylabel("Energy [μJ]")
         fig.tight_layout()
 
         return ax

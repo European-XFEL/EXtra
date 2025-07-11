@@ -1,5 +1,12 @@
 [build-system]
-requires = ["setuptools>=61", "wheel", "setuptools_scm[toml]==7.1.0", "numpy", "cython<3.1"]
+requires = [
+    "setuptools>=61",
+    "wheel",
+    "setuptools_scm[toml]==7.1.0",
+    "numpy",
+    "cython !=3.1.0,!=3.1.1",  # Avoiding https://github.com/cython/cython/issues/6855
+                               # and https://github.com/cython/cython/issues/6897
+]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
@@ -18,12 +25,14 @@ dependencies = [
     "euxfel_bunch_pattern",
     "extra_data>=1.13",
     "extra_geom",
+    "extra_proposal",
     "h5py",
     "karabo_bridge",
     "lmfit",
     "oauth2-xfel-client >=6.1",
     "pandas",
     "xarray",
+    "mpl_interactions",
     "pasha",
     "pint",
     "requests",
