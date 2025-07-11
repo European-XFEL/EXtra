@@ -321,3 +321,19 @@ def test_pulse_edges(mock_sqs_remi_run):
         df.groupby(['trainId', 'pulseId']).count(), 1)
     np.testing.assert_allclose(df['edge'], 888.0)
     np.testing.assert_allclose(df['amplitude'], 5.0)
+
+    # Use pulse information with not all trains available.
+    ch = AdqRawChannel(
+        mock_sqs_remi_run, '3B', digitizer='SQS_DIGITIZER_UTC2',
+        pulses=XrayPulses(mock_sqs_remi_run.select_trains(np.s_[:-10])))
+
+    with pytest.raises(ValueError):
+        ch.pulse_edges(threshold=0.5)
+
+    # Use pulse information with more trains available.
+    ch = AdqRawChannel(
+        mock_sqs_remi_run.select_trains(np.s_[:-10]), '3B',
+        digitizer='SQS_DIGITIZER_UTC2', pulses=pulses)
+    edges = ch.pulse_edges(threshold=0.5)
+
+    assert edges.shape[0] < pulses.pulse_counts().sum()
