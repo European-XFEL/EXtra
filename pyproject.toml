@@ -73,3 +73,8 @@ docs = [
     "pygments",
     "pymdown-extensions",
 ]
+
+[tool.coverage.report]
+exclude_also = [
+    'if __name__ == .__main__.:',
+]
