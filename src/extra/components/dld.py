@@ -185,8 +185,14 @@ class DelayLineDetector:
         if entry_level is not None:
             index_df[entry_level] = np.flatnonzero(finite_mask) % num_rows
 
-        return pd_cls(np.ascontiguousarray(raw[finite_mask]),
-                      pd.MultiIndex.from_frame(index_df))
+        if len(index_df.columns) > 1:
+            # Multiple index columns, create a MultiIndex again.
+            index = pd.MultiIndex.from_frame(index_df)
+        else:
+            # If only a single column is left, build a simple index.
+            index = pd.Index(index_df[next(iter(index_df.columns))])
+
+        return pd_cls(np.ascontiguousarray(raw[finite_mask]), index)
 
     @staticmethod
     def insert_aligned_columns(df, columns):
