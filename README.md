@@ -28,11 +28,7 @@ The package is automatically deployed from `master` every night into the current
 [`exfel-python`
 environment](https://european-xfel.github.io/environments/environments/) using
 the [`install-extra.sh`](docs/install-extra.sh) script (see the cron job with
-`crontab -e` as `xsoft` on `max-exfl-display001.desy.de`). The package is
-installed with `pip install --no-deps` to avoid causing conflicts with conda, so
-if any dependencies need to be installed or updated that must be done with
-conda. The `install-extra.sh` script will check for new dependencies first and
-return an error if dependencies need to be installed.
+`crontab -e` as `xsoft` on `max-exfl-display001.desy.de`).
 
 If you want to update it manually, you must follow these steps:
 1. SSH to Maxwell as the `xsoft` user
