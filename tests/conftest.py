@@ -44,7 +44,7 @@ def mock_spb_aux_directory():
         PulsePatternDecoder('TRAIN_LESS_DECODER', no_ctrl_data=True),
         Timeserver('TRAIN_LESS_TIMESERVER', no_ctrl_data=True, nsamples=0),
         Timeserver('PULSE_LESS_TIMESERVER', no_pulses=True),
-        XGM('SPB_XTD9_XGM/DOOCS/MAIN'),
+        XGM('SPB_XTD9_XGM/XGM/DOOCS'),
         Motor("MOTOR/MCMOTORYFACE"),
         DetectorMotorDataSelector("SPB_IRU_AGIPD1M/DS", "SPB_IRU_AGIPD1M"),
         DetectorMotorDataSelector("SPB_EXP_AGIPD1M2/DS", "SPB_EXP_AGIPD1M2"),
@@ -92,8 +92,8 @@ def multi_xgm_directory():
     with TemporaryDirectory() as td:
         # We need format version 1.1 for the XGM tests, because without the full
         # run metadata we can't get RUN values after a .union() or .select().
-        write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 100,
-                   format_version="1.1")
+        write_file(Path(td) / 'RAW-R0002-DA01-S00000.h5', sources, 100,
+                   format_version="1.1", firsttrain=20000)
         yield td
 
 
