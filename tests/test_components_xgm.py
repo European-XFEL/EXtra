@@ -111,7 +111,7 @@ def test_multisase_xgm(multi_xgm_run):
     xgm.info()
 
 def test_run_union(multi_xgm_run, mock_spb_aux_run):
-    run = multi_xgm_run.select("*SQS*").union(mock_spb_aux_run)
+    run = multi_xgm_run.select("*SPB*").union(mock_spb_aux_run)
     assert not run.is_single_run
 
     # We should be able to create the XGM object at least
