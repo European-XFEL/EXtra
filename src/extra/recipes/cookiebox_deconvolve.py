@@ -827,18 +827,18 @@ class TOFAnalogResponse(SerializableMixin):
                   Set to "tv_matrix" for Total Variatio deconvolution.
                   Use "standard" for  standard deconvolution.
           extra_shift: Shift the impulse response function by this many points before using it to align the data.
+          normalization: If 'integral', preserves the sum of the spectrum. If 'maximum', preserves the maximum of the spectrum.
 
         Returns: The deconvolved data as a DataArray.
         """
         if normalization == "integral":
             get_norm = lambda x_in: np.sum(x_in, axis=-1, keepdims=True)
-            get_norm2 = lambda x_in: np.sum(x_in, axis=-1, keepdims=True)
+            get_norm2 = lambda x_in: np.amax(x_in, axis=-1, keepdims=True)
         elif normalization == "maximum":
             get_norm = lambda x_in: np.amax(x_in, axis=-1, keepdims=True)
             get_norm2 = lambda x_in: np.amax(x_in, axis=-1, keepdims=True)
-        elif normalization == "int_maximum":
-            get_norm = lambda x_in: np.sum(x_in, axis=-1, keepdims=True)
-            get_norm2 = lambda x_in: np.amax(x_in, axis=-1, keepdims=True)
+        else:
+            raise ValueError(f"Unknown normalization method '{normalization}'.")
 
         norm = 1
         if isinstance(tof_trace, np.ndarray):
@@ -847,23 +847,23 @@ class TOFAnalogResponse(SerializableMixin):
                 norm = get_norm(tof_trace)
                 norm2 = get_norm2(tof_trace)
                 original = xr.DataArray(tof_trace, dims=('sample',))
-                if np.abs(norm) < 1e-6:
-                    norm = 1
+                if np.abs(norm2) < 1e-6:
+                    norm2 = 1
+                original.data /= norm2
             else:
                 original = xr.DataArray(tof_trace, dims=('pulse', 'sample'))
                 #norm = np.sum(original.data, axis=-1, keepdims=True)
                 norm = get_norm(original.data)
                 norm2 = get_norm2(original.data)
-                norm[np.abs(norm)<1e-6] = 1
-                original.data /= norm
+                norm2[np.abs(norm2)<1e-6] = 1
+                original.data /= norm2
         elif isinstance(tof_trace, xr.DataArray):
             original = tof_trace.copy()
             #norm = np.sum(original.data, axis=-1, keepdims=True)
             norm = get_norm(original.data)
             norm2 = get_norm2(original.data)
-            norm[np.abs(norm)<1e-6] = 1
             norm2[np.abs(norm2)<1e-6] = 1
-            original.data /= norm
+            original.data /= norm2
         else:
             raise ValueError("Expect `tof_trace` to be a numpy array or xarray DataArray.")
         h = self.get_response(reflection_period=reflection_period, reflection_amplitude=reflection_amplitude)
@@ -877,7 +877,8 @@ class TOFAnalogResponse(SerializableMixin):
             raise ValueError("Unknown method.")
         #result_norm = np.sum(result_trace, axis=-1, keepdims=True)
         result_norm = get_norm(result_trace)
-        result_trace /= result_norm
-        result = xr.DataArray(result_trace*norm2, dims=original.dims, coords=original.coords)
+        result_norm[np.abs(result_norm)<1e-6] = 1
+        result_trace *= norm/result_norm
+        result = xr.DataArray(result_trace, dims=original.dims, coords=original.coords)
 
         return result
