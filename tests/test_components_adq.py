@@ -277,7 +277,7 @@ def test_train_edges(mock_sqs_remi_run):
 
     assert isinstance(df, pd.DataFrame)
     np.testing.assert_array_equal(df.columns, ['edge', 'amplitude'])
-    np.testing.assert_array_equal(df.index.names, ['trainId', 'edgeIndex'])
+    np.testing.assert_array_equal(df.index.name, 'trainId')
     assert len(df) == 100
 
     np.testing.assert_allclose(df['edge'], 8944.0)
@@ -311,7 +311,7 @@ def test_pulse_edges(mock_sqs_remi_run):
     assert isinstance(df, pd.DataFrame)
     np.testing.assert_array_equal(df.columns, ['edge', 'amplitude'])
     np.testing.assert_array_equal(
-        df.index.names, ['trainId', 'pulseId', 'edgeIndex'])
+        df.index.names, ['trainId', 'pulseId'])
     assert len(df) == 40
 
     np.testing.assert_array_equal(

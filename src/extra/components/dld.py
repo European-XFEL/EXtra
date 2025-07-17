@@ -185,8 +185,14 @@ class DelayLineDetector:
         if entry_level is not None:
             index_df[entry_level] = np.flatnonzero(finite_mask) % num_rows
 
-        return pd_cls(np.ascontiguousarray(raw[finite_mask]),
-                      pd.MultiIndex.from_frame(index_df))
+        if len(index_df.columns) > 1:
+            # Multiple index columns, create a MultiIndex again.
+            index = pd.MultiIndex.from_frame(index_df)
+        else:
+            # If only a single column is left, build a simple index.
+            index = pd.Index(index_df[next(iter(index_df.columns))])
+
+        return pd_cls(np.ascontiguousarray(raw[finite_mask]), index)
 
     @staticmethod
     def insert_aligned_columns(df, columns):
@@ -229,8 +235,7 @@ class DelayLineDetector:
             if shared_index[:2] == df.index.names[:2]:
                 # Same pulse dimensions as the dataframe.
                 if num_per_pulse is None:
-                    num_per_pulse = df.groupby(
-                        level=df.index.names[:-1]).size()
+                    num_per_pulse = df.groupby(level=df.index.names).size()
 
                 align = num_per_pulse
 
@@ -386,8 +391,7 @@ class DelayLineDetector:
 
         df = self._build_reduced_pd(
             (kd := self._instrument_src['rec.signals']).ndarray(),
-            self._align_pulse_index(kd, pulse_dim), 'signalIndex',
-            mask_func)
+            self._align_pulse_index(kd, pulse_dim), None, mask_func)
 
         if extra_columns:
             self.insert_aligned_columns(df, extra_columns)
@@ -427,8 +431,7 @@ class DelayLineDetector:
 
         df = self._build_reduced_pd(
             (kd := self._instrument_src['rec.hits']).ndarray(),
-            self._align_pulse_index(kd, pulse_dim), 'hitIndex',
-            mask_func)
+            self._align_pulse_index(kd, pulse_dim), None, mask_func)
 
         if extra_columns:
             self.insert_aligned_columns(df, extra_columns)

@@ -70,8 +70,7 @@ def test_dld_df(mock_sqs_remi_run, key, pulse_dim):
     df = getattr(dld, f'{key}s')(pulse_dim)
 
     assert (df.columns == list(dtype.names)).all()
-    assert df.index.names == [
-        'trainId', pulse_dim, 'fel', 'ppl', f'{key}Index']
+    assert df.index.names == ['trainId', pulse_dim, 'fel', 'ppl']
 
     # Check counts per pulse, should be a repeating pattern of 1-4.
     np.testing.assert_equal(
