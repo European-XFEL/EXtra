@@ -57,6 +57,10 @@ Homepage = "https://github.com/European-XFEL/EXtra"
 Documentation = "https://extra.readthedocs.io/en/latest/"
 
 [project.optional-dependencies]
+gui = [
+    "ipywidgets",
+    "ipympl",
+]
 test = [
     "pytest",
     "pytest-cov",
@@ -66,5 +70,11 @@ docs = [
     "mkdocs-material",
     "mkdocstrings",
     "mkdocstrings-python>=1.2.0",
+    "pygments",
     "pymdown-extensions",
+]
+
+[tool.coverage.report]
+exclude_also = [
+    'if __name__ == .__main__.:',
 ]
