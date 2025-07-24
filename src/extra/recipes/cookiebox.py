@@ -14,6 +14,7 @@ import xarray as xr
 import pandas as pd
 
 from .base import SerializableMixin
+from .cookiebox_deconvolve import TOFAnalogResponse
 
 from extra.components import Scan, AdqRawChannel, XrayPulses, XGM
 
@@ -128,7 +129,7 @@ def fit(peak_ids: np.ndarray, energies: np.ndarray, t0_bounds: Tuple[float, floa
         raise Exception('fit did not converge.')
 
 
-def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dict[int, AdqRawChannel], xgm_threshold: float) -> xr.DataArray:
+def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dict[int, AdqRawChannel], xgm_threshold: float, correction_fn=None) -> xr.DataArray:
     """
     Calculate the mean of the ToF data in the given tof and energy bin in `itr`.
 
@@ -138,6 +139,7 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
       xgm_data: All the pulse energy values.
       tof: The Extra component for reading each tof.
       xgm_threshold: The minimum pulse energy to consider.
+      correction_fn: A correction function to apply in the raw spectra.
 
     Returns: DataArray with mean of data in the energy bin given.
     """
@@ -156,10 +158,15 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
     # select XGM
     tof_data = tof_data.loc[sel_xgm_data > xgm_threshold, :]
     tof_xgm_data = sel_xgm_data.loc[sel_xgm_data > xgm_threshold]
-    tof_data = tof_data.to_numpy()
-    tof_xgm_data = tof_xgm_data.to_numpy()
-    out_data = -tof_data.mean(0)
-    out_xgm = tof_xgm_data.mean(0)
+
+    out_data = -tof_data.mean('pulse')
+    out_xgm = tof_xgm_data.mean('pulse')
+
+    if correction_fn is not None:
+        out_data = correction_fn[tof_id](out_data)
+
+    out_data = out_data.to_numpy()
+    out_xgm = out_xgm.to_numpy()
 
     return out_data, out_xgm
 
@@ -390,6 +397,7 @@ class CookieboxCalibration(SerializableMixin):
               tof_settings: Dict[int, AdqRawChannel],
               scan: Scan,
               xgm: XGM,
+              tof_response: Dict[int, TOFAnalogResponse]=None,
               ):
         """
         Derive calibrations.
@@ -405,6 +413,7 @@ class CookieboxCalibration(SerializableMixin):
                 For example: `Scan(calib_run["SA3_XTD10_MONO/MDL/PHOTON_ENERGY", "actualEnergy.value"])`
           xgm: The XGM object used to apply a pulse energy selection.
                For example: `XGM(run, "SQS_DIAG1_XGMD/XGM/DOOCS")`
+          tof_response: The response function object for deconvolution if that is desired.
         """
         # base properties
         self._run = run
@@ -413,6 +422,7 @@ class CookieboxCalibration(SerializableMixin):
 
         self._xgm = xgm
         self._scan = scan
+        self._tof_response = tof_response
 
         if isinstance(self._init_auger_start_roi, dict):
             self._auger_start_roi = {tof_id: self._init_auger_start_roi[tof_id] for tof_id in self._tof_settings.keys()}
@@ -636,6 +646,9 @@ class CookieboxCalibration(SerializableMixin):
         for tof_id in self.kwargs_adq.keys():
             self.calculate_calibration_and_transmission(tof_id)
 
+    def fast_response_correction(self, x, tof_id):
+        return self._tof_response[tof_id].apply(x.fillna(0.0), method="nn_matrix", n_iter=100, nonneg=True)
+
     def select_calibration_data(self):
         """
         Select data for calibration.
@@ -644,18 +657,37 @@ class CookieboxCalibration(SerializableMixin):
         energy_ids = np.arange(len(self.calibration_energies))
         data = {tof_id: list() for tof_id in tof_ids}
         mean_xgm = {tof_id: list() for tof_id in tof_ids}
+        correction_fn = None
+        if self._tof_response is not None:
+            correction_fn = {tof_id:
+                             partial(self.fast_response_correction, tof_id=tof_id)
+                             for tof_id in tof_ids}
         fn = partial(calc_mean,
                      scan=self._scan,
                      xgm_data=self._xgm_data,
                      tof=self._tof,
                      xgm_threshold=self._xgm_threshold,
+                     correction_fn=correction_fn,
                      )
+        parallel = True
+        if correction_fn is not None:
+            parallel = False # correction function has in-build parallelism
 
-
-        with ProcessPoolExecutor(max_workers=10) as p:
+        if parallel:
+            with ProcessPoolExecutor(max_workers=10) as p:
+                itr_gen = list(itertools.product(tof_ids, energy_ids))
+                #data_gen = map(fn, itr_gen)
+                data_gen = p.map(fn, itr_gen)
+                # organize it all in a numpy array
+                for (d, x), (tof_id, energy_id) in zip(data_gen, itr_gen):
+                    data[tof_id] += [d]
+                    mean_xgm[tof_id] += [x]
+                for tof_id in tof_ids:
+                    data[tof_id] = np.stack(data[tof_id], axis=0)
+                    mean_xgm[tof_id] = np.stack(mean_xgm[tof_id], axis=0)
+        else:
             itr_gen = list(itertools.product(tof_ids, energy_ids))
-            #data_gen = map(fn, itr_gen)
-            data_gen = p.map(fn, itr_gen)
+            data_gen = map(fn, itr_gen)
             # organize it all in a numpy array
             for (d, x), (tof_id, energy_id) in zip(data_gen, itr_gen):
                 data[tof_id] += [d]
@@ -1032,6 +1064,8 @@ class CookieboxCalibration(SerializableMixin):
         tof_ids = sorted([tof_id
                           for idx, tof_id in enumerate(self.kwargs_adq.keys())
                           if self.mask[tof_id]])
+        kwargs_response = {k: v for k, v in extra_kwargs_adq.items()
+                           if k in ["method", "n_iter", "extra_shift", "nonneg", "Lambda"]}
         def fetch(tof_id):
             """
             Apply the energy calibration and transmission correction for a given eTOF.
@@ -1051,6 +1085,8 @@ class CookieboxCalibration(SerializableMixin):
                                 **kwargs)
             pulses = tof.pulse_data(pulse_dim='pulseIndex').unstack('pulse').transpose('trainId', 'pulseIndex', 'sample')
             pulses = -pulses.isel(sample=slice(start_roi, stop_roi))
+            if self._tof_response is not None:
+                pulses.data = self._tof_response[tof_id].apply(pulses.fillna(0.0).data, **kwargs_response)
             return pulses
 
         outdata = [fetch(tof_id)
@@ -1114,14 +1150,14 @@ class CookieboxCalibration(SerializableMixin):
             e = model(ts, *self.model_params[tof_id])
 
             # interpolate
-            #o = np.apply_along_axis(lambda arr: np.interp(self.energy_axis, e[::-1], arr[::-1], left=0, right=0),
-            #                       axis=1,
-            #                       arr=pulses)
             bad = np.isnan(pulses)
             pulses = np.nan_to_num(pulses)
-            o = np.apply_along_axis(lambda arr: PchipInterpolator(e[::-1], arr[::-1], extrapolate=False)(self.energy_axis),
+            o = np.apply_along_axis(lambda arr: np.interp(self.energy_axis, e[::-1], arr[::-1], left=0, right=0),
                                    axis=1,
                                    arr=pulses)
+            #o = np.apply_along_axis(lambda arr: PchipInterpolator(e[::-1], arr[::-1], extrapolate=False)(self.energy_axis),
+            #                       axis=1,
+            #                       arr=pulses)
             pulses[bad] = np.nan
             n_e = len(self.energy_axis)
             o = np.reshape(o, (n_t, n_p, n_e))
