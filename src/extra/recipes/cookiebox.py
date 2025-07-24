@@ -835,11 +835,11 @@ class CookieboxCalibration(SerializableMixin):
             offset += [result.best_values["c"]]
             mu_auger += [resulta.best_values["center"]]
             # integrate Auger
-            m = resulta.best_values["center"]
-            s = resulta.best_values["sigma"]
-            norm_auger = np.sum(ya[int(m-2*s):int(m+2*s)])
-            #Aa += [resulta.best_values["amplitude"]]
-            Aa += [norm_auger]
+            #m = resulta.best_values["center"]
+            #s = resulta.best_values["sigma"]
+            #norm_auger = np.sum(ya[int(m-2*s):int(m+2*s)])
+            Aa += [resulta.best_values["amplitude"]]
+            #Aa += [norm_auger]
         energy = np.array(energy)
         mu = np.array(mu)
         mu_auger = np.array(mu_auger)
@@ -1071,8 +1071,9 @@ class CookieboxCalibration(SerializableMixin):
         tof_ids = sorted([tof_id
                           for idx, tof_id in enumerate(self.kwargs_adq.keys())
                           if self.mask[tof_id]])
+        response_args = ["method", "n_iter", "extra_shift", "nonneg", "Lambda"]
         kwargs_response = {k: v for k, v in extra_kwargs_adq.items()
-                           if k in ["method", "n_iter", "extra_shift", "nonneg", "Lambda"]}
+                           if k in response_args}
         def fetch(tof_id):
             """
             Apply the energy calibration and transmission correction for a given eTOF.
@@ -1085,7 +1086,8 @@ class CookieboxCalibration(SerializableMixin):
             kwargs = {k: v for k, v in self.kwargs_adq[tof_id].items()}
             del kwargs["name"]
             del kwargs["source"]
-            kwargs.update(extra_kwargs_adq)
+            kwargs.update({k: v for k, v in extra_kwargs_adq.items()
+                           if k not in response_args})
             tof = AdqRawChannel(run,
                                 self.kwargs_adq[tof_id]["name"],
                                 digitizer=self.kwargs_adq[tof_id]["source"],
@@ -1093,7 +1095,9 @@ class CookieboxCalibration(SerializableMixin):
             pulses = tof.pulse_data(pulse_dim='pulseIndex').unstack('pulse').transpose('trainId', 'pulseIndex', 'sample')
             pulses = -pulses.isel(sample=slice(start_roi, stop_roi))
             if self._tof_response is not None:
-                pulses.data = self._tof_response[tof_id].apply(pulses.fillna(0.0).data, **kwargs_response)
+                pulses = pulses.stack(pulse=("trainId", "pulseIndex"))
+                pulses = self._tof_response[tof_id].apply(pulses.fillna(0.0), **kwargs_response)
+                pulses = pulses.unstack("pulse")
             return pulses
 
         outdata = [fetch(tof_id)
@@ -1157,15 +1161,14 @@ class CookieboxCalibration(SerializableMixin):
             e = model(ts, *self.model_params[tof_id])
 
             # interpolate
-            bad = np.isnan(pulses)
-            pulses = np.nan_to_num(pulses)
-            o = np.apply_along_axis(lambda arr: np.interp(self.energy_axis, e[::-1], arr[::-1], left=0, right=0),
-                                   axis=1,
-                                   arr=pulses)
-            #o = np.apply_along_axis(lambda arr: PchipInterpolator(e[::-1], arr[::-1], extrapolate=False)(self.energy_axis),
+            #bad = np.isnan(pulses)
+            np.nan_to_num(pulses, copy=False)
+            #o = np.apply_along_axis(lambda arr: np.interp(self.energy_axis, e[::-1], arr[::-1], left=0, right=0),
             #                       axis=1,
             #                       arr=pulses)
-            pulses[bad] = np.nan
+            o = np.apply_along_axis(lambda arr: PchipInterpolator(e[::-1], arr[::-1], extrapolate=False)(self.energy_axis),
+                                   axis=1,
+                                   arr=pulses)
             n_e = len(self.energy_axis)
             o = np.reshape(o, (n_t, n_p, n_e))
             # subtract offset
@@ -1173,7 +1176,7 @@ class CookieboxCalibration(SerializableMixin):
                 o = o - self.offset[tof_id][None, None, :]
             # apply Jacobian
             o = o*self.jacobian[tof_id][None, None, :]
-            np.nan_to_num(o, copy=False)
+            #np.nan_to_num(o, copy=False)
             # regenerate DataArray
             return xr.DataArray(data=o,
                              dims=('trainId', 'pulseIndex', 'energy'),
@@ -1191,6 +1194,7 @@ class CookieboxCalibration(SerializableMixin):
             outdata_corr = outdata/norm.to_numpy()[None, None, :, :]
         else:
             outdata_corr= outdata
+        print(outdata_corr)
 
         return outdata_corr
 
