@@ -391,6 +391,12 @@ class CookieboxCalibration(SerializableMixin):
         self.mask = {int(k): v for k, v in self.mask.items()}
         self.calibration_mask = {int(k): v for k, v in self.calibration_mask.items()}
         self.kwargs_adq = {int(k): v for k, v in self.kwargs_adq.items()}
+        self._tof_response = None
+        if "_tof_response" in all_data.keys():
+            self._tof_response = dict()
+            for tof_id in all_data["_tof_response"].keys():
+                self._tof_response[tof_id] = TOFAnalogResponse()
+                self._tof_response[tof_id]._fromdict(all_data["_tof_response"][tof_id])
 
     def setup(self,
               run: DataCollection,
