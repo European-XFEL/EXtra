@@ -369,6 +369,7 @@ class CookieboxCalibration(SerializableMixin):
                             "calibration_mask",
                             #"sources",
                             "calibration_energies",
+                            "_tof_response",
                             "_version",
                            ]
     def _asdict(self):
