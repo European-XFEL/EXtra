@@ -1056,13 +1056,14 @@ class CookieboxCalibration(SerializableMixin):
         """
         return self.load_data(run, **extra_kwargs_adq)
 
-    def load_data(self, run: DataCollection, **extra_kwargs_adq: Dict[str, Any]) -> xr.Dataset:
+    def load_data(self, run: DataCollection, preprocess_fn=None, **extra_kwargs_adq: Dict[str, Any]) -> xr.Dataset:
         """
         Only load region of interest for the same settings in a new run and output a Dataset with it.
         This is the recommended way to load data from a new run before applying the calibration.
 
         Args:
           run: The run to calibrate.
+          preprocess_fn: Function to apply to an xarray after reading the trace. For example: `lambda x: x.mean('pulse')`
           kwargs_adq: Keyword arguments for the `AdqRawChannel` object if one wishes to override settings.
 
         Returns: An xarray DataArray with the traces containing axes ('trainId', 'pulseIndex', 'sample', 'tof').
@@ -1094,6 +1095,10 @@ class CookieboxCalibration(SerializableMixin):
                                 **kwargs)
             pulses = tof.pulse_data(pulse_dim='pulseIndex').unstack('pulse').transpose('trainId', 'pulseIndex', 'sample')
             pulses = -pulses.isel(sample=slice(start_roi, stop_roi))
+            if preprocess_fn is not None:
+                pulses = pulses.stack(pulse=("trainId", "pulseIndex")).transpose('pulse', 'sample')
+                pulses = preprocess_fn(pulses)
+                pulses = pulses.unstack("pulse").transpose('trainId', 'pulseIndex', 'sample')
             if self._tof_response is not None:
                 pulses = pulses.stack(pulse=("trainId", "pulseIndex")).transpose('pulse', 'sample')
                 pulses = self._tof_response[tof_id].apply(pulses.fillna(0.0), **kwargs_response)
