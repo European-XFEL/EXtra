@@ -1095,9 +1095,9 @@ class CookieboxCalibration(SerializableMixin):
             pulses = tof.pulse_data(pulse_dim='pulseIndex').unstack('pulse').transpose('trainId', 'pulseIndex', 'sample')
             pulses = -pulses.isel(sample=slice(start_roi, stop_roi))
             if self._tof_response is not None:
-                pulses = pulses.stack(pulse=("trainId", "pulseIndex"))
+                pulses = pulses.stack(pulse=("trainId", "pulseIndex")).transpose('pulse', 'sample')
                 pulses = self._tof_response[tof_id].apply(pulses.fillna(0.0), **kwargs_response)
-                pulses = pulses.unstack("pulse")
+                pulses = pulses.unstack("pulse").transpose('trainId', 'pulseIndex', 'sample')
             return pulses
 
         outdata = [fetch(tof_id)
