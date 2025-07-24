@@ -1194,7 +1194,6 @@ class CookieboxCalibration(SerializableMixin):
             outdata_corr = outdata/norm.to_numpy()[None, None, :, :]
         else:
             outdata_corr= outdata
-        print(outdata_corr)
 
         return outdata_corr
 
