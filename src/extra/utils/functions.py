@@ -100,6 +100,116 @@ def fit_gaussian(ydata, xdata=None, p0=None, norm=False, A_sign=0, **kwargs):
     except RuntimeError:
         return None
 
+def erf(x, y0, A, center, width):
+    """
+    Parameterized error function.
+
+    This uses [scipy.special.erf()][scipy.special.erf] internally, the only
+    difference is it exposes separate parameters for the shape of the function,
+    which is useful when fitting data (see [fit_erf()][extra.utils.fit_erf]).
+
+    Here's a diagram to explain what the parameters are for:
+    ![](images/erf-diagram.png)
+    """
+    # Code used to generate the diagram:
+    #     x = np.linspace(-2, 2, 100)
+    #     y0 = 0
+    #     A = 1
+    #     center = 0
+    #     width = 1
+    #
+    #     w1 = center - width / 2
+    #     w2 = center + width / 2
+    #     A1 = -A / 2
+    #     A2 = A / 2
+    #
+    #     plt.figure()
+    #     plt.plot(x, erf(x, y0, A, center, width), linewidth=4)
+    #
+    #     plt.axhline(A1, linestyle="--", color="k")
+    #     plt.axhline(A2, linestyle="--", color="k")
+    #     plt.annotate("", xytext=(-1, A1), xy=(-1, A2),
+    #                  arrowprops=dict(arrowstyle="<->", color="k"))
+    #     plt.text(-1.15, 0.2, "A = 1", verticalalignment="center", rotation=90, size="x-large")
+    #
+    #     plt.axvline(w1, color="r")
+    #     plt.axvline(w2, color="r")
+    #     plt.annotate("", xytext=(w1, -0.37), xy=(w2, -0.37),
+    #                  arrowprops=dict(arrowstyle="<->", color="r", linestyle="--"))
+    #     plt.text(0, -0.35, "width = 1", size="x-large", horizontalalignment="center", color="r")
+    #
+    #     plt.axvline(0, color="magenta", linestyle="-")
+    #     plt.text(-0.12, 0.1, "center = 0", size="x-large", rotation=90, color="magenta")
+    #
+    #     plt.axhline(0, color="lightgreen", linestyle="--")
+    #     plt.text(1.2, 0.02, "y0 = 0", color="lightgreen", size="x-large")
+    #
+    #     plt.title("Parameter diagram of erf(y0, A, center, width)")
+    #     plt.tight_layout()
+
+    import scipy
+
+    # Rescale `A` and `width` to match the definition in the diagram
+    A /= 2
+    width /= 4
+
+    return A * scipy.special.erf((x - center) / width) + y0
+
+def fit_erf(ydata, xdata=None, p0=None, **kwargs):
+    """Fit an error function to some data.
+
+    This uses [curve_fit()][scipy.optimize.curve_fit] to fit an error function
+    (from [erf()][extra.utils.erf]) to `ydata`. If `p0` is not passed the function
+    will set them to reasonable defaults. It will return `None` if fitting fails,
+    or if there are no finite values in `ydata`.
+
+    !!! note
+        By default this will only return the `popt` array from
+        [curve_fit()][scipy.optimize.curve_fit], if you want `pcov` or any other
+        output you must pass `full_output=True`.
+
+    Args:
+        ydata (array_like): The data to fit. NaN's and infs will automatically
+            be masked before fitting.
+        xdata (array_like): Optional x-values corresponding to `ydata`.
+        p0 (list): A list of `[y0, A, center, width]` to match the arguments to
+            [erf()][extra.utils.erf].
+        **kwargs (): All other keyword arguments will be passed to
+            [curve_fit()][scipy.optimize.curve_fit].
+
+    """
+    if xdata is None:
+        xdata = np.arange(len(ydata))
+
+    full_output_requested = kwargs.get("full_output", False)
+
+    from scipy.optimize import curve_fit
+
+    # Filter nans and infs
+    finite_mask = np.isfinite(ydata)
+    xdata = xdata[finite_mask]
+    ydata = ydata[finite_mask]
+
+    if len(ydata) == 0:
+        return None
+
+    if p0 is None:
+        # Choose left and right edges of the data using 10% of the total length
+        ten_pct = int(len(ydata) * 0.10)
+        left_edge = np.nanmean(ydata[:ten_pct])
+        right_edge = np.nanmean(ydata[-ten_pct:])
+
+        A = right_edge - left_edge
+        center = np.nanmean(xdata)
+        width = abs(np.nanmax(xdata) - np.nanmin(xdata)) / 4
+        y0 = np.nanmean(ydata)
+        p0 = [y0, A, center, width]
+
+    try:
+        result = curve_fit(erf, xdata, ydata, p0=p0, **kwargs)
+        return result if full_output_requested else result[0]
+    except RuntimeError:
+        return None
 
 def gaussian2d(x, y, z0, A, μ_x, μ_y, σ_x, σ_y):
     r"""Normalized 2D Gaussian profile.

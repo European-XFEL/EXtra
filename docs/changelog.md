@@ -19,7 +19,8 @@
 Added:
 
 - [CalibrationData.from_condition][extra.calibration.CalibrationData.from_condition] supports `DataCollection` objects to reference a point in time
-
+- Implemented [erf()][extra.utils.erf] and [fit_erf()][extra.utils.fit_erf]
+  (!366).
 
 Changed:
 

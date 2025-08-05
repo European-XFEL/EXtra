@@ -10,6 +10,8 @@ else.
 
 ::: extra.utils.lorentzian
 
+::: extra.utils.erf
+
 ## Array functions
 
 ::: extra.utils.find_nearest_index
@@ -29,3 +31,5 @@ else.
 ## Fitting functions
 
 ::: extra.utils.fit_gaussian
+
+::: extra.utils.fit_erf

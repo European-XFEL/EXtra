@@ -4,6 +4,7 @@ import xarray as xr
 
 from extra.utils import (
     imshow2, hyperslicer2, ridgeplot, fit_gaussian, gaussian, reorder_axes_to_shape,
+    erf, fit_erf
 )
 
 
@@ -56,6 +57,22 @@ def test_fit_gaussian():
     popt = fit_gaussian(data, A_sign=-1)
     assert np.allclose(popt, params)
 
+
+def test_fit_erf():
+    # Test with auto-generated xadata and nans/infs
+    params = [0, 1, 20, 5]
+    data = erf(np.arange(100), *params)
+    data[50] = np.nan
+    data[51] = np.inf
+    popt = fit_erf(data)
+    assert np.allclose(popt, params)
+
+    # Test with provided xdata
+    params = [0, 1, 0.5, 0.2]
+    xdata = np.arange(0, 1, 0.01)
+    data = erf(xdata, *params)
+    popt = fit_erf(data, xdata=xdata)
+    assert np.allclose(popt, params)
 
 def test_reorder_axes_to_shape():
     arr = np.zeros((512, 1024, 16), dtype=np.float32)  # E.g. burst mode JUNGFRAU data
