@@ -32,6 +32,19 @@ Changed:
 
 Added:
 
+- [SpectrometerCalibration][extra.gui.jupyter.SpectrometerCalibration] to provide a Jupyter widget for energy calibration of 2D X-ray spectrum data (!363).
+
+Changed:
+
+- [XGM.pulse_energy()][extra.components.XGM.pulse_energy] will now insert NaNs
+  instead of zeros as a fill value for runs with a varying number of pulses
+  (!347).
+- [imshow2()][extra.utils.imshow2] will now add a colorbar automatically (!351).
+
+## [2025.1]
+
+Added:
+
 - [CookieboxCalibration][extra.recipes.CookieboxCalibration] to calibrate data from eTOFs after taking a calibration run (!284).
 - [Grating2DCalibration][extra.recipes.Grating2DCalibration] to calibrate data from a 2D grating detector (!284).
 - [Grating1DCalibration][extra.recipes.Grating1DCalibration] to calibrates 1D grating information (e.g.: collected from the Gotthard detector in SQS) (!318).
