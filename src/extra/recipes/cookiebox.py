@@ -1156,7 +1156,7 @@ class CookieboxCalibration(SerializableMixin):
 
             # integrate Auger
             mu_auger = self.tof_fit_result[tof_id].mu_auger.mean()
-            sigma = self.tof_fit_result[tof_id].sigma.min()
+            sigma = self.tof_fit_result[tof_id].sigma.max()
             auger = pulses.sel(sample=slice(int(round(mu_auger-2*sigma)), int(round(mu_auger+2*sigma)))).sum("sample")
 
             pulses = pulses.to_numpy()
@@ -1200,7 +1200,8 @@ class CookieboxCalibration(SerializableMixin):
                                         )
                             )
             if normalization == "shot":
-                o /= auger
+                o = xr.where(auger > 1.0, o/auger, 0.0)
+                np.nan_to_num(o, copy=False)
             return o
 
         outdata = [apply_correction(tof_id, trace.sel(tof=tof_id))
