@@ -1112,7 +1112,7 @@ class CookieboxCalibration(SerializableMixin):
 
         return outdata
 
-    def calibrate(self, trace: xr.DataArray, normalization: str="shot", subtract_offset: bool=False) -> xr.DataArray:
+    def calibrate(self, trace: xr.DataArray, normalization: str="average", subtract_offset: bool=False) -> xr.DataArray:
         """
         Takes a trace separated with axes ('trainId', 'pulseIndex', 'sample', 'tof'),
         as given by `load_trace` and applies the calibration.
@@ -1124,7 +1124,7 @@ class CookieboxCalibration(SerializableMixin):
           trace: A pre-processed trace retrieved with the *same* `AdqRawChannel` settings as this calibration object.
                  Its axes are expected to be ('trainId', 'pulseIndex', 'sample', 'tof').
                  It is recommended to use always `load_trace` to obtain this.
-          normalization: If "shot", nrmalize by the Auger peak, if "average", use the average transmission.
+          normalization: If "shot", normalize by the Auger peak, if "average", use the average transmission.
           subtract_offset: Whether to subtract a offset.
 
         Returns: the calibrated data as an xarray DataArray.
