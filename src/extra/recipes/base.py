@@ -21,7 +21,7 @@ def save_dict(h5grp, obj: Dict[str, Any]):
             new_v = v._asdict()
             newgrp = h5grp.create_group(f"{k}")
             save_dict(newgrp, new_v)
-        else:
+        elif v is not None:
             h5grp[f"{k}"] = v
 
 def load_dict(h5grp):

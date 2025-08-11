@@ -858,8 +858,8 @@ class CookieboxCalibration(SerializableMixin):
         """
         from scipy.interpolate import PchipInterpolator
 
-        energy_ids = np.arange(len(self._scan.positions))
         mask = self.calibration_mask[tof_id]
+        energy_ids = np.arange(len(mask))
         # fit calibration
         c, e0, t0 = fit(self.tof_fit_result[tof_id].mu[mask],
                         self.tof_fit_result[tof_id].energy[mask], t0_bounds=[-3000, 3000])
