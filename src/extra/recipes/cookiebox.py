@@ -1033,11 +1033,11 @@ class CookieboxCalibration(SerializableMixin):
         auger_start_roi = self.auger_start_roi[tof_id]
         start_roi = self.start_roi[tof_id]
         stop_roi = self.stop_roi[tof_id]
-        ts = np.arange(start_roi, stop_roi)
+        ts = np.arange(auger_start_roi, stop_roi)
         fig = plt.figure(figsize=(20,10))
         for e, c in zip(range(data.shape[0]), CSS4_COLORS.keys()):
             energy = self.calibration_energies[e]
-            plt.scatter(ts, data[e,start_roi:stop_roi], c=c, label=f"{energy:.1f} eV")
+            plt.scatter(ts, data[e,auger_start_roi:stop_roi], c=c, label=f"{energy:.1f} eV")
             mu = self.tof_fit_result[tof_id].mu[e]
             amplitude = self.tof_fit_result[tof_id].A[e]
             sigma = self.tof_fit_result[tof_id].sigma[e]
@@ -1045,6 +1045,14 @@ class CookieboxCalibration(SerializableMixin):
             gmodel = GaussianModel() + ConstantModel()
             gresult = ModelResult(gmodel, gmodel.make_params(center=mu, amplitude=amplitude, sigma=sigma, c=offset))
             plt.plot(ts, gresult.eval(x=ts), c=c, lw=2)
+
+            #auger_amplitude = self.tof_fit_result[tof_id].Aa[e]
+            #mu_auger = self.tof_fit_result[tof_id].mu_auger[e]
+            #sigma_auger = self.tof_fit_result[tof_id].sigma[e]
+            #gmodela = GaussianModel()
+            #gresulta = ModelResult(gmodela, gmodela.make_params(center=mu_auger, amplitude=auger_amplitude, sigma=sigma_auger))
+
+            #plt.plot(ts, gresulta.eval(x=ts), c=c, lw=4, ls="--")
         plt.xlabel("Samples")
         plt.ylabel("Intensty [a.u.]")
         plt.legend()
