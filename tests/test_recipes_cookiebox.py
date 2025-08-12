@@ -202,7 +202,7 @@ def test_fit():
                }
     for tof_id, v in correct.items():
         print(f"Checking if calibration of eTOF {tof_id} matches previous observation.")
-        np.isclose(cal.model_params[tof_id], v, rtol=1e-2, atol=1e-2)
+        assert np.allclose(cal.model_params[tof_id], v, rtol=1e-2, atol=1e-2)
 
     cal.to_file("cookiebox_test.h5")
     cal_read = CookieboxCalibration.from_file("cookiebox_test.h5")
@@ -265,6 +265,16 @@ def test_full_cookiebox_calibration_from_data():
         tof_channel[i] = create_channel(time_of_flight_group_2, channel_names[i])
 
     scan = Scan(calibration_run[monochromator_energy, "actualEnergy"], resolution=2)
+
+    # in this run, we ignore the first two steps, because the eTOFs could only see noise in them, so they just disrupt the fit
+    del scan.steps[0]
+    del scan.positions_train_ids[0]
+    scan._positions = scan._positions[1:]
+
+    del scan.steps[0]
+    del scan.positions_train_ids[0]
+    scan._positions = scan._positions[1:]
+
     energy_axis = np.linspace(965, 1070, 160)
     xgm = XGM(calibration_run, pulse_energy)
     cal = CookieboxCalibration(
@@ -300,7 +310,7 @@ def test_full_cookiebox_calibration_from_data():
                }
     for tof_id, v in correct.items():
         print(f"Checking if calibration of eTOF {tof_id} matches previous observation.")
-        np.isclose(cal.model_params[tof_id], v, rtol=1e-2, atol=1e-2)
+        assert np.allclose(cal.model_params[tof_id], v, rtol=1e-2, atol=1e-2)
 
     cal.to_file("cookiebox_test.h5")
     cal_read = CookieboxCalibration.from_file("cookiebox_test.h5")
@@ -310,3 +320,4 @@ def test_full_cookiebox_calibration_from_data():
 
     print(f"Test successful.")
 
+test_full_cookiebox_calibration_from_data()
