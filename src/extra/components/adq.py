@@ -447,9 +447,9 @@ class AdqRawChannel:
         from . import DelayLineDetector
 
         edges = DelayLineDetector._build_reduced_pd(
-            None, edges, index, entry_level='edgeIndex')
+            None, edges, index)
         amplitudes = DelayLineDetector._build_reduced_pd(
-            None, amplitudes, index, entry_level='edgeIndex')
+            None, amplitudes, index)
 
         return pd.DataFrame({'edge': edges, 'amplitude': amplitudes})
 
