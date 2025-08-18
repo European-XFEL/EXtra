@@ -221,15 +221,23 @@ def test_fit(tmp_path):
     cal_read = CookieboxCalibration.from_file(fpath)
 
 def test_avg_and_fit_single_channel(mock_sqs_etof_calibration_run, tmp_path):
+    # match all by train Id
+    pulse_timing = 'SQS_RR_UTC/TSYS/TIMESERVER'
     monochromator_energy = 'SA3_XTD10_MONO/MDL/PHOTON_ENERGY'
-    channel_name = "1_A"
     digitizer = 'SQS_DIGITIZER_UTC4/ADC/1:network'
+    digitizer_control = 'SQS_DIGITIZER_UTC4/ADC/1'
     pulse_energy = 'SQS_DIAG1_XGMD/XGM/DOOCS'
+    mock_sqs_etof_calibration_run = mock_sqs_etof_calibration_run.select([pulse_timing,
+                                  digitizer, digitizer_control,
+                                  pulse_energy, f"{pulse_energy}:output",
+                                  monochromator_energy], require_all=True)
+    channel_name = "1_A"
     tof_ids = [0]
     tof_channel = {}
     tof_channel[0] = AdqRawChannel(mock_sqs_etof_calibration_run,
                                    channel_name,
-                                   digitizer=digitizer)
+                                   digitizer=digitizer,
+                                   first_pulse_offset=1000)
     scan = Scan(mock_sqs_etof_calibration_run[monochromator_energy, "actualEnergy"], resolution=2)
     energy_axis = np.linspace(965, 1070, 160)
     xgm = XGM(mock_sqs_etof_calibration_run, pulse_energy)

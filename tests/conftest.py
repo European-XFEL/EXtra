@@ -183,7 +183,7 @@ def mock_sqs_etof_calibration_directory():
     samples = (A*np.exp(-0.5*(ts[:, None] - ts_axis[None, :])**2/(sigma**2))
                + 500*np.exp(-0.5*(auger - ts_axis[None, :])**2/(sigma**2)))
     # add some samples before data
-    samples = np.concatenate((np.zeros((samples.shape[0], 1000)), # samples before trigger
+    samples = -1*np.concatenate((np.zeros((samples.shape[0], 1000)), # samples before trigger
                              samples), axis=-1)
 
     sources = [
