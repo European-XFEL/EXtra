@@ -208,4 +208,3 @@ def mock_sqs_etof_calibration_directory():
 def mock_sqs_etof_calibration_run(mock_sqs_etof_calibration_directory):
     yield RunDirectory(mock_sqs_etof_calibration_directory)
 
-mock_sqs_etof_calibration_directory()
