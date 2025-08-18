@@ -10,15 +10,15 @@ from extra_data import RunDirectory
 from extra_data.tests.mockdata import write_file
 
 from extra_data.tests.mockdata.motor import Motor
-from mockdata.adq import AdqDigitizer
-from mockdata.detector_motors import (DetectorMotorDataSelector,
-                                      get_motor_sources,
-                                      write_motor_positions)
-from mockdata.dld import ReconstructedDld
-from mockdata.timepix import Timepix3Receiver, Timepix3Centroids
-from mockdata.timeserver import PulsePatternDecoder, Timeserver
-from mockdata.xgm import XGM, XGMD, XGMReduced, XGMWithData
-from mockdata.mono import MonoMdl
+from .mockdata.adq import AdqDigitizer
+from .mockdata.detector_motors import (DetectorMotorDataSelector,
+                                       get_motor_sources,
+                                       write_motor_positions)
+from .mockdata.dld import ReconstructedDld
+from .mockdata.timepix import Timepix3Receiver, Timepix3Centroids
+from .mockdata.timeserver import PulsePatternDecoder, Timeserver
+from .mockdata.xgm import XGM, XGMD, XGMReduced, XGMWithData
+from .mockdata.mono import MonoMdl
 
 @pytest.fixture(scope='session')
 def mock_spb_aux_directory():
@@ -161,7 +161,7 @@ def mock_timepix_exceeded_buffer_run(mock_sqs_timepix_directory):
     # energy the monochromator was set in
     monochromator_energy = "SA3_XTD10_MONO/MDL/PHOTON_ENERGY"
 
-#@pytest.fixture(scope='session')
+@pytest.fixture(scope='session')
 def mock_sqs_etof_calibration_directory():
     # 200 trains with 10 energies and 20 trains per energy
     energy = list()
