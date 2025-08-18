@@ -16,7 +16,8 @@ def test_create_cookiebox_calibration():
     # instantiates it without doing any calibration, only to check for syntax errors
     cal = CookieboxCalibration()
 
-def test_fit():
+@pytest.fixture(scope="session")
+def test_fit(tmpdir_factory):
     calibration_energies = []
     data = []
 
@@ -203,12 +204,14 @@ def test_fit():
     for tof_id, v in correct.items():
         assert np.allclose(cal.model_params[tof_id], v, rtol=1e-2, atol=1e-2)
 
-    cal.to_file("cookiebox_test.h5")
-    cal_read = CookieboxCalibration.from_file("cookiebox_test.h5")
+    fpath = tmpdir_factory.mktemp("data").join("cookiebox_test.h5")
+    cal.to_file(fpath)
+    cal_read = CookieboxCalibration.from_file(fpath)
 
 
 @pytest.mark.skipif(not os.path.isdir("/gpfs/exfel/d"), reason="GPFS not available")
-def test_full_cookiebox_calibration_from_data():
+@pytest.fixture(scope="session")
+def test_full_cookiebox_calibration_from_data(tmpdir_factory):
     # the time server device is used to identify each pulse and train
     pulse_timing = "SQS_RR_UTC/TSYS/TIMESERVER:outputBunchPattern"
 
@@ -307,8 +310,9 @@ def test_full_cookiebox_calibration_from_data():
     for tof_id, v in correct.items():
         assert np.allclose(cal.model_params[tof_id], v, rtol=1e-2, atol=1e-2)
 
-    cal.to_file("cookiebox_test.h5")
-    cal_read = CookieboxCalibration.from_file("cookiebox_test.h5")
+    fpath = tmpdir_factory.mktemp("data").join("cookiebox_test.h5")
+    cal.to_file(fpath)
+    cal_read = CookieboxCalibration.from_file(fpath)
 
     data = cal_read.load_data(calibration_run.select_trains(np.s_[:10]))
     spectrum = cal_read.calibrate(data)
