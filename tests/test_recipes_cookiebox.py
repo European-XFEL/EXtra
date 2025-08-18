@@ -201,17 +201,13 @@ def test_fit():
                15: [654273.605, 945.733, 13.706]
                }
     for tof_id, v in correct.items():
-        print(f"Checking if calibration of eTOF {tof_id} matches previous observation.")
         assert np.allclose(cal.model_params[tof_id], v, rtol=1e-2, atol=1e-2)
 
     cal.to_file("cookiebox_test.h5")
     cal_read = CookieboxCalibration.from_file("cookiebox_test.h5")
 
-    print(f"Test successful.")
-
 
 @pytest.mark.skipif(not os.path.isdir("/gpfs/exfel/d"), reason="GPFS not available")
-@pytest.mark.vcr
 def test_full_cookiebox_calibration_from_data():
     # the time server device is used to identify each pulse and train
     pulse_timing = "SQS_RR_UTC/TSYS/TIMESERVER:outputBunchPattern"
@@ -309,7 +305,6 @@ def test_full_cookiebox_calibration_from_data():
                15: [654273.605, 945.733, 13.706]
                }
     for tof_id, v in correct.items():
-        print(f"Checking if calibration of eTOF {tof_id} matches previous observation.")
         assert np.allclose(cal.model_params[tof_id], v, rtol=1e-2, atol=1e-2)
 
     cal.to_file("cookiebox_test.h5")
@@ -318,6 +313,3 @@ def test_full_cookiebox_calibration_from_data():
     data = cal_read.load_data(calibration_run.select_trains(np.s_[:10]))
     spectrum = cal_read.calibrate(data)
 
-    print(f"Test successful.")
-
-test_full_cookiebox_calibration_from_data()
