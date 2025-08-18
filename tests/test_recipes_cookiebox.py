@@ -14,27 +14,8 @@ from extra.components import XGM, Scan, AdqRawChannel
 from extra.recipes import CookieboxCalibration
 from extra.recipes.cookiebox import TofFitResult
 
-def test_create_cookiebox_calibration():
-    # instantiates it without doing any calibration, only to check for syntax errors
-    cal = CookieboxCalibration()
-
-def test_fit(tmp_path):
-    calibration_energies = []
-    data = []
-
-    cal = CookieboxCalibration()
-    # create some fake data to avoid the first steps, which would depend on much more data
-    cal._energy_axis = np.linspace(965, 1070, 160)
-    cal._auger_start_roi = {tof_id: 1 for tof_id in range(16)}
-    cal._start_roi = {tof_id: 75 for tof_id in range(16)}
-    cal._stop_roi = {tof_id: 320 for tof_id in range(16)}
-    cal.mask = {tof_id: True for tof_id in range(16)}
-    cal.mask[0] = False
-    cal.mask[1] = False
-    cal.mask[3] = False
-    cal.mask[8] = False
-    cal.mask[11] = False
-    cal.kwargs_adq = {tof_id: dict() for tof_id in range(16)}
+# this produces mock data
+def produce_mock_fit_result():
     tof_fit_result = dict()
     calibration_mean_xgm = dict()
     tof_fit_result[0] = TofFitResult(energy=np.array([969.966, 979.971, 989.969, 999.977, 1009.957, 1019.964, 1029.956, 1039.950, 1049.967, 1059.948]),
@@ -181,15 +162,7 @@ def test_fit(tmp_path):
                                             mu_auger=np.array([40.868, 40.878, 40.892, 40.901, 40.903, 40.906, 40.909, 40.920, 40.919, 40.925]),
                                             )
     calibration_mean_xgm[15] = np.array([3.233, 3.241, 3.221, 3.200, 3.242, 3.232, 3.188, 3.176, 3.150, 3.129])
-    cal.tof_fit_result = tof_fit_result
-    cal.calibration_mean_xgm = calibration_mean_xgm
 
-    cal.calibration_mask = {tof_id: [True]*10 for tof_id in range(16)}
-
-    # fit!
-    cal.update_calibration()
-
-    # check if it worked
     correct = {2:  [612272.284, 946.822, 21.275],
                4:  [616545.768, 946.333, 30.869],
                5:  [615576.869, 946.638, 31.079],
@@ -202,6 +175,42 @@ def test_fit(tmp_path):
                14: [594706.838, 946.768, 16.850],
                15: [654273.605, 945.733, 13.706]
                }
+
+    return tof_fit_result, calibration_mean_xgm, correct
+
+def test_create_cookiebox_calibration():
+    # instantiates it without doing any calibration, only to check for syntax errors
+    cal = CookieboxCalibration()
+
+def test_fit(tmp_path):
+    calibration_energies = []
+    data = []
+
+    # fake calibration
+    tof_fit_result, calibration_mean_xgm, correct = produce_mock_fit_result()
+
+    cal = CookieboxCalibration()
+    # create some fake data to avoid the first steps, which would depend on much more data
+    cal._energy_axis = np.linspace(965, 1070, 160)
+    cal._auger_start_roi = {tof_id: 1 for tof_id in range(16)}
+    cal._start_roi = {tof_id: 75 for tof_id in range(16)}
+    cal._stop_roi = {tof_id: 320 for tof_id in range(16)}
+    cal.mask = {tof_id: True for tof_id in range(16)}
+    cal.mask[0] = False
+    cal.mask[1] = False
+    cal.mask[3] = False
+    cal.mask[8] = False
+    cal.mask[11] = False
+    cal.kwargs_adq = {tof_id: dict() for tof_id in range(16)}
+    cal.tof_fit_result = tof_fit_result
+    cal.calibration_mean_xgm = calibration_mean_xgm
+
+    cal.calibration_mask = {tof_id: [True]*10 for tof_id in range(16)}
+
+    # fit!
+    cal.update_calibration()
+
+    # check if it worked
     for tof_id, v in correct.items():
         assert np.allclose(cal.model_params[tof_id], v, rtol=1e-2, atol=1e-2)
 
@@ -211,9 +220,49 @@ def test_fit(tmp_path):
     cal.to_file(fpath)
     cal_read = CookieboxCalibration.from_file(fpath)
 
+def test_avg_and_fit_single_channel(mock_sqs_etof_calibration_run, tmp_path):
+    monochromator_energy = 'SA3_XTD10_MONO/MDL/PHOTON_ENERGY'
+    channel_name = "1_A"
+    digitizer = 'SQS_DIGITIZER_UTC4/ADC/1:network'
+    pulse_energy = 'SQS_DIAG1_XGMD/XGM/DOOCS'
+    tof_ids = [0]
+    tof_channel = {}
+    tof_channel[0] = AdqRawChannel(mock_sqs_etof_calibration_run,
+                                   channel_name,
+                                   digitizer=digitizer)
+    scan = Scan(mock_sqs_etof_calibration_run[monochromator_energy, "actualEnergy"], resolution=2)
+    energy_axis = np.linspace(965, 1070, 160)
+    xgm = XGM(mock_sqs_etof_calibration_run, pulse_energy)
+    cal = CookieboxCalibration(
+                    # these were chosen by eye
+                    auger_start_roi=1,
+                    # we can als0 provide a dictionary with dfferent values per eTOF
+                    # auger_start_roi={0: 150, 1: 150, 2: 150, 3: 150, 4: 150, 5: 150, 6: 150, 7: 150,
+                    #                  8: 150, 9: 150, 10: 150, 11: 150, 12: 150, 13: 150, 14: 150, 15: 150},
+                    start_roi=75,
+                    stop_roi=320,
+    )
+    cal.setup(run=mock_sqs_etof_calibration_run, energy_axis=energy_axis, tof_settings=tof_channel,
+              xgm=xgm,
+              scan=scan)
+
+    for tof_id in tof_ids:
+        assert np.allclose(cal.model_params[tof_id], correct[tof_id], rtol=1e-2, atol=1e-2)
+
+    d = tmp_path / "data"
+    d.mkdir()
+    fpath = str(d / "cookiebox_test.h5")
+    cal.to_file(fpath)
+    cal_read = CookieboxCalibration.from_file(fpath)
+
+    data = cal_read.load_data(calibration_run.select_trains(np.s_[:10]))
+    spectrum = cal_read.calibrate(data)
 
 @pytest.mark.skipif(not os.path.isdir("/gpfs/exfel/d"), reason="GPFS not available")
 def test_full_cookiebox_calibration_from_data(tmp_path):
+    # fake calibration
+    tof_fit_result, calibration_mean_xgm, correct = produce_mock_fit_result()
+
     # the time server device is used to identify each pulse and train
     pulse_timing = "SQS_RR_UTC/TSYS/TIMESERVER:outputBunchPattern"
 
@@ -297,18 +346,6 @@ def test_full_cookiebox_calibration_from_data(tmp_path):
     cal.mask[8] = False
     cal.mask[11] = False
 
-    correct = {2:  [612272.284, 946.822, 21.275],
-               4:  [616545.768, 946.333, 30.869],
-               5:  [615576.869, 946.638, 31.079],
-               6:  [613029.508, 946.339, 13.824],
-               7:  [623419.734, 946.026, 11.527],
-               9:  [611060.957, 946.512, 10.740],
-               10: [609107.546, 946.376, 13.634],
-               12: [607427.441, 946.218, 28.303],
-               13: [574359.906, 946.874, 26.794],
-               14: [594706.838, 946.768, 16.850],
-               15: [654273.605, 945.733, 13.706]
-               }
     for tof_id, v in correct.items():
         assert np.allclose(cal.model_params[tof_id], v, rtol=1e-2, atol=1e-2)
 
