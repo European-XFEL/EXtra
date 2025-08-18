@@ -199,7 +199,7 @@ def mock_sqs_etof_calibration_directory():
     #write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 200,
     #           format_version='1.2')
     with TemporaryDirectory() as td:
-        write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 100,
+        write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 200,
                    format_version='1.2')
         yield td
 
