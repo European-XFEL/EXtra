@@ -2,12 +2,14 @@ from unittest.mock import patch
 
 import pint
 import pytest
+
 import numpy as np
 import pandas as pd
 import xarray as xr
 import os
+from pathlib import Path
 
-from extra.data import open_run
+from extra.data import open_run, by_id
 from extra.components import XGM, Scan, AdqRawChannel
 from extra.recipes import CookieboxCalibration
 from extra.recipes.cookiebox import TofFitResult
@@ -16,8 +18,7 @@ def test_create_cookiebox_calibration():
     # instantiates it without doing any calibration, only to check for syntax errors
     cal = CookieboxCalibration()
 
-@pytest.fixture(scope="session")
-def test_fit(tmpdir_factory):
+def test_fit(tmp_path):
     calibration_energies = []
     data = []
 
@@ -204,14 +205,15 @@ def test_fit(tmpdir_factory):
     for tof_id, v in correct.items():
         assert np.allclose(cal.model_params[tof_id], v, rtol=1e-2, atol=1e-2)
 
-    fpath = tmpdir_factory.mktemp("data").join("cookiebox_test.h5")
+    d = tmp_path / "data"
+    d.mkdir()
+    fpath = str(d / "cookiebox_test.h5")
     cal.to_file(fpath)
     cal_read = CookieboxCalibration.from_file(fpath)
 
 
 @pytest.mark.skipif(not os.path.isdir("/gpfs/exfel/d"), reason="GPFS not available")
-@pytest.fixture(scope="session")
-def test_full_cookiebox_calibration_from_data(tmpdir_factory):
+def test_full_cookiebox_calibration_from_data(tmp_path):
     # the time server device is used to identify each pulse and train
     pulse_timing = "SQS_RR_UTC/TSYS/TIMESERVER:outputBunchPattern"
 
@@ -231,7 +233,7 @@ def test_full_cookiebox_calibration_from_data(tmpdir_factory):
     final_photon_spectrometer = "SQS_DIAG3_BIU/CAM/CAM_6:daqOutput"
 
     # open run
-    calibration_run = open_run(proposal=900485, run=348)
+    calibration_run = open_run(proposal=900485, run=348).select_trains(by_id[2253934513:])
     calibration_run = calibration_run.select([pulse_timing,
                                   time_of_flight_group_1, time_of_flight_group_2,
                                   pulse_energy, pulse_energy_output,
@@ -266,13 +268,13 @@ def test_full_cookiebox_calibration_from_data(tmpdir_factory):
     scan = Scan(calibration_run[monochromator_energy, "actualEnergy"], resolution=2)
 
     # in this run, we ignore the first two steps, because the eTOFs could only see noise in them, so they just disrupt the fit
-    del scan.steps[0]
-    del scan.positions_train_ids[0]
-    scan._positions = scan._positions[1:]
+    #del scan.steps[0]
+    #del scan.positions_train_ids[0]
+    #scan._positions = scan._positions[1:]
 
-    del scan.steps[0]
-    del scan.positions_train_ids[0]
-    scan._positions = scan._positions[1:]
+    #del scan.steps[0]
+    #del scan.positions_train_ids[0]
+    #scan._positions = scan._positions[1:]
 
     energy_axis = np.linspace(965, 1070, 160)
     xgm = XGM(calibration_run, pulse_energy)
@@ -310,7 +312,9 @@ def test_full_cookiebox_calibration_from_data(tmpdir_factory):
     for tof_id, v in correct.items():
         assert np.allclose(cal.model_params[tof_id], v, rtol=1e-2, atol=1e-2)
 
-    fpath = tmpdir_factory.mktemp("data").join("cookiebox_test.h5")
+    d = tmp_path / "data"
+    d.mkdir()
+    fpath = str(d / "cookiebox_test.h5")
     cal.to_file(fpath)
     cal_read = CookieboxCalibration.from_file(fpath)
 
