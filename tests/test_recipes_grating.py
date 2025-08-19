@@ -10,7 +10,7 @@ import os
 from extra.data import open_run
 
 from extra.recipes import Grating2DCalibration, Grating1DCalibration
-from extra.components import Scan
+from extra.components import Scan, XrayPulses
 
 def test_create_grating_2d_calibration():
     # instantiates it without doing any calibration, only to check for syntax errors
@@ -93,6 +93,7 @@ def test_reading_grating1d(mock_sqs_grating_calibration_run, tmp_path):
     grating_calibration = Grating1DCalibration(min_pixel=0, max_pixel=1000)
     grating_calibration.setup(mock_sqs_grating_calibration_run[final_photon_spectrometer, "data.adc"],
                               monochromator_scan,
+                              pulses=XrayPulses(mock_sqs_grating_calibration_run),
                              )
     d = tmp_path / "data"
     d.mkdir()
