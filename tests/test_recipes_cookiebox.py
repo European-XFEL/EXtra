@@ -14,6 +14,9 @@ from extra.components import XGM, Scan, AdqRawChannel
 from extra.recipes import CookieboxCalibration
 from extra.recipes.cookiebox import TofFitResult
 
+from .mockdata.utils import (mock_etof_calibration_constants,
+                             mock_etof_energies)
+
 # this produces mock data
 def produce_mock_fit_result():
     tof_fit_result = dict()
@@ -253,9 +256,11 @@ def test_avg_and_fit_single_channel(mock_sqs_etof_calibration_run, tmp_path):
     cal.setup(run=mock_sqs_etof_calibration_run, energy_axis=energy_axis, tof_settings=tof_channel,
               xgm=xgm,
               scan=scan)
-
+    correct_energies = mock_etof_mono_energies()
+    correct_constants = np.array(mock_etof_calibration_constants())
     for tof_id in tof_ids:
-        assert np.allclose(cal.model_params[tof_id], correct[tof_id], rtol=1e-2, atol=1e-2)
+        assert np.allclose(cal.tof_fit_result[tof_id].energy, correct_energies, rtol=1e-2, atol=1e-2)
+        assert np.allclose(cal.model_params[tof_id], correct_constants, rtol=1e-2, atol=1e-2)
 
     d = tmp_path / "data"
     d.mkdir()
@@ -324,23 +329,10 @@ def test_full_cookiebox_calibration_from_data(tmp_path):
 
     scan = Scan(calibration_run[monochromator_energy, "actualEnergy"], resolution=2)
 
-    # in this run, we ignore the first two steps, because the eTOFs could only see noise in them, so they just disrupt the fit
-    #del scan.steps[0]
-    #del scan.positions_train_ids[0]
-    #scan._positions = scan._positions[1:]
-
-    #del scan.steps[0]
-    #del scan.positions_train_ids[0]
-    #scan._positions = scan._positions[1:]
-
     energy_axis = np.linspace(965, 1070, 160)
     xgm = XGM(calibration_run, pulse_energy)
     cal = CookieboxCalibration(
-                    # these were chosen by eye
                     auger_start_roi=1,
-                    # we can als0 provide a dictionary with dfferent values per eTOF
-                    # auger_start_roi={0: 150, 1: 150, 2: 150, 3: 150, 4: 150, 5: 150, 6: 150, 7: 150,
-                    #                  8: 150, 9: 150, 10: 150, 11: 150, 12: 150, 13: 150, 14: 150, 15: 150},
                     start_roi=75,
                     stop_roi=320,
     )

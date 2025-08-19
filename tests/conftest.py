@@ -20,6 +20,9 @@ from .mockdata.timeserver import PulsePatternDecoder, Timeserver
 from .mockdata.xgm import XGM, XGMD, XGMReduced, XGMWithData
 from .mockdata.mono import MonoMdl
 
+from .mockdata.utils import (mock_etof_calibration_constants,
+                            mock_etof_mono_energies)
+
 @pytest.fixture(scope='session')
 def mock_spb_aux_directory():
     """Mock run directory with SPB auxiliary sources.
@@ -163,28 +166,31 @@ def mock_timepix_exceeded_buffer_run(mock_sqs_timepix_directory):
 
 @pytest.fixture(scope='session')
 def mock_sqs_etof_calibration_directory():
-    # 200 trains with 10 energies and 20 trains per energy
-    energy = list()
-    for e in np.linspace(970.0, 1060.0, 10):
-        energy += [e]*20
-    energy = np.array(energy)
+    energy = mock_etof_mono_energies()
 
     # convert energy to time of flight for etofs
     # calibration constants
-    c, e0, t0 = 623419.734, 946.026, 11.527
+    c, e0, t0 = mock_etof_calibration_constants()
     sigma = 2.0
     A = 1000.0
+    Aa = 500.0
     auger = 35.0
+    offset = 22.0
     # e = e0+c/(ts-t0)**2
     # ts = t0 + sqrt(c/(e - e0))
     ts = t0 + np.sqrt(c/(energy - e0))
-    ts_axis = np.linspace(0, np.max(ts)+10, 300)
+    ts_axis = np.linspace(0.0, int(np.max(ts))+5*sigma+1, int(np.max(ts)+5*sigma)+1+1)
     # create gaussians
     samples = (A*np.exp(-0.5*(ts[:, None] - ts_axis[None, :])**2/(sigma**2))
-               + 500*np.exp(-0.5*(auger - ts_axis[None, :])**2/(sigma**2)))
+               + Aa*np.exp(-0.5*(auger - ts_axis[None, :])**2/(sigma**2))
+               )
     # add some samples before data
-    samples = -1*np.concatenate((np.zeros((samples.shape[0], 1000)), # samples before trigger
-                             samples), axis=-1)
+    samples = -1*np.concatenate((
+                                 np.zeros((samples.shape[0], 1000)),            # samples before trigger
+                                 samples,                                       # data
+                                 np.zeros((samples.shape[0], 3000)),            # samples after
+                                 ), axis=-1)
+    samples += -offset
 
     sources = [
         Timeserver('SQS_RR_UTC/TSYS/TIMESERVER'),
@@ -195,6 +201,7 @@ def mock_sqs_etof_calibration_directory():
                      samples=samples)
               ]
 
+    # for tests
     #td = Path("mytest")
     #write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 200,
     #           format_version='1.2')
@@ -207,4 +214,6 @@ def mock_sqs_etof_calibration_directory():
 @pytest.fixture(scope='function')
 def mock_sqs_etof_calibration_run(mock_sqs_etof_calibration_directory):
     yield RunDirectory(mock_sqs_etof_calibration_directory)
+
+mock_sqs_etof_calibration_directory()
 
