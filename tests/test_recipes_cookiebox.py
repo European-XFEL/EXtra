@@ -15,7 +15,7 @@ from extra.recipes import CookieboxCalibration
 from extra.recipes.cookiebox import TofFitResult
 
 from .mockdata.utils import (mock_etof_calibration_constants,
-                             mock_etof_energies)
+                             mock_etof_mono_energies)
 
 # this produces mock data
 def produce_mock_fit_result():
