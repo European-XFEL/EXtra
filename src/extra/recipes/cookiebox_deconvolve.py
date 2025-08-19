@@ -334,10 +334,11 @@ class TOFResponse(SerializableMixin):
     h = response.get_response(type="aligned")
     ```
 
-    This could also be coupled with the `CookieboxCalibration` object to deconvolve
-    and denoise spectra before calibration.
+    This could also be coupled with the
+    [CookieboxCalibration][extra.recipes.CookieboxCalibration] object to
+    deconvolve and denoise spectra before calibration.
 
-    ```
+    ```python
     # open a new run
     run = open_run(proposal=900485, run=349)
     # get the calibration constants
@@ -402,7 +403,7 @@ class TOFResponse(SerializableMixin):
               tof: AdqRawChannel,
               ):
         """
-        Given a `AdqRawChannel` object,
+        Given a [AdqRawChannel][extra.components.AdqRawChannel] object,
         calculate this eTOF's impulse response function.
 
         Args:
@@ -510,8 +511,9 @@ class TOFResponse(SerializableMixin):
         assuming the given parameter setting and using the Lambda parameter
         as a denoising strength.
 
-        This could be coupled with the `CookieboxCalibration` object to deconvolve
-        and denoise spectra before calibration.
+        This could be coupled with the
+        [CookieboxCalibration][extra.recipes.CookieboxCalibration] object to
+        deconvolve and denoise spectra before calibration.
 
         ```python
         # open a new run
@@ -527,11 +529,11 @@ class TOFResponse(SerializableMixin):
         spectrum = cal.calibrate(trace)
         ```
 
-        If the raw trace is desired, this could be used independetly from the calibration
-        object simply to mprove the trace resolution.
+        If the raw trace is desired, this could be used independently from the calibration
+        object simply to improve the trace resolution.
 
         Example of usage without the calibration:
-        ```
+        ```python
         ts = "SQS_RR_UTC/TSYS/TIMESERVER:outputBunchPattern"
         digitizer = 'SQS_DIGITIZER_UTC4/ADC/1:network'
         digitizer_ctl = 'SQS_DIGITIZER_UTC4/ADC/1:network'
@@ -571,7 +573,8 @@ class TOFResponse(SerializableMixin):
                   Use "standard" for  standard deconvolution.
           extra_shift: Number of samples to shift the impulse response to additionally for alignment.
 
-        Returns: The deconvolved data as a DataArray.
+        Returns:
+          The deconvolved data as a [DataArray][xarray.DataArray].
         """
         norm = 1
         if isinstance(tof_trace, np.ndarray):
@@ -635,10 +638,11 @@ class TOFAnalogResponse(SerializableMixin):
     h = response.get_response()
     ```
 
-    This could also be coupled with the `CookieboxCalibration` object to deconvolve
-    and denoise spectra before calibration.
+    This could also be coupled with the
+    [CookieboxCalibration][extra.recipes.CookieboxCalibration] object to
+    deconvolve and denoise spectra before calibration.
 
-    ```
+    ```python
     # open a new run
     run = open_run(proposal=900485, run=349)
     # get the calibration constants
@@ -692,7 +696,7 @@ class TOFAnalogResponse(SerializableMixin):
               scan: Scan,
               ):
         """
-        Given a `AdqRawChannel` object, and an energy scan object
+        Given a [AdqRawChannel][extra.components.AdqRawChannel] object, and an energy scan object
         calculate this eTOF's impulse response function,
         assuming the corresponding run contins a scan over monochromated beams.
 
@@ -729,10 +733,6 @@ class TOFAnalogResponse(SerializableMixin):
         Returns the instrument response.
 
         Args:
-          kind: Which version of the isntrument response to retrieve.
-                "aligned" provides the MCP response, which is edge-aligned.
-                "digital" is the digital response.
-                "analog" is the analog response.
           reflection_period: Simulate reflection with these distances.
           reflection_amplitude: Amplitudes of the reflections.
         """
@@ -766,8 +766,9 @@ class TOFAnalogResponse(SerializableMixin):
         assuming the given parameter setting and using the Lambda parameter
         as a denoising strength.
 
-        This could be coupled with the `CookieboxCalibration` object to deconvolve
-        and denoise spectra before calibration.
+        This could be coupled with the
+        [CookieboxCalibration][extra.recipes.CookieboxCalibration] object to
+        deconvolve and denoise spectra before calibration.
 
         ```python
         # open a new run
@@ -787,7 +788,7 @@ class TOFAnalogResponse(SerializableMixin):
         object simply to mprove the trace resolution.
 
         Example of usage without the calibration:
-        ```
+        ```python
         ts = "SQS_RR_UTC/TSYS/TIMESERVER:outputBunchPattern"
         digitizer = 'SQS_DIGITIZER_UTC4/ADC/1:network'
         digitizer_ctl = 'SQS_DIGITIZER_UTC4/ADC/1:network'
@@ -827,7 +828,8 @@ class TOFAnalogResponse(SerializableMixin):
                   Use "standard" for  standard deconvolution.
           extra_shift: Shift the impulse response function by this many points before using it to align the data.
 
-        Returns: The deconvolved data as a DataArray.
+        Returns:
+          The deconvolved data as a [DataArray][xarray.DataArray].
         """
         norm = 1
         if isinstance(tof_trace, np.ndarray):

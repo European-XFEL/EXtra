@@ -16,11 +16,22 @@
     pip install git+https://github.com/European-XFEL/EXtra.git
     ```
 
+Added:
+
+- [CalibrationData.from_condition][extra.calibration.CalibrationData.from_condition] supports `DataCollection` objects to reference a point in time
+
+
+Changed:
+
+- [XGM.pulse_energy()][extra.components.XGM.pulse_energy] will now insert NaNs
+  instead of zeros as a fill value for runs with a varying number of pulses
+  (!347).
+- [imshow2()][extra.utils.imshow2] will now add a colorbar automatically (!351).
+
+## [2025.1]
 
 Added:
 
-- [TOFResponse][extra.recipes.TOFResponse] to estimate, deconvolve and denoise the instrumental response in eTOFs (!304).
-- [VSLight][extra.recipes.VSLight] to calibrate and deconvolve eTOFs from a continuous monochromator scan (!304).
 - [CookieboxCalibration][extra.recipes.CookieboxCalibration] to calibrate data from eTOFs after taking a calibration run (!284).
 - [Grating2DCalibration][extra.recipes.Grating2DCalibration] to calibrate data from a 2D grating detector (!284).
 - [Grating1DCalibration][extra.recipes.Grating1DCalibration] to calibrates 1D grating information (e.g.: collected from the Gotthard detector in SQS) (!318).
@@ -28,14 +39,26 @@ Added:
   (AGIPD1M, AGIPD500K, DSSC1M, JUNGFRAU, LPD1M) (!177).
 - [imshow2][extra.utils.imshow2] now supports plotting 2D
   [DataArray][xarray.DataArray]s properly (!333).
+- Added [hyperslicer2()][extra.utils.hyperslicer2] to make plotting image arrays
+  easier (!348).
+- Added [ridgeplot()][extra.utils.ridgeplot] function (!354).
+- [reorder_axes_to_shape][extra.utils.reorder_axes_to_shape] utility function (!349).
+- [ShimadzuHPVX2Conditions][extra.calibration.ShimadzuHPVX2Conditions] to
+  retrieve constants for dynamic flat-field correction (!254).
 
 Changed:
-- [Timepix3.spatial_bins()] is now a static method.
+
+- [Timepix3.spatial_bins()][extra.components.Timepix3.spatial_bins] is now a static method.
 - The [XGM][extra.components.XGM] component will now emit warnings when it
   detects the wrong number of pulses have been saved in the slow data
   property. There is also a new `force_slow_data` argument to
-  [XGM.pulse_counts()][extra.XGM.pulse_counts] to always return whatever was
+  [XGM.pulse_counts()][extra.components.XGM.pulse_counts] to always return whatever was
   saved in the slow data (!161).
+- [LPDConditions][extra.calibration.LPDConditions] now accepts
+  `parallel_gain` (!254).
+- [JUNGFRAUConditions][extra.calibration.JUNGFRAUConditions] now accepts
+  `exposure_timeout` (!254).
+- [CalibrationData.from_condition][extra.calibration.CalibrationData.from_condition] has a new `begin_at_strategy` parameter (!254).
 - [Grating2DCalibration][extra.recipes.Grating2DCalibration] and [Grating1DCalibration][extra.recipes.Grating1DCalibration] have added tests (!368).
 
 Fixed:
@@ -183,7 +206,8 @@ Added:
   [EXtra-geom](detector-geometry.md), and [karabo-bridge-py](karabo-bridge.md).
 
 
-[Unreleased]: https://github.com/European-XFEL/EXtra/compare/2024.2...master
+[Unreleased]: https://github.com/European-XFEL/EXtra/compare/2025.1...master
+[2025.1]: https://github.com/European-XFEL/EXtra/releases/tag/2025.1
 [2024.2]: https://github.com/European-XFEL/EXtra/releases/tag/2024.2
 [2024.1.2]: https://github.com/European-XFEL/EXtra/releases/tag/2024.1.2
 [2024.1.1]: https://github.com/European-XFEL/EXtra/releases/tag/2024.1.1
