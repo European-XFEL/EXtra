@@ -256,7 +256,7 @@ def test_avg_and_fit_single_channel(mock_sqs_etof_calibration_run, tmp_path):
     cal.setup(run=mock_sqs_etof_calibration_run, energy_axis=energy_axis, tof_settings=tof_channel,
               xgm=xgm,
               scan=scan)
-    correct_energies = mock_etof_mono_energies()
+    correct_energies = np.unique(mock_etof_mono_energies())
     correct_constants = np.array(mock_etof_calibration_constants())
     for tof_id in tof_ids:
         assert np.allclose(cal.tof_fit_result[tof_id].energy, correct_energies, rtol=1e-2, atol=1e-2)
