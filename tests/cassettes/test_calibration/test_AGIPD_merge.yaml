@@ -5,11 +5,11 @@ interactions:
       Accept:
       - application/json; version=2
       Accept-Encoding:
-      - gzip, deflate, br
+      - gzip, deflate, br, zstd
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2024.1.1.173+5ec72a6
+      - EXtra/2024.1.1.184+03da3c1
       content-type:
       - application/json
     method: GET
@@ -25,7 +25,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 04 Jul 2024 16:56:17 GMT
+      - Fri, 08 Nov 2024 14:31:56 GMT
       Etag:
       - W/"1eeb21ae04620b3ef255e60814ee9706"
       Keep-Alive:
@@ -53,9 +53,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 7dd4d838-a62c-4fda-864e-dd9821fd7d8f
+      - 94f0e3ce-3ee4-4d5e-a384-66aaf8aeeae5
       X-Runtime:
-      - '1.034955'
+      - '0.413450'
       X-Xss-Protection:
       - '0'
     status:
@@ -71,17 +71,17 @@ interactions:
       Accept:
       - application/json; version=2
       Accept-Encoding:
-      - gzip, deflate, br
+      - gzip, deflate, br, zstd
       Connection:
       - keep-alive
       Content-Length:
       - '349'
       User-Agent:
-      - EXtra/2024.1.1.173+5ec72a6
+      - EXtra/2024.1.1.184+03da3c1
       content-type:
       - application/json
     method: GET
-    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=MID_DET_AGIPD1M-1&calibration_id=%5B1%5D&karabo_da=&event_at=2022-09-01+13%3A26%3A48.00&pdu_snapshot_at=2022-09-01+13%3A26%3A48.00
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=MID_DET_AGIPD1M-1&calibration_id=%5B1%5D&karabo_da=&event_at=2022-09-01+13%3A26%3A48.00&pdu_snapshot_at=2022-09-01+13%3A26%3A48.00&begin_at_strategy=closest
   response:
     body:
       string: '[{"id":141880,"name":"20220902_060534_sIdx=0","file_name":"cal.1662098732.6664886.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m337/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M337/Offset/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-09-02T07:42:33.000+02:00","end_validity_at":null,"begin_at":"2022-09-02T07:42:33.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:003049
@@ -141,7 +141,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 04 Jul 2024 16:56:18 GMT
+      - Fri, 08 Nov 2024 14:31:57 GMT
       Etag:
       - W/"6135c60d078280388d9a0fa23ce670b2"
       Keep-Alive:
@@ -169,9 +169,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 10cece49-694f-4a8b-8981-021335ab3df5
+      - 34f4eba6-ccf6-444d-b29b-d0eff30a0eb9
       X-Runtime:
-      - '1.380129'
+      - '1.401682'
       X-Xss-Protection:
       - '0'
     status:
@@ -187,17 +187,17 @@ interactions:
       Accept:
       - application/json; version=2
       Accept-Encoding:
-      - gzip, deflate, br
+      - gzip, deflate, br, zstd
       Connection:
       - keep-alive
       Content-Length:
       - '400'
       User-Agent:
-      - EXtra/2024.1.1.173+5ec72a6
+      - EXtra/2024.1.1.184+03da3c1
       content-type:
       - application/json
     method: GET
-    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=MID_DET_AGIPD1M-1&calibration_id=%5B19%5D&karabo_da=&event_at=2022-09-01+13%3A26%3A48.00&pdu_snapshot_at=2022-09-01+13%3A26%3A48.00
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=MID_DET_AGIPD1M-1&calibration_id=%5B19%5D&karabo_da=&event_at=2022-09-01+13%3A26%3A48.00&pdu_snapshot_at=2022-09-01+13%3A26%3A48.00&begin_at_strategy=closest
   response:
     body:
       string: '[{"id":118111,"name":"20220225_174759_sIdx=0","file_name":"cal.1645811278.2248814.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv11_m337/","data_set_name":"/AGIPD_SIV1_AGIPDV11_M337/SlopesFF/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-02-05T13:07:49.000+01:00","end_validity_at":null,"begin_at":"2022-02-05T13:07:49.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
@@ -257,7 +257,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 04 Jul 2024 16:56:19 GMT
+      - Fri, 08 Nov 2024 14:31:58 GMT
       Etag:
       - W/"a46871c68313faae6db92238c2223c4c"
       Keep-Alive:
@@ -285,9 +285,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 5a5845a0-875c-4d76-8c6a-107ecfca379b
+      - 6e3eed71-3d8e-427d-a5e8-cc26bfb7d2ec
       X-Runtime:
-      - '1.216156'
+      - '1.288089'
       X-Xss-Protection:
       - '0'
     status:
