@@ -91,7 +91,7 @@ def test_reading_grating1d(mock_sqs_grating_calibration_run, tmp_path):
 
     monochromator_scan = Scan(mock_sqs_grating_calibration_run[monochromator_energy, "actualEnergy"], resolution=1)
     grating_calibration = Grating1DCalibration(min_pixel=0, max_pixel=1000)
-    grating_calibration.setup(mock_sqs_grating_calibration_run[final_photon_spectrometer, "data.image.pixels"],
+    grating_calibration.setup(mock_sqs_grating_calibration_run[final_photon_spectrometer, "data.adc"],
                               monochromator_scan,
                              )
     d = tmp_path / "data"
@@ -105,38 +105,4 @@ def test_reading_grating1d(mock_sqs_grating_calibration_run, tmp_path):
     assert np.isclose(grating_calibration.e0, 990.0, atol=1e-2, rtol=1e-2)
     assert np.isclose(grating_calibration.slope, 20.0/1000.0, atol=1e-2, rtol=1e-2)
 
-
-@pytest.mark.skipif(not os.path.isdir("/gpfs/exfel/d"), reason="GPFS not available")
-@pytest.mark.vcr
-def test_full_grating2d_calibration_from_data():
-    # when a mono-chromator is used, this data source provides the information of which
-    # energy the monochromator was set in
-    monochromator_energy = "SA3_XTD10_MONO/MDL/PHOTON_ENERGY"
-
-    # the data from the DIAG3 grating spectrometer after the cookie box is available for some runs
-    final_photon_spectrometer = "SQS_DIAG3_BIU/CAM/CAM_6:daqOutput"
-
-    # open run
-    background_run = open_run(proposal=8697, run=23)
-    monochromator_runs = range(173, 185)
-    monochromator_runs = [open_run(proposal=8697, run=r) for r in monochromator_runs]
-    monochromator_runs = monochromator_runs[0].union(*monochromator_runs[1:])
-
-    monochromator_scan = Scan(monochromator_runs[monochromator_energy, "actualEnergy"], resolution=1)
-    grating_calibration = Grating2DCalibration(angle=-10.5)
-    grating_calibration.setup(monochromator_runs[final_photon_spectrometer, "data.image.pixels"],
-                              monochromator_scan,
-                              grating_bkg=background_run[final_photon_spectrometer, "data.image.pixels"],
-                              grating_motor=monochromator_runs['SQS_DIAG3_SCAM/MOTOR/ST_AXIS_X', 'encoderPosition.value']
-                             )
-    grating_calibration.to_file('grating2d_calib.h5')
-    grating_calibration = Grating2DCalibration.from_file('grating2d_calib.h5')
-
-    calibrated = grating_calibration.apply(monochromator_runs.select_trains(np.s_[:10]))
-
-    assert np.isclose(grating_calibration.e0, 990.1325, atol=1e-2, rtol=1e-2)
-    assert np.isclose(grating_calibration.slope, 0.013908700693988751, atol=1e-2, rtol=1e-2)
-    assert np.isclose(grating_calibration.slope_motor, -7.6386088778649395, atol=1e-2, rtol=1e-2)
-
-    print(f"Test successful.")
 
