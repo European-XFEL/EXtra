@@ -36,6 +36,7 @@ Changed:
   property. There is also a new `force_slow_data` argument to
   [XGM.pulse_counts()][extra.XGM.pulse_counts] to always return whatever was
   saved in the slow data (!161).
+- [Grating2DCalibration][extra.recipes.Grating2DCalibration] and [Grating1DCalibration][extra.recipes.Grating1DCalibration] have added tests (!).
 
 Fixed:
 
