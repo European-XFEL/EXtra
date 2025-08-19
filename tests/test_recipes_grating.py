@@ -87,7 +87,7 @@ def test_reading_grating2d(mock_sqs_grating_calibration_run, tmp_path):
 
 def test_reading_grating1d(mock_sqs_grating_calibration_run, tmp_path):
     monochromator_energy = "SA3_XTD10_MONO/MDL/PHOTON_ENERGY"
-    final_photon_spectrometer = "SQS_EXP_GH2-2/CORR/RECEIVER"
+    final_photon_spectrometer = "SQS_EXP_GH2-2/CORR/RECEIVER:daqOutput"
 
     monochromator_scan = Scan(mock_sqs_grating_calibration_run[monochromator_energy, "actualEnergy"], resolution=1)
     grating_calibration = Grating1DCalibration(min_pixel=0, max_pixel=1000)
