@@ -80,7 +80,7 @@ def test_reading_grating2d(mock_sqs_grating_calibration_run, tmp_path):
     grating_calibration.to_file(fpath)
     grating_calibration = Grating2DCalibration.from_file(fpath)
 
-    calibrated = grating_calibration.apply(mock_sqs_grating_calibration_run(np.s_[10:20]))
+    calibrated = grating_calibration.apply(mock_sqs_grating_calibration_run.select_trains(np.s_[10:20]))
 
     assert np.isclose(grating_calibration.e0, 990.0, atol=1e-2, rtol=1e-2)
     assert np.isclose(grating_calibration.slope, 20.0/1000.0, atol=1e-2, rtol=1e-2)
