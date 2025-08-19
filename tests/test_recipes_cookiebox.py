@@ -268,8 +268,13 @@ def test_avg_and_fit_single_channel(mock_sqs_etof_calibration_run, tmp_path):
     cal.to_file(fpath)
     cal_read = CookieboxCalibration.from_file(fpath)
 
-    data = cal_read.load_data(calibration_run.select_trains(np.s_[:10]))
+    # test if serialization worked
+    for tof_id in tof_ids:
+        assert np.allclose(cal_read.model_params[tof_id], correct_constants, rtol=1e-2, atol=1e-2)
+
+    data = cal_read.load_data(mock_sqs_etof_calibration_run.select_trains(np.s_[:10]))
     spectrum = cal_read.calibrate(data)
+
 
 @pytest.mark.skipif(not os.path.isdir("/gpfs/exfel/d"), reason="GPFS not available")
 def test_full_cookiebox_calibration_from_data(tmp_path):
