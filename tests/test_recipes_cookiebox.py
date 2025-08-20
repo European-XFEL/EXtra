@@ -269,6 +269,10 @@ def test_avg_and_fit_single_channel(mock_sqs_etof_calibration_run, tmp_path):
 
     # make some plots
     plt.figure(figsize=(10, 8))
+    cal.plot_calibration_data()
+    plt.savefig(str(d / "data.pdf"))
+
+    plt.figure(figsize=(10, 8))
     cal.plot_fit(0)
     plt.savefig(str(d / "fit.pdf"))
 
@@ -279,6 +283,10 @@ def test_avg_and_fit_single_channel(mock_sqs_etof_calibration_run, tmp_path):
     plt.figure(figsize=(10, 8))
     cal.plot_jacobians()
     plt.savefig(str(d / "jacobians.pdf"))
+
+    plt.figure(figsize=(10, 8))
+    cal.plot_transmissions()
+    plt.savefig(str(d / "transmissions.pdf"))
 
     plt.figure(figsize=(10, 8))
     cal.plot_diagnostics(0)
@@ -295,6 +303,9 @@ def test_avg_and_fit_single_channel(mock_sqs_etof_calibration_run, tmp_path):
 
     # now do it subtracting the offset to check if that does not crash either
     spectrum = cal_read.calibrate(data, subtract_offset=True)
+
+    # now call simpler function to do both at once
+    spectrum = cal_read.apply(mock_sqs_etof_calibration_run.select_trains(np.s_[10:20]))
 
 
 # tests data reading without parallelization
@@ -388,4 +399,54 @@ def test_deconvolve(mock_sqs_etof_calibration_run, tmp_path):
     tof_response.apply(data.sel(tof=0), nonneg=True, method="nn_matrix", n_iter=10)
     # apply TV method
     tof_response.apply(data.sel(tof=0), nonneg=True, method="tv_matrix", n_iter=10, Lambda=1e-5)
+
+def test_deconvolve_embedded(mock_sqs_etof_calibration_run, tmp_path):
+    # use mock data and do the same as before, but with deconvolution
+    # it should improve resolution, but lead to the same calibration constants
+    # doing the full calibration takes a while in this setting, so we just check if the serialization works
+    #
+    pulse_timing = 'SQS_RR_UTC/TSYS/TIMESERVER'
+    monochromator_energy = 'SA3_XTD10_MONO/MDL/PHOTON_ENERGY'
+    digitizer = 'SQS_DIGITIZER_UTC4/ADC/1:network'
+    digitizer_control = 'SQS_DIGITIZER_UTC4/ADC/1'
+    pulse_energy = 'SQS_DIAG1_XGMD/XGM/DOOCS'
+    mock_sqs_etof_calibration_run = mock_sqs_etof_calibration_run.select([pulse_timing,
+                                  digitizer, digitizer_control,
+                                  pulse_energy, f"{pulse_energy}:output",
+                                  monochromator_energy], require_all=True).select_trains(np.s_[10:])
+    channel_name = "1_A"
+    tof_ids = [0]
+    tof_channel = {}
+    tof_channel[0] = AdqRawChannel(mock_sqs_etof_calibration_run,
+                                   channel_name,
+                                   digitizer=digitizer,
+                                   first_pulse_offset=1000)
+    scan = Scan(mock_sqs_etof_calibration_run[monochromator_energy, "actualEnergy"], resolution=2)
+
+    # setup tof response
+    tof_response = TOFAnalogResponse(roi=slice(75, None), n_samples=150)
+    tof_response.setup(tof_channel[0], scan)
+
+
+    # create calibration object to read data in the appropriate format
+    energy_axis = np.linspace(965, 1070, 160)
+    xgm = XGM(mock_sqs_etof_calibration_run, pulse_energy)
+    cal = CookieboxCalibration(
+                    auger_start_roi=1,
+                    start_roi=75,
+                    stop_roi=320,
+    )
+    cal.setup(run=mock_sqs_etof_calibration_run, energy_axis=energy_axis, tof_settings=tof_channel,
+              xgm=xgm,
+              scan=scan,
+              tof_response={0: tof_response},
+              )
+
+    d = tmp_path / "data"
+    d.mkdir()
+
+    # test serialization
+    fpath = str(d / "response.h5")
+    cal.to_file(fpath)
+    cal_read = CookieboxCalibration.from_file(fpath)
 
