@@ -355,6 +355,9 @@ def test_deconvolve(mock_sqs_etof_calibration_run, tmp_path):
     tof_response = TOFAnalogResponse(roi=slice(75, None))
     tof_response.setup(tof_channel[0], scan)
 
+    d = tmp_path / "data"
+    d.mkdir()
+
     # make some plots
     plt.figure(figsize=(10, 8))
     tof_response.plot()
