@@ -177,7 +177,7 @@ def mock_sqs_etof_calibration_directory():
     A = 1000.0
     Aa = 500.0
     auger = 35.0
-    offset = 22.0
+    offset = 44.0
     # e = e0+c/(ts-t0)**2
     # ts = t0 + sqrt(c/(e - e0))
     ts = t0 + np.sqrt(c/(energy - e0))
@@ -186,13 +186,14 @@ def mock_sqs_etof_calibration_directory():
     samples = (A*np.exp(-0.5*(ts[:, None] - ts_axis[None, :])**2/(sigma**2))
                + Aa*np.exp(-0.5*(auger - ts_axis[None, :])**2/(sigma**2))
                )
+    samples += offset
     # add some samples before data
     samples = -1*np.concatenate((
                                  np.zeros((samples.shape[0], 1000)),            # samples before trigger
                                  samples,                                       # data
                                  np.zeros((samples.shape[0], 3000)),            # samples after
                                  ), axis=-1)
-    samples += -offset
+    samples += np.random.randn(*samples.shape)
 
     sources = [
         Timeserver('SQS_RR_UTC/TSYS/TIMESERVER'),

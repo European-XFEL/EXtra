@@ -352,7 +352,7 @@ def test_deconvolve(mock_sqs_etof_calibration_run, tmp_path):
     scan = Scan(mock_sqs_etof_calibration_run[monochromator_energy, "actualEnergy"], resolution=2)
 
     # setup tof response
-    tof_response = TOFAnalogResponse(roi=slice(75, None))
+    tof_response = TOFAnalogResponse(roi=slice(75, None), n_samples=150)
     tof_response.setup(tof_channel[0], scan)
 
     d = tmp_path / "data"
