@@ -407,6 +407,8 @@ def test_deconvolve(mock_sqs_etof_calibration_run, tmp_path):
     for tof_id in tof_ids:
         assert np.allclose(cal_read.model_params[tof_id], correct_constants, rtol=1e-2, atol=1e-2)
 
-    data = cal_read.load_data(mock_sqs_etof_calibration_run.select_trains(np.s_[10:20]))
+    data = cal_read.load_data(mock_sqs_etof_calibration_run.select_trains(np.s_[10:12]),
+                              nonneg=True, method="nn_matrix", n_iter=10
+                              )
     spectrum = cal_read.calibrate(data)
 
