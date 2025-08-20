@@ -356,11 +356,12 @@ def test_deconvolve(mock_sqs_etof_calibration_run, tmp_path):
                     auger_start_roi=1,
                     start_roi=75,
                     stop_roi=320,
-                    tof_response={0: TOFAnalogResponse(roi=slice(75, None))},
     )
     cal.setup(run=mock_sqs_etof_calibration_run, energy_axis=energy_axis, tof_settings=tof_channel,
               xgm=xgm,
-              scan=scan)
+              scan=scan,
+              tof_response={0: TOFAnalogResponse(roi=slice(75, None))},
+              )
     correct_energies = np.unique(mock_etof_mono_energies())
     correct_constants = np.array(mock_etof_calibration_constants())
     for tof_id in tof_ids:
