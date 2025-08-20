@@ -16,7 +16,7 @@ from extra.data import open_run, by_id
 from extra.components import XGM, Scan, AdqRawChannel
 from extra.recipes import CookieboxCalibration
 from extra.recipes.cookiebox import TofFitResult
-from extra.recipes.cookiebox_deconvolve import TofAnalogResponse
+from extra.recipes.cookiebox_deconvolve import TOFAnalogResponse
 
 from .mockdata.utils import (mock_etof_calibration_constants,
                              mock_etof_mono_energies)
@@ -353,7 +353,7 @@ def test_deconvolve(mock_sqs_etof_calibration_run, tmp_path):
                     auger_start_roi=1,
                     start_roi=75,
                     stop_roi=320,
-                    tof_response={0: TofAnalogResponse(roi=slice(75, None))},
+                    tof_response={0: TOFAnalogResponse(roi=slice(75, None))},
     )
     cal.setup(run=mock_sqs_etof_calibration_run, energy_axis=energy_axis, tof_settings=tof_channel,
               xgm=xgm,
