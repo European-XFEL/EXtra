@@ -6,7 +6,6 @@ import pytest
 import numpy as np
 import pandas as pd
 import xarray as xr
-import os
 from pathlib import Path
 
 from extra.data import open_run, by_id
