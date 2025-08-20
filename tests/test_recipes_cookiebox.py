@@ -389,6 +389,14 @@ def test_deconvolve(mock_sqs_etof_calibration_run, tmp_path):
     cal.plot_diagnostics()
     plt.savefig(str(d / "diagnostics.pdf"))
 
+    plt.figure(figsize=(10, 8))
+    cal.plot_transmissions()
+    plt.savefig(str(d / "transmissions.pdf"))
+
+    plt.figure(figsize=(10, 8))
+    cal.plot_offsets()
+    plt.savefig(str(d / "offsets.pdf"))
+
     cal_read = CookieboxCalibration.from_file(fpath)
 
     # test if serialization worked
