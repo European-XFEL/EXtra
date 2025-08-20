@@ -57,25 +57,7 @@ class XGMReduced(XGMD):
         ("location", None, "XGM.3356.SQS")
     ]
 
-class XGMWithData(DeviceBase):
-    extra_run_values = [
-        ('classId', None, 'DoocsXGM'),
-        ("location", None, "XGM.2595.T6")
-    ]
-
-    control_keys = [
-        ("controlData/slowTrain", "f4", ()),
-        ("controlData/slowTrainSa1", "f4", ()),
-        ("controlData/slowTrainSa3", "f4", ()),
-        ("pulseEnergy/numberOfBunchesActual", "f4", ()),
-        ('pulseEnergy/photonFlux', 'f4', ()),
-        ('pulseEnergy/wavelengthUsed', 'f4', ()),
-        ("pulseEnergy/numberOfSa1BunchesActual", "f4", ()),
-        ("pulseEnergy/numberOfSa3BunchesActual", "f4", ())
-    ]
-
-    output_channels = ('output/data',)
-
+class XGMWithData(XGMD):
     instrument_keys = XGM.instrument_keys + [
         ("intensitySa1TD", "f4", (1,)),
         ("intensitySa3TD", "f4", (1,))
