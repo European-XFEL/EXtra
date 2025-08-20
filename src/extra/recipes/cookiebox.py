@@ -231,7 +231,7 @@ class CookieboxCalibration(SerializableMixin):
       following the change-of-variable theorem in statistics.
     - Divide by the transmission per eTOF.
 
-    The variables calculated can be visualized using `obj.plot_diagnostics()`
+    The variables calculated can be visualized using `obj.plot_diagnostics(tof_id)`
     and similar other functions for validation and other cross-checks.
 
     Example usage:
@@ -935,8 +935,7 @@ class CookieboxCalibration(SerializableMixin):
         ax[0].scatter(self.tof_fit_result[tof_id].mu, self.tof_fit_result[tof_id].energy, label="Peak center")
         ax[0].plot(ts, e, lw=2, label="Model fit")
         ax[0].set(xlabel="Samples", ylabel="Energy [eV]")
-        ax[1].scatter(self.tof_fit_result[tof_id].energy, self.normalization[tof_id], label="Transmission")
-        ax[1].plot(self.energy_axis, self.normalization[tof_id], lw=2, label="Interpolated transmission")
+        ax[1].plot(self.energy_axis, self.normalization[tof_id], lw=2, label="Transmission")
         ax[1].set(xlabel="Energy [eV]", ylabel="Transmission [a.u.]")
         ax[2].scatter(self.tof_fit_result[tof_id].energy, self.tof_fit_result[tof_id].offset, label="Offset")
         ax[2].plot(self.energy_axis, self.offset[tof_id], lw=2, label="Offset")
