@@ -364,7 +364,8 @@ def test_deconvolve(mock_sqs_etof_calibration_run, tmp_path):
     plt.savefig(str(d / "response.pdf"))
 
     # test serialization
-    tof_response.to_file(str(d / "response.h5"))
+    fpath = str(d / "response.h5")
+    tof_response.to_file(fpath)
     tof_response_read = TOFAnalogResponse.from_file(fpath)
 
 
