@@ -237,7 +237,7 @@ def test_avg_and_fit_single_channel(mock_sqs_etof_calibration_run, tmp_path):
     mock_sqs_etof_calibration_run = mock_sqs_etof_calibration_run.select([pulse_timing,
                                   digitizer, digitizer_control,
                                   pulse_energy, f"{pulse_energy}:output",
-                                  monochromator_energy], require_all=True)
+                                  monochromator_energy], require_all=True).select_trains(np.s_[10:])
     channel_name = "1_A"
     tof_ids = [0]
     tof_channel = {}
@@ -309,7 +309,7 @@ def test_no_parallel(mock_sqs_etof_calibration_run, tmp_path):
     mock_sqs_etof_calibration_run = mock_sqs_etof_calibration_run.select([pulse_timing,
                                   digitizer, digitizer_control,
                                   pulse_energy, f"{pulse_energy}:output",
-                                  monochromator_energy], require_all=True)
+                                  monochromator_energy], require_all=True).select_trains(np.s_[10:])
     channel_name = "1_A"
     tof_ids = [0]
     tof_channel = {}
@@ -341,7 +341,7 @@ def test_deconvolve(mock_sqs_etof_calibration_run, tmp_path):
     mock_sqs_etof_calibration_run = mock_sqs_etof_calibration_run.select([pulse_timing,
                                   digitizer, digitizer_control,
                                   pulse_energy, f"{pulse_energy}:output",
-                                  monochromator_energy], require_all=True)
+                                  monochromator_energy], require_all=True).select_trains(np.s_[10:])
     channel_name = "1_A"
     tof_ids = [0]
     tof_channel = {}
