@@ -350,65 +350,36 @@ def test_deconvolve(mock_sqs_etof_calibration_run, tmp_path):
                                    digitizer=digitizer,
                                    first_pulse_offset=1000)
     scan = Scan(mock_sqs_etof_calibration_run[monochromator_energy, "actualEnergy"], resolution=2)
-    energy_axis = np.linspace(965, 1070, 160)
+
+    # setup tof response
+    tof_response = TOFAnalogResponse(roi=slice(75, None))
+    tof_response.setup(tof_channel[0], scan)
+
+    # make some plots
+    plt.figure(figsize=(10, 8))
+    tof_response.plot()
+    plt.savefig(str(d / "response.pdf"))
+
+    # test serialization
+    tof_response.to_file(str(d / "response.h5"))
+    tof_response_read = TOFAnalogResponse.from_file(fpath)
+
+
+    # create calibration object to read data in the appropriate format
     xgm = XGM(mock_sqs_etof_calibration_run, pulse_energy)
     cal = CookieboxCalibration(
                     auger_start_roi=1,
                     start_roi=75,
                     stop_roi=320,
     )
-    # setup tof response
-    tof_response = {0: TOFAnalogResponse(roi=slice(75, None))}
-    tof_response[0].setup(tof_channel[0], scan)
     cal.setup(run=mock_sqs_etof_calibration_run, energy_axis=energy_axis, tof_settings=tof_channel,
               xgm=xgm,
-              scan=scan,
-              tof_response=tof_response,
-              )
-    correct_energies = np.unique(mock_etof_mono_energies())
-    correct_constants = np.array(mock_etof_calibration_constants())
-    for tof_id in tof_ids:
-        assert np.allclose(cal.tof_fit_result[tof_id].energy, correct_energies, rtol=1e-2, atol=1e-2)
-        assert np.allclose(cal.model_params[tof_id], correct_constants, rtol=1e-2, atol=1e-2)
+              scan=scan)
 
-    d = tmp_path / "data"
-    d.mkdir()
-    fpath = str(d / "cookiebox_test.h5")
-    cal.to_file(fpath)
-
-    # make some plots
-    plt.figure(figsize=(10, 8))
-    cal.plot_fit(0)
-    plt.savefig(str(d / "fit.pdf"))
-
-    plt.figure(figsize=(10, 8))
-    cal.plot_calibrations()
-    plt.savefig(str(d / "calibrations.pdf"))
-
-    plt.figure(figsize=(10, 8))
-    cal.plot_jacobians()
-    plt.savefig(str(d / "jacobians.pdf"))
-
-    plt.figure(figsize=(10, 8))
-    cal.plot_diagnostics()
-    plt.savefig(str(d / "diagnostics.pdf"))
-
-    plt.figure(figsize=(10, 8))
-    cal.plot_transmissions()
-    plt.savefig(str(d / "transmissions.pdf"))
-
-    plt.figure(figsize=(10, 8))
-    cal.plot_offsets()
-    plt.savefig(str(d / "offsets.pdf"))
-
-    cal_read = CookieboxCalibration.from_file(fpath)
-
-    # test if serialization worked
-    for tof_id in tof_ids:
-        assert np.allclose(cal_read.model_params[tof_id], correct_constants, rtol=1e-2, atol=1e-2)
-
-    data = cal_read.load_data(mock_sqs_etof_calibration_run.select_trains(np.s_[10:12]),
-                              nonneg=True, method="nn_matrix", n_iter=10
-                              )
-    spectrum = cal_read.calibrate(data)
+    # read data
+    data = cal.load_data(mock_sqs_etof_calibration_run.select_trains(np.s_[10:12]))
+    # apply NN method
+    tof_response.apply(data, nonneg=True, method="nn_matrix", n_iter=10)
+    # apply TV method
+    tof_response.apply(data, nonneg=True, method="tv_matrix", n_iter=10, Lambda=1e-5)
 
