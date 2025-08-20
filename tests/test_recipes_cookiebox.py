@@ -399,6 +399,11 @@ def test_deconvolve(mock_sqs_etof_calibration_run, tmp_path):
     tof_response.apply(data.sel(tof=0), nonneg=True, method="nn_matrix", n_iter=10)
     # apply TV method
     tof_response.apply(data.sel(tof=0), nonneg=True, method="tv_matrix", n_iter=10, Lambda=1e-5)
+    # apply standard method
+    tof_response.apply(data.sel(tof=0), method="standard")
+
+    # check if we can get the response
+    h = tof_response.get_response()
 
 def test_deconvolve_embedded(mock_sqs_etof_calibration_run, tmp_path):
     # use mock data and do the same as before, but with deconvolution
