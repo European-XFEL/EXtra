@@ -293,6 +293,9 @@ def test_avg_and_fit_single_channel(mock_sqs_etof_calibration_run, tmp_path):
     data = cal_read.load_data(mock_sqs_etof_calibration_run.select_trains(np.s_[10:20]))
     spectrum = cal_read.calibrate(data)
 
+    # now do it subtracting the offset to check if that does not crash either
+    spectrum = cal_read.calibrate(data, subtract_offset=True)
+
 
 # tests data reading without parallelization
 def test_no_parallel(mock_sqs_etof_calibration_run, tmp_path):
