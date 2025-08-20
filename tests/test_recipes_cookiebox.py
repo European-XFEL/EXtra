@@ -370,6 +370,7 @@ def test_deconvolve(mock_sqs_etof_calibration_run, tmp_path):
 
 
     # create calibration object to read data in the appropriate format
+    energy_axis = np.linspace(965, 1070, 160)
     xgm = XGM(mock_sqs_etof_calibration_run, pulse_energy)
     cal = CookieboxCalibration(
                     auger_start_roi=1,
