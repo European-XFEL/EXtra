@@ -248,11 +248,7 @@ def test_avg_and_fit_single_channel(mock_sqs_etof_calibration_run, tmp_path):
     energy_axis = np.linspace(965, 1070, 160)
     xgm = XGM(mock_sqs_etof_calibration_run, pulse_energy)
     cal = CookieboxCalibration(
-                    # these were chosen by eye
                     auger_start_roi=1,
-                    # we can als0 provide a dictionary with dfferent values per eTOF
-                    # auger_start_roi={0: 150, 1: 150, 2: 150, 3: 150, 4: 150, 5: 150, 6: 150, 7: 150,
-                    #                  8: 150, 9: 150, 10: 150, 11: 150, 12: 150, 13: 150, 14: 150, 15: 150},
                     start_roi=75,
                     stop_roi=320,
     )
@@ -282,6 +278,10 @@ def test_avg_and_fit_single_channel(mock_sqs_etof_calibration_run, tmp_path):
     plt.figure(figsize=(10, 8))
     cal.plot_jacobians()
     plt.savefig(str(d / "jacobians.pdf"))
+
+    plt.figure(figsize=(10, 8))
+    cal.plot_diagnostics()
+    plt.savefig(str(d / "diagnostics.pdf"))
 
     cal_read = CookieboxCalibration.from_file(fpath)
 
@@ -325,3 +325,72 @@ def test_no_parallel(mock_sqs_etof_calibration_run, tmp_path):
     cal.setup(run=mock_sqs_etof_calibration_run, energy_axis=energy_axis, tof_settings=tof_channel,
               xgm=xgm,
               scan=scan)
+
+def test_deconvolve(mock_sqs_etof_calibration_run, tmp_path):
+    # use mock data and do the same as before, but with deconvolution
+    # it should improve resolution, but lead to the same calibration constants
+    pulse_timing = 'SQS_RR_UTC/TSYS/TIMESERVER'
+    monochromator_energy = 'SA3_XTD10_MONO/MDL/PHOTON_ENERGY'
+    digitizer = 'SQS_DIGITIZER_UTC4/ADC/1:network'
+    digitizer_control = 'SQS_DIGITIZER_UTC4/ADC/1'
+    pulse_energy = 'SQS_DIAG1_XGMD/XGM/DOOCS'
+    mock_sqs_etof_calibration_run = mock_sqs_etof_calibration_run.select([pulse_timing,
+                                  digitizer, digitizer_control,
+                                  pulse_energy, f"{pulse_energy}:output",
+                                  monochromator_energy], require_all=True)
+    channel_name = "1_A"
+    tof_ids = [0]
+    tof_channel = {}
+    tof_channel[0] = AdqRawChannel(mock_sqs_etof_calibration_run,
+                                   channel_name,
+                                   digitizer=digitizer,
+                                   first_pulse_offset=1000)
+    scan = Scan(mock_sqs_etof_calibration_run[monochromator_energy, "actualEnergy"], resolution=2)
+    energy_axis = np.linspace(965, 1070, 160)
+    xgm = XGM(mock_sqs_etof_calibration_run, pulse_energy)
+    cal = CookieboxCalibration(
+                    auger_start_roi=1,
+                    start_roi=75,
+                    stop_roi=320,
+                    tof_response={0: TofAnalogResponse(roi=slice(75, None))},
+    )
+    cal.setup(run=mock_sqs_etof_calibration_run, energy_axis=energy_axis, tof_settings=tof_channel,
+              xgm=xgm,
+              scan=scan)
+    correct_energies = np.unique(mock_etof_mono_energies())
+    correct_constants = np.array(mock_etof_calibration_constants())
+    for tof_id in tof_ids:
+        assert np.allclose(cal.tof_fit_result[tof_id].energy, correct_energies, rtol=1e-2, atol=1e-2)
+        assert np.allclose(cal.model_params[tof_id], correct_constants, rtol=1e-2, atol=1e-2)
+
+    d = tmp_path / "data"
+    d.mkdir()
+    fpath = str(d / "cookiebox_test.h5")
+    cal.to_file(fpath)
+
+    # make some plots
+    plt.figure(figsize=(10, 8))
+    cal.plot_fit(0)
+    plt.savefig(str(d / "fit.pdf"))
+
+    plt.figure(figsize=(10, 8))
+    cal.plot_calibrations()
+    plt.savefig(str(d / "calibrations.pdf"))
+
+    plt.figure(figsize=(10, 8))
+    cal.plot_jacobians()
+    plt.savefig(str(d / "jacobians.pdf"))
+
+    plt.figure(figsize=(10, 8))
+    cal.plot_diagnostics()
+    plt.savefig(str(d / "diagnostics.pdf"))
+
+    cal_read = CookieboxCalibration.from_file(fpath)
+
+    # test if serialization worked
+    for tof_id in tof_ids:
+        assert np.allclose(cal_read.model_params[tof_id], correct_constants, rtol=1e-2, atol=1e-2)
+
+    data = cal_read.load_data(mock_sqs_etof_calibration_run.select_trains(np.s_[10:20]))
+    spectrum = cal_read.calibrate(data)
+
