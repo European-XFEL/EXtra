@@ -8,6 +8,9 @@ import pandas as pd
 import xarray as xr
 from pathlib import Path
 
+import matplotlib as mpl
+mpl.use('Agg')
+
 from extra.data import open_run, by_id
 from extra.components import XGM, Scan, AdqRawChannel
 from extra.recipes import CookieboxCalibration
@@ -223,7 +226,7 @@ def test_fit(tmp_path):
     cal_read = CookieboxCalibration.from_file(fpath)
 
 def test_avg_and_fit_single_channel(mock_sqs_etof_calibration_run, tmp_path):
-    # match all by train Id
+    # use mock data
     pulse_timing = 'SQS_RR_UTC/TSYS/TIMESERVER'
     monochromator_energy = 'SA3_XTD10_MONO/MDL/PHOTON_ENERGY'
     digitizer = 'SQS_DIGITIZER_UTC4/ADC/1:network'
@@ -265,6 +268,20 @@ def test_avg_and_fit_single_channel(mock_sqs_etof_calibration_run, tmp_path):
     d.mkdir()
     fpath = str(d / "cookiebox_test.h5")
     cal.to_file(fpath)
+
+    # make some plots
+    plt.figure(figsize=(10, 8))
+    cal.plot_fit(0)
+    plt.savefig(str(d / "fit.pdf"))
+
+    plt.figure(figsize=(10, 8))
+    cal.plot_calibrations()
+    plt.savefig(str(d / "calibrations.pdf"))
+
+    plt.figure(figsize=(10, 8))
+    cal.plot_jacobians()
+    plt.savefig(str(d / "jacobians.pdf"))
+
     cal_read = CookieboxCalibration.from_file(fpath)
 
     # test if serialization worked
@@ -275,3 +292,35 @@ def test_avg_and_fit_single_channel(mock_sqs_etof_calibration_run, tmp_path):
     spectrum = cal_read.calibrate(data)
 
 
+# tests data reading without parallelization
+def test_no_parallel(mock_sqs_etof_calibration_run, tmp_path):
+    # same as above, but tests only if a crash happens in `calc_mean`
+    # somehow parallelization means that `calc_mean` is not shown in the coverage
+    pulse_timing = 'SQS_RR_UTC/TSYS/TIMESERVER'
+    monochromator_energy = 'SA3_XTD10_MONO/MDL/PHOTON_ENERGY'
+    digitizer = 'SQS_DIGITIZER_UTC4/ADC/1:network'
+    digitizer_control = 'SQS_DIGITIZER_UTC4/ADC/1'
+    pulse_energy = 'SQS_DIAG1_XGMD/XGM/DOOCS'
+    mock_sqs_etof_calibration_run = mock_sqs_etof_calibration_run.select([pulse_timing,
+                                  digitizer, digitizer_control,
+                                  pulse_energy, f"{pulse_energy}:output",
+                                  monochromator_energy], require_all=True)
+    channel_name = "1_A"
+    tof_ids = [0]
+    tof_channel = {}
+    tof_channel[0] = AdqRawChannel(mock_sqs_etof_calibration_run,
+                                   channel_name,
+                                   digitizer=digitizer,
+                                   first_pulse_offset=1000)
+    scan = Scan(mock_sqs_etof_calibration_run[monochromator_energy, "actualEnergy"], resolution=2)
+    energy_axis = np.linspace(965, 1070, 160)
+    xgm = XGM(mock_sqs_etof_calibration_run, pulse_energy)
+    cal = CookieboxCalibration(
+                    auger_start_roi=1,
+                    start_roi=75,
+                    stop_roi=320,
+                    parallel=False,
+    )
+    cal.setup(run=mock_sqs_etof_calibration_run, energy_axis=energy_axis, tof_settings=tof_channel,
+              xgm=xgm,
+              scan=scan)

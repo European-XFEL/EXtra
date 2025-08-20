@@ -325,6 +325,7 @@ class CookieboxCalibration(SerializableMixin):
       start_roi: Start of the RoI in a pulse, relative to the `first_pulse_offset`.
                  Use `None` to guess it.
       stop_roi: End of the RoI, relative to the `first_pulse_offset`. Use `None` to guess it.
+      parallel: Whether to average the input data in parallel.
     """
     def __init__(self,
                  xgm_threshold: Union[str, float]='median',
@@ -332,10 +333,12 @@ class CookieboxCalibration(SerializableMixin):
                  start_roi: Optional[int]=None,
                  stop_roi: Optional[int]=None,
                  interleaved: Optional[bool]=None,
+                 parallel: bool=True,
                 ):
         self._init_auger_start_roi = auger_start_roi
         self._init_start_roi = start_roi
         self._init_stop_roi = stop_roi
+        self.parallel = parallel
 
         self._xgm_threshold = xgm_threshold
 
@@ -371,6 +374,7 @@ class CookieboxCalibration(SerializableMixin):
                             #"sources",
                             "calibration_energies",
                             "_tof_response",
+                            "parallel",
                             "_version",
                            ]
     def _asdict(self):
@@ -677,7 +681,7 @@ class CookieboxCalibration(SerializableMixin):
                      xgm_threshold=self._xgm_threshold,
                      correction_fn=correction_fn,
                      )
-        parallel = True
+        parallel = self.parallel
         if correction_fn is not None:
             parallel = False # correction function has in-build parallelism
 
