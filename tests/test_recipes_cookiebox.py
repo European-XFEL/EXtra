@@ -10,6 +10,7 @@ from pathlib import Path
 
 import matplotlib as mpl
 mpl.use('Agg')
+import matplotlib.pyplot as plt
 
 from extra.data import open_run, by_id
 from extra.components import XGM, Scan, AdqRawChannel
