@@ -22,6 +22,7 @@ from extra.calibration import (
     SourceNameFormatter,
     get_client,
     lpd_dark_consts_with_fallback,
+    AutoConditionsError
 )
 
 # Most of these tests use saved HTTP responses by default (with pytest-recording).
@@ -519,3 +520,49 @@ def test_lpd_fallback():
     assert cd_chosen2['Offset'].aggregator_names == [f"LPD{m:02}" for m in range(16)]
     params2 = get_retrieved_params(cd_chosen2)
     assert params2['Memory cell order']['txt_value'] == mem_cells
+
+
+@pytest.mark.vcr
+def test_AGIPDConditions_from_data(mock_agipd1m_run, mock_legacy_agipd1m_run,
+                                   mock_agipd500k_run):
+    run = mock_agipd1m_run
+    cond = AGIPDConditions.from_data(run, 'SPB_DET_AGIPD1M-1')
+    assert cond.sensor_bias_voltage == 300
+    assert cond.memory_cells == 0  # Zeroed in FPGA_COMP
+    assert cond.acquisition_rate == 4.5
+    assert cond.integration_time == 15
+    assert cond.gain_setting == 0
+    assert cond.gain_mode == 0
+
+    run = mock_agipd1m_run.select('*:xtdf')  # Select only XTDF data.
+
+    with pytest.raises(AutoConditionsError):
+        # Should fail without more arguments.
+        AGIPDConditions.from_data(run, 'SPB_DET_AGIPD1M-1')
+
+    cond = AGIPDConditions.from_data(run, 'SPB_DET_AGIPD1M-1', gain_mode=1,
+                                     gain_setting=1, sensor_bias_voltage=150)
+    assert cond.sensor_bias_voltage == 150  # Manually set
+    assert cond.memory_cells == 64  # Now from XTDF
+    assert cond.acquisition_rate == 4.5  # Now from XTDF
+    assert cond.integration_time == 12  # Default value
+    assert cond.gain_setting == 1  # Manually set
+    assert cond.gain_mode == 1  # Manually set
+
+    run = mock_legacy_agipd1m_run
+    cond = AGIPDConditions.from_data(run, 'SPB_DET_AGIPD1M-1')
+    assert cond.sensor_bias_voltage == 300
+    assert cond.memory_cells == 0  # Zeroed in FPGA_COMP
+    assert cond.acquisition_rate == 4.5
+    assert cond.gain_setting == 0
+    assert cond.gain_mode == 0
+    assert cond.integration_time == 12
+
+    run = mock_agipd500k_run
+    cond = AGIPDConditions.from_data(run, 'HED_DET_AGIPD500K2G')
+    assert cond.sensor_bias_voltage == 200
+    assert cond.memory_cells == 0  # Zeroed in FPGA_COMP
+    assert cond.acquisition_rate == 4.5
+    assert cond.gain_setting == 0
+    assert cond.gain_mode == 0
+    assert cond.integration_time == 15
