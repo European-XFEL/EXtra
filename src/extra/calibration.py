@@ -251,6 +251,11 @@ class CalCatAPIClient:
         return self._get_by_name(
             "physical_detector_units", name, name_key="physical_name")
 
+    def pdus_by_detector(self, det_id, pdu_snapshot_at):
+        return self.get(f'physical_detector_units/get_all_by_detector',
+                        {'detector_id': det_id,
+                         'event_at': self.format_time(pdu_snapshot_at)})
+
 
 global_client = None
 
@@ -606,11 +611,13 @@ class CalibrationData(Mapping):
     (e.g. `cd["Offset"]`), giving you `MultiModuleConstant` objects.
     """
 
-    def __init__(self, constant_groups, module_details, detector_name):
+    def __init__(self, constant_groups, module_details, detector_name,
+                 condition=None):
         # {calibration: {karabo_da: SingleConstant}}
         self.constant_groups = constant_groups
         self.module_details = module_details
         self.detector_name = detector_name
+        self.condition = condition
 
     @staticmethod
     def _format_cond(condition):
@@ -675,14 +682,9 @@ class CalibrationData(Mapping):
         client = client or get_client()
 
         detector_id = client.detector_by_identifier(detector_name)["id"]
-        pdus = client.get(
-            "physical_detector_units/get_all_by_detector",
-            {
-                "detector_id": detector_id,
-                "pdu_snapshot_at": client.format_time(pdu_snapshot_at),
-            },
-        )
-        module_details = sorted(pdus, key=lambda d: d["karabo_da"])
+        module_details = sorted(
+            client.pdus_by_detector(detector_id, pdu_snapshot_at),
+            key=lambda d: d["karabo_da"])
         for mod in module_details:
             if mod.get("module_number") is None:
                 mod["module_number"] = int(re.findall(r"\d+", mod["karabo_da"])[-1])
@@ -717,7 +719,7 @@ class CalibrationData(Mapping):
                 const_group = constant_groups.setdefault(cal_type, {})
                 const_group[aggr] = SingleConstant.from_response(ccv)
 
-        return cls(constant_groups, module_details, detector_name)
+        return cls(constant_groups, module_details, detector_name, condition)
 
     @classmethod
     def from_report(
@@ -899,6 +901,64 @@ class CalibrationData(Mapping):
                     d['module_number'] = i
 
         return cls(constant_groups, module_details, det_name)
+
+    @classmethod
+    def from_data(
+            cls,
+            data: 'DataCollection',
+            detector_name=None,
+            calibrations=None,
+            modules=None,
+            client=None,
+            begin_at_strategy='closest',
+            **kwargs
+    ):
+        """Look up constants applicable to given a dataset.
+
+        `data` should be an EXtra-data `DataCollection` object containing
+        the necessary metadata to identify the detector conditions.
+
+        If omitted, it may be possible to infer `detector_name` from the
+        sources found in the given data.
+
+        The remaining arguments behave in the same way as for
+        `CalibrationData.from_condition` and any additional keyword
+        arguments are passed on to the applicable `ConditionsBase.from_data`
+        method, e.g. `AGIPDConditions.from_data`.
+        """
+
+        creation_date = data[0].train_timestamps(pydatetime=True)[0]
+
+        if detector_name is None:
+            from extra_data.components import identify_multimod_detectors
+            detector_name = identify_multimod_detectors(data, single=True)[0]
+
+        client = client or get_client()
+        det = client.detector_by_identifier(detector_name)
+
+        # Figure out detector type from PDUs.
+        types = {pdu['detector_type']['name'] for pdu
+                 in client.pdus_by_detector(det['id'], creation_date)}
+
+        if len(types) == 0:
+            raise ValueError(f'{detector_name} had no PDUs assigned at '
+                             f'data creation date to determine type')
+        elif len(types) > 1:
+            raise ValueError('{} had multiple types ({}) of PDUs assigned at '
+                             'creation date of data'.format(
+                detector_name, ', '.join(types)))
+
+        try:
+            cond_cls = detector_cond_cls[(det_type := types.pop())]
+        except KeyError:
+            raise NotImplementedError(det_type)
+
+        return cls.from_condition(
+            cond_cls.from_data(data, detector_name, modules=modules,
+                               client=client, **kwargs),
+            detector_name, calibrations=calibrations, client=client,
+            event_at=creation_date, pdu_snapshot_at=creation_date,
+            begin_at_strategy=begin_at_strategy)
 
     def __getitem__(self, key):
         if isinstance(key, str):
@@ -1720,13 +1780,13 @@ class PhysicalDetectorUnit:
     PDUs describe the physical modules independent from the detector
     they may be installed in, or the detector's logical modules they are
     mapped to.
-    
+
     Calibration data is always associated with a PDU rather than a
     detector or detector module. This allows a PDU to be moved to a
     different detector installation or place within the detector and
     carry all its calibration data alongside with it.
     """
-    
+
     pdu_id: int
     physical_name: str  # PDU identifier independent of detector
     uuid: int  # Universally unique ID used for mapping
@@ -1745,7 +1805,7 @@ class PhysicalDetectorUnit:
 
 class DetectorData(Mapping):
     """Detector consisting of one or more modules
-    
+
     A detector can house one or more physical detector units, which are
     mapped to the logical modules of the detector. Calibration data is
     associated with a PDU rather than a detector.
@@ -1776,7 +1836,7 @@ class DetectorData(Mapping):
 
         client = client or get_client()
         detector_row = client.detector_by_identifier(identifier)
-        
+
         try:
             module_rows = client.get(
                 'physical_detector_units/get_all_by_detector',
@@ -1797,7 +1857,7 @@ class DetectorData(Mapping):
 
         `identifier` may be a string restricting the result using Unix
         shell-style glob patterns.
-        
+
         `pdu_snapshot_at` should either be an ISO 8601 compatible string
         or a datetime-like object. It may also be a DataCollection
         object from EXtra-data to use the beginning of the run as a
@@ -1823,9 +1883,9 @@ class DetectorData(Mapping):
     @classmethod
     def list_by_instrument(cls, instrument, client=None):
         """List all detectors by instrument."""
-        
+
         client = client or get_client()
-        instrument_id = client.instrument_by_name(instrument)['id']        
+        instrument_id = client.instrument_by_name(instrument)['id']
 
         return [det['identifier'] for det in
                 client.get('detectors/get_all_by_instrument',
@@ -1904,6 +1964,13 @@ class DetectorData(Mapping):
             raise ValueError('no mapped PDUs')
 
         return pdu_types.pop()
+
+
+detector_cond_cls = {
+    'AGIPD-Type': AGIPDConditions,
+    'LPD-Type': LPDConditions,
+    'jungfrau-Type': JUNGFRAUConditions
+}
 
 
 class BadPixels(IntFlag):
