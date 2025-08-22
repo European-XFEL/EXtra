@@ -1,0 +1,1408 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/me
+  response:
+    body:
+      string: '{"id":-9,"email":"admin@example.com","provider":"local","contact_email":"admin@example.com","name":"Admin
+        User","first_name":"Admin","last_name":"User","nickname":null,"uid":null,"ldap_synced_at":null,"flg_service_account":true,"flg_ldap_account_valid":false,"roles":["admin"]}'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '277'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 10 Apr 2026 10:09:17 GMT
+      Etag:
+      - W/"9ec4cec974b56aebafbb6dc312056934"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 573df1ed-1f49-417c-84a0-84570aacc394
+      X-Runtime:
+      - '0.029650'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/detectors?identifier=SPB_DET_AGIPD1M-1
+  response:
+    body:
+      string: '[{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":2},{"instrument_id":7,"detector_id":2}]}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '389'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 10 Apr 2026 10:09:17 GMT
+      Etag:
+      - W/"73d84e307238475d3943984c03827c80"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - b2042a25-7004-407e-92cc-03f43aa2f80f
+      X-Runtime:
+      - '0.030596'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=2&pdu_snapshot_at=2026-04-10T11%3A27%3A00%2B00%3A00
+  response:
+    body:
+      string: '[{"id":188,"physical_name":"AGIPD_SIV1_AGIPDV11_M517","karabo_da":"AGIPD00","virtual_device_name":"Q1M1","uuid":101003000000,"float_uuid":4.9902112427e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":218,"physical_name":"AGIPD_SIV1_AGIPDV12_M421","karabo_da":"AGIPD01","virtual_device_name":"Q1M2","uuid":102013100004,"float_uuid":5.04011681377e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":219,"physical_name":"AGIPD_SIV1_AGIPDV12_M445","karabo_da":"AGIPD02","virtual_device_name":"Q1M3","uuid":102023100004,"float_uuid":5.0406108794e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":287,"physical_name":"AGIPD_SIV1_AGIPDV12_M447","karabo_da":"AGIPD03","virtual_device_name":"Q1M4","uuid":102033100010,"float_uuid":5.04110494536e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":"This
+        is a new module installed on 19.06.2025 on position Q1M4","detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":223,"physical_name":"AGIPD_SIV1_AGIPDV12_M410","karabo_da":"AGIPD04","virtual_device_name":"Q2M1","uuid":102063100000,"float_uuid":5.0425871418e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":224,"physical_name":"AGIPD_SIV1_AGIPDV12_M528","karabo_da":"AGIPD05","virtual_device_name":"Q2M2","uuid":102073100000,"float_uuid":5.04308120745e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":248,"physical_name":"AGIPD_SIV1_AGIPDV12_M425","karabo_da":"AGIPD06","virtual_device_name":"Q2M3","uuid":102053100001,"float_uuid":5.0420930762e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":288,"physical_name":"AGIPD_SIV1_AGIPDV12_M411","karabo_da":"AGIPD07","virtual_device_name":"Q2M4","uuid":102033100020,"float_uuid":5.04110494586e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":"This
+        is a new module installed on 19.06.2025 on position Q2M4","detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":225,"physical_name":"AGIPD_SIV1_AGIPDV12_M412","karabo_da":"AGIPD08","virtual_device_name":"Q3M1","uuid":102083100000,"float_uuid":5.0435752731e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":226,"physical_name":"AGIPD_SIV1_AGIPDV12_M542","karabo_da":"AGIPD09","virtual_device_name":"Q3M2","uuid":102093100000,"float_uuid":5.04406933874e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":227,"physical_name":"AGIPD_SIV1_AGIPDV12_M527","karabo_da":"AGIPD10","virtual_device_name":"Q3M3","uuid":102103100000,"float_uuid":5.0445634044e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":228,"physical_name":"AGIPD_SIV1_AGIPDV12_M502","karabo_da":"AGIPD11","virtual_device_name":"Q3M4","uuid":102113100000,"float_uuid":5.04505747004e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":229,"physical_name":"AGIPD_SIV1_AGIPDV12_M426","karabo_da":"AGIPD12","virtual_device_name":"Q4M1","uuid":102123100000,"float_uuid":5.0455515357e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":230,"physical_name":"AGIPD_SIV1_AGIPDV12_M540","karabo_da":"AGIPD13","virtual_device_name":"Q4M2","uuid":102133100000,"float_uuid":5.04604560133e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":231,"physical_name":"AGIPD_SIV1_AGIPDV12_M515","karabo_da":"AGIPD14","virtual_device_name":"Q4M3","uuid":102143100000,"float_uuid":5.04653966697e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":232,"physical_name":"AGIPD_SIV1_AGIPDV12_M544","karabo_da":"AGIPD15","virtual_device_name":"Q4M4","uuid":102153100000,"float_uuid":5.0470337326e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '10575'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 10 Apr 2026 10:09:17 GMT
+      Etag:
+      - W/"ba18dd44f59a27e5b90cd68a88820653"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 5815d264-bb11-4654-8a33-bbac7d1ba035
+      X-Runtime:
+      - '0.479948'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=2&pdu_snapshot_at=2026-04-10T11%3A27%3A00%2B00%3A00
+  response:
+    body:
+      string: '[{"id":188,"physical_name":"AGIPD_SIV1_AGIPDV11_M517","karabo_da":"AGIPD00","virtual_device_name":"Q1M1","uuid":101003000000,"float_uuid":4.9902112427e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":218,"physical_name":"AGIPD_SIV1_AGIPDV12_M421","karabo_da":"AGIPD01","virtual_device_name":"Q1M2","uuid":102013100004,"float_uuid":5.04011681377e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":219,"physical_name":"AGIPD_SIV1_AGIPDV12_M445","karabo_da":"AGIPD02","virtual_device_name":"Q1M3","uuid":102023100004,"float_uuid":5.0406108794e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":287,"physical_name":"AGIPD_SIV1_AGIPDV12_M447","karabo_da":"AGIPD03","virtual_device_name":"Q1M4","uuid":102033100010,"float_uuid":5.04110494536e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":"This
+        is a new module installed on 19.06.2025 on position Q1M4","detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":223,"physical_name":"AGIPD_SIV1_AGIPDV12_M410","karabo_da":"AGIPD04","virtual_device_name":"Q2M1","uuid":102063100000,"float_uuid":5.0425871418e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":224,"physical_name":"AGIPD_SIV1_AGIPDV12_M528","karabo_da":"AGIPD05","virtual_device_name":"Q2M2","uuid":102073100000,"float_uuid":5.04308120745e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":248,"physical_name":"AGIPD_SIV1_AGIPDV12_M425","karabo_da":"AGIPD06","virtual_device_name":"Q2M3","uuid":102053100001,"float_uuid":5.0420930762e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":288,"physical_name":"AGIPD_SIV1_AGIPDV12_M411","karabo_da":"AGIPD07","virtual_device_name":"Q2M4","uuid":102033100020,"float_uuid":5.04110494586e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":"This
+        is a new module installed on 19.06.2025 on position Q2M4","detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":225,"physical_name":"AGIPD_SIV1_AGIPDV12_M412","karabo_da":"AGIPD08","virtual_device_name":"Q3M1","uuid":102083100000,"float_uuid":5.0435752731e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":226,"physical_name":"AGIPD_SIV1_AGIPDV12_M542","karabo_da":"AGIPD09","virtual_device_name":"Q3M2","uuid":102093100000,"float_uuid":5.04406933874e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":227,"physical_name":"AGIPD_SIV1_AGIPDV12_M527","karabo_da":"AGIPD10","virtual_device_name":"Q3M3","uuid":102103100000,"float_uuid":5.0445634044e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":228,"physical_name":"AGIPD_SIV1_AGIPDV12_M502","karabo_da":"AGIPD11","virtual_device_name":"Q3M4","uuid":102113100000,"float_uuid":5.04505747004e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":229,"physical_name":"AGIPD_SIV1_AGIPDV12_M426","karabo_da":"AGIPD12","virtual_device_name":"Q4M1","uuid":102123100000,"float_uuid":5.0455515357e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":230,"physical_name":"AGIPD_SIV1_AGIPDV12_M540","karabo_da":"AGIPD13","virtual_device_name":"Q4M2","uuid":102133100000,"float_uuid":5.04604560133e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":231,"physical_name":"AGIPD_SIV1_AGIPDV12_M515","karabo_da":"AGIPD14","virtual_device_name":"Q4M3","uuid":102143100000,"float_uuid":5.04653966697e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":232,"physical_name":"AGIPD_SIV1_AGIPDV12_M544","karabo_da":"AGIPD15","virtual_device_name":"Q4M4","uuid":102153100000,"float_uuid":5.0470337326e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '10575'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 10 Apr 2026 10:09:17 GMT
+      Etag:
+      - W/"ba18dd44f59a27e5b90cd68a88820653"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - dc1e0dc3-ec71-4908-bf6e-76410769149f
+      X-Runtime:
+      - '0.561891'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=2&pdu_snapshot_at=2026-04-10T11%3A27%3A00%2B00%3A00
+  response:
+    body:
+      string: '[{"id":188,"physical_name":"AGIPD_SIV1_AGIPDV11_M517","karabo_da":"AGIPD00","virtual_device_name":"Q1M1","uuid":101003000000,"float_uuid":4.9902112427e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":218,"physical_name":"AGIPD_SIV1_AGIPDV12_M421","karabo_da":"AGIPD01","virtual_device_name":"Q1M2","uuid":102013100004,"float_uuid":5.04011681377e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":219,"physical_name":"AGIPD_SIV1_AGIPDV12_M445","karabo_da":"AGIPD02","virtual_device_name":"Q1M3","uuid":102023100004,"float_uuid":5.0406108794e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":287,"physical_name":"AGIPD_SIV1_AGIPDV12_M447","karabo_da":"AGIPD03","virtual_device_name":"Q1M4","uuid":102033100010,"float_uuid":5.04110494536e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":"This
+        is a new module installed on 19.06.2025 on position Q1M4","detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":223,"physical_name":"AGIPD_SIV1_AGIPDV12_M410","karabo_da":"AGIPD04","virtual_device_name":"Q2M1","uuid":102063100000,"float_uuid":5.0425871418e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":224,"physical_name":"AGIPD_SIV1_AGIPDV12_M528","karabo_da":"AGIPD05","virtual_device_name":"Q2M2","uuid":102073100000,"float_uuid":5.04308120745e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":248,"physical_name":"AGIPD_SIV1_AGIPDV12_M425","karabo_da":"AGIPD06","virtual_device_name":"Q2M3","uuid":102053100001,"float_uuid":5.0420930762e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":288,"physical_name":"AGIPD_SIV1_AGIPDV12_M411","karabo_da":"AGIPD07","virtual_device_name":"Q2M4","uuid":102033100020,"float_uuid":5.04110494586e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":"This
+        is a new module installed on 19.06.2025 on position Q2M4","detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":225,"physical_name":"AGIPD_SIV1_AGIPDV12_M412","karabo_da":"AGIPD08","virtual_device_name":"Q3M1","uuid":102083100000,"float_uuid":5.0435752731e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":226,"physical_name":"AGIPD_SIV1_AGIPDV12_M542","karabo_da":"AGIPD09","virtual_device_name":"Q3M2","uuid":102093100000,"float_uuid":5.04406933874e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":227,"physical_name":"AGIPD_SIV1_AGIPDV12_M527","karabo_da":"AGIPD10","virtual_device_name":"Q3M3","uuid":102103100000,"float_uuid":5.0445634044e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":228,"physical_name":"AGIPD_SIV1_AGIPDV12_M502","karabo_da":"AGIPD11","virtual_device_name":"Q3M4","uuid":102113100000,"float_uuid":5.04505747004e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":229,"physical_name":"AGIPD_SIV1_AGIPDV12_M426","karabo_da":"AGIPD12","virtual_device_name":"Q4M1","uuid":102123100000,"float_uuid":5.0455515357e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":230,"physical_name":"AGIPD_SIV1_AGIPDV12_M540","karabo_da":"AGIPD13","virtual_device_name":"Q4M2","uuid":102133100000,"float_uuid":5.04604560133e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":231,"physical_name":"AGIPD_SIV1_AGIPDV12_M515","karabo_da":"AGIPD14","virtual_device_name":"Q4M3","uuid":102143100000,"float_uuid":5.04653966697e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":232,"physical_name":"AGIPD_SIV1_AGIPDV12_M544","karabo_da":"AGIPD15","virtual_device_name":"Q4M4","uuid":102153100000,"float_uuid":5.0470337326e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '10575'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 10 Apr 2026 10:09:18 GMT
+      Etag:
+      - W/"ba18dd44f59a27e5b90cd68a88820653"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 40a0168c-b49e-4171-9476-c3c22f217282
+      X-Runtime:
+      - '0.584756'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=Offset
+  response:
+    body:
+      string: '[{"id":1,"name":"Offset","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":""}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '114'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 10 Apr 2026 10:09:19 GMT
+      Etag:
+      - W/"41e8088cc44ad976e577e40482d74dfb"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 2f6fe932-3510-4b9d-9147-d185841990d6
+      X-Runtime:
+      - '0.022959'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=Noise
+  response:
+    body:
+      string: '[{"id":2,"name":"Noise","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":"In
+        terms of standard deviation"}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '143'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 10 Apr 2026 10:09:19 GMT
+      Etag:
+      - W/"f1826d5b0b4d30aa8e2a90eb504451d1"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 910e1729-fa69-4029-974e-b630e164bbfe
+      X-Runtime:
+      - '0.030932'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=ThresholdsDark
+  response:
+    body:
+      string: '[{"id":11,"name":"ThresholdsDark","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":""}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '123'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 10 Apr 2026 10:09:19 GMT
+      Etag:
+      - W/"f43889846a525288071dc7af3cbabc47"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 94182e23-8704-46ba-b5c2-279202eb064a
+      X-Runtime:
+      - '0.023253'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=BadPixelsDark
+  response:
+    body:
+      string: '[{"id":14,"name":"BadPixelsDark","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":""}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '122'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 10 Apr 2026 10:09:19 GMT
+      Etag:
+      - W/"0e4753c0e3b62586fa4dd1eadedc8ec2"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - c16ca413-bcf2-4399-9250-505850c60186
+      X-Runtime:
+      - '0.027608'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"parameters_conditions_attributes": [{"parameter_name": "Sensor Bias Voltage",
+      "value": 300.0}, {"parameter_name": "Pixels X", "value": 512.0}, {"parameter_name":
+      "Pixels Y", "value": 128.0}, {"parameter_name": "Memory cells", "value": 0.0},
+      {"parameter_name": "Acquisition rate", "value": 4.5}, {"parameter_name": "Gain
+      setting", "value": 0.0}, {"parameter_name": "Integration time", "value": 15.0}]}'
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '402'
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=SPB_DET_AGIPD1M-1&calibration_id=%5B1%2C+2%2C+11%2C+14%5D&karabo_da=&event_at=2026-04-10T11%3A27%3A00%2B00%3A00&pdu_snapshot_at=2026-04-10T11%3A27%3A00%2B00%3A00&begin_at_strategy=closest
+  response:
+    body:
+      string: '[]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '2'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 10 Apr 2026 10:09:19 GMT
+      Etag:
+      - W/"4f53cda18c2baa0c0354bb5f9a3ecbe5"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 2dbc00ef-8a67-4a9e-b650-eb0f9b2f925d
+      X-Runtime:
+      - '0.531314'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=BadPixelsPC
+  response:
+    body:
+      string: '[{"id":15,"name":"BadPixelsPC","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":""}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '120'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 10 Apr 2026 10:09:19 GMT
+      Etag:
+      - W/"59c04585d60766363edf6d7d8b2b1de5"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 8c65b483-4994-4cb2-9dae-10417738b781
+      X-Runtime:
+      - '0.028659'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=SlopesPC
+  response:
+    body:
+      string: '[{"id":17,"name":"SlopesPC","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":""}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '118'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 10 Apr 2026 10:09:19 GMT
+      Etag:
+      - W/"2cd54fe20b3b330444a62a1f2c8e42f5"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 47f1b107-bbf9-42b2-81b0-21fef3e67668
+      X-Runtime:
+      - '0.023490'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"parameters_conditions_attributes": [{"parameter_name": "Sensor Bias Voltage",
+      "value": 300.0}, {"parameter_name": "Pixels X", "value": 512.0}, {"parameter_name":
+      "Pixels Y", "value": 128.0}, {"parameter_name": "Memory cells", "value": 0.0},
+      {"parameter_name": "Acquisition rate", "value": 4.5}, {"parameter_name": "Gain
+      setting", "value": 0.0}, {"parameter_name": "Integration time", "value": 15.0}]}'
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '402'
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=SPB_DET_AGIPD1M-1&calibration_id=%5B15%2C+17%5D&karabo_da=&event_at=2026-04-10T11%3A27%3A00%2B00%3A00&pdu_snapshot_at=2026-04-10T11%3A27%3A00%2B00%3A00&begin_at_strategy=closest
+  response:
+    body:
+      string: '[]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '2'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 10 Apr 2026 10:09:19 GMT
+      Etag:
+      - W/"4f53cda18c2baa0c0354bb5f9a3ecbe5"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - aadbc8d7-cf25-4776-9087-47bed0a78fe5
+      X-Runtime:
+      - '0.651402'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=BadPixelsFF
+  response:
+    body:
+      string: '[{"id":20,"name":"BadPixelsFF","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":""}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '121'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 10 Apr 2026 10:09:20 GMT
+      Etag:
+      - W/"8d637e112231afb0794d657d8bf9dd6c"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 63f6b53c-65c0-4061-b595-73464532b871
+      X-Runtime:
+      - '0.023220'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=SlopesFF
+  response:
+    body:
+      string: '[{"id":19,"name":"SlopesFF","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":""}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '118'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 10 Apr 2026 10:09:20 GMT
+      Etag:
+      - W/"50ec44b55aad814d2d09049e151bfba8"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - a0ab172e-f487-4796-838c-b269debf5124
+      X-Runtime:
+      - '0.025779'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"parameters_conditions_attributes": [{"parameter_name": "Sensor Bias Voltage",
+      "value": 300.0}, {"parameter_name": "Pixels X", "value": 512.0}, {"parameter_name":
+      "Pixels Y", "value": 128.0}, {"parameter_name": "Memory cells", "value": 0.0},
+      {"parameter_name": "Acquisition rate", "value": 4.5}, {"parameter_name": "Gain
+      setting", "value": 0.0}, {"parameter_name": "Integration time", "value": 15.0},
+      {"parameter_name": "Source energy", "value": 9.2}]}'
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '453'
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=SPB_DET_AGIPD1M-1&calibration_id=%5B20%2C+19%5D&karabo_da=&event_at=2026-04-10T11%3A27%3A00%2B00%3A00&pdu_snapshot_at=2026-04-10T11%3A27%3A00%2B00%3A00&begin_at_strategy=closest
+  response:
+    body:
+      string: '[]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '2'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 10 Apr 2026 10:09:20 GMT
+      Etag:
+      - W/"4f53cda18c2baa0c0354bb5f9a3ecbe5"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 7470f64b-1b48-4449-9b78-735638a4e071
+      X-Runtime:
+      - '0.516684'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=BadPixelsCS
+  response:
+    body:
+      string: '[{"id":53,"name":"BadPixelsCS","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '122'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 10 Apr 2026 10:09:21 GMT
+      Etag:
+      - W/"c11c6520c54719bf5c1edc981d506336"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 2a80f83f-8b66-409f-8827-fdfcdaf98db7
+      X-Runtime:
+      - '0.022899'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=SlopesCS
+  response:
+    body:
+      string: '[{"id":52,"name":"SlopesCS","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":"AGIPD
+        shape: (8, memcells, 128, 512)"}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '154'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 10 Apr 2026 10:09:21 GMT
+      Etag:
+      - W/"5bf5a1a09e63363e880c5fddd834200a"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 4102bd21-dbc1-4db9-9476-ef442fcf80e7
+      X-Runtime:
+      - '0.026728'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"parameters_conditions_attributes": [{"parameter_name": "Sensor Bias Voltage",
+      "value": 300.0}, {"parameter_name": "Pixels X", "value": 512.0}, {"parameter_name":
+      "Pixels Y", "value": 128.0}, {"parameter_name": "Memory cells", "value": 0.0},
+      {"parameter_name": "Acquisition rate", "value": 4.5}, {"parameter_name": "Gain
+      setting", "value": 0.0}]}'
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '347'
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=SPB_DET_AGIPD1M-1&calibration_id=%5B53%2C+52%5D&karabo_da=&event_at=2026-04-10T11%3A27%3A00%2B00%3A00&pdu_snapshot_at=2026-04-10T11%3A27%3A00%2B00%3A00&begin_at_strategy=closest
+  response:
+    body:
+      string: '[{"id":207709,"name":"20240531_071339_sIdx=0","file_name":"cal.1717139618.4279437.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m421/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M421/BadPixelsCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-05-31T09:13:39.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/207709","calibration_constant":{"id":33903,"name":"AGIPD-Type_BadPixelsCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":53,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from CS runs","created_at":"2023-10-20T13:29:17.000+02:00","updated_at":"2025-11-28T09:55:00.000+01:00"},"physical_detector_unit":{"id":218,"physical_name":"AGIPD_SIV1_AGIPDV12_M421","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T12:48:54.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"AGIPD01","detector_id":2,"virtual_device_name":"Q1M2","uuid":102013100004,"float_uuid":5.04011681377e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD01","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q1M2","module_number_at_ccv_begin_at":null}},{"id":201659,"name":"20240425_152557_sIdx=0","file_name":"cal.1714058756.6226678.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m421/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M421/SlopesCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-04-25T17:25:57.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/201659","calibration_constant":{"id":33902,"name":"AGIPD-Type_SlopesCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":52,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"\n                Constants
+        are saved with the following notation:\n                  - Slopes:\n                    -
+        mH: high gain slope\n                    - mM: medium gain slope\n                    -
+        mL: low gain slope\n                  - Intercepts:\n                    -
+        bH: high gain intercept\n                    - bM: medium gain intercept\n                    -
+        bL: low gain intercept\n                  - Ratios:\n                    -
+        H-M: ratio of high gain and medium gain slope\n                    - M-L:
+        ratio of medium gain and low gain slope\n                ","created_at":"2023-10-20T13:29:12.000+02:00","updated_at":"2025-11-28T09:54:59.000+01:00"},"physical_detector_unit":{"id":218,"physical_name":"AGIPD_SIV1_AGIPDV12_M421","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T12:48:54.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"AGIPD01","detector_id":2,"virtual_device_name":"Q1M2","uuid":102013100004,"float_uuid":5.04011681377e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD01","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q1M2","module_number_at_ccv_begin_at":null}},{"id":207710,"name":"20240531_071345_sIdx=0","file_name":"cal.1717139624.2530348.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m445/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M445/BadPixelsCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-05-31T09:13:45.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/207710","calibration_constant":{"id":33903,"name":"AGIPD-Type_BadPixelsCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":53,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from CS runs","created_at":"2023-10-20T13:29:17.000+02:00","updated_at":"2025-11-28T09:55:00.000+01:00"},"physical_detector_unit":{"id":219,"physical_name":"AGIPD_SIV1_AGIPDV12_M445","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T12:49:23.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"AGIPD02","detector_id":2,"virtual_device_name":"Q1M3","uuid":102023100004,"float_uuid":5.0406108794e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD02","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q1M3","module_number_at_ccv_begin_at":null}},{"id":201661,"name":"20240425_152605_sIdx=0","file_name":"cal.1714058764.6862826.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m445/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M445/SlopesCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-04-25T17:26:05.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/201661","calibration_constant":{"id":33902,"name":"AGIPD-Type_SlopesCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":52,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"\n                Constants
+        are saved with the following notation:\n                  - Slopes:\n                    -
+        mH: high gain slope\n                    - mM: medium gain slope\n                    -
+        mL: low gain slope\n                  - Intercepts:\n                    -
+        bH: high gain intercept\n                    - bM: medium gain intercept\n                    -
+        bL: low gain intercept\n                  - Ratios:\n                    -
+        H-M: ratio of high gain and medium gain slope\n                    - M-L:
+        ratio of medium gain and low gain slope\n                ","created_at":"2023-10-20T13:29:12.000+02:00","updated_at":"2025-11-28T09:54:59.000+01:00"},"physical_detector_unit":{"id":219,"physical_name":"AGIPD_SIV1_AGIPDV12_M445","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T12:49:23.000+01:00","updated_at":"2023-12-08T13:10:28.000+01:00","karabo_da":"AGIPD02","detector_id":2,"virtual_device_name":"Q1M3","uuid":102023100004,"float_uuid":5.0406108794e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD02","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q1M3","module_number_at_ccv_begin_at":null}},{"id":207714,"name":"20240531_071408_sIdx=0","file_name":"cal.1717139647.581558.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m410/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M410/BadPixelsCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-05-31T09:14:08.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/207714","calibration_constant":{"id":33903,"name":"AGIPD-Type_BadPixelsCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":53,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from CS runs","created_at":"2023-10-20T13:29:17.000+02:00","updated_at":"2025-11-28T09:55:00.000+01:00"},"physical_detector_unit":{"id":223,"physical_name":"AGIPD_SIV1_AGIPDV12_M410","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T12:57:14.000+01:00","updated_at":"2024-07-05T12:31:00.000+02:00","karabo_da":"AGIPD04","detector_id":2,"virtual_device_name":"Q2M1","uuid":102063100000,"float_uuid":5.0425871418e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD06","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q2M3","module_number_at_ccv_begin_at":null}},{"id":201669,"name":"20240425_152638_sIdx=0","file_name":"cal.1714058797.2871294.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m410/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M410/SlopesCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-04-25T17:26:38.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/201669","calibration_constant":{"id":33902,"name":"AGIPD-Type_SlopesCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":52,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"\n                Constants
+        are saved with the following notation:\n                  - Slopes:\n                    -
+        mH: high gain slope\n                    - mM: medium gain slope\n                    -
+        mL: low gain slope\n                  - Intercepts:\n                    -
+        bH: high gain intercept\n                    - bM: medium gain intercept\n                    -
+        bL: low gain intercept\n                  - Ratios:\n                    -
+        H-M: ratio of high gain and medium gain slope\n                    - M-L:
+        ratio of medium gain and low gain slope\n                ","created_at":"2023-10-20T13:29:12.000+02:00","updated_at":"2025-11-28T09:54:59.000+01:00"},"physical_detector_unit":{"id":223,"physical_name":"AGIPD_SIV1_AGIPDV12_M410","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T12:57:14.000+01:00","updated_at":"2024-07-05T12:31:00.000+02:00","karabo_da":"AGIPD04","detector_id":2,"virtual_device_name":"Q2M1","uuid":102063100000,"float_uuid":5.0425871418e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD06","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q2M3","module_number_at_ccv_begin_at":null}},{"id":207715,"name":"20240531_071414_sIdx=0","file_name":"cal.1717139653.4158914.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m528/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M528/BadPixelsCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-05-31T09:14:14.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/207715","calibration_constant":{"id":33903,"name":"AGIPD-Type_BadPixelsCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":53,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from CS runs","created_at":"2023-10-20T13:29:17.000+02:00","updated_at":"2025-11-28T09:55:00.000+01:00"},"physical_detector_unit":{"id":224,"physical_name":"AGIPD_SIV1_AGIPDV12_M528","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T12:58:18.000+01:00","updated_at":"2024-07-05T12:31:00.000+02:00","karabo_da":"AGIPD05","detector_id":2,"virtual_device_name":"Q2M2","uuid":102073100000,"float_uuid":5.04308120745e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD07","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q2M4","module_number_at_ccv_begin_at":null}},{"id":201639,"name":"20240425_151923_sIdx=0","file_name":"cal.1714058362.009037.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m528/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M528/SlopesCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-04-25T17:19:23.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/201639","calibration_constant":{"id":33902,"name":"AGIPD-Type_SlopesCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":52,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"\n                Constants
+        are saved with the following notation:\n                  - Slopes:\n                    -
+        mH: high gain slope\n                    - mM: medium gain slope\n                    -
+        mL: low gain slope\n                  - Intercepts:\n                    -
+        bH: high gain intercept\n                    - bM: medium gain intercept\n                    -
+        bL: low gain intercept\n                  - Ratios:\n                    -
+        H-M: ratio of high gain and medium gain slope\n                    - M-L:
+        ratio of medium gain and low gain slope\n                ","created_at":"2023-10-20T13:29:12.000+02:00","updated_at":"2025-11-28T09:54:59.000+01:00"},"physical_detector_unit":{"id":224,"physical_name":"AGIPD_SIV1_AGIPDV12_M528","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T12:58:18.000+01:00","updated_at":"2024-07-05T12:31:00.000+02:00","karabo_da":"AGIPD05","detector_id":2,"virtual_device_name":"Q2M2","uuid":102073100000,"float_uuid":5.04308120745e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD07","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q2M4","module_number_at_ccv_begin_at":null}},{"id":207716,"name":"20240531_071420_sIdx=0","file_name":"cal.1717139659.3086565.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m412/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M412/BadPixelsCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-05-31T09:14:20.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/207716","calibration_constant":{"id":33903,"name":"AGIPD-Type_BadPixelsCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":53,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from CS runs","created_at":"2023-10-20T13:29:17.000+02:00","updated_at":"2025-11-28T09:55:00.000+01:00"},"physical_detector_unit":{"id":225,"physical_name":"AGIPD_SIV1_AGIPDV12_M412","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T12:59:32.000+01:00","updated_at":"2023-12-08T13:10:29.000+01:00","karabo_da":"AGIPD08","detector_id":2,"virtual_device_name":"Q3M1","uuid":102083100000,"float_uuid":5.0435752731e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD08","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M1","module_number_at_ccv_begin_at":null}},{"id":201641,"name":"20240425_151931_sIdx=0","file_name":"cal.1714058370.0426712.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m412/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M412/SlopesCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-04-25T17:19:31.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/201641","calibration_constant":{"id":33902,"name":"AGIPD-Type_SlopesCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":52,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"\n                Constants
+        are saved with the following notation:\n                  - Slopes:\n                    -
+        mH: high gain slope\n                    - mM: medium gain slope\n                    -
+        mL: low gain slope\n                  - Intercepts:\n                    -
+        bH: high gain intercept\n                    - bM: medium gain intercept\n                    -
+        bL: low gain intercept\n                  - Ratios:\n                    -
+        H-M: ratio of high gain and medium gain slope\n                    - M-L:
+        ratio of medium gain and low gain slope\n                ","created_at":"2023-10-20T13:29:12.000+02:00","updated_at":"2025-11-28T09:54:59.000+01:00"},"physical_detector_unit":{"id":225,"physical_name":"AGIPD_SIV1_AGIPDV12_M412","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T12:59:32.000+01:00","updated_at":"2023-12-08T13:10:29.000+01:00","karabo_da":"AGIPD08","detector_id":2,"virtual_device_name":"Q3M1","uuid":102083100000,"float_uuid":5.0435752731e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD08","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M1","module_number_at_ccv_begin_at":null}},{"id":207717,"name":"20240531_071426_sIdx=0","file_name":"cal.1717139665.1687832.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m542/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M542/BadPixelsCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-05-31T09:14:26.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/207717","calibration_constant":{"id":33903,"name":"AGIPD-Type_BadPixelsCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":53,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from CS runs","created_at":"2023-10-20T13:29:17.000+02:00","updated_at":"2025-11-28T09:55:00.000+01:00"},"physical_detector_unit":{"id":226,"physical_name":"AGIPD_SIV1_AGIPDV12_M542","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T13:00:05.000+01:00","updated_at":"2023-12-08T13:10:29.000+01:00","karabo_da":"AGIPD09","detector_id":2,"virtual_device_name":"Q3M2","uuid":102093100000,"float_uuid":5.04406933874e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD09","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M2","module_number_at_ccv_begin_at":null}},{"id":201643,"name":"20240425_151939_sIdx=0","file_name":"cal.1714058378.0507371.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m542/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M542/SlopesCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-04-25T17:19:39.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/201643","calibration_constant":{"id":33902,"name":"AGIPD-Type_SlopesCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":52,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"\n                Constants
+        are saved with the following notation:\n                  - Slopes:\n                    -
+        mH: high gain slope\n                    - mM: medium gain slope\n                    -
+        mL: low gain slope\n                  - Intercepts:\n                    -
+        bH: high gain intercept\n                    - bM: medium gain intercept\n                    -
+        bL: low gain intercept\n                  - Ratios:\n                    -
+        H-M: ratio of high gain and medium gain slope\n                    - M-L:
+        ratio of medium gain and low gain slope\n                ","created_at":"2023-10-20T13:29:12.000+02:00","updated_at":"2025-11-28T09:54:59.000+01:00"},"physical_detector_unit":{"id":226,"physical_name":"AGIPD_SIV1_AGIPDV12_M542","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T13:00:05.000+01:00","updated_at":"2023-12-08T13:10:29.000+01:00","karabo_da":"AGIPD09","detector_id":2,"virtual_device_name":"Q3M2","uuid":102093100000,"float_uuid":5.04406933874e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD09","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M2","module_number_at_ccv_begin_at":null}},{"id":207718,"name":"20240531_071432_sIdx=0","file_name":"cal.1717139671.094016.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m527/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M527/BadPixelsCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-05-31T09:14:32.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/207718","calibration_constant":{"id":33903,"name":"AGIPD-Type_BadPixelsCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":53,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from CS runs","created_at":"2023-10-20T13:29:17.000+02:00","updated_at":"2025-11-28T09:55:00.000+01:00"},"physical_detector_unit":{"id":227,"physical_name":"AGIPD_SIV1_AGIPDV12_M527","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T13:00:50.000+01:00","updated_at":"2023-12-08T13:10:29.000+01:00","karabo_da":"AGIPD10","detector_id":2,"virtual_device_name":"Q3M3","uuid":102103100000,"float_uuid":5.0445634044e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD10","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M3","module_number_at_ccv_begin_at":null}},{"id":201645,"name":"20240425_151947_sIdx=0","file_name":"cal.1714058386.2358193.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m527/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M527/SlopesCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-04-25T17:19:47.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/201645","calibration_constant":{"id":33902,"name":"AGIPD-Type_SlopesCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":52,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"\n                Constants
+        are saved with the following notation:\n                  - Slopes:\n                    -
+        mH: high gain slope\n                    - mM: medium gain slope\n                    -
+        mL: low gain slope\n                  - Intercepts:\n                    -
+        bH: high gain intercept\n                    - bM: medium gain intercept\n                    -
+        bL: low gain intercept\n                  - Ratios:\n                    -
+        H-M: ratio of high gain and medium gain slope\n                    - M-L:
+        ratio of medium gain and low gain slope\n                ","created_at":"2023-10-20T13:29:12.000+02:00","updated_at":"2025-11-28T09:54:59.000+01:00"},"physical_detector_unit":{"id":227,"physical_name":"AGIPD_SIV1_AGIPDV12_M527","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T13:00:50.000+01:00","updated_at":"2023-12-08T13:10:29.000+01:00","karabo_da":"AGIPD10","detector_id":2,"virtual_device_name":"Q3M3","uuid":102103100000,"float_uuid":5.0445634044e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD10","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M3","module_number_at_ccv_begin_at":null}},{"id":207719,"name":"20240531_071437_sIdx=0","file_name":"cal.1717139676.9327195.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m502/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M502/BadPixelsCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-05-31T09:14:37.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/207719","calibration_constant":{"id":33903,"name":"AGIPD-Type_BadPixelsCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":53,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from CS runs","created_at":"2023-10-20T13:29:17.000+02:00","updated_at":"2025-11-28T09:55:00.000+01:00"},"physical_detector_unit":{"id":228,"physical_name":"AGIPD_SIV1_AGIPDV12_M502","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T13:01:17.000+01:00","updated_at":"2023-12-08T13:10:29.000+01:00","karabo_da":"AGIPD11","detector_id":2,"virtual_device_name":"Q3M4","uuid":102113100000,"float_uuid":5.04505747004e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD11","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M4","module_number_at_ccv_begin_at":null}},{"id":201647,"name":"20240425_151955_sIdx=0","file_name":"cal.1714058394.3945415.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m502/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M502/SlopesCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-04-25T17:19:55.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/201647","calibration_constant":{"id":33902,"name":"AGIPD-Type_SlopesCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":52,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"\n                Constants
+        are saved with the following notation:\n                  - Slopes:\n                    -
+        mH: high gain slope\n                    - mM: medium gain slope\n                    -
+        mL: low gain slope\n                  - Intercepts:\n                    -
+        bH: high gain intercept\n                    - bM: medium gain intercept\n                    -
+        bL: low gain intercept\n                  - Ratios:\n                    -
+        H-M: ratio of high gain and medium gain slope\n                    - M-L:
+        ratio of medium gain and low gain slope\n                ","created_at":"2023-10-20T13:29:12.000+02:00","updated_at":"2025-11-28T09:54:59.000+01:00"},"physical_detector_unit":{"id":228,"physical_name":"AGIPD_SIV1_AGIPDV12_M502","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T13:01:17.000+01:00","updated_at":"2023-12-08T13:10:29.000+01:00","karabo_da":"AGIPD11","detector_id":2,"virtual_device_name":"Q3M4","uuid":102113100000,"float_uuid":5.04505747004e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD11","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q3M4","module_number_at_ccv_begin_at":null}},{"id":207720,"name":"20240531_071443_sIdx=0","file_name":"cal.1717139682.665947.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m426/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M426/BadPixelsCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-05-31T09:14:43.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/207720","calibration_constant":{"id":33903,"name":"AGIPD-Type_BadPixelsCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":53,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from CS runs","created_at":"2023-10-20T13:29:17.000+02:00","updated_at":"2025-11-28T09:55:00.000+01:00"},"physical_detector_unit":{"id":229,"physical_name":"AGIPD_SIV1_AGIPDV12_M426","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T13:01:55.000+01:00","updated_at":"2023-12-08T13:10:29.000+01:00","karabo_da":"AGIPD12","detector_id":2,"virtual_device_name":"Q4M1","uuid":102123100000,"float_uuid":5.0455515357e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD12","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M1","module_number_at_ccv_begin_at":null}},{"id":201649,"name":"20240425_152004_sIdx=0","file_name":"cal.1714058403.422137.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m426/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M426/SlopesCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-04-25T17:20:04.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/201649","calibration_constant":{"id":33902,"name":"AGIPD-Type_SlopesCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":52,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"\n                Constants
+        are saved with the following notation:\n                  - Slopes:\n                    -
+        mH: high gain slope\n                    - mM: medium gain slope\n                    -
+        mL: low gain slope\n                  - Intercepts:\n                    -
+        bH: high gain intercept\n                    - bM: medium gain intercept\n                    -
+        bL: low gain intercept\n                  - Ratios:\n                    -
+        H-M: ratio of high gain and medium gain slope\n                    - M-L:
+        ratio of medium gain and low gain slope\n                ","created_at":"2023-10-20T13:29:12.000+02:00","updated_at":"2025-11-28T09:54:59.000+01:00"},"physical_detector_unit":{"id":229,"physical_name":"AGIPD_SIV1_AGIPDV12_M426","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T13:01:55.000+01:00","updated_at":"2023-12-08T13:10:29.000+01:00","karabo_da":"AGIPD12","detector_id":2,"virtual_device_name":"Q4M1","uuid":102123100000,"float_uuid":5.0455515357e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD12","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M1","module_number_at_ccv_begin_at":null}},{"id":207721,"name":"20240531_071449_sIdx=0","file_name":"cal.1717139688.326113.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m540/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M540/BadPixelsCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-05-31T09:14:49.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/207721","calibration_constant":{"id":33903,"name":"AGIPD-Type_BadPixelsCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":53,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from CS runs","created_at":"2023-10-20T13:29:17.000+02:00","updated_at":"2025-11-28T09:55:00.000+01:00"},"physical_detector_unit":{"id":230,"physical_name":"AGIPD_SIV1_AGIPDV12_M540","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T13:02:31.000+01:00","updated_at":"2023-12-08T13:10:29.000+01:00","karabo_da":"AGIPD13","detector_id":2,"virtual_device_name":"Q4M2","uuid":102133100000,"float_uuid":5.04604560133e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD13","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M2","module_number_at_ccv_begin_at":null}},{"id":201651,"name":"20240425_152012_sIdx=0","file_name":"cal.1714058411.6757722.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m540/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M540/SlopesCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-04-25T17:20:12.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/201651","calibration_constant":{"id":33902,"name":"AGIPD-Type_SlopesCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":52,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"\n                Constants
+        are saved with the following notation:\n                  - Slopes:\n                    -
+        mH: high gain slope\n                    - mM: medium gain slope\n                    -
+        mL: low gain slope\n                  - Intercepts:\n                    -
+        bH: high gain intercept\n                    - bM: medium gain intercept\n                    -
+        bL: low gain intercept\n                  - Ratios:\n                    -
+        H-M: ratio of high gain and medium gain slope\n                    - M-L:
+        ratio of medium gain and low gain slope\n                ","created_at":"2023-10-20T13:29:12.000+02:00","updated_at":"2025-11-28T09:54:59.000+01:00"},"physical_detector_unit":{"id":230,"physical_name":"AGIPD_SIV1_AGIPDV12_M540","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T13:02:31.000+01:00","updated_at":"2023-12-08T13:10:29.000+01:00","karabo_da":"AGIPD13","detector_id":2,"virtual_device_name":"Q4M2","uuid":102133100000,"float_uuid":5.04604560133e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD13","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M2","module_number_at_ccv_begin_at":null}},{"id":207722,"name":"20240531_071455_sIdx=0","file_name":"cal.1717139694.0458565.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m515/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M515/BadPixelsCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-05-31T09:14:55.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/207722","calibration_constant":{"id":33903,"name":"AGIPD-Type_BadPixelsCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":53,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from CS runs","created_at":"2023-10-20T13:29:17.000+02:00","updated_at":"2025-11-28T09:55:00.000+01:00"},"physical_detector_unit":{"id":231,"physical_name":"AGIPD_SIV1_AGIPDV12_M515","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T13:03:06.000+01:00","updated_at":"2023-12-08T13:10:29.000+01:00","karabo_da":"AGIPD14","detector_id":2,"virtual_device_name":"Q4M3","uuid":102143100000,"float_uuid":5.04653966697e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD14","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M3","module_number_at_ccv_begin_at":null}},{"id":201653,"name":"20240425_152021_sIdx=0","file_name":"cal.1714058419.8910336.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m515/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M515/SlopesCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-04-25T17:20:21.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/201653","calibration_constant":{"id":33902,"name":"AGIPD-Type_SlopesCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":52,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"\n                Constants
+        are saved with the following notation:\n                  - Slopes:\n                    -
+        mH: high gain slope\n                    - mM: medium gain slope\n                    -
+        mL: low gain slope\n                  - Intercepts:\n                    -
+        bH: high gain intercept\n                    - bM: medium gain intercept\n                    -
+        bL: low gain intercept\n                  - Ratios:\n                    -
+        H-M: ratio of high gain and medium gain slope\n                    - M-L:
+        ratio of medium gain and low gain slope\n                ","created_at":"2023-10-20T13:29:12.000+02:00","updated_at":"2025-11-28T09:54:59.000+01:00"},"physical_detector_unit":{"id":231,"physical_name":"AGIPD_SIV1_AGIPDV12_M515","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T13:03:06.000+01:00","updated_at":"2023-12-08T13:10:29.000+01:00","karabo_da":"AGIPD14","detector_id":2,"virtual_device_name":"Q4M3","uuid":102143100000,"float_uuid":5.04653966697e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD14","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M3","module_number_at_ccv_begin_at":null}},{"id":207723,"name":"20240531_071500_sIdx=0","file_name":"cal.1717139699.9212859.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m544/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M544/BadPixelsCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-05-31T09:15:00.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/207723","calibration_constant":{"id":33903,"name":"AGIPD-Type_BadPixelsCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":53,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from CS runs","created_at":"2023-10-20T13:29:17.000+02:00","updated_at":"2025-11-28T09:55:00.000+01:00"},"physical_detector_unit":{"id":232,"physical_name":"AGIPD_SIV1_AGIPDV12_M544","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T13:03:40.000+01:00","updated_at":"2023-12-08T13:10:29.000+01:00","karabo_da":"AGIPD15","detector_id":2,"virtual_device_name":"Q4M4","uuid":102153100000,"float_uuid":5.0470337326e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD15","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M4","module_number_at_ccv_begin_at":null}},{"id":201655,"name":"20240425_152029_sIdx=0","file_name":"cal.1714058428.1514454.h5","path_to_file":"xfel/cal/agipd-type/agipd_siv1_agipdv12_m544/","data_set_name":"/AGIPD_SIV1_AGIPDV12_M544/SlopesCS/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-12-15T17:21:07.000+01:00","end_validity_at":null,"begin_at":"2023-12-15T17:21:07.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"Proposal:
+        p900376, Run: 264","report_id":null,"description":"","created_at":"2024-04-25T17:20:29.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/201655","calibration_constant":{"id":33902,"name":"AGIPD-Type_SlopesCS_AGIPD
+        Defuxrj+sznxr52f7KH5KsCkw==\n-2","detector_type_id":2,"calibration_id":52,"condition_id":10974,"flg_auto_approve":true,"flg_available":true,"description":"\n                Constants
+        are saved with the following notation:\n                  - Slopes:\n                    -
+        mH: high gain slope\n                    - mM: medium gain slope\n                    -
+        mL: low gain slope\n                  - Intercepts:\n                    -
+        bH: high gain intercept\n                    - bM: medium gain intercept\n                    -
+        bL: low gain intercept\n                  - Ratios:\n                    -
+        H-M: ratio of high gain and medium gain slope\n                    - M-L:
+        ratio of medium gain and low gain slope\n                ","created_at":"2023-10-20T13:29:12.000+02:00","updated_at":"2025-11-28T09:54:59.000+01:00"},"physical_detector_unit":{"id":232,"physical_name":"AGIPD_SIV1_AGIPDV12_M544","detector_type_id":2,"flg_available":true,"description":null,"created_at":"2023-12-08T13:03:40.000+01:00","updated_at":"2023-12-08T13:10:29.000+01:00","karabo_da":"AGIPD15","detector_id":2,"virtual_device_name":"Q4M4","uuid":102153100000,"float_uuid":5.0470337326e-313,"module_number":null,"karabo_da_at_ccv_begin_at":"AGIPD15","detector_id_at_ccv_begin_at":2,"virtual_device_name_at_ccv_begin_at":"Q4M4","module_number_at_ccv_begin_at":null}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '42259'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 10 Apr 2026 10:09:21 GMT
+      Etag:
+      - W/"33b0fb1f7517fef97454bd6e6ec6b1bc"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - bfd76cf3-580c-400d-8700-808096d1d2ae
+      X-Runtime:
+      - '0.839350'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+version: 1

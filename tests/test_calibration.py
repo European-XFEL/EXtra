@@ -528,3 +528,10 @@ def test_AGIPDConditions_from_data(mock_agipd1m_run, mock_legacy_agipd1m_run,
     assert cond.gain_setting == 0
     assert cond.gain_mode == 0
     assert cond.integration_time == 15
+
+
+@pytest.mark.vcr
+def test_CalibrationData_from_data(mock_agipd1m_run):
+    caldata = CalibrationData.from_data(mock_agipd1m_run, 'SPB_DET_AGIPD1M-1')
+    assert caldata.detector_name == 'SPB_DET_AGIPD1M-1'
+    assert 'SlopesCS' in caldata
