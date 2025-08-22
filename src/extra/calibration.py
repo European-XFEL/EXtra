@@ -1524,6 +1524,66 @@ class LPDConditions(ConditionsBase):
 
         return cond
 
+    @classmethod
+    def from_data(cls, data, detector_name, modules=None,
+                  fem_comp=None, xtdf=None,
+                  validate_memory_order=False,
+                  client=None, **params):
+        if any_is_none(modules, fem_comp, xtdf):
+            detector = (client or get_client()).detector_by_identifier(
+                detector_name)
+
+            modules = modules or cls._find_detector_modules(data, detector)
+            fem_comp = fem_comp or \
+                detector['karabo_id_control'] + '/COMP/FEM_MDL_COMP'
+
+            if xtdf is None:
+                xtdf = {detector['source_name_pattern'].format(modno=modno)
+                        for modno in modules}
+
+        fem_comp, xtdf = cls._purge_missing_sources(data, fem_comp, xtdf)
+
+        if fem_comp is not None and 'parallel_gain' not in params:
+            try:
+                val = cls.parallel_gain_from_fem_comp(data[fem_comp])
+            except PropertyNameError:
+                # Added to the FEM comp with introduction of parallel
+                # gain support.
+                val = False
+
+            params['parallel_gain'] = val
+
+        if xtdf and 'memory_cell_order' not in params:
+            prev_val = None  # used with validate_memory_order
+
+            for src in xtdf:
+                if (val := cls.memory_cell_order_from_xtdf(data[src])).size:
+                    if validate_memory_order:
+                        if prev_val is not None and (prev_val != val).any():
+                            raise ValueError('inconsistent memory order '
+                                             'across modules')
+
+                        prev_val = val
+                    else:
+                        break
+
+            params['memory_cell_order'] = val
+
+        return super().from_data(params, fem_comp=fem_comp, xtdf=xtdf)
+
+    @staticmethod
+    def gain_mode_from_fem_comp(sd):
+        # Not actually used in the condition at the moment.
+        return int(sd.run_value('femAsicGain'))
+
+    @staticmethod
+    def parallel_gain_from_fem_comp(sd):
+        return bool(sd.run_value('femAsicGainOverride'))
+
+    @staticmethod
+    def memory_cell_order_from_xtdf(sd):
+        return sd['image.cellId'].drop_empty_trains()[0].ndarray().flatten()
+
 
 @dataclass
 class DSSCConditions(ConditionsBase):
