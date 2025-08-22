@@ -255,6 +255,11 @@ class CalCatAPIClient:
         return self._get_by_name(
             "physical_detector_units", name, name_key="physical_name")
 
+    def pdus_by_detector(self, det_id, pdu_snapshot_at):
+        return self.get(f'physical_detector_units/get_all_by_detector',
+                        {'detector_id': det_id,
+                         'event_at': self.format_time(pdu_snapshot_at)})
+
 
 global_client = None
 
@@ -650,10 +655,11 @@ class CalibrationData(Mapping):
     (e.g. `cd["Offset"]`), giving you `MultiModuleConstant` objects.
     """
 
-    def __init__(self, constant_groups, detector):
+    def __init__(self, constant_groups, detector, condition=None):
         # {calibration: {karabo_da: SingleConstant}}
         self.constant_groups = constant_groups
         self.detector = detector
+        self.condition = condition
 
     @staticmethod
     def _format_cond(condition):
@@ -749,7 +755,7 @@ class CalibrationData(Mapping):
                 const_group = constant_groups.setdefault(cal_type, {})
                 const_group[aggr] = SingleConstant.from_response(ccv)
 
-        return cls(constant_groups, detector)
+        return cls(constant_groups, detector, condition)
 
     @classmethod
     def from_report(
@@ -956,6 +962,48 @@ class CalibrationData(Mapping):
             pdu["detector_type"] = detector_types[pdu["detector_type_id"]]
 
         return cls(constant_groups, DetectorData(detector_row, pdus.values()))
+
+    @classmethod
+    def from_data(
+            cls,
+            data: 'DataCollection',
+            detector_name: str,
+            calibrations=None,
+            modules=None,
+            client=None,
+            begin_at_strategy='closest',
+            **kwargs
+    ):
+        """Look up constants applicable to given a dataset.
+
+        `data` should be an EXtra-data `DataCollection` object containing
+        the necessary metadata to identify the detector conditions.
+        `detector_name` refers to the detector identifer as used in CalCat,
+        typically identical to its Karabo domain, i.e. the first part of
+        its device IDs.
+
+        The remaining arguments behave in the same way as for
+        `CalibrationData.from_condition` and any additional keyword
+        arguments are passed on to the applicable `ConditionsBase.from_data`
+        method, e.g. `AGIPDConditions.from_data`.
+        """
+
+        creation_date = data[0].train_timestamps(pydatetime=True)[0]
+
+        client = client or get_client()
+        det = DetectorData(detector_name)
+
+        try:
+            cond_cls = detector_cond_cls[det.detector_type]
+        except KeyError:
+            raise NotImplementedError(det.detector_type)
+
+        return cls.from_condition(
+            cond_cls.from_data(data, detector_name, modules=modules,
+                               client=client, **kwargs),
+            detector_name, calibrations=calibrations, client=client,
+            event_at=creation_date, pdu_snapshot_at=creation_date,
+            begin_at_strategy=begin_at_strategy)
 
     def __getitem__(self, key):
         if isinstance(key, str):
@@ -2039,6 +2087,13 @@ class DetectorData(Mapping):
             raise ValueError('no mapped PDUs')
 
         return pdu_types.pop()
+
+
+detector_cond_cls = {
+    'AGIPD-Type': AGIPDConditions,
+    'LPD-Type': LPDConditions,
+    'jungfrau-Type': JUNGFRAUConditions
+}
 
 
 class BadPixels(IntFlag):
