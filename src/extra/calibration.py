@@ -1,7 +1,9 @@
+
 import json
 import re
-from collections.abc import Mapping
-from dataclasses import dataclass, field, fields, replace
+from collections.abc import Mapping, Iterable
+from dataclasses import (
+    dataclass, field, fields, replace, is_dataclass, MISSING)
 from datetime import date, datetime, time, timezone
 from enum import IntFlag
 from fnmatch import fnmatch
@@ -12,11 +14,14 @@ from typing import Dict, List, Optional, Union
 from urllib.parse import urljoin
 from warnings import warn
 
+import numpy as np
 import h5py
 import pasha as psh
 import requests
 from extra_data.read_machinery import find_proposal
 from oauth2_xfel_client import Oauth2ClientBackend
+
+from extra_data import PropertyNameError
 
 from .utils.misc import _isinstance_no_import
 
@@ -40,6 +45,14 @@ __all__ = [
 CALCAT_PROXY_URL = "http://exflcalproxy.desy.de:8080/"
 
 
+def any_is_none(*values):
+    for value in values:
+        if value is None:
+            return True
+
+    return False
+
+
 class ModuleNameError(KeyError):
     def __init__(self, name):
         self.name = name
@@ -48,9 +61,39 @@ class ModuleNameError(KeyError):
         return f"No module named {self.name!r}"
 
 
-
 class NoDimensionLabelsError(ValueError):
     pass
+
+
+class AutoConditionsError(ValueError):
+    """Used when detector conditions could not be inferred from data."""
+
+    def __init__(self, missing, sources):
+        self.missing = missing
+        self.sources = sources
+
+    def __str__(self):
+        msg = 'required parameters could not be inferred from data: ' + \
+            ', '.join(sorted(self.missing))
+
+        if self.sources:
+            msg += '\n\navailable sources to infer parameters:\n'
+
+            for name, value in self.sources.items():
+                if isinstance(value, Iterable) and not isinstance(value, str):
+                    if len(value) > 1:
+                        value = '{}, ... [{} more]'.format(
+                            sorted(value)[0], len(value) - 1)
+
+                    elif len(value) == 1:
+                        value = str(next(iter(value)))
+
+                    elif not value:
+                        value = None
+
+                msg += f'- {name}: {value}\n'
+
+        return msg
 
 
 class CalCatAPIError(requests.HTTPError):
@@ -1167,13 +1210,19 @@ class CalibrationData(Mapping):
 class ConditionsBase:
     calibration_types = {}  # For subclasses: {calibration: [parameter names]}
 
-    def _repr_markdown_(self):
-        attr_names = [f.name for f in fields(self)]
-        items = []
-        for n in attr_names:
-            if (value := getattr(self, n)) is not None:
-                items.append(f"- {n.replace('_', ' ').capitalize()}: {value}")
-        return '\n'.join(items)
+    @classmethod
+    def from_data(cls, params, **sources):
+        if is_dataclass(cls):
+            # Try to give a nicer error message if the conditions type
+            # is a dataclass.
+            required_fields = {f.name for f in fields(cls) if
+                               bool(f.init and f.default is MISSING and
+                                    f.default_factory is MISSING)}
+
+            if (missing := required_fields - params.keys()):
+                raise AutoConditionsError(missing, sources)
+
+        return cls(**params)
 
     def make_dict(self, parameters) -> dict:
         d = dict()
@@ -1186,6 +1235,40 @@ class ConditionsBase:
                 d[db_name] = float(value)
 
         return d
+
+    def _repr_markdown_(self):
+        attr_names = [f.name for f in fields(self)]
+        items = []
+        for n in attr_names:
+            if (value := getattr(self, n)) is not None:
+                items.append(f"- {n.replace('_', ' ').capitalize()}: {value}")
+        return '\n'.join(items)
+
+    @staticmethod
+    def _find_detector_modules(data, det):
+        assert det['first_module_index'] is not None and \
+            det['number_of_modules'] is not None, \
+            'incomplete detector entry in CalCat'
+
+        # Find module numbers present in data.
+        return {
+            modno for modno in range(
+                det['first_module_index'],
+                det['first_module_index'] + det['number_of_modules'])
+            if det['source_name_pattern'].format(modno=modno)
+                in data.instrument_sources}
+
+    @staticmethod
+    def _purge_missing_sources(data, *sources):
+        result = []
+
+        for src in sources:
+            if isinstance(src, str):
+                result.append(src if src in data.all_sources else None)
+            else:
+                result.append([s for s in src if s in data.all_sources])
+
+        return result
 
 
 @dataclass
@@ -1235,6 +1318,166 @@ class AGIPDConditions(ConditionsBase):
             del cond["Integration time"]
 
         return cond
+
+    @classmethod
+    def from_data(cls, data, detector_name, modules=None,
+                  fpga_comp=None, mpod=None, fpga_control=None, xtdf=None,
+                  client=None, **params):
+        # Uncaught exceptions that may be thrown in here:
+        # - NoDataError
+
+        if any_is_none(modules, fpga_comp, mpod, fpga_control, xtdf):
+            detector = (client or get_client()).detector_by_identifier(
+                detector_name)
+            control_domain = detector['karabo_id_control']
+
+            modules = modules or cls._find_detector_modules(data, detector)
+            fpga_comp = fpga_comp or f'{control_domain}/MDL/FPGA_COMP'
+            mpod = mpod or f'{control_domain[:-1]}/PSC/HV'
+
+            if fpga_control is None:
+                fpga_control = {f'{control_domain}/FPGA/M_{modno}'
+                                for modno in modules}
+
+            if xtdf is None:
+                xtdf = {detector['source_name_pattern'].format(modno=modno)
+                        for modno in modules}
+
+        fpga_comp, mpod, fpga_control, xtdf = cls._purge_missing_sources(
+            data, fpga_comp, mpod, fpga_control, xtdf)
+
+        if fpga_comp is not None:
+            # Prefer control data from FPGA composite device.
+            sd = data[fpga_comp]
+
+            if 'memory_cells' not in params:
+                params['memory_cells'] = cls.memory_cells_from_comp(sd)
+
+            if 'acquisition_rate' not in params:
+                params['acquisition_rate'] = cls.acquisition_rate_from_comp(sd)
+
+            if 'gain_setting' not in params:
+                params['gain_setting'] = cls.gain_setting_from_comp(sd)
+
+            if 'gain_mode' not in params:
+                params['gain_mode'] = cls.gain_mode_from_comp(sd)
+
+            if 'integration_time' not in params:
+                try:
+                    val = cls.integration_time_from_comp(sd)
+                except PropertyNameError:
+                    # More recent feature of comp device, fallback to
+                    # prior defalt.
+                    val = 12
+
+                params['integration_time'] = val
+
+        elif xtdf:
+            # Fallback to estimate some parameters from XTDF data.
+            if 'memory_cells' not in params:
+                for src in xtdf:
+                    if (val := cls.memory_cells_from_xtdf(data[src])) > 0:
+                        break
+
+                params['memory_cells'] = val
+
+            if 'acquisition_rate' not in params:
+                for src in xtdf:
+                    if (val := cls.acquisition_rate_from_xtdf(data[src])) > 0:
+                        break
+
+                params['acquisition_rate'] = val
+
+        if 'sensor_bias_voltage' not in params:
+            if mpod is not None:
+                # AGIPD Gen1
+                params['sensor_bias_voltage'] = cls.bias_voltage_from_mpod(
+                    data[mpod], modules)
+
+            elif fpga_control:
+                # AGIPD Gen2
+                for src in fpga_control:
+                    if (val := cls.bias_voltage_from_control(data[src])) > 0:
+                        break
+
+                params['sensor_bias_voltage'] = val
+
+        return super().from_data(params,
+                                 fpga_comp=fpga_comp, mpod=mpod,
+                                 fpga_control=fpga_control, xtdf=xtdf)
+
+    @staticmethod
+    def bias_voltage_from_control(sd):
+        # These device used to suffer from switching to excessive values
+        # randomly, so cut off any unreasonable values.
+        values = sd['highVoltage.actual'].ndarray()
+        values = values[values < 1000.0]
+        return int(np.median(values))
+
+    @staticmethod
+    def bias_voltage_from_mpod(sd, modules=None):
+        if modules is not None:
+            keys = [f'channels.U{modno}.measurementSenseVoltage'
+                    for modno in modules]
+        else:
+            keys = sd.select_keys(
+                'channels.U*.measurementSenseVoltage').keys(False)
+
+        for key in keys:
+            if (val := sd[key].as_single_value(atol=1, rtol=1)) > 0:
+                return int(val)
+
+    @staticmethod
+    def memory_cells_from_comp(sd):
+        return int(sd['bunchStructure.nPulses']
+            .as_single_value(reduce_by='max'))
+
+    @staticmethod
+    def memory_cells_from_xtdf(sd):
+        # Only look at one train?
+        cell_ids = sd['image.cellId'].drop_empty_trains().ndarray().squeeze()
+        options = np.array([4, 32, 64, 76, 128, 176, 202, 250, 352])
+        return int(options[np.flatnonzero(options > np.max(cell_ids)).min()])
+
+    @staticmethod
+    def acquisition_rate_from_comp(sd):
+        return round(float(sd['bunchStructure.repetitionRate']
+            .as_single_value()), 1)
+
+    @staticmethod
+    def acquisition_rate_from_xtdf(sd):
+        pulse_ids = sd['image.pulseId'].drop_empty_trains().ndarray().squeeze()
+        return round(np.floor(45 / np.diff(pulse_ids).min()) / 10, 1)
+
+    @staticmethod
+    def gain_setting_from_comp(sd):
+        if 'gain' in sd:
+            return int(sd['gain'].as_single_value(atol=0))
+
+        # Legacy method for older versions of composite device.
+
+        setupr = sd['setupr'].as_single_value()
+        pattern_type_idx = sd['patternTypeIndex'].as_single_value()
+
+        if (setupr == 0 and pattern_type_idx < 4):
+            return 0
+        elif (setupr == 32 and pattern_type_idx == 4):
+            return 0
+        elif (setupr == 8 and pattern_type_idx < 4):
+            return 1
+        elif (setupr == 40 and pattern_type_idx == 4):
+            return 1
+
+        raise ValueError('unexpected setupr and patternTypeIndex values to '
+                         'determine CDS mode')
+
+    @staticmethod
+    def gain_mode_from_comp(sd):
+        return int(sd['gainModeIndex'].as_single_value(atol=0))
+
+    @staticmethod
+    def integration_time_from_comp(sd):
+        return int(sd['integrationTime'].as_single_value())
 
 
 @dataclass
