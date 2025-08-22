@@ -1327,7 +1327,7 @@ class AGIPDConditions(ConditionsBase):
     acquisition_rate: float
     gain_setting: Optional[int]
     gain_mode: Optional[int]
-    source_energy: float
+    source_energy: float = 9.2
     integration_time: int = 12
     pixels_x: int = 512
     pixels_y: int = 128
