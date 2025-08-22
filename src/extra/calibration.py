@@ -1533,6 +1533,71 @@ class LPDConditions(ConditionsBase):
 
         return cond
 
+    @classmethod
+    def from_data(cls, data, detector, fem_comp=None, xtdf=None,
+                  validate_memcell_order=False, use_memcell_order='auto',
+                  client=None, **params):
+        if any_is_none(fem_comp, xtdf):
+            if not isinstance(detector, DetectorData):
+                detector = DetectorData.from_identifier(
+                    detector, pdu_snapshot_at=data)
+
+            fem_comp = fem_comp or (
+                detector.karabo_control_domain + '/COMP/FEM_MDL_COMP')
+
+            if xtdf is None:
+                xtdf = data.instrument_sources.intersection(
+                    detector.source_names)
+
+        fem_comp, xtdf = cls._purge_missing_sources(data, fem_comp, xtdf)
+
+        if fem_comp is not None and 'parallel_gain' not in params:
+            try:
+                val = cls.parallel_gain_from_fem_comp(data[fem_comp])
+            except PropertyNameError:
+                # Added to the FEM comp with introduction of parallel
+                # gain support.
+                val = False
+
+            params['parallel_gain'] = val
+
+        if xtdf and 'memory_cell_order' not in params:
+            prev_val = None  # used with validate_memory_order
+
+            for src in xtdf:
+                if (val := cls.memory_cell_order_from_xtdf(data[src])).size:
+                    if validate_memcell_order:
+                        if prev_val is not None and (prev_val != val).any():
+                            raise ValueError('inconsistent memory order '
+                                             'across modules')
+
+                        prev_val = val
+                    else:
+                        break
+
+            if use_memcell_order == 'auto':
+                use = len(val) > 2 and (np.diff(val.astype(np.int32)) < 0).any()
+            else:
+                use = use_memcell_order == 'always'
+
+            params['memory_cell_order'] = '{},'.format(
+                ','.join([str(c) for c in val])) if use else None
+
+        return super().from_data(params, fem_comp=fem_comp, xtdf=xtdf)
+
+    @staticmethod
+    def gain_mode_from_fem_comp(sd):
+        # Not actually used in the condition at the moment.
+        return int(sd.run_value('femAsicGain'))
+
+    @staticmethod
+    def parallel_gain_from_fem_comp(sd):
+        return bool(sd.run_value('femAsicGainOverride'))
+
+    @staticmethod
+    def memory_cell_order_from_xtdf(sd):
+        return sd['image.cellId'].drop_empty_trains()[0].ndarray().flatten()
+
 
 @dataclass
 class DSSCConditions(ConditionsBase):
