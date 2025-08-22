@@ -872,8 +872,8 @@ class CalibrationData(Mapping):
         If there are >4 calibrations, the table will be split up into several
         pieces with up to 4 calibrations in each.
 
-	The table(s) returned should be rendered within Jupyter notebooks,
-	including when converting them to Latex & PDF.
+        The table(s) returned should be rendered within Jupyter notebooks,
+        including when converting them to Latex & PDF.
 
         Args:
             module_naming (str): modnum, aggregator or qm, to change how the
