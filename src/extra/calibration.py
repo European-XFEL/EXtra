@@ -1646,6 +1646,33 @@ class JUNGFRAUConditions(ConditionsBase):
         "BadPixelsFF10Hz": _params,
     }
 
+    # Before 2022, the settings key indicated both gain
+    # mode (as in adaptive vs fixed gain) as well as gain
+    # setting (as in high CDS or not). Since then, there
+    # is a dedicated gainMode key and settings only
+    # indicates high CDS.
+    # See karaboDevices/slsDetectors@4433ae9c00edcca3309bec8b7515e0938f5f502c
+    legacy_settings = {
+        # old setting:  new settings, new gainMode
+        'dynamicgain': ('gain0', 'dynamic'),
+        'dynamichg0':  ('highgain0', 'dynamic'),
+        'fixgain1': ('gain0', 'fixg1'),
+        'fixgain2': ('gain0', 'fixg2'),
+        'forceswitchg1': ('gain0', 'forceswitchg1'),
+        'forceswitchg2': ('gain0', 'forceswitchg2'),
+    }
+
+    gain_mode_labels = {
+        'dynamic': 0,
+        'fixg0': 1,
+        'fixg1': 2,
+        'fixg2': 3,
+
+        # forceswitchg1, forceswitchg2 may only be used for
+        # darks and are not equivalent to their fixed gain
+        # equivalents.
+    }
+
     def make_dict(self, parameters):
         cond = super().make_dict(parameters)
 
@@ -1658,6 +1685,95 @@ class JUNGFRAUConditions(ConditionsBase):
             del cond["Exposure timeout"]
 
         return cond
+
+    @classmethod
+    def from_data(cls, data, detector_name, modules=None,
+                  control=None,
+                  client=None, **params):
+        if control is None:
+            detector = (client or get_client()).detector_by_identifier(
+                detector_name)
+            control = control or '{}/DET/CONTROL'.format(detector['karabo_id_control'])
+
+        control, = cls._purge_missing_sources(data, control)
+
+        if control is not None:
+            sd = data[control]
+
+            if 'sensor_bias_voltage' not in params:
+                params['sensor_bias_voltage'] = cls.sensor_bias_voltage_from_control(sd)
+
+            if 'memory_cells' not in params:
+                params['memory_cells'] = cls.memory_cells_from_control(sd)
+
+            if 'integration_time' not in params:
+                params['integration_time'] = cls.integration_time_from_control(sd)
+
+            if 'exposure_timeout' not in params:
+                params['exposure_timeout'] = cls.exposure_timeout_from_control(sd)
+
+            if 'gain_setting' not in params:
+                params['gain_setting'] = cls.gain_setting_from_control(sd)
+
+            if 'gain_mode' not in params:
+                params['gain_mode'] = cls.gain_mode_from_control(sd)
+
+        return super().from_data(params, control=control)
+
+    @staticmethod
+    def sensor_bias_voltage_from_control(sd):
+        for key in ['highVoltage', 'vHighVoltage']:
+            if key not in sd:
+                continue
+
+            return int(sd.run_value(key)[0])
+
+        raise PropertyNameError('highVoltage or vHighVoltage', sd.source)
+
+    @staticmethod
+    def memory_cells_from_control(sd):
+        return int(sd.run_value('storageCells')) + 1
+
+    @staticmethod
+    def memory_cell_start_from_control(sd):
+        # Not used in condition, but relevant for dark characterization.
+        return int(sd.run_value('storageCellStart'))
+
+    @staticmethod
+    def integration_time_from_control(sd):
+        return 1e6 * float(sd.run_value('exposureTime'))
+
+    @staticmethod
+    def exposure_timeout_from_control(sd):
+        return int(sd.run_value('exposureTimeout'))
+
+    @classmethod
+    def gain_setting_from_control(cls, sd, raw=False):
+        val = sd.run_value('settings')
+
+        if 'gainMode' not in sd:
+            # Convert from legacy value.
+            val = cls.legacy_settings[val][0]
+
+        if raw:
+            return val
+
+        return int(val == 'highgain0')
+
+    @classmethod
+    def gain_mode_from_control(cls, sd, raw=False):
+        try:
+            val = sd.run_value('gainMode')
+        except PropertyNameError:
+            val = cls.legacy_settings[sd.run_value('settings')][1]
+
+        if raw:
+            return val
+
+        try:
+            return cls.gain_mode_labels[val]
+        except KeyError:
+            raise ValueError(f'invalid gain mode {val!s} encountered') from None
 
 
 @dataclass
