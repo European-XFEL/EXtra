@@ -17,8 +17,11 @@ from .mockdata.detector_motors import (DetectorMotorDataSelector,
 from .mockdata.dld import ReconstructedDld
 from .mockdata.timepix import Timepix3Receiver, Timepix3Centroids
 from .mockdata.timeserver import PulsePatternDecoder, Timeserver
-from .mockdata.xgm import XGM, XGMD, XGMReduced
+from .mockdata.xgm import XGM, XGMD, XGMReduced, XGMWithData
+from .mockdata.mono import MonoMdl
 
+from .mockdata.utils import (mock_etof_calibration_constants,
+                            mock_etof_mono_energies)
 
 @pytest.fixture(scope='session')
 def mock_spb_aux_directory():
@@ -158,3 +161,60 @@ def mock_timepix_exceeded_buffer_run(mock_sqs_timepix_directory):
             size_dset[np.argmax(size_dset)] += tpx_root['data/x'].shape[1]
 
         yield RunDirectory(td).deselect('SQS_EXTRA*')
+
+    # when a mono-chromator is used, this data source provides the information of which
+    # energy the monochromator was set in
+    monochromator_energy = "SA3_XTD10_MONO/MDL/PHOTON_ENERGY"
+
+@pytest.fixture(scope='session')
+def mock_sqs_etof_calibration_directory():
+    energy = mock_etof_mono_energies()
+
+    # convert energy to time of flight for etofs
+    # calibration constants
+    c, e0, t0 = mock_etof_calibration_constants()
+    sigma = 2.0
+    A = 1000.0
+    Aa = 500.0
+    auger = 35.0
+    offset = 44.0
+    # e = e0+c/(ts-t0)**2
+    # ts = t0 + sqrt(c/(e - e0))
+    ts = t0 + np.sqrt(c/(energy - e0))
+    ts_axis = np.linspace(0.0, int(np.max(ts))+5*sigma+1, int(np.max(ts)+5*sigma)+1+1)
+    # create gaussians
+    samples = (A*np.exp(-0.5*(ts[:, None] - ts_axis[None, :])**2/(sigma**2))
+               + Aa*np.exp(-0.5*(auger - ts_axis[None, :])**2/(sigma**2))
+               )
+    samples += offset
+    # add some samples before data
+    samples = -1*np.concatenate((
+                                 np.zeros((samples.shape[0], 1000)),            # samples before trigger
+                                 samples,                                       # data
+                                 np.zeros((samples.shape[0], 3000)),            # samples after
+                                 ), axis=-1)
+    samples += np.random.randn(*samples.shape)
+
+    sources = [
+        Timeserver('SQS_RR_UTC/TSYS/TIMESERVER'),
+        XGMWithData('SQS_DIAG1_XGMD/XGM/DOOCS', intensity=(np.random.randn(*energy.shape, 1)+1000)),
+        MonoMdl('SA3_XTD10_MONO/MDL/PHOTON_ENERGY', energy_data=energy),
+        AdqDigitizer('SQS_DIGITIZER_UTC4/ADC/1', channels_per_board=[4],
+                     data_channels={(0, 0)},
+                     samples=samples)
+              ]
+
+    # for tests
+    #td = Path("mytest")
+    #write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 200,
+    #           format_version='1.2')
+    with TemporaryDirectory() as td:
+        write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 200,
+                   format_version='1.2')
+        yield td
+
+
+@pytest.fixture(scope='function')
+def mock_sqs_etof_calibration_run(mock_sqs_etof_calibration_directory):
+    yield RunDirectory(mock_sqs_etof_calibration_directory)
+

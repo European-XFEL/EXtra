@@ -30,9 +30,10 @@ class AdqDigitizer(DeviceBase):
         ('board{board}/channel_{ch_number}/enable', None, True),
     ]
 
-    def __init__(self, *args, channels_per_board, data_channels={}, **kwargs):
+    def __init__(self, *args, channels_per_board, data_channels={}, samples=None, **kwargs):
         self.channel_labels = []
         self.data_channels = []
+        self.samples = samples
 
         # These are dicts for now to have no duplicate keys, their
         # values are turned into lists afterwards.
@@ -76,7 +77,12 @@ class AdqDigitizer(DeviceBase):
             if ch_label not in self.data_channels:
                 continue
 
-            # Add a channel-dependent baseline shift and gaussian to
-            # each channel.
-            root_grp[f'channel_{ch_label}/raw/samples'][:] += -10 * (i+1) \
-                + gaussian(x, 0, i*80, i*1000, 50).astype(np.int16)
+            if self.samples is None:
+                # Add a channel-dependent baseline shift and gaussian to
+                # each channel.
+                root_grp[f'channel_{ch_label}/raw/samples'][:] += -10 * (i+1) \
+                    + gaussian(x, 0, i*80, i*1000, 50).astype(np.int16)
+            else:
+                # add whatever has been asked of us, if samples is given explicitly
+                root_grp[f'channel_{ch_label}/raw/samples'][:,:self.samples.shape[-1]] = self.samples.astype(np.int16)
+
