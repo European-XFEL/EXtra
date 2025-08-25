@@ -178,9 +178,9 @@ def mock_sqs_grating_calibration_directory():
     true_e_to_pix = lambda e: (e - offset)/slope
     data = np.exp(-0.5*(pix[None, :] - true_e_to_pix(energy)[:,None])**2)
     # make it 2D
-    data2d = np.stack([data]*100, axis=1)
+    data2d = np.stack([data]*10, axis=1)
     # add dimension for pulses in Gotthard
-    data_gh = np.stack([np.zeros_like(data)]*20+[data]*100, axis=-2)
+    data_gh = np.stack([np.zeros_like(data)]*2+[data]*10, axis=-2)
 
     sources = [
         Timeserver('SQS_RR_UTC/TSYS/TIMESERVER'),

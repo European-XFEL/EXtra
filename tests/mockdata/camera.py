@@ -6,7 +6,7 @@ class GotthardIIWithData(DeviceBase):
     output_channels = ('daqOutput/data',)
 
     instrument_keys = [
-        ("adc", "f4", (120,1000)),
+        ("adc", "f4", (12,1000)),
     ]
 
     def __init__(self, *args, data, **kwargs):
@@ -23,7 +23,7 @@ class CameraWithData(DeviceBase):
     output_channels = ('daqOutput/data',)
 
     instrument_keys = [
-        ("image/pixels", "f4", (100, 1000)),
+        ("image/pixels", "f4", (10, 1000)),
     ]
 
     def __init__(self, *args, data, **kwargs):
