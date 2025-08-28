@@ -5,7 +5,7 @@ EXtra-data==1.21.0
 EXtra-geom==1.15.0
 flexcache==0.3
 flexparser==0.4
-fonttools==4.59.1
+fonttools==4.59.2
 h5py==3.14.0
 karabo-bridge==0.7.0
 kiwisolver<1.5
