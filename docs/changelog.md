@@ -59,7 +59,6 @@ Changed:
 - [JUNGFRAUConditions][extra.calibration.JUNGFRAUConditions] now accepts
   `exposure_timeout` (!254).
 - [CalibrationData.from_condition][extra.calibration.CalibrationData.from_condition] has a new `begin_at_strategy` parameter (!254).
-- [Grating2DCalibration][extra.recipes.Grating2DCalibration] and [Grating1DCalibration][extra.recipes.Grating1DCalibration] have added tests (!368).
 
 Fixed:
 
