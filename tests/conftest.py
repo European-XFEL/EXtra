@@ -203,6 +203,12 @@ def mock_sqs_etof_calibration_directory():
 
     # for tests
     #td = Path("mytest")
+    #write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 200,
+    #           format_version='1.2')
+    with TemporaryDirectory() as td:
+        write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 200,
+                   format_version='1.2')
+        yield td
 
 @pytest.fixture(scope='session')
 def mock_sqs_grating_calibration_directory():
