@@ -21,9 +21,6 @@ from .mockdata.xgm import XGM, XGMD, XGMReduced, XGMWithData
 from .mockdata.mono import MonoMdl
 from .mockdata.camera import CameraWithData, GotthardIIWithData
 
-from .mockdata.utils import (mock_etof_calibration_constants,
-                            mock_etof_mono_energies)
-
 @pytest.fixture(scope='session')
 def mock_spb_aux_directory():
     """Mock run directory with SPB auxiliary sources.
@@ -162,6 +159,20 @@ def mock_timepix_exceeded_buffer_run(mock_sqs_timepix_directory):
             size_dset[np.argmax(size_dset)] += tpx_root['data/x'].shape[1]
 
         yield RunDirectory(td).deselect('SQS_EXTRA*')
+
+
+@pytest.fixture(scope='function')
+def mock_etof_calibration_constants():
+    return 623419.734, 946.026, 11.527
+
+@pytest.fixture(scope='function')
+def mock_etof_mono_energies():
+    # 200 trains with 10 energies and 20 trains per energy
+    energy = list()
+    for e in np.linspace(970.0, 1060.0, 10):
+        energy += [e]*20
+    energy = np.array(energy)
+    return energy
 
 @pytest.fixture(scope='session')
 def mock_sqs_etof_calibration_directory():

@@ -18,9 +18,6 @@ from extra.recipes import CookieboxCalibration
 from extra.recipes.cookiebox import TofFitResult
 from extra.recipes.cookiebox_deconvolve import TOFAnalogResponse
 
-from .mockdata.utils import (mock_etof_calibration_constants,
-                             mock_etof_mono_energies)
-
 # this produces mock data
 def produce_mock_fit_result():
     tof_fit_result = dict()
@@ -227,7 +224,11 @@ def test_fit(tmp_path):
     cal.to_file(fpath)
     cal_read = CookieboxCalibration.from_file(fpath)
 
-def test_avg_and_fit_single_channel(mock_sqs_etof_calibration_run, tmp_path):
+    # check if serialization worked
+    for tof_id, v in correct.items():
+        assert np.allclose(cal_read.model_params[tof_id], v, rtol=1e-2, atol=1e-2)
+
+def test_avg_and_fit_single_channel(mock_sqs_etof_calibration_run, tmp_path, mock_etof_mono_energies, mock_etof_calibration_constants):
     # use mock data
     pulse_timing = 'SQS_RR_UTC/TSYS/TIMESERVER'
     monochromator_energy = 'SA3_XTD10_MONO/MDL/PHOTON_ENERGY'
@@ -256,8 +257,8 @@ def test_avg_and_fit_single_channel(mock_sqs_etof_calibration_run, tmp_path):
     cal.setup(run=mock_sqs_etof_calibration_run, energy_axis=energy_axis, tof_settings=tof_channel,
               xgm=xgm,
               scan=scan)
-    correct_energies = np.unique(mock_etof_mono_energies())
-    correct_constants = np.array(mock_etof_calibration_constants())
+    correct_energies = np.unique(mock_etof_mono_energies)
+    correct_constants = np.array(mock_etof_calibration_constants)
     for tof_id in tof_ids:
         assert np.allclose(cal.tof_fit_result[tof_id].energy, correct_energies, rtol=1e-2, atol=1e-2)
         assert np.allclose(cal.model_params[tof_id], correct_constants, rtol=1e-2, atol=1e-2)
@@ -299,17 +300,19 @@ def test_avg_and_fit_single_channel(mock_sqs_etof_calibration_run, tmp_path):
         assert np.allclose(cal_read.model_params[tof_id], correct_constants, rtol=1e-2, atol=1e-2)
 
     data = cal_read.load_data(mock_sqs_etof_calibration_run.select_trains(np.s_[10:20]))
-    spectrum = cal_read.calibrate(data)
+    spectrum_two_steps = cal_read.calibrate(data)
 
     # now do it subtracting the offset to check if that does not crash either
-    spectrum = cal_read.calibrate(data, subtract_offset=True)
+    spectrum_subtracted = cal_read.calibrate(data, subtract_offset=True)
 
     # now call simpler function to do both at once
-    spectrum = cal_read.apply(mock_sqs_etof_calibration_run.select_trains(np.s_[10:20]))
+    spectrum_one_go = cal_read.apply(mock_sqs_etof_calibration_run.select_trains(np.s_[10:20]))
+
+    assert np.allclose(spectrum_one_go, spectrum_two_steps, rtol=1e-2, atol=1e-2)
 
 
 # tests data reading without parallelization
-def test_no_parallel(mock_sqs_etof_calibration_run, tmp_path):
+def test_no_parallel(mock_sqs_etof_calibration_run, tmp_path, mock_etof_calibration_constants, mock_etof_calibration_constants):
     # same as above, but tests only if a crash happens in `calc_mean`
     # somehow parallelization means that `calc_mean` is not shown in the coverage
     pulse_timing = 'SQS_RR_UTC/TSYS/TIMESERVER'
@@ -340,6 +343,12 @@ def test_no_parallel(mock_sqs_etof_calibration_run, tmp_path):
     cal.setup(run=mock_sqs_etof_calibration_run, energy_axis=energy_axis, tof_settings=tof_channel,
               xgm=xgm,
               scan=scan)
+
+    correct_energies = np.unique(mock_etof_mono_energies)
+    correct_constants = np.array(mock_etof_calibration_constants)
+    for tof_id in tof_ids:
+        assert np.allclose(cal.tof_fit_result[tof_id].energy, correct_energies, rtol=1e-2, atol=1e-2)
+        assert np.allclose(cal.model_params[tof_id], correct_constants, rtol=1e-2, atol=1e-2)
 
 def test_deconvolve(mock_sqs_etof_calibration_run, tmp_path):
     # use mock data and do the same as before, but with deconvolution
