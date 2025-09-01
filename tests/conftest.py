@@ -161,11 +161,11 @@ def mock_timepix_exceeded_buffer_run(mock_sqs_timepix_directory):
         yield RunDirectory(td).deselect('SQS_EXTRA*')
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='session')
 def mock_etof_calibration_constants():
     yield (623419.734, 946.026, 11.527)
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='session')
 def mock_etof_mono_energies():
     # 200 trains with 10 energies and 20 trains per energy
     energy = list()
