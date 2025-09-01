@@ -163,7 +163,7 @@ def mock_timepix_exceeded_buffer_run(mock_sqs_timepix_directory):
 
 @pytest.fixture(scope='function')
 def mock_etof_calibration_constants():
-    return 623419.734, 946.026, 11.527
+    yield (623419.734, 946.026, 11.527)
 
 @pytest.fixture(scope='function')
 def mock_etof_mono_energies():
@@ -172,7 +172,7 @@ def mock_etof_mono_energies():
     for e in np.linspace(970.0, 1060.0, 10):
         energy += [e]*20
     energy = np.array(energy)
-    return energy
+    yield energy
 
 @pytest.fixture(scope='session')
 def mock_sqs_etof_calibration_directory():
