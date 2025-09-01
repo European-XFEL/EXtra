@@ -312,7 +312,7 @@ def test_avg_and_fit_single_channel(mock_sqs_etof_calibration_run, tmp_path, moc
 
 
 # tests data reading without parallelization
-def test_no_parallel(mock_sqs_etof_calibration_run, tmp_path, mock_etof_calibration_constants, mock_etof_calibration_constants):
+def test_no_parallel(mock_sqs_etof_calibration_run, tmp_path, mock_etof_mono_energies, mock_etof_calibration_constants):
     # same as above, but tests only if a crash happens in `calc_mean`
     # somehow parallelization means that `calc_mean` is not shown in the coverage
     pulse_timing = 'SQS_RR_UTC/TSYS/TIMESERVER'
