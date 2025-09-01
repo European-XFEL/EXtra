@@ -175,12 +175,12 @@ def mock_etof_mono_energies():
     yield energy
 
 @pytest.fixture(scope='session')
-def mock_sqs_etof_calibration_directory():
-    energy = mock_etof_mono_energies()
+def mock_sqs_etof_calibration_directory(mock_etof_mono_energies, mock_etof_calibration_constants):
+    energy = mock_etof_mono_energies
 
     # convert energy to time of flight for etofs
     # calibration constants
-    c, e0, t0 = mock_etof_calibration_constants()
+    c, e0, t0 = mock_etof_calibration_constants
     sigma = 2.0
     A = 1000.0
     Aa = 500.0
