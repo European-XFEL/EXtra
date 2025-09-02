@@ -19,7 +19,7 @@
 Added:
 
 - [CalibrationData.from_condition][extra.calibration.CalibrationData.from_condition] supports `DataCollection` objects to reference a point in time
-
+- Pre-built packages will be available on PyPI for Python 3.10 - 3.13 from the next release, rather than only Python 3.10 (!377).
 
 Changed:
 
