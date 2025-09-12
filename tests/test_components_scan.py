@@ -113,7 +113,7 @@ def test_scan_bin_multidimensional(mock_spb_aux_run):
 
     # Test scan binning with data with additional dimensionsn
     xgm_intensity = mock_spb_aux_run[
-        "SPB_XTD9_XGM/DOOCS/MAIN:output", "data.intensityTD"
+        "SPB_XTD9_XGM/XGM/DOOCS:output", "data.intensityTD"
     ].xarray(extra_dims=["pulse"])
 
     binned = s.bin_by_steps(xgm_intensity)

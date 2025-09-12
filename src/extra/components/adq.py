@@ -1197,13 +1197,16 @@ class AdqRawChannel:
 
         edge_func = self._validate_edge_method(edge_func, edge_kw)
 
+        # Drop empty trains for efficient access to train IDs.
+        raw_key = self._raw_key.drop_empty_trains()
+
         if max_edges is None:
-            max_edges = self._raw_key.entry_shape[0] // 5000
+            max_edges = raw_key.entry_shape[0] // 5000
 
         # Set-up pasha for parallel processing.
         psh = self._prepare_pasha(parallel)
-        trace_out = np.zeros(self._raw_key.entry_shape, dtype=np.float32)
-        edges = psh.alloc(shape=(self._raw_key.shape[0], max_edges),
+        trace_out = np.zeros(raw_key.entry_shape, dtype=np.float32)
+        edges = psh.alloc(shape=(raw_key.shape[0], max_edges),
                           dtype=np.float32, fill=np.nan)
         amplitudes = psh.alloc(like=edges, fill=np.nan)
 
@@ -1212,14 +1215,14 @@ class AdqRawChannel:
                       edges=edges[index], amplitudes=amplitudes[index],
                       **edge_kw)
 
-        psh.map(digitize_edges, self._raw_key)
+        psh.map(digitize_edges, raw_key)
 
         if self._sample_dim == 'time':
             edges *= self.sampling_period
 
         return self._shape_edge_array(
             edges, amplitudes,
-            {'trainId': self._raw_key.train_id_coordinates()},
+            {'trainId': raw_key.train_id_coordinates()},
             labelled, squeeze_edges)
 
     def pulse_edges(self, pulse_dim='pulseId', edge_func=None, max_edges=10,
@@ -1257,8 +1260,12 @@ class AdqRawChannel:
         edges, amplitudes = self.pulse_edge_array(
             False, False, pulse_dim, edge_func, max_edges, parallel, **edge_kw)
 
+        # Make sure to select down pulses as needed.
+        pulses, _ = self._prepare_pulses(
+            self._raw_key.drop_empty_trains().train_ids)
+
         return self._shape_edges(
-            edges, amplitudes, self._pulses.build_pulse_index(pulse_dim))
+            edges, amplitudes, pulses.build_pulse_index(pulse_dim))
 
     def pulse_edge_array(self, labelled=True, squeeze_edges=True,
                          pulse_dim='pulseId', edge_func=None, max_edges=10,
