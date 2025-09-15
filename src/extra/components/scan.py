@@ -340,6 +340,27 @@ class Scan:
             raise TypeError("Input must either have a select_trains method, or "
                             "be a DataArray with a `trainId` coordinate")
 
+    def group_xarray(self, data):
+        """Group data, an xarray object with a trainId coordinate, by scan step.
+
+        Returns an xarray GroupBy object. This method works if trainId is one
+        level in a MultiIndex.
+        """
+        import xarray as xr
+        train_ix = np.concatenate(self.positions_train_ids)
+        scan_pos = np.concatenate([np.full(tids.shape, p) for (p, tids) in self.steps])
+        # Workaround: xarray behaves oddly if the dimension here is also called trainId
+        scan_lut = xr.DataArray(
+            scan_pos, dims=("trainId_",), coords={'trainId_': train_ix}
+        )
+
+        dim_w_trains = data.coords['trainId'].dims[0]
+        data_sel = data.sel({dim_w_trains: np.isin(data.trainId, scan_lut.trainId_)})
+        # Array of scan positions for each entry in data
+        scan_pos_per_train = scan_lut.sel(trainId_=data_sel.trainId)
+
+        return data_sel.groupby(scan_pos_per_train)
+
     def _plot_resolution_data(self):
         """Plot the data points that used to guess the resolution.
 

@@ -2,6 +2,7 @@ from extra.components import Scan
 
 import pytest
 import numpy as np
+import pandas as pd
 import xarray as xr
 
 import extra_data
@@ -124,3 +125,19 @@ def test_scan_bin_multidimensional(mock_spb_aux_run):
 
     # Smoke test
     s.plot_bin_by_steps(xgm_intensity)
+
+
+def test_scan_group_xarray(mock_spb_aux_run):
+    s = Scan(mock_spb_aux_run["MOTOR/MCMOTORYFACE"])
+
+    pulse_midx = pd.MultiIndex.from_product([
+        mock_spb_aux_run.train_ids[:-5], range(10)
+    ], names=['trainId', 'pulseIndex'])
+    data = xr.DataArray(
+        np.zeros((len(pulse_midx), 5)),
+        dims=('pulse', 'sample'),
+        coords={'pulse': pulse_midx}
+    )
+
+    gb = s.group_xarray(data)
+    assert len(gb) == len(s.positions)
