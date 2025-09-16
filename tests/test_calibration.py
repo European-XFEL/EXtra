@@ -5,6 +5,7 @@ import re
 import numpy as np
 import pytest
 import xarray as xr
+from IPython.core.formatters import MarkdownFormatter
 
 from extra.calibration import (
     CalCatAPIClient,
@@ -245,3 +246,9 @@ def test_format_time(mock_spb_aux_run):
 
     assert by_run.tzinfo is not None
     assert (by_run - datetime.now(tz=by_run.tzinfo)) < timedelta(minutes=10)
+
+
+def test_conditions_markdown():
+    cond = LPDConditions()
+    md = MarkdownFormatter()(cond)  # Smoketest
+    assert isinstance(md, str)
