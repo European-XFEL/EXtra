@@ -32,6 +32,8 @@ Changed:
   instead of zeros as a fill value for runs with a varying number of pulses
   (!347).
 - [imshow2()][extra.utils.imshow2] will now add a colorbar automatically (!351).
+- [Calibration](calibration.md) conditions objects can now be displayed as
+  Markdown in Jupyter notebooks (!381).
 
 ## [2025.1]
 
