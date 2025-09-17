@@ -127,17 +127,23 @@ def test_scan_bin_multidimensional(mock_spb_aux_run):
     s.plot_bin_by_steps(xgm_intensity)
 
 
-def test_scan_group_xarray(mock_spb_aux_run):
+def test_scan_group_data(mock_spb_aux_run):
     s = Scan(mock_spb_aux_run["MOTOR/MCMOTORYFACE"])
 
     pulse_midx = pd.MultiIndex.from_product([
         mock_spb_aux_run.train_ids[:-5], range(10)
     ], names=['trainId', 'pulseIndex'])
-    data = xr.DataArray(
+
+    # With xarray
+    data_xr = xr.DataArray(
         np.zeros((len(pulse_midx), 5)),
         dims=('pulse', 'sample'),
         coords={'pulse': pulse_midx}
     )
-
-    gb = s.group_xarray(data)
+    gb = s.group_data(data_xr)
     assert len(gb) == len(s.positions)
+
+    # With pandas
+    data_pd = pd.Series(np.zeros(len(pulse_midx)), index=pulse_midx)
+    gb2 = s.group_data(data_pd)
+    assert len(gb2) == len(s.positions)
