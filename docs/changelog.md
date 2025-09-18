@@ -34,6 +34,8 @@ Changed:
   instead of zeros as a fill value for runs with a varying number of pulses
   (!347).
 - [imshow2()][extra.utils.imshow2] will now add a colorbar automatically (!351).
+- [DelayLineDetector][extra.components.DelayLineDetector] now longer attaches an index level for each row in [hits()][extra.components.DelayLineDetector.hits] and [signals()][extra.components.DelayLineDetector.signals] (!362).
+- [AdqRawChannel][extra.components.AdqRawChannel] now longer attaches an index level for each row in [train_edges()][extra.components.AdqRawChannel.train_edges] and [pulse_edges()][extra.components.AdqRawChannel.pulse_edges] (!362).
 
 ## [2025.1]
 
