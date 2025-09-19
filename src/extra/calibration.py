@@ -1,7 +1,7 @@
 import json
 import re
 from collections.abc import Mapping
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field, fields, replace
 from datetime import date, datetime, time, timezone
 from enum import IntFlag
 from functools import lru_cache
@@ -957,6 +957,14 @@ class CalibrationData(Mapping):
 
 class ConditionsBase:
     calibration_types = {}  # For subclasses: {calibration: [parameter names]}
+
+    def _repr_markdown_(self):
+        attr_names = [f.name for f in fields(self)]
+        items = []
+        for n in attr_names:
+            if (value := getattr(self, n)) is not None:
+                items.append(f"- {n.replace('_', ' ').capitalize()}: {value}")
+        return '\n'.join(items)
 
     def make_dict(self, parameters) -> dict:
         d = dict()

@@ -5,7 +5,7 @@ EXtra-data==1.21.0
 EXtra-geom==1.15.0
 flexcache==0.3
 flexparser==0.4
-fonttools==4.59.2
+fonttools==4.60.0
 h5py==3.14.0
 karabo-bridge==0.7.0
 kiwisolver<1.5
@@ -19,10 +19,10 @@ pandas==2.3.2
 Pillow==11.3.0
 pint==0.24.4
 platformdirs~=4.4.0
-pyparsing==3.2.3
+pyparsing==3.2.4
 python-dateutil==2.9.0.post0
 pytz==2025.2
-pyzmq==27.0.2
+pyzmq==27.1.0
 six==1.17.0
 typing_extensions~=4.15
 tzdata==2025.2

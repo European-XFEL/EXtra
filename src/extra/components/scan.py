@@ -340,6 +340,53 @@ class Scan:
             raise TypeError("Input must either have a select_trains method, or "
                             "be a DataArray with a `trainId` coordinate")
 
+    def group_data(self, data):
+        """Group data labelled with train IDs by scan step.
+
+        data can be an xarray object with trainId coordinates, or a pandas
+        object with train IDs in the index. The train IDs can be one level in a
+        MultiIndex, so long as the level is named trainId.
+
+        Returns a GroupBy object from the relevant library.
+        """
+        train_ix = np.concatenate(self.positions_train_ids)
+        scan_pos = np.concatenate([np.full(tids.shape, p) for (p, tids) in self.steps])
+
+        if _isinstance_no_import(data, 'xarray', 'DataArray') \
+                or _isinstance_no_import(data, 'xarray', 'Dataset'):
+            import xarray as xr
+            # Workaround: xarray behaves oddly if the dimension here is also called trainId
+            scan_lut = xr.DataArray(
+                scan_pos, dims=("trainId_",), coords={'trainId_': train_ix}
+            )
+
+            # Discard data for which we don't have a scan step
+            dim_w_trains = data.coords['trainId'].dims[0]
+            data_sel = data.sel({dim_w_trains: np.isin(data.trainId, scan_lut.trainId_)})
+            # Array of scan positions for each entry in data
+            scan_pos_per_train = scan_lut.sel(trainId_=data_sel.trainId)
+
+            return data_sel.groupby(scan_pos_per_train)
+        else:
+            # For now, assume anything not xarray is pandas. This *might* work
+            # for other dataframe libraries too.
+            import pandas as pd
+            scan_lut = pd.Series(scan_pos, index=train_ix)
+
+            # Discard data for which we don't have a scan step
+            tids = data.index
+            if isinstance(tids, pd.MultiIndex):
+                tids = tids.get_level_values('trainId')
+            data_sel = data[tids.isin(train_ix)]
+
+            tids_sel = data_sel.index
+            if isinstance(tids_sel, pd.MultiIndex):
+                tids_sel = tids_sel.get_level_values('trainId')
+            # Array of scan positions for each entry in data
+            scan_pos_per_train = scan_lut[tids_sel]
+
+            return data_sel.groupby(scan_pos_per_train.values)
+
     def _plot_resolution_data(self):
         """Plot the data points that used to guess the resolution.
 
