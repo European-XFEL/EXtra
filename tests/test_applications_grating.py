@@ -9,8 +9,9 @@ import os
 
 from extra.data import open_run
 
-from extra.recipes import Grating2DCalibration, Grating1DCalibration
+from extra.applications import Grating2DCalibration, Grating1DCalibration
 from extra.components import Scan, XrayPulses
+
 
 def test_create_grating_2d_calibration():
     # instantiates it without doing any calibration, only to check for syntax errors

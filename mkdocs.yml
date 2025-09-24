@@ -31,10 +31,10 @@ nav:
     - components/optical-lasers.md
     - components/adq-digitizers.md
     - components/detector-motors.md
-  - Recipes:
-    - recipes/index.md
-    - recipes/cookiebox.md
-    - recipes/grating.md
+  - Applications:
+    - applications/index.md
+    - applications/cookiebox.md
+    - applications/grating.md
   - karabo-bridge.md
   - calibration.md
   - signal.md
