@@ -27,6 +27,10 @@ Added:
   next release, rather than only Python 3.10 (!377).
 - [Scan.group_data] method to make an xarray or pandas GroupBy object based on
   scan steps (!379).
+- [fit_gaussian()][extra.utils.fit_gaussian] has a new `nans_on_failure`
+  argument to allow returning NaN arrays when fitting fails (!385).
+- [fit_gaussian()][extra.utils.fit_gaussian] now supports
+  [DataArray][xarray.DataArray] inputs (!385).
 
 Changed:
 
