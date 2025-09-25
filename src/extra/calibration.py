@@ -773,7 +773,7 @@ class CalibrationData(Mapping):
     def from_data(
             cls,
             data: 'DataCollection',
-            detector_name=None,
+            detector_name: str,
             calibrations=None,
             modules=None,
             client=None,
@@ -784,9 +784,9 @@ class CalibrationData(Mapping):
 
         `data` should be an EXtra-data `DataCollection` object containing
         the necessary metadata to identify the detector conditions.
-
-        If omitted, it may be possible to infer `detector_name` from the
-        sources found in the given data.
+        `detector_name` refers to the detector identifer as used in CalCat,
+        typically identical to its Karabo domain, i.e. the first part of
+        its device IDs.
 
         The remaining arguments behave in the same way as for
         `CalibrationData.from_condition` and any additional keyword
@@ -795,10 +795,6 @@ class CalibrationData(Mapping):
         """
 
         creation_date = data[0].train_timestamps(pydatetime=True)[0]
-
-        if detector_name is None:
-            from extra_data.components import identify_multimod_detectors
-            detector_name = identify_multimod_detectors(data, single=True)[0]
 
         client = client or get_client()
         det = client.detector_by_identifier(detector_name)
