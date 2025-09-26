@@ -1574,7 +1574,7 @@ class LPDConditions(ConditionsBase):
     @classmethod
     def from_data(cls, data, detector_name, modules=None,
                   fem_comp=None, xtdf=None,
-                  validate_memory_order=False,
+                  validate_memcell_order=False, use_memcell_order='auto',
                   client=None, **params):
         if any_is_none(modules, fem_comp, xtdf):
             detector = (client or get_client()).detector_by_identifier(
@@ -1605,7 +1605,7 @@ class LPDConditions(ConditionsBase):
 
             for src in xtdf:
                 if (val := cls.memory_cell_order_from_xtdf(data[src])).size:
-                    if validate_memory_order:
+                    if validate_memcell_order:
                         if prev_val is not None and (prev_val != val).any():
                             raise ValueError('inconsistent memory order '
                                              'across modules')
@@ -1614,7 +1614,13 @@ class LPDConditions(ConditionsBase):
                     else:
                         break
 
-            params['memory_cell_order'] = val
+            if use_memcell_order == 'auto':
+                use = len(val) > 2 and (np.diff(val.astype(np.int32)) < 0).any()
+            else:
+                use = use_memcell_order == 'always'
+
+            params['memory_cell_order'] = '{},'.format(
+                ','.join([str(c) for c in val])) if use else None
 
         return super().from_data(params, fem_comp=fem_comp, xtdf=xtdf)
 
