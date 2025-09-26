@@ -82,8 +82,7 @@ class AutoConditionsError(ValueError):
             for name, value in self.sources.items():
                 if isinstance(value, Iterable) and not isinstance(value, str):
                     if len(value) > 1:
-                        value = '{}, ... [{} more]'.format(
-                            sorted(value)[0], len(value) - 1)
+                        value = f'{sorted(value)[0]}, ...[{len(value) - 1} more]'
 
                     elif len(value) == 1:
                         value = str(next(iter(value)))
@@ -1582,8 +1581,8 @@ class LPDConditions(ConditionsBase):
                 detector_name)
 
             modules = modules or cls._find_detector_modules(data, detector)
-            fem_comp = fem_comp or \
-                detector['karabo_id_control'] + '/COMP/FEM_MDL_COMP'
+            fem_comp = fem_comp or (
+                detector['karabo_id_control'] + '/COMP/FEM_MDL_COMP')
 
             if xtdf is None:
                 xtdf = {detector['source_name_pattern'].format(modno=modno)
