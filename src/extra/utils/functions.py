@@ -1,5 +1,7 @@
 import numpy as np
 
+from .misc import _isinstance_no_import
+
 
 def gaussian(x, y0, A, μ, σ, norm=True):
     r"""Gaussian profile.
@@ -25,13 +27,14 @@ def gaussian(x, y0, A, μ, σ, norm=True):
     return y0 + (A / norm_factor) * np.exp(-(x - μ)**2 / (2 * σ**2))
 
 
-def fit_gaussian(ydata, xdata=None, p0=None, norm=False, A_sign=0, **kwargs):
+def fit_gaussian(ydata, xdata=None, p0=None, norm=False, A_sign=0, nans_on_failure=False, **kwargs):
     """Fit a Gaussian to some data.
 
     This uses [curve_fit()][scipy.optimize.curve_fit] to fit a Gaussian (from
     [gaussian()][extra.utils.gaussian]) to `ydata`. If `p0` is not passed the
-    function will set them to reasonable defaults. It will return `None` if
-    fitting fails, or if there are no finite values in `ydata`.
+    function will set them to reasonable defaults. It will return `None` (or an
+    array of NaNs if `nans_on_failure=True`) if fitting fails, or if there are
+    no finite values in `ydata`.
 
     !!! note
         By default this will only return the `popt` array from
@@ -45,19 +48,35 @@ def fit_gaussian(ydata, xdata=None, p0=None, norm=False, A_sign=0, **kwargs):
 
     Args:
         ydata (array_like): The data to fit. NaN's and infs will automatically
-            be masked before fitting.
-        xdata (array_like): Optional x-values corresponding to `ydata`.
+            be masked before fitting. If a [DataArray][xarray.DataArray] is
+            passed the underlying numpy array will be used.
+        xdata (array_like): Optional x-values corresponding to `ydata`. If a
+            [DataArray][xarray.DataArray] is passed the underlying numpy array
+            will be used.
         p0 (list): A list of `[y0, A, μ, σ]` to match the arguments to
             [gaussian()][extra.utils.gaussian].
         norm (bool): Whether to fit a normalized or unnormalized Gaussian.
         A_sign (int): Sign of the amplitude (A) parameter for the Gaussian.
             1 for an upwards peak, -1 for downwards. 0 (default) allows either,
             using a faster algorithm. Passing `bounds=` overrides this.
+        nans_on_failure (bool): If `True` the function will return an array of
+            NaNs of the same length as `p0`. This is useful when e.g. fitting in
+            a loop and saving the output.
         **kwargs (): All other keyword arguments will be passed to
             [curve_fit()][scipy.optimize.curve_fit].
     """
     if xdata is None:
         xdata = np.arange(len(ydata))
+
+    if _isinstance_no_import(ydata, "xarray", "DataArray"):
+        ydata = ydata.values
+    if _isinstance_no_import(xdata, "xarray", "DataArray"):
+        xdata = xdata.values
+
+    if p0 is not None and len(p0) != 4:
+        raise ValueError(f"p0 must have length 4, but the passed argument has length {len(p0)}")
+
+    failure_value = np.full(len(p0), np.nan) if nans_on_failure else None
 
     from scipy.optimize import curve_fit
 
@@ -69,7 +88,7 @@ def fit_gaussian(ydata, xdata=None, p0=None, norm=False, A_sign=0, **kwargs):
     ydata = ydata[finite_mask]
 
     if len(ydata) == 0:
-        return None
+        return failure_value
 
     if p0 is None:
         if A_sign >= 0:  # Peak upwards (or not specified)
@@ -98,7 +117,7 @@ def fit_gaussian(ydata, xdata=None, p0=None, norm=False, A_sign=0, **kwargs):
         result = curve_fit(func, xdata, ydata, p0=p0, **kwargs)
         return result if full_output_requested else result[0]
     except RuntimeError:
-        return None
+        return failure_value
 
 
 def gaussian2d(x, y, z0, A, μ_x, μ_y, σ_x, σ_y):

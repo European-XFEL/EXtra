@@ -196,7 +196,7 @@ class SpectrometerCalibration:
     - To remove an ROI, click an existing ROI to select it (turns red), then use
       the "Delete Selected ROI" button.
 
-    ![](../images/spectrometer-calibration-widget-roi-selection.png)
+    ![](images/spectrometer-calibration-widget-roi-selection.png)
 
     ## Tab 2: Peak selection
 
@@ -205,7 +205,7 @@ class SpectrometerCalibration:
     - Left-click and drag an existing marker line to move it.
     - Right-click near a marker line to delete it.
 
-    ![](../images/spectrometer-calibration-widget-peak-selection.png)
+    ![](images/spectrometer-calibration-widget-peak-selection.png)
 
     ## Tab 3: Calibration
 
@@ -220,7 +220,7 @@ class SpectrometerCalibration:
           a `.txt` file (e.g.,
           `spectrometer_calibration_results_YYYY-MM-DD_HH-MM-SS.txt`).
 
-    ![](../images/spectrometer-calibration-widget-results.png)
+    ![](images/spectrometer-calibration-widget-results.png)
 
     """
 

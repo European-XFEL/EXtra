@@ -50,11 +50,26 @@ def test_fit_gaussian():
     popt = fit_gaussian(data, xdata=xdata)
     assert np.allclose(popt, params)
 
+    # Test passing DataArray's
+    popt = fit_gaussian(xr.DataArray(data, dims=("foo",)),
+                        xdata=xr.DataArray(xdata, dims=("foo",)))
+    assert np.allclose(popt, params)
+
     # Test with a downwards-pointing peak
     params = [0, -3, 20, 5]
     data = gaussian(np.arange(100), *params, norm=False)
     popt = fit_gaussian(data, A_sign=-1)
     assert np.allclose(popt, params)
+
+    # Test failures
+    bad_params = [100, -100, 200, -200]
+    assert fit_gaussian(data, p0=bad_params) is None
+    popt = fit_gaussian(data, p0=bad_params, nans_on_failure=True)
+    assert len(popt) == len(bad_params)
+    assert np.isnan(popt).all()
+
+    with pytest.raises(ValueError):
+        fit_gaussian(data, p0=params[:3])
 
 
 def test_reorder_axes_to_shape():
