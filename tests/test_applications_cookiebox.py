@@ -6,7 +6,8 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from extra.recipes import CookieboxCalibration
+from extra.applications import CookieboxCalibration
+
 
 def test_create_cookiebox_calibration():
     # instantiates it without doing any calibration, only to check for syntax errors
