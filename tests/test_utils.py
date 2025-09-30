@@ -67,6 +67,7 @@ def test_fit_gaussian():
     popt = fit_gaussian(data, p0=bad_params, nans_on_failure=True)
     assert len(popt) == len(bad_params)
     assert np.isnan(popt).all()
+    assert np.isnan(fit_gaussian(np.full(100, np.nan), nans_on_failure=True)).all()
 
     with pytest.raises(ValueError):
         fit_gaussian(data, p0=params[:3])

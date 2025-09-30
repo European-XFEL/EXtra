@@ -76,7 +76,7 @@ def fit_gaussian(ydata, xdata=None, p0=None, norm=False, A_sign=0, nans_on_failu
     if p0 is not None and len(p0) != 4:
         raise ValueError(f"p0 must have length 4, but the passed argument has length {len(p0)}")
 
-    failure_value = np.full(len(p0), np.nan) if nans_on_failure else None
+    failure_value = np.full(4, np.nan) if nans_on_failure else None
 
     from scipy.optimize import curve_fit
 
