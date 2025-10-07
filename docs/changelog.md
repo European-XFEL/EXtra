@@ -73,6 +73,7 @@ Changed:
   There is also a new `force_slow_data` argument to
   [XGM.pulse_counts()][extra.components.XGM.pulse_counts] to always return
   whatever was saved in the slow data (!161).
+- [CookieboxCalibration][extra.recipes.CookieboxCalibration] has been adapted to do the normalization only by the Auger peak (!367).
 - [LPDConditions][extra.calibration.LPDConditions] now accepts
   `parallel_gain` (!254).
 - [JUNGFRAUConditions][extra.calibration.JUNGFRAUConditions] now accepts
