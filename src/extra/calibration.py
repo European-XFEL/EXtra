@@ -424,8 +424,13 @@ class MultiModuleConstant(Mapping):
         if key in self.constants:  # Karabo DA name, e.g. 'LPD00'
             candidate_kdas.add(key)
 
+        undef = object()
         for m in self.module_details:
-            names = (m["module_number"], m["virtual_device_name"], m["physical_name"])
+            names = (
+                m.get("module_number", undef),
+                m.get("virtual_device_name", undef),
+                m["physical_name"]
+            )
             if key in names and m["karabo_da"] in self.constants:
                 candidate_kdas.add(m["karabo_da"])
 
@@ -720,6 +725,49 @@ class CalibrationData(Mapping):
             raise Exception(f"Found multiple detector IDs in report: {det_ids}")
         # The "identifier", "name" & "karabo_name" fields seem to have the same names
         det_name = client.detector_by_id(det_ids.pop())["identifier"]
+
+        module_details = sorted(pdus.values(), key=lambda d: d["karabo_da"])
+        return cls(constant_groups, module_details, det_name)
+
+    @classmethod
+    def from_correction(cls, metadata_path: str | Path):
+        """Find constants used to produce corrected data.
+
+        metadata_path is the path to a YAML metadata file from the EuXFEL
+        offline calibration pipeline, or a folder with a calibration_metadata.yml
+        file. This is ideally the report folder; the folder with the HDF5 output
+        files is ambiguous if there are multiple detectors in the run.
+        """
+        import yaml
+
+        metadata_path = Path(metadata_path)
+        if metadata_path.is_dir():
+            metadata_path = metadata_path / "calibration_metadata.yml"
+
+        with metadata_path.open('r') as f:
+            metadata = yaml.safe_load(f)
+
+        constant_groups = {}
+        pdus = {}  # keyed by karabo_da (e.g. 'AGIPD00')
+        det_name = metadata['calibration-configurations']['karabo-id']
+
+        for kda, grp in metadata['retrieved-constants'].items():
+            if 'constants' not in grp:  # e.g. 'time-summary' key
+                continue
+
+            pdu_name = grp['physical-name']
+            # Missing: module_number, virtual_device_name
+            pdus[kda] = {'karabo_da': kda, 'physical_name': pdu_name}
+
+            for cal_type, details in grp['constants'].items():
+                const_group = constant_groups.setdefault(cal_type, {})
+                const_group[kda] = SingleConstant(
+                    path=details['path'],
+                    dataset=details['dataset'],
+                    ccv_id=details['ccv_id'],
+                    pdu_name=pdu_name,
+                    _metadata={'begin_validity_at': details['creation-time']}
+                )
 
         module_details = sorted(pdus.values(), key=lambda d: d["karabo_da"])
         return cls(constant_groups, module_details, det_name)
