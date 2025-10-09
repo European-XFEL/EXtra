@@ -343,11 +343,15 @@ class Scan:
     def group_data(self, data):
         """Group data labelled with train IDs by scan step.
 
-        data can be an xarray object with trainId coordinates, or a pandas
+        `data` can be an xarray object with trainId coordinates, or a pandas
         object with train IDs in the index. The train IDs can be one level in a
         MultiIndex, so long as the level is named trainId.
 
-        Returns a GroupBy object from the relevant library.
+        Returns a GroupBy object from the relevant library (e.g. a
+        [DataArrayGroupedBy][xarray.core.groupby.DataArrayGroupBy] for a
+        [DataArray][xarray.DataArray] input, or a
+        [`DataFrameGroupBy`/`SeriesGroupBy`](https://pandas.pydata.org/docs/reference/groupby.html)
+        for a [DataFrame][pandas.DataFrame] or [Series][pandas.Series] input).
         """
         train_ix = np.concatenate(self.positions_train_ids)
         scan_pos = np.concatenate([np.full(tids.shape, p) for (p, tids) in self.steps])
