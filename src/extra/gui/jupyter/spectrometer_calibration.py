@@ -189,7 +189,7 @@ class SpectrometerCalibration:
     widget.close_all()
     ```
 
-    # Widget interraction
+    # Widget interaction
     ## Tab 1: ROI selection
 
     - Click and drag vertically on the image to define rectangular ROIs.

@@ -1069,7 +1069,7 @@ class CookieboxCalibration(SerializableMixin):
 
         Args:
           run: The run to calibrate.
-          kwargs_adq: Keyword arguments for the `AdqRawChannel` object if one wishes to override settings.
+          extra_kwargs_adq: Keyword arguments for the `AdqRawChannel` object if one wishes to override settings.
 
         Returns: An xarray DataArray with the traces containing axes ('trainId', 'pulseIndex', 'sample', 'tof').
         """
