@@ -9,7 +9,7 @@ def save_dict(h5grp, obj: Dict[str, Any]):
         if isinstance(v, dict):
             newgrp = h5grp.create_group(f"{k}")
             save_dict(newgrp, v)
-        elif isinstance(v, str) or isinstance(v, int) or isinstance(v, float):
+        elif isinstance(v, str) or isinstance(v, int) or isinstance(v, float) or isinstance(v, bool):
             h5grp.attrs[f"{k}"] = v
         elif isinstance(v, list):
             h5grp.attrs[f"{k}"] = v
@@ -21,7 +21,7 @@ def save_dict(h5grp, obj: Dict[str, Any]):
             new_v = v._asdict()
             newgrp = h5grp.create_group(f"{k}")
             save_dict(newgrp, new_v)
-        else:
+        elif v is not None:
             h5grp[f"{k}"] = v
 
 def load_dict(h5grp):

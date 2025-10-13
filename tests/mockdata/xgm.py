@@ -56,3 +56,22 @@ class XGMReduced(XGMD):
         ("classId", None, "DoocsXGMReduced"),
         ("location", None, "XGM.3356.SQS")
     ]
+
+class XGMWithData(XGMD):
+    instrument_keys = XGM.instrument_keys + [
+        ("intensitySa1TD", "f4", (1,)),
+        ("intensitySa3TD", "f4", (1,))
+    ]
+
+    def __init__(self, *args, intensity, **kwargs):
+        self.intensity = intensity
+        super().__init__(*args, **kwargs)
+
+    def write_instrument(self, f):
+        super().write_instrument(f)
+
+        ds = f[f'INSTRUMENT/{self.device_id}:output/data/intensitySa1TD']
+        ds[:] = self.intensity
+
+        ds = f[f'INSTRUMENT/{self.device_id}:output/data/intensitySa3TD']
+        ds[:] = self.intensity
