@@ -639,12 +639,13 @@ class PeakSelectorWidget:
         Returns the selected peak positions for all ROIs.
 
         Returns:
-            list: A list of dictionaries, one for each ROI processed. Each dict contains:
-                  - 'roi_def': The original ROI definition dictionary.
-                  - 'roi_index': The original index of the ROI in the input list.
-                  - 'peaks': A list of selected peak pixel positions for this ROI,
-                             sorted by pixel value. Returns an empty list if no peaks
-                             were selected for that ROI.
+            (list): A list of dictionaries, one for each ROI processed. Each dict contains:
+
+              - 'roi_def': The original ROI definition dictionary.
+              - 'roi_index': The original index of the ROI in the input list.
+              - 'peaks': A list of selected peak pixel positions for this ROI,
+                         sorted by pixel value. Returns an empty list if no peaks
+                         were selected for that ROI.
         """
         results = []
         for roi_data in self.rois_data:

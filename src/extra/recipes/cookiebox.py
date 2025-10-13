@@ -1052,6 +1052,7 @@ class CookieboxCalibration(SerializableMixin):
           run: The run to calibrate.
           preprocess_fn: Function to apply to an xarray after reading the trace. For example: `lambda x: x.mean('pulse')`
           kwargs_adq: Keyword arguments for the `AdqRawChannel` object if one wishes to override settings.
+          extra_kwargs_adq: Keyword arguments for the `AdqRawChannel` object if one wishes to override settings.
 
         Returns: An xarray DataArray with the traces containing axes ('trainId', 'pulseIndex', 'sample', 'tof').
         """

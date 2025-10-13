@@ -88,8 +88,6 @@ class Grating1DCalibration(SerializableMixin):
         Setup calibration.
 
         Args:
-          bkg_run: The background run.
-          run: The calibration run.
           grating_signal: Where to read the grating data from.
                    Example: `signal_run["SQS_EXP_GH2-2/CORR/RECEIVER:daqOutput", "data.adc"]`
           scan: Scan object identfying where to read the undulator energy from.
