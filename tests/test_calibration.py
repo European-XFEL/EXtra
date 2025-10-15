@@ -243,9 +243,9 @@ def test_AGIPD_CalibrationData_report():
     assert isinstance(agipd_cd["Offset", "AGIPD00"], SingleConstant)
 
 
-def test_AGIPD_from_correction():
-    agipd_cd = CalibrationData.from_correction(
-        TEST_DIR / "files" / "cal-metadata-p900508-r22.yml"
+def test_AGIPD_from_correction_minimal():
+    agipd_cd = CalibrationData.from_correction_minimal(
+        TEST_DIR / "files" / "cal-metadata-p900508-r22.yml",
     )
 
     assert agipd_cd.detector_name == "SPB_DET_AGIPD1M-1"
@@ -255,6 +255,27 @@ def test_AGIPD_from_correction():
     assert agipd_cd.aggregator_names == [f"AGIPD{n:02}" for n in range(16)]
     assert isinstance(agipd_cd["Offset", "AGIPD00"], SingleConstant)
     assert agipd_cd["Offset", "AGIPD00"].ccv_id == 229094
+
+
+@pytest.mark.vcr
+def test_AGIPD_from_correction():
+    agipd_cd = CalibrationData.from_correction(
+        TEST_DIR / "files" / "cal-metadata-p900508-r22.yml",
+    )
+
+    assert agipd_cd.detector_name == "SPB_DET_AGIPD1M-1"
+    assert set(agipd_cd) == {
+        "Offset", "Noise", "ThresholdsDark", "BadPixelsDark", "SlopesPC", "BadPixelsPC",
+    }
+    assert agipd_cd.aggregator_names == [f"AGIPD{n:02}" for n in range(16)]
+    assert agipd_cd.module_nums == list(range(16))
+    assert agipd_cd.qm_names == [f"Q{(m // 4) + 1}M{(m % 4) + 1}" for m in range(16)]
+    assert isinstance(agipd_cd["Offset", "AGIPD00"], SingleConstant)
+    assert agipd_cd["Offset", "AGIPD00"].ccv_id == 229094
+    # Using the private attribute to check metadata is already loaded, not just
+    # available for lazy loading.
+    assert agipd_cd["Offset", "AGIPD00"]._metadata['report_id'] == 6512
+
 
 def test_format_time(mock_spb_aux_run):
     by_run = datetime.fromisoformat(

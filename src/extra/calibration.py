@@ -730,13 +730,16 @@ class CalibrationData(Mapping):
         return cls(constant_groups, module_details, det_name)
 
     @classmethod
-    def from_correction(cls, metadata_path: str | Path):
+    def from_correction_minimal(cls, metadata_path: str | Path):
         """Find constants used to produce corrected data.
 
         metadata_path is the path to a YAML metadata file from the EuXFEL
         offline calibration pipeline, or a folder with a calibration_metadata.yml
         file. This is ideally the report folder; the folder with the HDF5 output
         files is ambiguous if there are multiple detectors in the run.
+
+        This method only reads the information provided in the file. Use
+        from_correction() to retrieve additional metadata from CalCat.
         """
         import yaml
 
@@ -747,7 +750,7 @@ class CalibrationData(Mapping):
         with metadata_path.open('r') as f:
             metadata = yaml.safe_load(f)
 
-        constant_groups = {}
+        constant_groups = {}  # keyed by calib type (e.g. 'Offset'), then karabo_da ('AGIPD00')
         pdus = {}  # keyed by karabo_da (e.g. 'AGIPD00')
         det_name = metadata['calibration-configurations']['karabo-id']
 
@@ -771,6 +774,67 @@ class CalibrationData(Mapping):
 
         module_details = sorted(pdus.values(), key=lambda d: d["karabo_da"])
         return cls(constant_groups, module_details, det_name)
+
+    @classmethod
+    def from_correction(cls,  metadata_path: str | Path, client=None):
+        """Find constants used to produce corrected data.
+
+        metadata_path is the path to a YAML metadata file from the EuXFEL
+        offline calibration pipeline, or a folder with a calibration_metadata.yml
+        file. This is ideally the report folder; the folder with the HDF5 output
+        files is ambiguous if there are multiple detectors in the run.
+
+        This method retrieves additional metadata from CalCat.
+        from_correction_minimal() reads only the minimal info in a YAML file.
+        """
+        # Get module_number, virtual_device_name from CCV info if possible
+        caldata = cls.from_correction_minimal(metadata_path)
+        need_metadata = {
+            sc.ccv_id: sc for mmc in caldata.values() for sc in mmc.values()
+        }
+        pdus = {d['karabo_da']: d for d in caldata.module_details}
+
+        def extend_module_info(pdu_dict):
+            kda = pdu_dict['karabo_da_at_ccv_begin_at']
+            if vdn := pdu_dict['virtual_device_name_at_ccv_begin_at']:
+                pdus[kda]['virtual_device_name'] = vdn
+            if modnum := pdu_dict['module_number_at_ccv_begin_at']:
+                pdus[kda]['module_number'] = modnum
+
+        # Retrieve constant metadata from CalCat
+        # If possible, we retrieve batches of CCVs by report ID.
+        # A correction will normally use e.g. offset constants for all
+        # modules from one report, i.e. generated at the same time.
+        # E.g. for LPD-1M, this can do 4 requests (2 CCVs + 2 reports)
+        # instead of 96 individual CCVs.
+        client = client or get_client()
+        while need_metadata:
+            # .metadata_dict() fetches & caches CCV metadata from CalCat
+            md = need_metadata.popitem()[1].metadata_dict()
+
+            extend_module_info(md['physical_detector_unit'])
+
+            if (report_id := md['report_id']) is None:
+                continue  # CCV not associated with a report
+
+            # Fill metadata for other CCVs belonging to this report
+            report_info = client.get(f"reports/{report_id}")
+            for ccv_dict in report_info['calibration_constant_versions']:
+                if const_obj := need_metadata.pop(ccv_dict['id'], None):
+                    const_obj._metadata = ccv_dict
+                    const_obj._have_calcat_metadata = True
+                extend_module_info(ccv_dict['physical_detector_unit'])
+
+        # If we didn't get module numbers from the PDU mapping, and we have
+        # the expected number of modules, fill the numbers in sequentially.
+        if any('module_number' not in d for d in caldata.module_details):
+            det_info = client.detector_by_identifier(caldata.detector_name)
+            if len(caldata.module_details) == det_info['number_of_modules']:
+                first = det_info['first_module_index']
+                for i, d in enumerate(caldata.module_details, start=first):
+                    d['module_number'] = i
+
+        return caldata
 
     def __getitem__(self, key):
         if isinstance(key, str):
