@@ -8,6 +8,7 @@ import pytest
 import xarray as xr
 from IPython.core.formatters import MarkdownFormatter
 
+import extra.calibration
 from extra.calibration import (
     CalCatAPIClient,
     AGIPDConditions,
@@ -38,6 +39,12 @@ def vcr_config():
         "filter_headers": ["authorization"],
         "before_record_response": drop_cookie_header,
     }
+
+@pytest.fixture(autouse=True)
+def reset_calibration_client():
+    """Reset the global client object after each test, to avoid leaking state"""
+    yield
+    extra.calibration.global_client = None
 
 
 @pytest.mark.vcr
