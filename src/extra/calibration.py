@@ -571,9 +571,10 @@ class MultiModuleConstant(Mapping):
         ndarr = self.ndarray(caldb_root, parallel=parallel)
 
         # Dimension labels
-        dims = self.dimensions(caldb_root) or (
-                ["module"] + ["dim_%d" % i for i in range(ndarr.ndim - 1)]
-        )
+        try:
+            dims = self.dimension_names(caldb_root)
+        except NoDimensionLabelsError:
+            dims = ["module"] + ["dim_%d" % i for i in range(ndarr.ndim - 1)]
         coords = {"module": modules}
         name = self.calibration_name
 
