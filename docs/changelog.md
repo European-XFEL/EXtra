@@ -32,6 +32,11 @@ Added:
 - [fit_gaussian()][extra.utils.fit_gaussian] now supports
   [DataArray][xarray.DataArray] inputs (!385).
 
+Fixed:
+
+- [fit_gaussian()][extra.utils.fit_gaussian] would sometimes return a negative
+  sigma, now it will always return a positive sigma (!405).
+
 Changed:
 
 - [XGM.pulse_energy()][extra.components.XGM.pulse_energy] will now insert NaNs

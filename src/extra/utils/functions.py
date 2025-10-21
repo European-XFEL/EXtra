@@ -115,6 +115,11 @@ def fit_gaussian(ydata, xdata=None, p0=None, norm=False, A_sign=0, nans_on_failu
     func = lambda *args: gaussian(*args, norm=norm)
     try:
         result = curve_fit(func, xdata, ydata, p0=p0, **kwargs)
+
+        # Force σ to be positive. Sometimes it will converge to a negative value
+        # when fitting an unnormalized Gaussian (the default).
+        result[0][3] = np.abs(result[0][3])
+
         return result if full_output_requested else result[0]
     except RuntimeError:
         return failure_value
