@@ -5,7 +5,7 @@ import re
 import numpy as np
 import pandas as pd
 
-from extra.data import KeyData
+from extra.data import KeyData, SourceNameError
 from .utils import _isinstance_no_import
 
 
@@ -71,12 +71,12 @@ class DelayLineDetector:
                 detectors.add(m[1])
 
         if len(detectors) > 1:
-            raise ValueError('multiple detectors found, please pass one '
-                             'explicitly:\n' + ', '.join(sorted(detectors)))
+            raise SourceNameError(custom_message='multiple detectors found, please pass one '
+                                                 'explicitly:\n' + ', '.join(sorted(detectors)))
         elif detectors:
             return detectors.pop()
 
-        raise ValueError('no detector found, please pass one explicitly')
+        raise SourceNameError(custom_message='no detector found, please pass one explicitly')
 
     def _align_pulse_index(self, kd, pulse_dim):
         """Align pulse index to KeyData.

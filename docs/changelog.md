@@ -45,6 +45,8 @@ Changed:
 - [imshow2()][extra.utils.imshow2] will now add a colorbar automatically (!351).
 - [Calibration](calibration.md) conditions objects can now be displayed as
   Markdown in Jupyter notebooks (!381).
+- All components will now raise a `extra.data.SourceNameError` when failing to
+  automatically find a source (!406).
 
 ## [2025.1]
 

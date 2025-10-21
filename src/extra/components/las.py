@@ -3,7 +3,7 @@ from scipy.constants import speed_of_light
 import numpy as np
 import pandas as pd
 
-from extra_data import SourceData, KeyData, by_id
+from extra_data import SourceData, KeyData, SourceNameError, by_id
 from .utils import _identify_instrument, _instrument_to_sase, \
     _select_subcomponent_trains
 from .pulses import XrayPulses, OpticalLaserPulses
@@ -105,8 +105,8 @@ class OpticalLaserDelay:
             instrument = instrument or _identify_instrument(data)
 
             if instrument is None:
-                raise ValueError('instrument could not be detected '
-                                 'automatically, please pass explicitly')
+                raise SourceNameError(custom_message='instrument could not be detected '
+                                                     'automatically, please pass explicitly')
         else:
             instrument = ''  # No instrument actually required
 
