@@ -63,6 +63,9 @@ Added:
   (!349).
 - [ShimadzuHPVX2Conditions][extra.calibration.ShimadzuHPVX2Conditions] to
   retrieve constants for dynamic flat-field correction (!254).
+- [MultiModuleConstant][extra.calibration.MultiModuleConstant] and
+  [SingleConstant][extra.calibration.SingleConstant] both have new `.dimensions()`
+  methods to retrieve dimension labels, where these are stored with constants (!350).
 
 Changed:
 

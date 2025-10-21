@@ -43,6 +43,11 @@ class ModuleNameError(KeyError):
         return f"No module named {self.name!r}"
 
 
+
+class NoDimensionLabelsError(ValueError):
+    pass
+
+
 class CalCatAPIError(requests.HTTPError):
     """Used when the response includes error details as JSON"""
     @property
@@ -332,6 +337,24 @@ class SingleConstant:
         """Load the constant data as a Numpy array"""
         return self.dataset_obj(caldb_root)[:]
 
+    def dimension_names(self, caldb_root=None):
+        """Get the order of dimensions from the constant file (if it was saved)
+
+        This is the same as the .dimensions property, but allows passing the
+        root directory for calibration files.
+        """
+        try:
+            return tuple(self.dataset_obj(caldb_root).attrs['dims'].tolist())
+        except KeyError:
+            raise NoDimensionLabelsError(
+                "This constant was saved without dimension labels"
+            )
+
+    @property
+    def dimensions(self):
+        """Get the order of dimensions from the constant file (if it was saved)"""
+        return self.dimension_names()
+
     def _load_calcat_metadata(self, client=None):
         client = client or get_client()
         calcat_meta = client.get(f"calibration_constant_versions/{self.ccv_id}")
@@ -509,6 +532,25 @@ class MultiModuleConstant(Mapping):
         load_ctx.map(_load_constant_dataset, self.aggregator_names)
         return arr
 
+    def dimension_names(self, caldb_root=None):
+        """Get the order of dimensions for this constant (if it was saved)
+
+        Possible dimension names include "module", "cell", "gain", "fast_scan"
+        and "slow_scan".
+
+        This is the same as the .dimensions property, but allows passing the
+        root directory for calibration files.
+        """
+        # We'll assume the constants for different modules have the same axis
+        # order. The ndarray and xarray methods also assume this.
+        kda = next(iter(self.constants))
+        return ("module",) + self.constants[kda].dimension_names(caldb_root)
+
+    @property
+    def dimensions(self):
+        """Get the order of dimensions for this constant (if it was saved)"""
+        return self.dimension_names()
+
     def xarray(self, module_naming="modnum", caldb_root=None, *, parallel=0):
         """Load this constant as an xarray DataArray.
 
@@ -534,7 +576,10 @@ class MultiModuleConstant(Mapping):
         ndarr = self.ndarray(caldb_root, parallel=parallel)
 
         # Dimension labels
-        dims = ["module"] + ["dim_%d" % i for i in range(ndarr.ndim - 1)]
+        try:
+            dims = self.dimension_names(caldb_root)
+        except NoDimensionLabelsError:
+            dims = ["module"] + ["dim_%d" % i for i in range(ndarr.ndim - 1)]
         coords = {"module": modules}
         name = self.calibration_name
 
