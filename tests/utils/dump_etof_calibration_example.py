@@ -3,7 +3,8 @@ import h5py
 
 from extra_data import open_run, by_id
 from extra.components import AdqRawChannel, Scan, XGM
-from extra.recipes import CookieboxCalibration
+from extra.applications import CookieboxCalibration
+
 
 def produce_calibration(filename):
     """

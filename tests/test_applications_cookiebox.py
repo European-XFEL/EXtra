@@ -14,9 +14,10 @@ import matplotlib.pyplot as plt
 
 from extra.data import open_run, by_id
 from extra.components import XGM, Scan, AdqRawChannel
-from extra.recipes import CookieboxCalibration
-from extra.recipes.cookiebox import TofFitResult
-from extra.recipes.cookiebox_deconvolve import TOFAnalogResponse
+from extra.applications import CookieboxCalibration
+from extra.applications.cookiebox import TofFitResult
+from extra.applications.cookiebox_deconvolve import TOFAnalogResponse
+
 
 # this produces mock data
 def produce_mock_fit_result():
