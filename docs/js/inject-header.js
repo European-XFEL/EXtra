@@ -45,13 +45,19 @@ document.addEventListener('DOMContentLoaded', function() {
         requestAnimationFrame(() => {
           const headerHeight = nav.offsetHeight;
 
-          // Add margin to all top-level children of body except the header itself
-          Array.from(document.body.children).forEach(child => {
-            if (child !== nav && child.tagName !== 'SCRIPT') {
-              const currentMargin = parseFloat(window.getComputedStyle(child).marginTop) || 0;
-              child.style.marginTop = (currentMargin + headerHeight) + 'px';
-            }
-          });
+          // ReadTheDocs theme - adjust the main grid container
+          const gridContainer = document.querySelector('.wy-grid-for-nav');
+          if (gridContainer) {
+            gridContainer.style.marginTop = headerHeight + 'px';
+          } else {
+            // Fallback: adjust all direct children of body except the header
+            Array.from(document.body.children).forEach(child => {
+              if (child !== nav && child.tagName !== 'SCRIPT' && child.tagName !== 'STYLE') {
+                const currentMargin = parseFloat(window.getComputedStyle(child).marginTop) || 0;
+                child.style.marginTop = (currentMargin + headerHeight) + 'px';
+              }
+            });
+          }
         });
       }
     })
