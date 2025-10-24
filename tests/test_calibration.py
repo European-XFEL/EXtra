@@ -1,12 +1,14 @@
-from datetime import datetime, timedelta
 import os
 import re
+from datetime import datetime, timedelta
+from pathlib import Path
 
 import numpy as np
 import pytest
 import xarray as xr
 from IPython.core.formatters import MarkdownFormatter
 
+import extra.calibration
 from extra.calibration import (
     CalCatAPIClient,
     AGIPDConditions,
@@ -20,6 +22,8 @@ from extra.calibration import (
 # These tests all use saved HTTP responses by default (with pytest-recording).
 # To ignore these & use exflcalproxy, run pytest with the --disable-recording flag.
 # To update the saved cassettes from exflcalproxy, pass --record-mode=rewrite.
+
+TEST_DIR = Path(__file__).parent
 
 
 def drop_cookie_header(response):
@@ -35,6 +39,12 @@ def vcr_config():
         "filter_headers": ["authorization"],
         "before_record_response": drop_cookie_header,
     }
+
+@pytest.fixture(autouse=True)
+def reset_calibration_client():
+    """Reset the global client object after each test, to avoid leaking state"""
+    yield
+    extra.calibration.global_client = None
 
 
 @pytest.mark.vcr
@@ -247,6 +257,40 @@ def test_AGIPD_CalibrationData_report():
     assert set(agipd_cd) == {"Offset", "Noise", "ThresholdsDark", "BadPixelsDark"}
     assert agipd_cd.aggregator_names == [f"AGIPD{n:02}" for n in range(16)]
     assert isinstance(agipd_cd["Offset", "AGIPD00"], SingleConstant)
+
+
+def test_AGIPD_from_correction_minimal():
+    agipd_cd = CalibrationData.from_correction_minimal(
+        TEST_DIR / "files" / "cal-metadata-p900508-r22.yml",
+    )
+
+    assert agipd_cd.detector_name == "SPB_DET_AGIPD1M-1"
+    assert set(agipd_cd) == {
+        "Offset", "Noise", "ThresholdsDark", "BadPixelsDark", "SlopesPC", "BadPixelsPC",
+    }
+    assert agipd_cd.aggregator_names == [f"AGIPD{n:02}" for n in range(16)]
+    assert isinstance(agipd_cd["Offset", "AGIPD00"], SingleConstant)
+    assert agipd_cd["Offset", "AGIPD00"].ccv_id == 229094
+
+
+@pytest.mark.vcr
+def test_AGIPD_from_correction():
+    agipd_cd = CalibrationData.from_correction(
+        TEST_DIR / "files" / "cal-metadata-p900508-r22.yml",
+    )
+
+    assert agipd_cd.detector_name == "SPB_DET_AGIPD1M-1"
+    assert set(agipd_cd) == {
+        "Offset", "Noise", "ThresholdsDark", "BadPixelsDark", "SlopesPC", "BadPixelsPC",
+    }
+    assert agipd_cd.aggregator_names == [f"AGIPD{n:02}" for n in range(16)]
+    assert agipd_cd.module_nums == list(range(16))
+    assert agipd_cd.qm_names == [f"Q{(m // 4) + 1}M{(m % 4) + 1}" for m in range(16)]
+    assert isinstance(agipd_cd["Offset", "AGIPD00"], SingleConstant)
+    assert agipd_cd["Offset", "AGIPD00"].ccv_id == 229094
+    # Using the private attribute to check metadata is already loaded, not just
+    # available for lazy loading.
+    assert agipd_cd["Offset", "AGIPD00"]._metadata['report_id'] == 6512
 
 
 def test_format_time(mock_spb_aux_run):
