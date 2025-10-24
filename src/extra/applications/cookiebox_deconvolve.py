@@ -338,7 +338,7 @@ class TOFAnalogResponse(SerializableMixin):
     ```
 
     This could also be coupled with the
-    [CookieboxCalibration][extra.recipes.CookieboxCalibration] object to
+    [CookieboxCalibration][extra.applications.CookieboxCalibration] object to
     deconvolve and denoise spectra before calibration.
 
     ```python
@@ -467,7 +467,7 @@ class TOFAnalogResponse(SerializableMixin):
         as a denoising strength.
 
         This could be coupled with the
-        [CookieboxCalibration][extra.recipes.CookieboxCalibration] object to
+        [CookieboxCalibration][extra.applications.CookieboxCalibration] object to
         deconvolve and denoise spectra before calibration.
 
         ```python

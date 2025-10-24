@@ -39,6 +39,7 @@ Fixed:
 
 Changed:
 
+- `extra.recipes` package renamed to `extra.applications`
 - [XGM.pulse_energy()][extra.components.XGM.pulse_energy] will now insert NaNs
   instead of zeros as a fill value for runs with a varying number of pulses
   (!347).
@@ -50,11 +51,11 @@ Changed:
 
 Added:
 
-- [CookieboxCalibration][extra.recipes.CookieboxCalibration] to calibrate data
+- [CookieboxCalibration][extra.applications.CookieboxCalibration] to calibrate data
   from eTOFs after taking a calibration run (!284).
-- [Grating2DCalibration][extra.recipes.Grating2DCalibration] to calibrate data
+- [Grating2DCalibration][extra.applications.Grating2DCalibration] to calibrate data
   from a 2D grating detector (!284).
-- [Grating1DCalibration][extra.recipes.Grating1DCalibration] to calibrates 1D
+- [Grating1DCalibration][extra.applications.Grating1DCalibration] to calibrates 1D
   grating information (e.g.: collected from the Gotthard detector in SQS)
   (!318).
 - Exposed detector data components from `extra_data` in `extra.components`
@@ -81,7 +82,7 @@ Changed:
   There is also a new `force_slow_data` argument to
   [XGM.pulse_counts()][extra.components.XGM.pulse_counts] to always return
   whatever was saved in the slow data (!161).
-- [CookieboxCalibration][extra.recipes.CookieboxCalibration] has been adapted to do the normalization only by the Auger peak (!367).
+- [CookieboxCalibration][extra.applications.CookieboxCalibration] has been adapted to do the normalization only by the Auger peak (!367).
 - [LPDConditions][extra.calibration.LPDConditions] now accepts
   `parallel_gain` (!254).
 - [JUNGFRAUConditions][extra.calibration.JUNGFRAUConditions] now accepts
@@ -106,23 +107,23 @@ Fixed:
 - Fixed reading of the
   [Scantool.acquisition_time][extra.components.Scantool.acquisition_time]
   property for newer Scantool versions (!303).
-- [CookieboxCalibration][extra.recipes.CookieboxCalibration]: allow flagging of
+- [CookieboxCalibration][extra.applications.CookieboxCalibration]: allow flagging of
       bad calibration points, to allow using others in the
       `mask_calibration_point(tof_id, energy)` function (!318).
-- [CookieboxCalibration][extra.recipes.CookieboxCalibration]: Order
+- [CookieboxCalibration][extra.applications.CookieboxCalibration]: Order
       `plot_calibration_data` y axis by energy to avoid unordered axis in case
       the energy scan was done out of monotonically increasing order (!318).
-- [CookieboxCalibration][extra.recipes.CookieboxCalibration]: Use Auger-Meitner
+- [CookieboxCalibration][extra.applications.CookieboxCalibration]: Use Auger-Meitner
       mean to align all plots in `plot_calibration_data` by the Auger-Meitner
       peak (!318).
-- [CookieboxCalibration][extra.recipes.CookieboxCalibration]: New function
+- [CookieboxCalibration][extra.applications.CookieboxCalibration]: New function
       `plot_calibrations`, which plots only the calibration factors in the same
       plot for diagnostics. Often this is all that one is interested in (!318).
-- [Grating2DCalibration][extra.recipes.Grating2DCalibration]: Crop image based
+- [Grating2DCalibration][extra.applications.Grating2DCalibration]: Crop image based
       on rotation angle to avoid artifacts caused by out-of-bound effects. Add
       background root-mean-squared error as uncertainty band in the output
       (!318).
-- [Grating2DCalibration][extra.recipes.Grating2DCalibration]: If provided, use
+- [Grating2DCalibration][extra.applications.Grating2DCalibration]: If provided, use
       extra motor information as independent variable in the fit (useful when
       data includes motor movements additionally) (!318).
 - Fixed [Scan.plot_bin_by_steps()][extra.components.Scan.plot_bin_by_steps] to
