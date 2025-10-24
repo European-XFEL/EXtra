@@ -35,11 +35,18 @@ document.addEventListener('DOMContentLoaded', function() {
         nav.innerHTML = html;
         header.parentNode.insertBefore(nav, header);
       } else {
-        // Fallback: inject at the top of the body
+        // Fallback: inject at the top of the body (for Sphinx and others)
         const nav = document.createElement('div');
         nav.className = 'xfel-cross-nav';
         nav.innerHTML = html;
         document.body.insertBefore(nav, document.body.firstChild);
+
+        // Add padding to body to prevent content overlap
+        // Get the actual height of the injected header
+        const headerHeight = nav.offsetHeight;
+        const originalPaddingTop = window.getComputedStyle(document.body).paddingTop;
+        const currentPadding = parseFloat(originalPaddingTop) || 0;
+        document.body.style.paddingTop = (currentPadding + headerHeight) + 'px';
       }
     })
     .catch(error => {
