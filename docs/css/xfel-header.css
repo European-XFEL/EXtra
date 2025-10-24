@@ -22,14 +22,25 @@
   color: var(--xfel-header-text-color) !important;
   padding: 0 !important;
   width: 100% !important;
-  position: sticky !important;
+  position: fixed !important;
   top: 0 !important;
-  z-index: 1000 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 10000 !important;
   margin: 0 !important;
   border: none !important;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
   min-height: var(--xfel-header-height) !important;
   box-sizing: border-box !important;
+}
+
+/* Adjust ReadTheDocs theme layout */
+.wy-nav-side {
+  top: var(--xfel-header-height) !important;
+}
+
+.wy-nav-content-wrap {
+  margin-top: var(--xfel-header-height) !important;
 }
 
 .xfel-header-nav {
