@@ -1,0 +1,116 @@
+/* XFEL Cross-Documentation Header Styles */
+
+/* CSS Variables - Edit these to customize the header */
+:root {
+  --xfel-header-bg-color: #1a237e;
+  --xfel-header-text-color: white;
+  --xfel-header-link-color: #bbdefb;
+  --xfel-header-link-hover-color: white;
+  --xfel-header-separator-color: rgba(255, 255, 255, 0.5);
+  --xfel-header-height: 40px;
+  --xfel-header-padding-vertical: 10px;
+  --xfel-header-padding-horizontal: 1rem;
+  --xfel-header-font-size: 14px;
+  --xfel-header-line-height: 20px;
+  --xfel-header-font-size-mobile: 12px;
+  --xfel-header-max-width: 1200px;
+  --xfel-header-gap: 0.5rem;
+}
+
+.xfel-cross-nav {
+  background-color: var(--xfel-header-bg-color) !important;
+  color: var(--xfel-header-text-color) !important;
+  padding: 0 !important;
+  width: 100% !important;
+  position: relative !important;
+  z-index: 1000 !important;
+  margin: 0 !important;
+  border: none !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  min-height: var(--xfel-header-height) !important;
+  box-sizing: border-box !important;
+}
+
+.xfel-header-nav {
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: var(--xfel-header-height) !important;
+  box-sizing: border-box !important;
+}
+
+.xfel-header-content {
+  max-width: var(--xfel-header-max-width) !important;
+  margin: 0 auto !important;
+  padding: var(--xfel-header-padding-vertical) var(--xfel-header-padding-horizontal) !important;
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: var(--xfel-header-gap) !important;
+  font-size: var(--xfel-header-font-size) !important;
+  line-height: var(--xfel-header-line-height) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  min-height: var(--xfel-header-height) !important;
+  box-sizing: border-box !important;
+}
+
+.xfel-header-label {
+  font-weight: 600 !important;
+  margin-right: 0.5rem !important;
+  white-space: nowrap !important;
+  color: var(--xfel-header-text-color) !important;
+  font-size: var(--xfel-header-font-size) !important;
+}
+
+.xfel-header-link {
+  color: var(--xfel-header-link-color) !important;
+  text-decoration: none !important;
+  transition: color 0.2s ease !important;
+  white-space: nowrap !important;
+  font-size: var(--xfel-header-font-size) !important;
+  font-weight: normal !important;
+  border: none !important;
+  background: none !important;
+}
+
+.xfel-header-link:hover {
+  color: var(--xfel-header-link-hover-color) !important;
+  text-decoration: underline !important;
+  background: none !important;
+}
+
+.xfel-header-link:visited {
+  color: var(--xfel-header-link-color) !important;
+}
+
+.xfel-header-separator {
+  color: var(--xfel-header-separator-color) !important;
+  margin: 0 0.25rem !important;
+  font-size: var(--xfel-header-font-size) !important;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .xfel-header-content {
+    font-size: var(--xfel-header-font-size-mobile) !important;
+  }
+
+  .xfel-header-label {
+    width: 100% !important;
+    margin-bottom: 0.25rem !important;
+    font-size: var(--xfel-header-font-size-mobile) !important;
+  }
+
+  .xfel-header-link {
+    font-size: var(--xfel-header-font-size-mobile) !important;
+  }
+
+  .xfel-header-separator {
+    font-size: var(--xfel-header-font-size-mobile) !important;
+  }
+}
+
+/* Ensure proper positioning with MkDocs Material theme */
+.md-header {
+  position: relative;
+}
