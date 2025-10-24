@@ -22,7 +22,8 @@
   color: var(--xfel-header-text-color) !important;
   padding: 0 !important;
   width: 100% !important;
-  position: relative !important;
+  position: sticky !important;
+  top: 0 !important;
   z-index: 1000 !important;
   margin: 0 !important;
   border: none !important;

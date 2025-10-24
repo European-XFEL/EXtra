@@ -35,11 +35,24 @@ document.addEventListener('DOMContentLoaded', function() {
         nav.innerHTML = html;
         header.parentNode.insertBefore(nav, header);
       } else {
-        // Fallback: inject at the top of the body
+        // Fallback: inject at the top of the body (for Sphinx and others)
         const nav = document.createElement('div');
         nav.className = 'xfel-cross-nav';
         nav.innerHTML = html;
         document.body.insertBefore(nav, document.body.firstChild);
+
+        // Wait for the next frame to ensure header is rendered and measured
+        requestAnimationFrame(() => {
+          const headerHeight = nav.offsetHeight;
+
+          // Add margin to all top-level children of body except the header itself
+          Array.from(document.body.children).forEach(child => {
+            if (child !== nav && child.tagName !== 'SCRIPT') {
+              const currentMargin = parseFloat(window.getComputedStyle(child).marginTop) || 0;
+              child.style.marginTop = (currentMargin + headerHeight) + 'px';
+            }
+          });
+        });
       }
     })
     .catch(error => {
