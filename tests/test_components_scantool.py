@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock
 
+from extra.data import SourceNameError
 from extra.components import Scantool
 
 import pytest
@@ -26,15 +27,15 @@ def test_scantool():
 
     # Test a run without a scantool
     mock_run.control_sources = { "foo" }
-    with pytest.raises(RuntimeError) as e:
+    with pytest.raises(SourceNameError) as e:
         Scantool(mock_run)
-    assert "please pass an explicit source name" in str(e)
+    assert "please pass an explicit source name" in str(e.value)
 
     # Test a run with multiple scantools
     mock_run.control_sources = { mock_name, f"{mock_name}2" }
-    with pytest.raises(RuntimeError) as e:
+    with pytest.raises(SourceNameError) as e:
         Scantool(mock_run)
-    assert "multiple possible scantools" in str(e)
+    assert "multiple possible scantools" in str(e.value)
 
     mock_run.control_sources = { mock_name }
 
