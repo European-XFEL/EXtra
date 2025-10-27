@@ -284,6 +284,21 @@ def test_AGIPD_from_correction():
     assert agipd_cd["Offset", "AGIPD00"]._metadata['report_id'] == 6512
 
 
+@pytest.mark.vcr
+def test_JUNGFRAU_from_correction():
+    jf_cd = CalibrationData.from_correction(
+        TEST_DIR / "files" / "cal-metadata-p900491-r487.yml"
+    )
+
+    assert jf_cd.detector_name == "FXE_XAD_JF1M"
+    assert set(jf_cd) == {
+        "Offset10Hz", "BadPixelsDark10Hz", "RelativeGain10Hz", "BadPixelsFF10Hz",
+    }
+    assert jf_cd.aggregator_names == ["JNGFR01", "JNGFR02"]
+    assert jf_cd.pdu_names == ["Jungfrau_M530", "Jungfrau_M512"]
+    assert jf_cd["Offset10Hz", "JNGFR01"].ccv_id == 242621
+
+
 def test_format_time(mock_spb_aux_run):
     by_run = datetime.fromisoformat(
         CalCatAPIClient.format_time(mock_spb_aux_run))
