@@ -19,8 +19,9 @@ from extra.calibration import (
     SingleConstant,
 )
 
-# These tests all use saved HTTP responses by default (with pytest-recording).
+# Most of these tests use saved HTTP responses by default (with pytest-recording).
 # To ignore these & use exflcalproxy, run pytest with the --disable-recording flag.
+# To record responses for a new test making HTTP requests, pass --record-mode=once.
 # To update the saved cassettes from exflcalproxy, pass --record-mode=rewrite.
 
 TEST_DIR = Path(__file__).parent
