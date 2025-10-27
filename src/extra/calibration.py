@@ -4,6 +4,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field, fields, replace
 from datetime import date, datetime, time, timezone
 from enum import IntFlag
+from fnmatch import fnmatch
 from functools import lru_cache
 from operator import index
 from pathlib import Path
@@ -31,6 +32,8 @@ __all__ = [
     "DSSCConditions",
     "JUNGFRAUConditions",
     "ShimadzuHPVX2Conditions",
+    "DetectorData",
+    "PhysicalDetectorUnit"
 ]
 
 # Default address to connect to, only available internally
@@ -192,6 +195,9 @@ class CalCatAPIClient:
     def detector_by_identifier(self, identifier):
         return self._get_by_name(
             "detectors", identifier, name_key="identifier")
+
+    def instrument_by_name(self, name):
+        return self._get_by_name("instruments", name, name_key='identifier')
 
     def calibration_by_name(self, name):
         return self._get_by_name("calibrations", name)
@@ -950,6 +956,9 @@ class CalibrationData(Mapping):
         May include missing modules."""
         return [m["physical_name"] for m in self.module_details]
 
+    def detector(self):
+        return DetectorData.from_identifier(self.detector_name)
+
     def require_calibrations(self, calibrations) -> "CalibrationData":
         """Drop any modules missing the specified constant types"""
         mods = set(self.aggregator_names)
@@ -1327,6 +1336,199 @@ class ShimadzuHPVX2Conditions(ConditionsBase):
         'Offset': ['Burst Frame Count'],
         'DynamicFF': ['Burst Frame Count'],
     }
+
+
+@dataclass
+class PhysicalDetectorUnit:
+    """Physical detector unit (PDU).
+
+    PDUs describe the physical modules independent from the detector
+    they may be installed in, or the detector's logical modules they are
+    mapped to.
+    
+    Calibration data is always associated with a PDU rather than a
+    detector or detector module. This allows a PDU to be moved to a
+    different detector installation or place within the detector and
+    carry all its calibration data alongside with it.
+    """
+    
+    pdu_id: int
+    physical_name: str  # PDU identifier independent of detector
+    uuid: int  # Universally unique ID used for mapping
+    aggregator: str  # Data aggregator the PDU is currently mapped to
+    detector: str  # Detector identifier the PDU is currently mapped to
+    virtual_device_name: str  # Identifier within the detector, e.g. Q1M2
+    module_index: int  # Enumerated module index within the detector, contiguous and always starts at 0
+    module_number: int  # Module number within the detector, may start at any number and have gaps
+    detector_type: str
+
+    @property
+    def ccv_params(self):
+        """PDU arguments as needed for write_ccv()."""
+        return self.physical_name, self.uuid, self.detector_type
+
+
+class DetectorData(Mapping):
+    """Detector consisting of one or more modules
+    
+    A detector can house one or more physical detector units, which are
+    mapped to the logical modules of the detector. Calibration data is
+    associated with a PDU rather than a detector.
+
+    This object exposes the module mapping in a dict-like interface
+    mapping data aggregators to physical detector units. Alternatively,
+    the module index may also be used as a key.
+    """
+
+    def __init__(self, detector_row, module_rows):
+        # Result rows as returned by CalCat.
+        self.detector_row = detector_row
+        self.pdus = [PhysicalDetectorUnit(
+            p['id'], p['physical_name'], p['uuid'], p['karabo_da'],
+            p['detector']['identifier'], p['virtual_device_name'],
+            i, p['module_number'], p['detector_type']['name'])
+            for i, p in enumerate(module_rows)]
+
+    @classmethod
+    def from_identifier(cls, identifier, pdu_snapshot_at=None, client=None):
+        """Look up a detector and its modules by identifier.
+
+        `pdu_snapshot_at` should either be an ISO 8601 compatible string
+        or a datetime-like object. It may also be a DataCollection
+        object from EXtra-data to use the beginning of the run as a
+        point in time.
+        """
+
+        client = client or get_client()
+        detector_row = client.detector_by_identifier(identifier)
+        
+        try:
+            module_rows = client.get(
+                'physical_detector_units/get_all_by_detector',
+                {'detector_id': detector_row['id'],
+                 'pdu_snapshot_at': client.format_time(pdu_snapshot_at)})
+        except CalCatAPIError as e:
+            if e.status_code == 404:
+                module_rows = []
+            else:
+                raise e
+
+        return cls(detector_row, module_rows)
+
+    @classmethod
+    def from_instrument(cls, instrument, identifier=None, pdu_snapshot_at=None,
+                        client=None):
+        """Look up a detector and its modules by instrument.
+
+        `identifier` may be a string restricting the result using Unix
+        shell-style glob patterns.
+        
+        `pdu_snapshot_at` should either be an ISO 8601 compatible string
+        or a datetime-like object. It may also be a DataCollection
+        object from EXtra-data to use the beginning of the run as a
+        point in time.
+        """
+
+        client = client or get_client()
+        instrument_id = client.instrument_by_name(instrument)['id']
+
+        rows = [det for det in client.get(
+            'detectors/get_all_by_instrument', {'instrument_id': instrument_id}
+        ) if identifier is None or fnmatch(det['identifier'], identifier)]
+
+        if not rows:
+            raise ValueError(f'No such detector found for {instrument}')
+        elif len(rows) > 1:
+            raise ValueError(
+                f'Multiple such detectors found for {instrument}: ' +
+                ', '.join([detector['identifier'] for detector in rows]))
+
+        return cls.from_identifier(rows[0]['identifier'])
+
+    @classmethod
+    def list_by_instrument(cls, instrument, client=None):
+        """List all detectors by instrument."""
+        
+        client = client or get_client()
+        instrument_id = client.instrument_by_name(instrument)['id']        
+
+        return [det['identifier'] for det in
+                client.get('detectors/get_all_by_instrument',
+                           {'instrument_id': instrument_id})]
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self.pdus[key]
+        elif isinstance(key, str):
+            for pdu in self.pdus:
+                if pdu.aggregator == key:
+                    return pdu
+
+            raise KeyError(key)
+
+    def __iter__(self):
+        return (pdu.aggregator for pdu in self.pdus)
+
+    def __len__(self):
+        return len(self.pdus)
+
+    def __repr__(self):
+        return f'<DetectorData: {len(self.pdus)}/{self.number_of_modules} ' \
+               f'modules of {self.identifier}>'
+
+    @property
+    def id(self) -> int:
+        """Detector ID in CalCat."""
+        return self.detector_row['id']
+
+    @property
+    def identifier(self) -> str:
+        """Detector identifier."""
+        return self.detector_row['identifier']
+
+    @property
+    def source_name_pattern(self) -> str:
+        """Source name pattern."""
+        assert self.detector_row['source_name_pattern'] is not None, \
+            'incomplete detector entry in CalCat'
+        return self.detector_row['source_name_pattern']
+
+    @property
+    def source_names(self) -> list[str]:
+        """Source names of currently mapped PDUs."""
+        return [self.source_name_pattern.format(
+            modno=pdu.module_number or i + self.first_module_index
+        ) for i, pdu in enumerate(self.pdus)]
+
+    @property
+    def number_of_modules(self) -> int:
+        """Number of modules for the full detector."""
+        return self.detector_row['number_of_modules']
+
+    @property
+    def first_module_index(self) -> int:
+        """Module index of the first module."""
+        assert self.detector_row['first_module_index'] is not None, \
+            'incomplete detector entry in CalCat'
+        return self.detector_row['first_module_index']
+
+    @property
+    def pdu_detector_types(self) -> set[str]:
+        """Detector types of currently installed PDUs."""
+        return {pdu.detector_type for pdu in self.pdus}
+
+    @property
+    def detector_type(self) -> str:
+        """Detector type of all PDUs if unique."""
+        pdu_types = self.pdu_detector_types
+
+        if len(pdu_types) > 1:
+            raise ValueError('more than one type of PDU: ' +
+                             ', '.join(pdu_types))
+        elif len(pdu_types) == 0:
+            raise ValueError('no mapped PDUs')
+
+        return pdu_types.pop()
 
 
 class BadPixels(IntFlag):

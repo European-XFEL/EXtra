@@ -18,6 +18,8 @@
 
 Added:
 
+- [DetectorData][extra.calibration.DetectorData] to obtain detector metadata and
+  module mapping from the Calibration Cataloge (!408).
 - [SpectrometerCalibration][extra.gui.jupyter.SpectrometerCalibration] to
   provide a Jupyter widget for energy calibration of 2D X-ray spectrum data
   (!363).
