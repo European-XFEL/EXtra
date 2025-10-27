@@ -252,7 +252,7 @@ def test_AGIPD_CalibrationData_report():
 
 def test_AGIPD_from_correction_minimal():
     agipd_cd = CalibrationData.from_correction_minimal(
-        TEST_DIR / "files" / "cal-metadata-p900508-r22.yml",
+        TEST_DIR / "files" / "cal-metadata-agipd-p900508-r22.yml",
     )
 
     assert agipd_cd.detector_name == "SPB_DET_AGIPD1M-1"
@@ -267,7 +267,7 @@ def test_AGIPD_from_correction_minimal():
 @pytest.mark.vcr
 def test_AGIPD_from_correction():
     agipd_cd = CalibrationData.from_correction(
-        TEST_DIR / "files" / "cal-metadata-p900508-r22.yml",
+        TEST_DIR / "files" / "cal-metadata-agipd-p900508-r22.yml",
     )
 
     assert agipd_cd.detector_name == "SPB_DET_AGIPD1M-1"
@@ -285,9 +285,25 @@ def test_AGIPD_from_correction():
 
 
 @pytest.mark.vcr
+def test_LPD_from_correction():
+    lpd_cd = CalibrationData.from_correction(
+        TEST_DIR / "files" / "cal-metadata-lpd-p900491-r445.yml"
+    )
+
+    assert lpd_cd.detector_name == "FXE_DET_LPD1M-1"
+    assert set(lpd_cd) == {
+        "Offset", "BadPixelsDark", "RelativeGain", "GainAmpMap", "FFMap", "BadPixelsFF",
+    }
+    assert lpd_cd.aggregator_names == [f"LPD{n:02}" for n in range(16)]
+    assert lpd_cd.module_nums == list(range(16))
+    assert lpd_cd.qm_names == [f"Q{(m // 4) + 1}M{(m % 4) + 1}" for m in range(16)]
+    assert lpd_cd["Offset", "LPD00"].ccv_id == 237845
+
+
+@pytest.mark.vcr
 def test_JUNGFRAU_from_correction():
     jf_cd = CalibrationData.from_correction(
-        TEST_DIR / "files" / "cal-metadata-p900491-r487.yml"
+        TEST_DIR / "files" / "cal-metadata-jf-p900491-r487.yml"
     )
 
     assert jf_cd.detector_name == "FXE_XAD_JF1M"
