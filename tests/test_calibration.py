@@ -251,8 +251,8 @@ def test_AGIPD_CalibrationData_report():
 
 
 def test_AGIPD_from_correction_minimal():
-    agipd_cd = CalibrationData.from_correction_minimal(
-        TEST_DIR / "files" / "cal-metadata-agipd-p900508-r22.yml",
+    agipd_cd = CalibrationData.from_correction(
+        TEST_DIR / "files" / "cal-metadata-agipd-p900508-r22.yml", use_calcat=False,
     )
 
     assert agipd_cd.detector_name == "SPB_DET_AGIPD1M-1"

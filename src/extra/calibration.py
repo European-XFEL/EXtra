@@ -729,18 +729,8 @@ class CalibrationData(Mapping):
         module_details = sorted(pdus.values(), key=lambda d: d["karabo_da"])
         return cls(constant_groups, module_details, det_name)
 
-    @classmethod
-    def from_correction_minimal(cls, metadata_path: str | Path):
-        """Find constants used to produce corrected data.
-
-        metadata_path is the path to a YAML metadata file from the EuXFEL
-        offline calibration pipeline, or a folder with a calibration_metadata.yml
-        file. This is ideally the report folder; the folder with the HDF5 output
-        files is ambiguous if there are multiple detectors in the run.
-
-        This method only reads the information provided in the file. Use
-        from_correction() to retrieve additional metadata from CalCat.
-        """
+    @staticmethod
+    def _read_correction_file(metadata_path: str | Path):
         import yaml
 
         metadata_path = Path(metadata_path)
@@ -772,11 +762,12 @@ class CalibrationData(Mapping):
                     _metadata={'begin_validity_at': details['creation-time']}
                 )
 
-        module_details = sorted(pdus.values(), key=lambda d: d["karabo_da"])
-        return cls(constant_groups, module_details, det_name)
+        return constant_groups, pdus, det_name
 
     @classmethod
-    def from_correction(cls,  metadata_path: str | Path, client=None):
+    def from_correction(
+            cls,  metadata_path: str | Path, *, client=None, use_calcat=True
+    ):
         """Find constants used to produce corrected data.
 
         metadata_path is the path to a YAML metadata file from the EuXFEL
@@ -784,15 +775,18 @@ class CalibrationData(Mapping):
         file. This is ideally the report folder; the folder with the HDF5 output
         files is ambiguous if there are multiple detectors in the run.
 
-        This method retrieves additional metadata from CalCat.
-        from_correction_minimal() reads only the minimal info in a YAML file.
+        By default, this method retrieves additional metadata from CalCat.
+        Pass use_calcat=False to read only the minimal info in a YAML file.
         """
         # Get module_number, virtual_device_name from CCV info if possible
-        caldata = cls.from_correction_minimal(metadata_path)
+        constant_groups, pdus, det_name = cls._read_correction_file(metadata_path)
+        module_details = sorted(pdus.values(), key=lambda d: d["karabo_da"])
+        if not use_calcat:
+            return cls(constant_groups, module_details, det_name)
+
         need_metadata = {
-            sc.ccv_id: sc for mmc in caldata.values() for sc in mmc.values()
+            sc.ccv_id: sc for mmc in constant_groups.values() for sc in mmc.values()
         }
-        pdus = {d['karabo_da']: d for d in caldata.module_details}
 
         def extend_module_info(pdu_dict):
             kda = pdu_dict['karabo_da_at_ccv_begin_at']
@@ -827,14 +821,14 @@ class CalibrationData(Mapping):
 
         # If we didn't get module numbers from the PDU mapping, and we have
         # the expected number of modules, fill the numbers in sequentially.
-        if any('module_number' not in d for d in caldata.module_details):
-            det_info = client.detector_by_identifier(caldata.detector_name)
-            if len(caldata.module_details) == det_info['number_of_modules']:
+        if any('module_number' not in d for d in module_details):
+            det_info = client.detector_by_identifier(det_name)
+            if len(module_details) == det_info['number_of_modules']:
                 first = det_info['first_module_index']
-                for i, d in enumerate(caldata.module_details, start=first):
+                for i, d in enumerate(module_details, start=first):
                     d['module_number'] = i
 
-        return caldata
+        return cls(constant_groups, module_details, det_name)
 
     def __getitem__(self, key):
         if isinstance(key, str):
