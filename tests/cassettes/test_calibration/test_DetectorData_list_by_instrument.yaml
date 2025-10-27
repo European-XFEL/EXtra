@@ -1,0 +1,130 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.131+fdd37f4
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/instruments?identifier=SCS
+  response:
+    body:
+      string: '[{"id":1,"name":"SCS SASE3","identifier":"SCS","url":null,"flg_available":true,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '99'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Mon, 27 Oct 2025 14:39:13 GMT
+      Etag:
+      - W/"c707e2c93200c3b80579cc4c14e8005c"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 5f667d72-55e0-452a-94e3-fbd86c72bc3b
+      X-Runtime:
+      - '0.022170'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.131+fdd37f4
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/detectors/get_all_by_instrument?instrument_id=1
+  response:
+    body:
+      string: '[{"id":1,"name":"SCS_DET_DSSC1M-1","identifier":"SCS_DET_DSSC1M-1","karabo_name":"SCS_DET_DSSC1M-1","karabo_id_control":"SCS_CDIDET_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":1,"detector_id":1},{"instrument_id":7,"detector_id":1}]},{"id":46,"name":"SCS_HRIXS_JUNGF","identifier":"SCS_HRIXS_JUNGF","karabo_name":"SCS_HRIXS_JUNGF","karabo_id_control":"SCS_HRIXS_JUNGF","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":1,"detector_id":46}]},{"id":48,"name":"SCS_XOX_GH21","identifier":"SCS_XOX_GH21","karabo_name":"SCS_XOX_GH21","karabo_id_control":"SCS_XOX_GH21","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":1,"detector_id":48}]},{"id":49,"name":"SCS_XOX_GH22","identifier":"SCS_XOX_GH22","karabo_name":"SCS_XOX_GH22","karabo_id_control":"SCS_XOX_GH22","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":1,"detector_id":49}]},{"id":66,"name":"SCS_DET_DSSC2","identifier":"SCS_DET_DSSC2","karabo_name":"SCS_DET_DSSC2","karabo_id_control":"SCS_CDIDET_DSSC2","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":1,"detector_id":66}]}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '1594'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Mon, 27 Oct 2025 14:39:13 GMT
+      Etag:
+      - W/"431bad1b6a70fde22fbbde554e31062d"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - d53c90a2-fe2d-4469-9c89-5812d26f0a13
+      X-Runtime:
+      - '0.023352'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+version: 1

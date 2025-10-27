@@ -1,7 +1,10 @@
 # Calibration constants
 
 The `extra.calibration` module helps you to find & load detector calibration
-constants stored in the [Calibration Catalog](https://in.xfel.eu/calibration/).
+data stored in the [Calibration Catalog](https://in.xfel.eu/calibration/).
+This is used for most imaging detectors in use at European XFEL to record
+and track datasets called calibration constants derived from characterization
+measurements and used for data corrections.
 
 To find constants by conditions for a particular point in time, create a
 condition object for the relevant detector type and use
@@ -68,6 +71,20 @@ agipd_cd.display_markdown_table()
 ::: extra.calibration.LPDConditions
 
 ::: extra.calibration.ShimadzuHPVX2Conditions
+
+## Detectors and modules
+
+Calibration data is associated with physical detector units (PDUs), with an actual
+detector consisting of one or more of these PDUs then generally called modules. PDUs
+can freely move between detectors of the same type in a process called mapping, and
+take their calibration data alongside with them.
+
+This is automatically taken into account when using the `CalibrationData` APIs described
+here, but you can also obtain the detector metadata and mapping information explicitly:
+
+::: extra.calibration.DetectorData
+
+::: extra.calibration.PhysicalDetectorUnit
 
 ## Bad pixel values
 
