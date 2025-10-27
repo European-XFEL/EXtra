@@ -315,6 +315,20 @@ def test_JUNGFRAU_from_correction():
     assert jf_cd["Offset10Hz", "JNGFR01"].ccv_id == 242621
 
 
+@pytest.mark.skipif(not os.path.isdir("/gpfs/exfel/d"), reason="GPFS not available")
+@pytest.mark.vcr
+def test_JUNGFRAU_from_correction_by_run():
+    jf_cd = CalibrationData.from_correction(900491, 487, "FXE_XAD_JF1M")
+
+    assert jf_cd.detector_name == "FXE_XAD_JF1M"
+    assert set(jf_cd) == {
+        "Offset10Hz", "BadPixelsDark10Hz", "RelativeGain10Hz", "BadPixelsFF10Hz",
+    }
+    assert jf_cd.aggregator_names == ["JNGFR01", "JNGFR02"]
+    assert jf_cd.pdu_names == ["Jungfrau_M530", "Jungfrau_M512"]
+    assert jf_cd["Offset10Hz", "JNGFR01"].ccv_id == 242621
+
+
 def test_format_time(mock_spb_aux_run):
     by_run = datetime.fromisoformat(
         CalCatAPIClient.format_time(mock_spb_aux_run))

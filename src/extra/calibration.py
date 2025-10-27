@@ -5,6 +5,7 @@ from dataclasses import dataclass, field, fields, replace
 from datetime import date, datetime, time, timezone
 from enum import IntFlag
 from functools import lru_cache
+from operator import index
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 from urllib.parse import urljoin
@@ -13,6 +14,7 @@ from warnings import warn
 import h5py
 import pasha as psh
 import requests
+from extra_data.read_machinery import find_proposal
 from oauth2_xfel_client import Oauth2ClientBackend
 
 from .utils.misc import _isinstance_no_import
@@ -730,10 +732,9 @@ class CalibrationData(Mapping):
         return cls(constant_groups, module_details, det_name)
 
     @staticmethod
-    def _read_correction_file(metadata_path: str | Path):
+    def _read_correction_file(metadata_path: Path):
         import yaml
 
-        metadata_path = Path(metadata_path)
         if metadata_path.is_dir():
             metadata_path = metadata_path / "calibration_metadata.yml"
 
@@ -766,24 +767,43 @@ class CalibrationData(Mapping):
 
     @classmethod
     def from_correction(
-            cls,  metadata_path: str | Path, *, client=None, use_calcat=True
+            cls,  metadata_file_or_proposal: str | Path | int, run: int | None =None,
+            detector_name=None, *, client=None, use_calcat=True
     ):
         """Find constants used to produce corrected data.
 
-        metadata_path is the path to a YAML metadata file from the EuXFEL
-        offline calibration pipeline, or a folder with a calibration_metadata.yml
-        file. This is ideally the report folder; the folder with the HDF5 output
-        files is ambiguous if there are multiple detectors in the run.
+        This can be called with a proposal & run number and a detector name
+        (e.g. 'FXE_XAD_JF1M'), or with the path of a YAML metadata file from the
+        EuXFEL offline calibration pipeline.
 
         By default, this method retrieves additional metadata from CalCat.
         Pass use_calcat=False to read only the minimal info in a YAML file.
         """
-        # Get module_number, virtual_device_name from CCV info if possible
-        constant_groups, pdus, det_name = cls._read_correction_file(metadata_path)
+        if run is not None:
+            if detector_name is None:
+                raise TypeError("detector_name required with proposal/run numbers")
+            proposal = metadata_file_or_proposal
+            if isinstance(proposal, str):
+                if ('/' not in proposal) and not proposal.startswith('p'):
+                    proposal = 'p' + proposal.rjust(6, '0')
+            else:
+                # Allow integers, including numpy integers
+                proposal = 'p{:06d}'.format(index(proposal))
+
+            run_dir = Path(find_proposal(proposal)) / 'proc' / f'r{run:04d}'
+            yaml_path = run_dir / f"calibration_metadata_{detector_name}.yml"
+        elif detector_name is not None:
+            raise TypeError("detector_name was passed but run was not")
+        else:
+            yaml_path = Path(metadata_file_or_proposal)
+
+
+        constant_groups, pdus, det_name = cls._read_correction_file(yaml_path)
         module_details = sorted(pdus.values(), key=lambda d: d["karabo_da"])
         if not use_calcat:
             return cls(constant_groups, module_details, det_name)
 
+        # Get module_number, virtual_device_name from CCV info if possible
         need_metadata = {
             sc.ccv_id: sc for mmc in constant_groups.values() for sc in mmc.values()
         }
