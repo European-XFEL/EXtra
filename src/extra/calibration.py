@@ -968,7 +968,6 @@ class CalibrationData(Mapping):
             data: 'DataCollection',
             detector_name: str,
             calibrations=None,
-            modules=None,
             client=None,
             begin_at_strategy='closest',
             **kwargs
@@ -998,8 +997,7 @@ class CalibrationData(Mapping):
             raise NotImplementedError(det.detector_type)
 
         return cls.from_condition(
-            cond_cls.from_data(data, detector_name, modules=modules,
-                               client=client, **kwargs),
+            cond_cls.from_data(data, detector_name, client=client, **kwargs),
             detector_name, calibrations=calibrations, client=client,
             event_at=creation_date, pdu_snapshot_at=creation_date,
             begin_at_strategy=begin_at_strategy)
@@ -1292,20 +1290,6 @@ class ConditionsBase:
         return '\n'.join(items)
 
     @staticmethod
-    def _find_detector_modules(data, det):
-        assert det['first_module_index'] is not None and \
-            det['number_of_modules'] is not None, \
-            'incomplete detector entry in CalCat'
-
-        # Find module numbers present in data.
-        return {
-            modno for modno in range(
-                det['first_module_index'],
-                det['first_module_index'] + det['number_of_modules'])
-            if det['source_name_pattern'].format(modno=modno)
-                in data.instrument_sources}
-
-    @staticmethod
     def _purge_missing_sources(data, *sources):
         result = []
 
@@ -1367,28 +1351,27 @@ class AGIPDConditions(ConditionsBase):
         return cond
 
     @classmethod
-    def from_data(cls, data, detector_name, modules=None,
+    def from_data(cls, data, detector,
                   fpga_comp=None, mpod=None, fpga_control=None, xtdf=None,
                   client=None, **params):
         # Uncaught exceptions that may be thrown in here:
         # - NoDataError
 
-        if any_is_none(modules, fpga_comp, mpod, fpga_control, xtdf):
-            detector = (client or get_client()).detector_by_identifier(
-                detector_name)
-            control_domain = detector['karabo_id_control']
+        if any_is_none(fpga_comp, mpod, fpga_control, xtdf):
+            if not isinstance(detector, DetectorData):
+                detector = DetectorData(detector)
 
-            modules = modules or cls._find_detector_modules(data, detector)
+            control_domain = detector.karabo_domain_control
+
             fpga_comp = fpga_comp or f'{control_domain}/MDL/FPGA_COMP'
             mpod = mpod or f'{control_domain[:-1]}/PSC/HV'
 
-            if fpga_control is None:
-                fpga_control = {f'{control_domain}/FPGA/M_{modno}'
-                                for modno in modules}
-
             if xtdf is None:
-                xtdf = {detector['source_name_pattern'].format(modno=modno)
-                        for modno in modules}
+                xtdf = detector.source_names
+
+            if fpga_control is None:
+                fpga_control = ['{control_domain}/FPGA/M_{i}'
+                                for i in range(xtdf)]
 
         fpga_comp, mpod, fpga_control, xtdf = cls._purge_missing_sources(
             data, fpga_comp, mpod, fpga_control, xtdf)
@@ -1439,7 +1422,7 @@ class AGIPDConditions(ConditionsBase):
             if mpod is not None:
                 # AGIPD Gen1
                 params['sensor_bias_voltage'] = cls.bias_voltage_from_mpod(
-                    data[mpod], modules)
+                    data[mpod])
 
             elif fpga_control:
                 # AGIPD Gen2
@@ -1572,21 +1555,19 @@ class LPDConditions(ConditionsBase):
         return cond
 
     @classmethod
-    def from_data(cls, data, detector_name, modules=None,
-                  fem_comp=None, xtdf=None,
+    def from_data(cls, data, detector, fem_comp=None, xtdf=None,
                   validate_memcell_order=False, use_memcell_order='auto',
                   client=None, **params):
-        if any_is_none(modules, fem_comp, xtdf):
-            detector = (client or get_client()).detector_by_identifier(
-                detector_name)
+        if any_is_none(fem_comp, xtdf):
+            if not isinstance(detector, DetectorData):
+                detector = DetectorData(detector)
 
-            modules = modules or cls._find_detector_modules(data, detector)
             fem_comp = fem_comp or (
-                detector['karabo_id_control'] + '/COMP/FEM_MDL_COMP')
+                detector.karabo_domain_control + '/COMP/FEM_MDL_COMP')
 
             if xtdf is None:
-                xtdf = {detector['source_name_pattern'].format(modno=modno)
-                        for modno in modules}
+                xtdf = data.instrument_sources.intersection(
+                    detector.source_names)
 
         fem_comp, xtdf = cls._purge_missing_sources(data, fem_comp, xtdf)
 
@@ -2053,6 +2034,11 @@ class DetectorData(Mapping):
 
         return type(self)(detector_row, module_rows_or_pdus,
                           self.pdu_snapshot_at)
+
+    @property
+    def karabo_domain_control(self) -> str:
+        """Karabo domain for control devices."""
+        return self.detector_row['karabo_id_control']
 
     @property
     def source_name_pattern(self) -> str:
