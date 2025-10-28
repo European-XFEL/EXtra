@@ -929,24 +929,12 @@ class CalibrationData(Mapping):
         creation_date = data[0].train_timestamps(pydatetime=True)[0]
 
         client = client or get_client()
-        det = client.detector_by_identifier(detector_name)
-
-        # Figure out detector type from PDUs.
-        types = {pdu['detector_type']['name'] for pdu
-                 in client.pdus_by_detector(det['id'], creation_date)}
-
-        if len(types) == 0:
-            raise ValueError(f'{detector_name} had no PDUs assigned at '
-                             f'data creation date to determine type')
-        elif len(types) > 1:
-            raise ValueError('{} had multiple types ({}) of PDUs assigned at '
-                             'creation date of data'.format(
-                detector_name, ', '.join(types)))
+        det = DetectorData(detector_name)
 
         try:
-            cond_cls = detector_cond_cls[(det_type := types.pop())]
+            cond_cls = detector_cond_cls[det.detector_type]
         except KeyError:
-            raise NotImplementedError(det_type)
+            raise NotImplementedError(det.detector_type)
 
         return cls.from_condition(
             cond_cls.from_data(data, detector_name, modules=modules,
