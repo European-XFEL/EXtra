@@ -13,21 +13,84 @@ interactions:
       content-type:
       - application/json
     method: GET
-    uri: http://exflcalproxy.desy.de:8080/api/detectors?identifier=SQS_DET_DSSC1M-1
+    uri: http://exflcalproxy.desy.de:8080/api/me
   response:
     body:
-      string: '[{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":2,"detector_id":28},{"instrument_id":7,"detector_id":28}]}]'
+      string: '{"id":-9,"email":"admin@example.com","created_at":"2015-03-12T17:02:47.000+01:00","updated_at":"2024-06-26T11:38:56.000+02:00","provider":"local","uid":null,"name":"Admin
+        User","first_name":"Admin","last_name":"User","nickname":null,"contact_email":"admin@example.com","ldap_synced_at":null,"flg_ldap_account_valid":false,"flg_service_account":true}'
     headers:
       Cache-Control:
       - max-age=0, private, must-revalidate
       Content-Length:
-      - '355'
+      - '349'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Fri, 08 Nov 2024 14:32:16 GMT
+      - Fri, 08 Nov 2024 14:31:53 GMT
       Etag:
-      - W/"a8d2d9773c98d7aa08414d4272e23394"
+      - W/"4bf159598242c25bb9fb5b1598d140b2"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 5d8b2e03-e5b8-4d47-bb3a-35d7b3ee140e
+      X-Runtime:
+      - '0.021739'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate, br, zstd
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2024.1.1.184+03da3c1
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/detectors?identifier=MID_DET_AGIPD1M-1
+  response:
+    body:
+      string: '[{"id":4,"name":"MID_DET_AGIPD1M-1","identifier":"MID_DET_AGIPD1M-1","karabo_name":"MID_DET_AGIPD1M-1","karabo_id_control":"MID_EXP_AGIPD1M1","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":4,"detector_id":4},{"instrument_id":7,"detector_id":4}]}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '359'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 08 Nov 2024 14:31:53 GMT
+      Etag:
+      - W/"482ffe83a86d14688f9ee0fa415bd62a"
       Keep-Alive:
       - timeout=5, max=100
       Referrer-Policy:
@@ -57,9 +120,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - cf9b0841-8f37-4102-abfa-e408c95f4512
+      - 01a51413-57e9-43ae-9c9e-73c94a012e28
       X-Runtime:
-      - '0.020267'
+      - '0.020753'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -75,11 +138,79 @@ interactions:
       Accept:
       - application/json; version=2
       Accept-Encoding:
-      - gzip, deflate, br, zstd
+      - gzip, deflate
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2024.1.1.184+03da3c1
+      - EXtra/2025.1.105+5a88200
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/detectors?identifier=SQS_DET_DSSC1M-1
+  response:
+    body:
+      string: '[{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":2,"detector_id":28},{"instrument_id":7,"detector_id":28}]}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '355'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Thu, 16 Oct 2025 08:58:29 GMT
+      Etag:
+      - W/"a8d2d9773c98d7aa08414d4272e23394"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - df71dc29-293f-498c-88a2-d97ad10c486a
+      X-Runtime:
+      - '0.023405'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.105+5a88200
       content-type:
       - application/json
     method: GET
@@ -95,7 +226,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Fri, 08 Nov 2024 14:32:16 GMT
+      - Thu, 16 Oct 2025 08:58:29 GMT
       Etag:
       - W/"8306e1d172eb64a33186dde32e2e7bba"
       Keep-Alive:
@@ -114,8 +245,6 @@ interactions:
       - HTTP/1.1 xfel_oauth_proxy
       X-Content-Type-Options:
       - nosniff
-      X-Download-Options:
-      - noopen
       X-Frame-Options:
       - SAMEORIGIN
       X-Permitted-Cross-Domain-Policies:
@@ -123,9 +252,146 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - de582474-f688-45b7-92ec-343386b8968e
+      - ee46ef78-85c7-4df8-994e-9f0a854cfa58
       X-Runtime:
-      - '0.419828'
+      - '0.524134'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.105+5a88200
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=Offset
+  response:
+    body:
+      string: '[{"id":1,"name":"Offset","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":""}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '114'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Thu, 16 Oct 2025 08:58:30 GMT
+      Etag:
+      - W/"41e8088cc44ad976e577e40482d74dfb"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 9f6eb375-343e-4278-be87-6d84092bb61a
+      X-Runtime:
+      - '0.026962'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.105+5a88200
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=Noise
+  response:
+    body:
+      string: '[{"id":2,"name":"Noise","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":"In
+        terms of standard deviation"}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '143'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Thu, 16 Oct 2025 08:58:30 GMT
+      Etag:
+      - W/"f1826d5b0b4d30aa8e2a90eb504451d1"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 8dd611d2-87d7-4ab0-9c75-6345237063c6
+      X-Runtime:
+      - '0.029018'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
       X-Xss-Protection:
       - '0'
     status:
@@ -139,13 +405,13 @@ interactions:
       Accept:
       - application/json; version=2
       Accept-Encoding:
-      - gzip, deflate, br, zstd
+      - gzip, deflate
       Connection:
       - keep-alive
       Content-Length:
       - '245'
       User-Agent:
-      - EXtra/2024.1.1.184+03da3c1
+      - EXtra/2025.1.105+5a88200
       content-type:
       - application/json
     method: GET
@@ -233,7 +499,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Fri, 08 Nov 2024 14:32:16 GMT
+      - Thu, 16 Oct 2025 08:58:30 GMT
       Etag:
       - W/"1a0189659154ceeb56b3374bd5072c84"
       Keep-Alive:
@@ -252,8 +518,6 @@ interactions:
       - HTTP/1.1 xfel_oauth_proxy
       X-Content-Type-Options:
       - nosniff
-      X-Download-Options:
-      - noopen
       X-Frame-Options:
       - SAMEORIGIN
       X-Permitted-Cross-Domain-Policies:
@@ -261,9 +525,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - e012da7a-61f5-40c0-9bdc-9c1e00343aba
+      - ca05c13a-ee1b-42b2-bbdb-f727f8b7594b
       X-Runtime:
-      - '0.951225'
+      - '1.055998'
       X-Xss-Protection:
       - '0'
     status:

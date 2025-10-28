@@ -5,6 +5,7 @@ from dataclasses import dataclass, field, fields, replace
 from datetime import date, datetime, time, timezone
 from enum import IntFlag
 from functools import lru_cache
+from operator import index
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 from urllib.parse import urljoin
@@ -13,6 +14,7 @@ from warnings import warn
 import h5py
 import pasha as psh
 import requests
+from extra_data.read_machinery import find_proposal
 from oauth2_xfel_client import Oauth2ClientBackend
 
 from .utils.misc import _isinstance_no_import
@@ -447,8 +449,13 @@ class MultiModuleConstant(Mapping):
         if key in self.constants:  # Karabo DA name, e.g. 'LPD00'
             candidate_kdas.add(key)
 
+        undef = object()
         for m in self.module_details:
-            names = (m["module_number"], m["virtual_device_name"], m["physical_name"])
+            names = (
+                m.get("module_number", undef),
+                m.get("virtual_device_name", undef),
+                m["physical_name"]
+            )
             if key in names and m["karabo_da"] in self.constants:
                 candidate_kdas.add(m["karabo_da"])
 
@@ -767,6 +774,125 @@ class CalibrationData(Mapping):
         det_name = client.detector_by_id(det_ids.pop())["identifier"]
 
         module_details = sorted(pdus.values(), key=lambda d: d["karabo_da"])
+        return cls(constant_groups, module_details, det_name)
+
+    @staticmethod
+    def _read_correction_file(metadata_path: Path):
+        import yaml
+
+        if metadata_path.is_dir():
+            metadata_path = metadata_path / "calibration_metadata.yml"
+
+        with metadata_path.open('r') as f:
+            metadata = yaml.safe_load(f)
+
+        constant_groups = {}  # keyed by calib type (e.g. 'Offset'), then karabo_da ('AGIPD00')
+        pdus = {}  # keyed by karabo_da (e.g. 'AGIPD00')
+        det_name = metadata['calibration-configurations']['karabo-id']
+
+        for kda, grp in metadata['retrieved-constants'].items():
+            if 'constants' not in grp:  # e.g. 'time-summary' key
+                continue
+
+            pdu_name = grp['physical-name']
+            # Missing: module_number, virtual_device_name
+            pdus[kda] = {'karabo_da': kda, 'physical_name': pdu_name}
+
+            for cal_type, details in grp['constants'].items():
+                const_group = constant_groups.setdefault(cal_type, {})
+                const_group[kda] = SingleConstant(
+                    path=details['path'],
+                    dataset=details['dataset'],
+                    ccv_id=details['ccv_id'],
+                    pdu_name=pdu_name,
+                    _metadata={'begin_validity_at': details['creation-time']}
+                )
+
+        return constant_groups, pdus, det_name
+
+    @classmethod
+    def from_correction(
+            cls,  metadata_file_or_proposal: str | Path | int, run: int | None =None,
+            detector_name=None, *, client=None, use_calcat=True
+    ):
+        """Find constants used to produce corrected data.
+
+        This can be called with a proposal & run number and a detector name
+        (e.g. 'FXE_XAD_JF1M'), or with the path of a YAML metadata file from the
+        EuXFEL offline calibration pipeline.
+
+        By default, this method retrieves additional metadata from CalCat.
+        Pass use_calcat=False to read only the minimal info in a YAML file.
+        """
+        if run is not None:
+            if detector_name is None:
+                raise TypeError("detector_name required with proposal/run numbers")
+            proposal = metadata_file_or_proposal
+            if isinstance(proposal, str):
+                if ('/' not in proposal) and not proposal.startswith('p'):
+                    proposal = 'p' + proposal.rjust(6, '0')
+            else:
+                # Allow integers, including numpy integers
+                proposal = 'p{:06d}'.format(index(proposal))
+
+            run_dir = Path(find_proposal(proposal)) / 'proc' / f'r{run:04d}'
+            yaml_path = run_dir / f"calibration_metadata_{detector_name}.yml"
+        elif detector_name is not None:
+            raise TypeError("detector_name was passed but run was not")
+        else:
+            yaml_path = Path(metadata_file_or_proposal)
+
+
+        constant_groups, pdus, det_name = cls._read_correction_file(yaml_path)
+        module_details = sorted(pdus.values(), key=lambda d: d["karabo_da"])
+        if not use_calcat:
+            return cls(constant_groups, module_details, det_name)
+
+        # Get module_number, virtual_device_name from CCV info if possible
+        need_metadata = {
+            sc.ccv_id: sc for mmc in constant_groups.values() for sc in mmc.values()
+        }
+
+        def extend_module_info(pdu_dict):
+            kda = pdu_dict['karabo_da_at_ccv_begin_at']
+            if vdn := pdu_dict['virtual_device_name_at_ccv_begin_at']:
+                pdus[kda]['virtual_device_name'] = vdn
+            if modnum := pdu_dict['module_number_at_ccv_begin_at']:
+                pdus[kda]['module_number'] = modnum
+
+        # Retrieve constant metadata from CalCat
+        # If possible, we retrieve batches of CCVs by report ID.
+        # A correction will normally use e.g. offset constants for all
+        # modules from one report, i.e. generated at the same time.
+        # E.g. for LPD-1M, this can do 4 requests (2 CCVs + 2 reports)
+        # instead of 96 individual CCVs.
+        client = client or get_client()
+        while need_metadata:
+            # .metadata_dict() fetches & caches CCV metadata from CalCat
+            md = need_metadata.popitem()[1].metadata_dict()
+
+            extend_module_info(md['physical_detector_unit'])
+
+            if (report_id := md['report_id']) is None:
+                continue  # CCV not associated with a report
+
+            # Fill metadata for other CCVs belonging to this report
+            report_info = client.get(f"reports/{report_id}")
+            for ccv_dict in report_info['calibration_constant_versions']:
+                if const_obj := need_metadata.pop(ccv_dict['id'], None):
+                    const_obj._metadata = ccv_dict
+                    const_obj._have_calcat_metadata = True
+                extend_module_info(ccv_dict['physical_detector_unit'])
+
+        # If we didn't get module numbers from the PDU mapping, and we have
+        # the expected number of modules, fill the numbers in sequentially.
+        if any('module_number' not in d for d in module_details):
+            det_info = client.detector_by_identifier(det_name)
+            if len(module_details) == det_info['number_of_modules']:
+                first = det_info['first_module_index']
+                for i, d in enumerate(module_details, start=first):
+                    d['module_number'] = i
+
         return cls(constant_groups, module_details, det_name)
 
     def __getitem__(self, key):
