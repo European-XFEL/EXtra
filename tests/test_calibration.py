@@ -250,6 +250,31 @@ def test_JUNGFRAU_constant():
 
 
 @pytest.mark.vcr
+def test_JUNGFRAU_constant_prior_strategy():
+    cond = JUNGFRAUConditions(
+        sensor_bias_voltage=90.,
+        memory_cells=1,
+        integration_time=400.,
+        gain_setting=0,
+        sensor_temperature=291.,
+    )
+    # Just before a new constant
+    ts = datetime.fromisoformat("2024-03-04T13:33:28.000+01:00")
+    cd_closest = CalibrationData.from_condition(
+        cond, "FXE_XAD_JF1M", event_at=ts, begin_at_strategy="closest",
+    )
+    assert datetime.fromisoformat(
+        cd_closest["Noise10Hz", "JNGFR01"].metadata("begin_at")
+    ) > ts
+    cd_prior = CalibrationData.from_condition(
+        cond, "FXE_XAD_JF1M", event_at=ts, begin_at_strategy="prior",
+    )
+    assert datetime.fromisoformat(
+        cd_prior["Noise10Hz", "JNGFR01"].metadata("begin_at")
+    ) < ts
+
+
+@pytest.mark.vcr
 def test_AGIPD_CalibrationData_report():
     """Test CalibrationData with data from report"""
     # Report ID: https://in.xfel.eu/calibration/reports/3757
