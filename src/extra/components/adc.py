@@ -19,6 +19,7 @@ class AdcRawChannel:
 
     # The maximum rate of 4.5 MHz (see extra.components.pulses)
     _bunch_repetition_divider = 288
+    # The Fast ADC boards run at 108.3333 MHz (see ...)
     _fast_adc_divider = 12
     _bunch_repetition_rate = 1.3e9 / _bunch_repetition_divider
     _fast_adc_clock_rate = 1.3e9 / _fast_adc_divider
@@ -39,8 +40,12 @@ class AdcRawChannel:
 
         self._instrument_sources = data.instrument_sources
         self._control_sources = data.control_sources
+
+        # Check that the required instrument and control sources are present
         self._inst_source_name = self._validate_inst_source()
         self._ctrl_source_name = self._validate_ctrl_source()
+
+        # If all is in order, assign the SourceData objects
         self._inst_sourcedata = data[self._inst_source_name]
         self._ctrl_sourcedata = data[self._ctrl_source_name]
 
@@ -56,21 +61,35 @@ class AdcRawChannel:
         self._number_of_samples = self._get_number_of_samples()
 
     @property
+    def pulse_period(self):
+        """Check that there is one unique pulse period and extract it"""
+
+    @property
     def samples_per_pulse(self):
         """Blah blah blah"""
 
         if self._pulses is None:
-            raise RuntimeError("This was not initialized with a pulse pattern "
-                               ". Please ...")
+            raise RuntimeError(
+                "This component was not initialized with a pulse pattern."
+            ) from None
         pulse_period = self._pulses.pulse_periods().unique()
 
         if len(pulse_period) > 1:
-            raise ValueError("There more than one pulse period between "
-                             "selection. To proceed, split the trains "
-                             "into groups with a common period and try "
-                             "again.") from None
+            raise ValueError(
+                "There is more than one pulse period in this selection. To "
+                "proceed, split the trains into selections with a common "
+                "period and try again.") from None
 
-        return int(pulse_period[0])
+        pulse_period = int(pulse_period[0])
+
+        pulse_count = self.pulses.pulse_counts().unique()
+        assert len(pulse_count) == 1
+
+        # If there is only one pulse per train, then set pulse_period to
+        # something larger than 1, like 4, say
+        pulse_period = pulse_period if pulse_count > 1 else 4
+
+        return pulse_period * self._fast_adc_divider
 
     @property
     def _channel_number(self):
@@ -154,9 +173,10 @@ class AdcRawChannel:
             try:
                 pulses = XrayPulses(data)
             except ValueError:
-                raise ValueError("Only runs with a timeserver or pulse "
-                                 "pattern decoder source are supported "
-                                 "at the moment.") from None
+                raise ValueError(
+                    "No valid timeserver or pulse pattern decoder found. "
+                    "Please explicitly disable this feature by setting "
+                    "`pulses=False`.") from None
 
         return pulses
 
@@ -171,6 +191,7 @@ class AdcRawChannel:
 
     @property
     def pulses(self):
+        """The pulse pattern (XrayPulses) if present, None if not."""
         return self._pulses
 
     @property
@@ -237,7 +258,7 @@ class AdcRawChannel:
             num_trains = chunk.shape[0]
             this_slice = slice(offset, offset + num_trains)
             offset += num_trains
-            out[this_slice] = chunk.ndarray()
+            out[this_slice] = chunk.ndarray(shape=None)
 
         if not labelled:
             return out
@@ -249,8 +270,7 @@ class AdcRawChannel:
     def pulse_data(self, labelled=True, out=None):
         """Identify all the pulses and return an array containing them."""
 
-        samples = self.pulse_counts * self.pulse_periods
-        samples *= AdcRawChannel._base_samples_per_bunch
+        samples = self.samples_per_pulse * self.pulses
 
         samples += self._sample_first_bunch
 
