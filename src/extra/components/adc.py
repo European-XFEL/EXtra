@@ -1,6 +1,5 @@
 """Fast ADC component"""
 
-from functools import cached_property
 import re
 
 import numpy as np
@@ -9,7 +8,7 @@ import xarray as xr
 
 from extra_data import by_id, DataCollection
 from extra_data.read_machinery import roi_shape
-from .pulses import XrayPulses
+from .pulses import XrayPulses, PulsePattern
 from .utils import _isinstance_no_import
 
 
@@ -23,7 +22,7 @@ class AdcRawChannel:
     _fast_adc_divider = 12
     _bunch_repetition_rate = 1.3e9 / _bunch_repetition_divider
     _fast_adc_clock_rate = 1.3e9 / _fast_adc_divider
-    _clock_ratio = _bunch_repetition_divider / _fast_adc_divider
+    _clock_ratio = _bunch_repetition_divider // _fast_adc_divider
     _adc_regex = re.compile(r'^.*\/ADC\/[0-9]+:channel_([0-9]+).output$')
 
     def __init__(
@@ -61,35 +60,62 @@ class AdcRawChannel:
         self._number_of_samples = self._get_number_of_samples()
 
     @property
-    def pulse_period(self):
-        """Check that there is one unique pulse period and extract it"""
+    def pulses(self) -> PulsePattern | None:
+        """The pulse pattern (XrayPulses) if present, None if not."""
+        return self._pulses
 
     @property
-    def samples_per_pulse(self):
-        """Blah blah blah"""
+    def pulse_period(self) -> int:
+        """Check that there is one unique pulse period and extract it"""
 
         if self._pulses is None:
             raise RuntimeError(
                 "This component was not initialized with a pulse pattern."
             ) from None
-        pulse_period = self._pulses.pulse_periods().unique()
 
+        try:
+            pulse_period = self._pulses.pulse_periods().unique()
+            pulse_period = int(pulse_period[0])
+        except ValueError:
+            # PulsePattern.pulse_period raises ValueError when there is only
+            # one pulse per train, if so, catch it and set pulse period to
+            # to a reasonable value, 4 say
+            pulse_period = 4
+
+        # TODO: Probably should do this in the ._validate_pulses_kwarg method
         if len(pulse_period) > 1:
             raise ValueError(
                 "There is more than one pulse period in this selection. To "
                 "proceed, split the trains into selections with a common "
                 "period and try again.") from None
 
-        pulse_period = int(pulse_period[0])
+        return pulse_period
 
-        pulse_count = self.pulses.pulse_counts().unique()
-        assert len(pulse_count) == 1
+    @property
+    def samples_per_pulse(self) -> int:
+        """Compute the number of samples per pulse."""
+        return self.pulse_period * self._clock_ratio
 
-        # If there is only one pulse per train, then set pulse_period to
-        # something larger than 1, like 4, say
-        pulse_period = pulse_period if pulse_count > 1 else 4
+    @property
+    def pulses_per_train(self) -> int:
+        """The number of pulses per train."""
 
-        return pulse_period * self._fast_adc_divider
+    @property
+    def trace_length(self) -> int | None:
+        """Compute the trace length based on the pulse pattern"""
+
+        if self._pulses is None:
+            return None
+
+        trace_len = self.samples_per_pulse * self.pulses_per_train
+        trace_len += self._sample_first_bunch
+
+        # Make sure trace_len <= self._number_of_samples.
+        # TODO: Issue warning if not? This would mean that the device was not
+        # configured correctly before the run...
+        trace_len = min(trace_len, self._number_of_samples)
+
+        return trace_len
 
     @property
     def _channel_number(self):
@@ -158,53 +184,51 @@ class AdcRawChannel:
         array = np.unique(array)
 
         if len(array) > 1:
+            # This is highly unlikely but better save than sorry.
             raise ValueError("It looks like the `sampleFirstBunch.value` key "
                              "changed during the run. Please specify a value "
                              f"explicitly. I found {array}.")
         return int(array[0])
 
     def _validate_pulses_kwarg(self, data, pulses):
-        """Offloads pulses validation logic from __init__"""
+        """Offloads pulses validation logic from the __init__ method.
+
+        The validation needs to check for the following conditions:
+          1. If pulses is not explicitly set to False, then a timeserver or
+             a pulse pattern decoder source needs to be present.
+          2. The pulse pattern needs to be constant.
+        """
 
         if pulses is False:
-            pulses = None
-        else:
-            # Write unit tests: no BPT, BPT_DECODER, full BPT, & both
-            try:
-                pulses = XrayPulses(data)
-            except ValueError:
-                raise ValueError(
-                    "No valid timeserver or pulse pattern decoder found. "
-                    "Please explicitly disable this feature by setting "
-                    "`pulses=False`.") from None
+            return None
 
+        # Write unit tests: no BPT, BPT_DECODER, full BPT, & both
+        try:
+            pulses = XrayPulses(data)
+        except ValueError:
+            raise ValueError(
+                "No valid timeserver or pulse pattern decoder found. "
+                "Please explicitly disable this feature by setting "
+                "`pulses=False`.") from None
+
+        # Make sure that the pulse pattern if constant
+        if not pulses.is_constant_pattern():
+            raise RuntimeError(
+                "The pulse pattern is not constant. Please split the "
+                "current selection into sub-selections with constant patterns."
+            ) from None
+        
+        #
         return pulses
 
-    @property
-    def _control_sourcedata(self):
-        inst_src_name = self._inst_sourcedata.canonical_name
-        ctrl_src_name = inst_src_name.split(':')[0]
-        if ctrl_src_name not in self._control_sources:
-            raise AttributeError(f"The control source {ctrl_src_name} "
-                                 "does not exist.")
-        return self._data[ctrl_src_name]
-
-    @property
-    def pulses(self):
-        """The pulse pattern (XrayPulses) if present, None if not."""
-        return self._pulses
-
-    @property
-    def pulse_counts(self):
-        return self.pulses.pulse_counts()
-
-    @cached_property
-    def pulse_ids(self):
-        return self.pulses.pulse_ids()
-
-    @cached_property
-    def pulse_periods(self):
-        return self.pulses.pulse_periods()
+    # @property
+    # def _control_sourcedata(self):
+    #     inst_src_name = self._inst_sourcedata.canonical_name
+    #     ctrl_src_name = inst_src_name.split(':')[0]
+    #     if ctrl_src_name not in self._control_sources:
+    #         raise AttributeError(f"The control source {ctrl_src_name} "
+    #                              "does not exist.")
+    #     return self._data[ctrl_src_name]
 
     def _validate_inst_source(self):
         """Check that source is in instrument_sources"""
@@ -258,23 +282,20 @@ class AdcRawChannel:
             num_trains = chunk.shape[0]
             this_slice = slice(offset, offset + num_trains)
             offset += num_trains
-            out[this_slice] = chunk.ndarray(shape=None)
+            out[this_slice] = chunk.ndarray()
 
         if not labelled:
             return out
 
         coords = {'trainId': self._inst_keydata.train_id_coordinates()}
         coords.update({'sample': np.arange(out.shape[1])})
+
         return xr.DataArray(out, coords=coords)
 
     def pulse_data(self, labelled=True, out=None):
         """Identify all the pulses and return an array containing them."""
 
-        samples = self.samples_per_pulse * self.pulses
-
-        samples += self._sample_first_bunch
-
-        width = int(samples.max())
+        width = self.pulse_period
         roi_ = slice(None, width)
         out = np.empty((self._inst_keydata.shape[0], width))
 
