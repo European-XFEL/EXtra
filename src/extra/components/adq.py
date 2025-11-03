@@ -557,7 +557,7 @@ class AdqRawChannel:
         return self.trace_shape * self.sampling_period
 
     @property
-    def pulses(self) -> XrayPulses | None:
+    def pulses(self) -> PulsePattern | None:
         """The pulse pattern if available, None if not."""
         return self._pulses
 
