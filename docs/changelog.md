@@ -33,6 +33,7 @@ Added:
   argument to allow returning NaN arrays when fitting fails (!385).
 - [fit_gaussian()][extra.utils.fit_gaussian] now supports
   [DataArray][xarray.DataArray] inputs (!385).
+- [AdqRawChannel][extra.components.AdqRawChannel.pulses] now has a public `.pulses` property. It is either a `PulsePattern` object or None if the class is instantiated with the `pulses=False` option. (!411)
 
 Fixed:
 
