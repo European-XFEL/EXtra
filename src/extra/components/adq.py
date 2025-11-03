@@ -557,6 +557,11 @@ class AdqRawChannel:
         return self.trace_shape * self.sampling_period
 
     @property
+    def pulses(self) -> XrayPulses | None:
+        """The pulse pattern if available, None if not."""
+        return self._pulses
+
+    @property
     def board_parameters(self):
         """All board-related parameters."""
 
