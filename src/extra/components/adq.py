@@ -8,7 +8,7 @@ import pandas as pd
 
 from extra_data import by_id
 from extra_data.read_machinery import roi_shape
-from .pulses import XrayPulses
+from .pulses import XrayPulses, PulsePattern
 from .utils import _isinstance_no_import
 from ._adq import _reshape_flat_pulses
 
