@@ -8,7 +8,7 @@ import pandas as pd
 
 from extra_data import by_id
 from extra_data.read_machinery import roi_shape
-from .pulses import XrayPulses
+from .pulses import XrayPulses, PulsePattern
 from .utils import _isinstance_no_import
 from ._adq import _reshape_flat_pulses
 
@@ -555,6 +555,11 @@ class AdqRawChannel:
     def trace_duration(self):
         """Duration of a single trace in seconds."""
         return self.trace_shape * self.sampling_period
+
+    @property
+    def pulses(self) -> PulsePattern | None:
+        """The pulse pattern if available, None if not."""
+        return self._pulses
 
     @property
     def board_parameters(self):
