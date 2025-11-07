@@ -94,6 +94,9 @@ def imshow2(image, *args, colorbar=True, lognorm=False, ax=None, **kwargs):
     import matplotlib.pyplot as plt
     is_dataarray = _isinstance_no_import(image, "xarray", "DataArray")
 
+    if _isinstance_no_import(image, "juliacall", "ArrayValue"):
+        image = np.asarray(image)
+
     # Disable interpolation by default
     if "interpolation" not in kwargs:
         kwargs["interpolation"] = "none"

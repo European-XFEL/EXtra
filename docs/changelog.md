@@ -34,6 +34,8 @@ Added:
 - [fit_gaussian()][extra.utils.fit_gaussian] now supports
   [DataArray][xarray.DataArray] inputs (!385).
 - [AdqRawChannel][extra.components.AdqRawChannel.pulses] now has a public `.pulses` property. It is either a `PulsePattern` object or None if the class is instantiated with the `pulses=False` option. (!411)
+- Added support for plotting wrapped Julia arrays from PythonCall.jl to
+  [imshow2()][extra.utils.imshow2].
 
 Fixed:
 
