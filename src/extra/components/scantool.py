@@ -1,7 +1,7 @@
 import ast
 from warnings import warn
 
-from extra_data import SourceData
+from extra_data import SourceData, SourceNameError
 
 from .utils import _isinstance_no_import
 
@@ -37,11 +37,11 @@ class Scantool:
         if src is None:
             possible_devices = [x for x in run.control_sources if "KARABACON" in x]
             if len(possible_devices) == 0:
-                raise RuntimeError("Could not find a KARABACON device in the run, please pass an explicit source name with the `src` argument'")
+                raise SourceNameError(custom_message="Could not find a KARABACON device in the run, please pass an explicit source name with the `src` argument'")
             elif len(possible_devices) == 1:
                 src = possible_devices[0]
             else:
-                raise RuntimeError(f"Found multiple possible scantools, please pass one explicitly with the `src` argument: {', '.join(possible_devices)}")
+                raise SourceNameError(custom_message=f"Found multiple possible scantools, please pass one explicitly with the `src` argument: {', '.join(possible_devices)}")
 
         values = run.get_run_values(src)
 

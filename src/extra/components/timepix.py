@@ -7,7 +7,7 @@ import re
 import numpy as np
 import pandas as pd
 
-from extra_data import by_id
+from extra_data import SourceNameError, by_id
 
 
 # Pulse indices used internally for virtual leading and trailing pulses.
@@ -174,19 +174,19 @@ class Timepix3:
                     detectors[m[1]].append(source)
 
             if len(detectors) > 1:
-                raise ValueError('multiple detector domains found, please '
-                                 'pass one explicitly via the `detector` '
-                                 'argument:\n' + ', '.join(sorted(detectors)))
+                raise SourceNameError(custom_message='multiple detector domains found, please '
+                                                     'pass one explicitly via the `detector` '
+                                                     'argument:\n' + ', '.join(sorted(detectors)))
             elif detectors:
                 return next(iter(detectors.items()))
 
             if prefix_or_source:
-                raise ValueError(f'no detector sources found for '
-                                 f'{prefix_or_source}, please pass explicit '
-                                 f'source name(s)')
+                raise SourceNameError(custom_message=f'no detector sources found for '
+                                                     f'{prefix_or_source}, please pass explicit '
+                                                     f'source name(s)')
             else:
-                raise ValueError('no detector detected, please narrow the '
-                                 'search with the `detector` argument')
+                raise SourceNameError(custom_message='no detector detected, please narrow the '
+                                                     'search with the `detector` argument')
 
         raise TypeError(
             'detector may be a string, tuple of two strings or empty')
