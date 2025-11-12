@@ -455,4 +455,4 @@ def test_DetectorData_list_by_instrument():
 @pytest.mark.vcr
 def test_DetectorData_from_CalibrationData():
     agipd_cd = CalibrationData.from_report(3757)
-    assert agipd_cd.detector().identifier == 'SPB_DET_AGIPD1M-1'
+    assert agipd_cd.detector.identifier == 'SPB_DET_AGIPD1M-1'

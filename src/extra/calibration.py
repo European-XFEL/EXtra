@@ -607,11 +607,10 @@ class CalibrationData(Mapping):
     (e.g. `cd["Offset"]`), giving you `MultiModuleConstant` objects.
     """
 
-    def __init__(self, constant_groups, module_details, detector_name):
+    def __init__(self, constant_groups, detector):
         # {calibration: {karabo_da: SingleConstant}}
         self.constant_groups = constant_groups
-        self.module_details = module_details
-        self.detector_name = detector_name
+        self.detector = detector
 
     @staticmethod
     def _format_cond(condition):
@@ -675,18 +674,7 @@ class CalibrationData(Mapping):
 
         client = client or get_client()
 
-        detector_id = client.detector_by_identifier(detector_name)["id"]
-        pdus = client.get(
-            "physical_detector_units/get_all_by_detector",
-            {
-                "detector_id": detector_id,
-                "pdu_snapshot_at": client.format_time(pdu_snapshot_at),
-            },
-        )
-        module_details = sorted(pdus, key=lambda d: d["karabo_da"])
-        for mod in module_details:
-            if mod.get("module_number") is None:
-                mod["module_number"] = int(re.findall(r"\d+", mod["karabo_da"])[-1])
+        detector = DetectorData.from_identifier(detector_name, pdu_snapshot_at=pdu_snapshot_at)
 
         constant_groups = {}
 
@@ -718,7 +706,7 @@ class CalibrationData(Mapping):
                 const_group = constant_groups.setdefault(cal_type, {})
                 const_group[aggr] = SingleConstant.from_response(ccv)
 
-        return cls(constant_groups, module_details, detector_name)
+        return cls(constant_groups, detector)
 
     @classmethod
     def from_report(
@@ -777,10 +765,18 @@ class CalibrationData(Mapping):
         if len(det_ids) > 1:
             raise Exception(f"Found multiple detector IDs in report: {det_ids}")
         # The "identifier", "name" & "karabo_name" fields seem to have the same names
-        det_name = client.detector_by_id(det_ids.pop())["identifier"]
 
-        module_details = sorted(pdus.values(), key=lambda d: d["karabo_da"])
-        return cls(constant_groups, module_details, det_name)
+        detector_row = client.detector_by_id(det_ids.pop())
+        detector_types = {det_type["id"]: det_type for det_type
+                          in client.get("detector_types")}
+
+        # Extend PDUs by data missing in the report result set.
+        for pdu in pdus.values():
+            pdu["detector"] = detector_row
+            pdu["detector_type"] = detector_types[pdu["detector_type_id"]]
+
+        return cls(constant_groups, DetectorData(
+            detector_row, sorted(pdus.values(), key=lambda x: x["karabo_da"])))
 
     @staticmethod
     def _read_correction_file(metadata_path: Path):
@@ -848,11 +844,24 @@ class CalibrationData(Mapping):
         else:
             yaml_path = Path(metadata_file_or_proposal)
 
-
         constant_groups, pdus, det_name = cls._read_correction_file(yaml_path)
         module_details = sorted(pdus.values(), key=lambda d: d["karabo_da"])
+
         if not use_calcat:
-            return cls(constant_groups, module_details, det_name)
+            detector_row = {
+                'id': None, 'identifier': det_name,
+                'source_name_pattern': None, 'number_of_modules': None,
+                'first_module_index': None
+            }
+
+            for pdu in pdus.values():
+                pdu.update(
+                    id=None, uuid=None, detector={'identifier': det_name},
+                    virtual_device_name=None, module_number=None,
+                    detector_type={'name': None})
+
+            return cls(
+                constant_groups, DetectorData(detector_row, pdus.values()))
 
         # Get module_number, virtual_device_name from CCV info if possible
         need_metadata = {
@@ -861,6 +870,10 @@ class CalibrationData(Mapping):
 
         def extend_module_info(pdu_dict):
             kda = pdu_dict['karabo_da_at_ccv_begin_at']
+
+            pdus[kda].update(pdu_dict)
+            pdus[kda]['karabo_da'] = pdu_dict['karabo_da_at_ccv_begin_at']
+
             if vdn := pdu_dict['virtual_device_name_at_ccv_begin_at']:
                 pdus[kda]['virtual_device_name'] = vdn
             if modnum := pdu_dict['module_number_at_ccv_begin_at']:
@@ -890,16 +903,16 @@ class CalibrationData(Mapping):
                     const_obj._have_calcat_metadata = True
                 extend_module_info(ccv_dict['physical_detector_unit'])
 
-        # If we didn't get module numbers from the PDU mapping, and we have
-        # the expected number of modules, fill the numbers in sequentially.
-        if any('module_number' not in d for d in module_details):
-            det_info = client.detector_by_identifier(det_name)
-            if len(module_details) == det_info['number_of_modules']:
-                if (first := det_info['first_module_index']) is not None:
-                    for i, d in enumerate(module_details, start=first):
-                        d['module_number'] = i
+        detector_row = client.detector_by_identifier(det_name)
+        detector_types = {det_type["id"]: det_type for det_type
+                          in client.get("detector_types")}
 
-        return cls(constant_groups, module_details, det_name)
+        # Extend PDUs by data missing in the report result set.
+        for da, pdu in pdus.items():
+            pdu["detector"] = detector_row
+            pdu["detector_type"] = detector_types[pdu["detector_type_id"]]
+
+        return cls(constant_groups, DetectorData(detector_row, pdus.values()))
 
     def __getitem__(self, key):
         if isinstance(key, str):
@@ -956,8 +969,20 @@ class CalibrationData(Mapping):
         May include missing modules."""
         return [m["physical_name"] for m in self.module_details]
 
-    def detector(self):
-        return DetectorData.from_identifier(self.detector_name)
+    @property
+    def module_details(self):
+        return [dict(
+            id=pdu.pdu_id, physical_name=pdu.physical_name,
+            karabo_da=pdu.aggregator,
+            virtual_device_name=pdu.virtual_device_name, uuid=pdu.legacy_uuid,
+            module_number=pdu.module_number,
+            module_number_at_ccv_begin_at=pdu.module_number,
+            detector_type=dict(name=pdu.detector_type)
+        ) for pdu in self.detector.values()]
+
+    @property
+    def detector_name(self):
+        return self.detector.identifier
 
     def require_calibrations(self, calibrations) -> "CalibrationData":
         """Drop any modules missing the specified constant types"""
@@ -988,15 +1013,18 @@ class CalibrationData(Mapping):
                 aggr: const for (aggr, const) in const_group.items() if aggr in aggs
             }
             matched_aggregators.update(d.keys())
+
         module_details = [
             m for m in self.module_details if m["karabo_da"] in matched_aggregators
         ]
-        return type(self)(constant_groups, module_details, self.detector_name)
+
+        return type(self)(
+            constant_groups, self.detector._replace_modules(module_details))
 
     def select_calibrations(self, calibrations) -> "CalibrationData":
         """Return a new `CalibrationData` object with only the selected constant types"""
         const_groups = {c: self.constant_groups[c] for c in calibrations}
-        return type(self)(const_groups, self.module_details, self.detector_name)
+        return type(self)(const_groups, self.detector)
 
     def merge(self, *others: "CalibrationData") -> "CalibrationData":
         """Combine two or more `CalibrationData` objects for the same detector.
@@ -1043,7 +1071,8 @@ class CalibrationData(Mapping):
                 if cal_type in caldata:
                     d.update(caldata.constant_groups[cal_type])
 
-        return type(self)(constant_groups, module_details, det_name)
+        return type(self)(
+            constant_groups, self.detector._replace_modules(module_details))
 
     def summary_table(self, module_naming="modnum"):
         """Make a table overview of the constants found.
@@ -1544,6 +1573,15 @@ class DetectorData(Mapping):
     def __repr__(self):
         return f'<DetectorData: {len(self.pdus)}/{self.number_of_modules} ' \
                f'modules of {self.identifier} on {self.pdu_snapshot_at}>'
+
+    def _replace_modules(self, module_rows_or_pdus):
+        detector_row = {'id': self.id, 'identifier': self.identifier,
+                        'number_of_modules': self.number_of_modules,
+                        'source_name_pattern': self._source_name_pattern,
+                        'first_module_index': self._first_module_index}
+
+        return type(self)(detector_row, module_rows_or_pdus,
+                          self.pdu_snapshot_at)
 
     @property
     def source_name_pattern(self) -> str:

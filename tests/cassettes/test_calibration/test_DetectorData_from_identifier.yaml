@@ -26,7 +26,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 27 Oct 2025 15:33:08 GMT
+      - Wed, 17 Dec 2025 15:10:18 GMT
       Etag:
       - W/"9ec4cec974b56aebafbb6dc312056934"
       Keep-Alive:
@@ -52,9 +52,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - b245f110-897d-4c14-b8fd-a94a6a1ca000
+      - 7cf5f3c8-53f2-4a39-bead-06db60497c5f
       X-Runtime:
-      - '0.034723'
+      - '0.023141'
       X-Xss-Protection:
       - '0'
     status:
@@ -86,7 +86,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 27 Oct 2025 15:33:08 GMT
+      - Wed, 17 Dec 2025 15:10:18 GMT
       Etag:
       - W/"73d84e307238475d3943984c03827c80"
       Keep-Alive:
@@ -116,9 +116,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - ad3deaf0-545a-40dd-a481-2d63d5b79f48
+      - 43d06532-03ef-4a54-ae24-593eded670b3
       X-Runtime:
-      - '0.027546'
+      - '0.018560'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -142,7 +142,7 @@ interactions:
       content-type:
       - application/json
     method: GET
-    uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=2&pdu_snapshot_at=
+    uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=2&pdu_snapshot_at=2025-10-27T14%3A50%3A13%2B00%3A00
   response:
     body:
       string: '[{"id":188,"physical_name":"AGIPD_SIV1_AGIPDV11_M517","karabo_da":"AGIPD00","virtual_device_name":"Q1M1","uuid":101003000000,"float_uuid":4.9902112427e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":218,"physical_name":"AGIPD_SIV1_AGIPDV12_M421","karabo_da":"AGIPD01","virtual_device_name":"Q1M2","uuid":102013100004,"float_uuid":5.04011681377e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":219,"physical_name":"AGIPD_SIV1_AGIPDV12_M445","karabo_da":"AGIPD02","virtual_device_name":"Q1M3","uuid":102023100004,"float_uuid":5.0406108794e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":220,"physical_name":"AGIPD_SIV1_AGIPDV12_M427","karabo_da":"AGIPD03","virtual_device_name":"Q1M4","uuid":102033100000,"float_uuid":5.04110494487e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":223,"physical_name":"AGIPD_SIV1_AGIPDV12_M410","karabo_da":"AGIPD04","virtual_device_name":"Q2M1","uuid":102063100000,"float_uuid":5.0425871418e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":224,"physical_name":"AGIPD_SIV1_AGIPDV12_M528","karabo_da":"AGIPD05","virtual_device_name":"Q2M2","uuid":102073100000,"float_uuid":5.04308120745e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":248,"physical_name":"AGIPD_SIV1_AGIPDV12_M425","karabo_da":"AGIPD06","virtual_device_name":"Q2M3","uuid":102053100001,"float_uuid":5.0420930762e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":221,"physical_name":"AGIPD_SIV1_AGIPDV12_M428","karabo_da":"AGIPD07","virtual_device_name":"Q2M4","uuid":102043100000,"float_uuid":5.0415990105e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":225,"physical_name":"AGIPD_SIV1_AGIPDV12_M412","karabo_da":"AGIPD08","virtual_device_name":"Q3M1","uuid":102083100000,"float_uuid":5.0435752731e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":226,"physical_name":"AGIPD_SIV1_AGIPDV12_M542","karabo_da":"AGIPD09","virtual_device_name":"Q3M2","uuid":102093100000,"float_uuid":5.04406933874e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":227,"physical_name":"AGIPD_SIV1_AGIPDV12_M527","karabo_da":"AGIPD10","virtual_device_name":"Q3M3","uuid":102103100000,"float_uuid":5.0445634044e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":228,"physical_name":"AGIPD_SIV1_AGIPDV12_M502","karabo_da":"AGIPD11","virtual_device_name":"Q3M4","uuid":102113100000,"float_uuid":5.04505747004e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":229,"physical_name":"AGIPD_SIV1_AGIPDV12_M426","karabo_da":"AGIPD12","virtual_device_name":"Q4M1","uuid":102123100000,"float_uuid":5.0455515357e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":230,"physical_name":"AGIPD_SIV1_AGIPDV12_M540","karabo_da":"AGIPD13","virtual_device_name":"Q4M2","uuid":102133100000,"float_uuid":5.04604560133e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":231,"physical_name":"AGIPD_SIV1_AGIPDV12_M515","karabo_da":"AGIPD14","virtual_device_name":"Q4M3","uuid":102143100000,"float_uuid":5.04653966697e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}},{"id":232,"physical_name":"AGIPD_SIV1_AGIPDV12_M544","karabo_da":"AGIPD15","virtual_device_name":"Q4M4","uuid":102153100000,"float_uuid":5.0470337326e-313,"detector_type_id":2,"detector_id":2,"module_number":null,"flg_available":true,"description":null,"detector":{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":2,"name":"AGIPD-Type","flg_available":true,"description":"AGIPDConditions"}}]'
@@ -154,7 +154,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 27 Oct 2025 15:33:08 GMT
+      - Wed, 17 Dec 2025 15:10:18 GMT
       Etag:
       - W/"a7803512e36d8283916f40da66997fad"
       Keep-Alive:
@@ -180,9 +180,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 319df22b-e3ae-4a0d-995c-81af8bc15e59
+      - 9d3a1776-007b-4f8d-b017-f5c6d13163de
       X-Runtime:
-      - '0.029700'
+      - '0.506144'
       X-Xss-Protection:
       - '0'
     status:
@@ -202,21 +202,21 @@ interactions:
       content-type:
       - application/json
     method: GET
-    uri: http://exflcalproxy.desy.de:8080/api/detectors?identifier=SQS_NQS_PNCCD1MP
+    uri: http://exflcalproxy.desy.de:8080/api/detectors?identifier=FXE_XAD_JFHZ
   response:
     body:
-      string: '[{"id":10,"name":"SQS_NQS_PNCCD1MP","identifier":"SQS_NQS_PNCCD1MP","karabo_name":"SQS_NQS_PNCCD1MP","karabo_id_control":"NA","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":2,"detector_id":10},{"instrument_id":7,"detector_id":10}]}]'
+      string: '[{"id":34,"name":"FXE_XAD_JFHZ","identifier":"FXE_XAD_JFHZ","karabo_name":"FXE_XAD_JFHZ","karabo_id_control":"FXE_XAD_JFHZ","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[]}]'
     headers:
       Cache-Control:
       - max-age=0, private, must-revalidate
       Content-Length:
-      - '345'
+      - '270'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 27 Oct 2025 15:33:08 GMT
+      - Wed, 17 Dec 2025 15:10:19 GMT
       Etag:
-      - W/"bd6305de0f8c5a9ec14d4c32d74b03cb"
+      - W/"126fe13dca9fb8ee518f1996f4c4286d"
       Keep-Alive:
       - timeout=5, max=100
       Referrer-Policy:
@@ -244,9 +244,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 2005fba9-408c-4cac-99b5-f9e8a63f3ffa
+      - 5b5a0b4d-95ef-41ec-a0cc-8a3d8cf9e56f
       X-Runtime:
-      - '0.020560'
+      - '0.017797'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -270,21 +270,22 @@ interactions:
       content-type:
       - application/json
     method: GET
-    uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=10&pdu_snapshot_at=
+    uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=34&pdu_snapshot_at=
   response:
     body:
-      string: '[{"id":152,"physical_name":"pnCCD_M205_M206","karabo_da":"PNCCD01","virtual_device_name":null,"uuid":3200000000000,"float_uuid":1.581010066692e-311,"detector_type_id":8,"detector_id":10,"module_number":null,"flg_available":true,"description":null,"detector":{"id":10,"name":"SQS_NQS_PNCCD1MP","identifier":"SQS_NQS_PNCCD1MP","karabo_name":"SQS_NQS_PNCCD1MP","karabo_id_control":"NA","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":8,"name":"pnCCD-Type","flg_available":true,"description":null}}]'
+      string: '[{"id":194,"physical_name":"Jungfrau_M016","karabo_da":"JNGFR04","virtual_device_name":null,"uuid":3400000000101,"float_uuid":1.67982319591e-311,"detector_type_id":4,"detector_id":34,"module_number":null,"flg_available":true,"description":null,"detector":{"id":34,"name":"FXE_XAD_JFHZ","identifier":"FXE_XAD_JFHZ","karabo_name":"FXE_XAD_JFHZ","karabo_id_control":"FXE_XAD_JFHZ","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":4,"name":"jungfrau-Type","flg_available":true,"description":"The
+        Jungfrau detector type"}}]'
     headers:
       Cache-Control:
       - max-age=0, private, must-revalidate
       Content-Length:
-      - '588'
+      - '610'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 27 Oct 2025 15:33:08 GMT
+      - Wed, 17 Dec 2025 15:10:19 GMT
       Etag:
-      - W/"44a0a14ae472946b568a06b4ae5c676c"
+      - W/"82f63e573d8c04d20854dc057ea9474f"
       Keep-Alive:
       - timeout=5, max=100
       Referrer-Policy:
@@ -308,9 +309,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - ed9a94b7-f4c8-412a-a2b7-884d56aa3b74
+      - 1908ee3d-5a5a-4e50-8dbb-f1588dead7f6
       X-Runtime:
-      - '0.023701'
+      - '0.021231'
       X-Xss-Protection:
       - '0'
     status:
@@ -333,18 +334,18 @@ interactions:
     uri: http://exflcalproxy.desy.de:8080/api/detectors?identifier=SQS_DET_DSSC1M-1
   response:
     body:
-      string: '[{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":2,"detector_id":28},{"instrument_id":7,"detector_id":28}]}]'
+      string: '[{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":16,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":2,"detector_id":28},{"instrument_id":7,"detector_id":28}]}]'
     headers:
       Cache-Control:
       - max-age=0, private, must-revalidate
       Content-Length:
-      - '355'
+      - '353'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 27 Oct 2025 15:33:08 GMT
+      - Wed, 17 Dec 2025 15:10:19 GMT
       Etag:
-      - W/"a8d2d9773c98d7aa08414d4272e23394"
+      - W/"38699660786c33246fb4e6c8fd4a6dc4"
       Keep-Alive:
       - timeout=5, max=100
       Referrer-Policy:
@@ -372,9 +373,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 1d6ef87f-59af-461a-86a8-307fbcb50a30
+      - cdd13b10-73d9-48b2-bb3f-8cbd172b021d
       X-Runtime:
-      - '0.025551'
+      - '0.017762'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -398,7 +399,7 @@ interactions:
       content-type:
       - application/json
     method: GET
-    uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=28&pdu_snapshot_at=
+    uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=28&pdu_snapshot_at=2025-10-27T14%3A50%3A13%2B00%3A00
   response:
     body:
       string: '{"info":"Resource not found!"}'
@@ -410,7 +411,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 27 Oct 2025 15:33:08 GMT
+      - Wed, 17 Dec 2025 15:10:19 GMT
       Keep-Alive:
       - timeout=5, max=100
       Referrer-Policy:
@@ -434,9 +435,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - d1717d9e-7138-4454-845e-a239443ad1bc
+      - 89920568-ed17-4fc1-afc3-c7d0f581ee08
       X-Runtime:
-      - '0.018909'
+      - '0.328327'
       X-Xss-Protection:
       - '0'
     status:
