@@ -26,7 +26,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 27 Oct 2025 15:33:08 GMT
+      - Wed, 17 Dec 2025 15:10:19 GMT
       Etag:
       - W/"9ec4cec974b56aebafbb6dc312056934"
       Keep-Alive:
@@ -52,9 +52,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - d6a8ee38-2763-4735-8748-42df9b5cffe8
+      - 38a44a72-2fe5-4310-9420-92941faaea26
       X-Runtime:
-      - '0.023000'
+      - '0.023260'
       X-Xss-Protection:
       - '0'
     status:
@@ -86,7 +86,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 27 Oct 2025 15:33:08 GMT
+      - Wed, 17 Dec 2025 15:10:19 GMT
       Etag:
       - W/"66b3f66d3c3c202304893d6ec08a0891"
       Keep-Alive:
@@ -116,9 +116,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 15ab6d01-16e1-4a17-82c8-038cfd29467b
+      - fda5e1ff-97b1-41b7-8a5c-0be12b885de1
       X-Runtime:
-      - '0.017012'
+      - '0.017792'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -145,18 +145,18 @@ interactions:
     uri: http://exflcalproxy.desy.de:8080/api/detectors/get_all_by_instrument?instrument_id=3
   response:
     body:
-      string: '[{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":2},{"instrument_id":7,"detector_id":2}]},{"id":24,"name":"SPB_IRDA_JF4M","identifier":"SPB_IRDA_JF4M","karabo_name":"SPB_IRDA_JF4M","karabo_id_control":"SPB_IRDA_JF4M","source_name_pattern":"SPB_IRDA_JF4M/DET/JNGFR{modno:02d}:daqOutput","number_of_modules":8,"first_module_index":1,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":24},{"instrument_id":7,"detector_id":24}]},{"id":37,"name":"SPB_50UM_GH2","identifier":"SPB_50UM_GH2","karabo_name":"SPB_50UM_GH2","karabo_id_control":"SPB_50UM_GH2","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":37}]},{"id":43,"name":"SPB_CFEL_JF1M","identifier":"SPB_CFEL_JF1M","karabo_name":"SPB_CFEL_JF1M","karabo_id_control":"SPB_CFEL_JF1M","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":43}]},{"id":47,"name":"SA1_XTD9_HIREX","identifier":"SA1_XTD9_HIREX","karabo_name":"SA1_XTD9_HIREX","karabo_id_control":"SA1_XTD9_HIREX","source_name_pattern":"SA1_XTD9_HIREX/DET/GOTTHARD2_MASTER:daqOutput","number_of_modules":2,"first_module_index":0,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":47},{"instrument_id":6,"detector_id":47},{"instrument_id":7,"detector_id":47},{"instrument_id":19,"detector_id":47}]},{"id":51,"name":"SPB_HIZ_JF1M","identifier":"SPB_HIZ_JF1M","karabo_name":"SPB_HIZ_JF1M","karabo_id_control":"SPB_HIZ_JF1M","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":51}]},{"id":52,"name":"SPB_MIC_HPVX2","identifier":"SPB_MIC_HPVX2","karabo_name":"SPB_MIC_HPVX2","karabo_id_control":"SPB_MIC_HPVX2","source_name_pattern":"SPB_EHD_MIC/CAM/HPVX2_{modno}:daqOutput","number_of_modules":6,"first_module_index":1,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":52}]}]'
+      string: '[{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":2},{"instrument_id":7,"detector_id":2}]},{"id":24,"name":"SPB_IRDA_JF4M","identifier":"SPB_IRDA_JF4M","karabo_name":"SPB_IRDA_JF4M","karabo_id_control":"SPB_IRDA_JF4M","source_name_pattern":"SPB_IRDA_JF4M/DET/JNGFR{modno:02d}:daqOutput","number_of_modules":8,"first_module_index":1,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":24},{"instrument_id":7,"detector_id":24}]},{"id":37,"name":"SPB_50UM_GH2","identifier":"SPB_50UM_GH2","karabo_name":"SPB_50UM_GH2","karabo_id_control":"SPB_50UM_GH2","source_name_pattern":null,"number_of_modules":1,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":37}]},{"id":43,"name":"SPB_CFEL_JF1M","identifier":"SPB_CFEL_JF1M","karabo_name":"SPB_CFEL_JF1M","karabo_id_control":"SPB_CFEL_JF1M","source_name_pattern":null,"number_of_modules":2,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":43}]},{"id":47,"name":"SA1_XTD9_HIREX","identifier":"SA1_XTD9_HIREX","karabo_name":"SA1_XTD9_HIREX","karabo_id_control":"SA1_XTD9_HIREX","source_name_pattern":"SA1_XTD9_HIREX/DET/GOTTHARD2_MASTER:daqOutput","number_of_modules":2,"first_module_index":0,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":47},{"instrument_id":6,"detector_id":47},{"instrument_id":7,"detector_id":47},{"instrument_id":19,"detector_id":47}]},{"id":51,"name":"SPB_HIZ_JF1M","identifier":"SPB_HIZ_JF1M","karabo_name":"SPB_HIZ_JF1M","karabo_id_control":"SPB_HIZ_JF1M","source_name_pattern":null,"number_of_modules":2,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":51}]},{"id":52,"name":"SPB_MIC_HPVX2","identifier":"SPB_MIC_HPVX2","karabo_name":"SPB_MIC_HPVX2","karabo_id_control":"SPB_MIC_HPVX2","source_name_pattern":"SPB_EHD_MIC/CAM/HPVX2_{modno}:daqOutput","number_of_modules":6,"first_module_index":1,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":52}]}]'
     headers:
       Cache-Control:
       - max-age=0, private, must-revalidate
       Content-Length:
-      - '2492'
+      - '2483'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 27 Oct 2025 15:33:08 GMT
+      - Wed, 17 Dec 2025 15:10:19 GMT
       Etag:
-      - W/"00ad07ce21d7b4df3dfac75525534143"
+      - W/"c27d00c28588bd9f059c6e6ff5fcbaf2"
       Keep-Alive:
       - timeout=5, max=100
       Referrer-Policy:
@@ -180,9 +180,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - a2468530-e3ae-4f08-ba72-522fe4dbe5a2
+      - 0d333bdc-6eed-4ad4-a5b7-4ea58ec50489
       X-Runtime:
-      - '0.029313'
+      - '0.027712'
       X-Xss-Protection:
       - '0'
     status:
@@ -205,18 +205,18 @@ interactions:
     uri: http://exflcalproxy.desy.de:8080/api/detectors/get_all_by_instrument?instrument_id=3
   response:
     body:
-      string: '[{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":2},{"instrument_id":7,"detector_id":2}]},{"id":24,"name":"SPB_IRDA_JF4M","identifier":"SPB_IRDA_JF4M","karabo_name":"SPB_IRDA_JF4M","karabo_id_control":"SPB_IRDA_JF4M","source_name_pattern":"SPB_IRDA_JF4M/DET/JNGFR{modno:02d}:daqOutput","number_of_modules":8,"first_module_index":1,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":24},{"instrument_id":7,"detector_id":24}]},{"id":37,"name":"SPB_50UM_GH2","identifier":"SPB_50UM_GH2","karabo_name":"SPB_50UM_GH2","karabo_id_control":"SPB_50UM_GH2","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":37}]},{"id":43,"name":"SPB_CFEL_JF1M","identifier":"SPB_CFEL_JF1M","karabo_name":"SPB_CFEL_JF1M","karabo_id_control":"SPB_CFEL_JF1M","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":43}]},{"id":47,"name":"SA1_XTD9_HIREX","identifier":"SA1_XTD9_HIREX","karabo_name":"SA1_XTD9_HIREX","karabo_id_control":"SA1_XTD9_HIREX","source_name_pattern":"SA1_XTD9_HIREX/DET/GOTTHARD2_MASTER:daqOutput","number_of_modules":2,"first_module_index":0,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":47},{"instrument_id":6,"detector_id":47},{"instrument_id":7,"detector_id":47},{"instrument_id":19,"detector_id":47}]},{"id":51,"name":"SPB_HIZ_JF1M","identifier":"SPB_HIZ_JF1M","karabo_name":"SPB_HIZ_JF1M","karabo_id_control":"SPB_HIZ_JF1M","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":51}]},{"id":52,"name":"SPB_MIC_HPVX2","identifier":"SPB_MIC_HPVX2","karabo_name":"SPB_MIC_HPVX2","karabo_id_control":"SPB_MIC_HPVX2","source_name_pattern":"SPB_EHD_MIC/CAM/HPVX2_{modno}:daqOutput","number_of_modules":6,"first_module_index":1,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":52}]}]'
+      string: '[{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":2},{"instrument_id":7,"detector_id":2}]},{"id":24,"name":"SPB_IRDA_JF4M","identifier":"SPB_IRDA_JF4M","karabo_name":"SPB_IRDA_JF4M","karabo_id_control":"SPB_IRDA_JF4M","source_name_pattern":"SPB_IRDA_JF4M/DET/JNGFR{modno:02d}:daqOutput","number_of_modules":8,"first_module_index":1,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":24},{"instrument_id":7,"detector_id":24}]},{"id":37,"name":"SPB_50UM_GH2","identifier":"SPB_50UM_GH2","karabo_name":"SPB_50UM_GH2","karabo_id_control":"SPB_50UM_GH2","source_name_pattern":null,"number_of_modules":1,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":37}]},{"id":43,"name":"SPB_CFEL_JF1M","identifier":"SPB_CFEL_JF1M","karabo_name":"SPB_CFEL_JF1M","karabo_id_control":"SPB_CFEL_JF1M","source_name_pattern":null,"number_of_modules":2,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":43}]},{"id":47,"name":"SA1_XTD9_HIREX","identifier":"SA1_XTD9_HIREX","karabo_name":"SA1_XTD9_HIREX","karabo_id_control":"SA1_XTD9_HIREX","source_name_pattern":"SA1_XTD9_HIREX/DET/GOTTHARD2_MASTER:daqOutput","number_of_modules":2,"first_module_index":0,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":47},{"instrument_id":6,"detector_id":47},{"instrument_id":7,"detector_id":47},{"instrument_id":19,"detector_id":47}]},{"id":51,"name":"SPB_HIZ_JF1M","identifier":"SPB_HIZ_JF1M","karabo_name":"SPB_HIZ_JF1M","karabo_id_control":"SPB_HIZ_JF1M","source_name_pattern":null,"number_of_modules":2,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":51}]},{"id":52,"name":"SPB_MIC_HPVX2","identifier":"SPB_MIC_HPVX2","karabo_name":"SPB_MIC_HPVX2","karabo_id_control":"SPB_MIC_HPVX2","source_name_pattern":"SPB_EHD_MIC/CAM/HPVX2_{modno}:daqOutput","number_of_modules":6,"first_module_index":1,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":52}]}]'
     headers:
       Cache-Control:
       - max-age=0, private, must-revalidate
       Content-Length:
-      - '2492'
+      - '2483'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 27 Oct 2025 15:33:08 GMT
+      - Wed, 17 Dec 2025 15:10:19 GMT
       Etag:
-      - W/"00ad07ce21d7b4df3dfac75525534143"
+      - W/"c27d00c28588bd9f059c6e6ff5fcbaf2"
       Keep-Alive:
       - timeout=5, max=100
       Referrer-Policy:
@@ -240,9 +240,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - a0b087ad-92ad-4685-b477-9868205ab6d8
+      - 7c06b03f-4391-409d-8f9f-bd3ea25d4d2f
       X-Runtime:
-      - '0.032552'
+      - '0.024742'
       X-Xss-Protection:
       - '0'
     status:
@@ -265,18 +265,18 @@ interactions:
     uri: http://exflcalproxy.desy.de:8080/api/detectors/get_all_by_instrument?instrument_id=3
   response:
     body:
-      string: '[{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":2},{"instrument_id":7,"detector_id":2}]},{"id":24,"name":"SPB_IRDA_JF4M","identifier":"SPB_IRDA_JF4M","karabo_name":"SPB_IRDA_JF4M","karabo_id_control":"SPB_IRDA_JF4M","source_name_pattern":"SPB_IRDA_JF4M/DET/JNGFR{modno:02d}:daqOutput","number_of_modules":8,"first_module_index":1,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":24},{"instrument_id":7,"detector_id":24}]},{"id":37,"name":"SPB_50UM_GH2","identifier":"SPB_50UM_GH2","karabo_name":"SPB_50UM_GH2","karabo_id_control":"SPB_50UM_GH2","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":37}]},{"id":43,"name":"SPB_CFEL_JF1M","identifier":"SPB_CFEL_JF1M","karabo_name":"SPB_CFEL_JF1M","karabo_id_control":"SPB_CFEL_JF1M","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":43}]},{"id":47,"name":"SA1_XTD9_HIREX","identifier":"SA1_XTD9_HIREX","karabo_name":"SA1_XTD9_HIREX","karabo_id_control":"SA1_XTD9_HIREX","source_name_pattern":"SA1_XTD9_HIREX/DET/GOTTHARD2_MASTER:daqOutput","number_of_modules":2,"first_module_index":0,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":47},{"instrument_id":6,"detector_id":47},{"instrument_id":7,"detector_id":47},{"instrument_id":19,"detector_id":47}]},{"id":51,"name":"SPB_HIZ_JF1M","identifier":"SPB_HIZ_JF1M","karabo_name":"SPB_HIZ_JF1M","karabo_id_control":"SPB_HIZ_JF1M","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":51}]},{"id":52,"name":"SPB_MIC_HPVX2","identifier":"SPB_MIC_HPVX2","karabo_name":"SPB_MIC_HPVX2","karabo_id_control":"SPB_MIC_HPVX2","source_name_pattern":"SPB_EHD_MIC/CAM/HPVX2_{modno}:daqOutput","number_of_modules":6,"first_module_index":1,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":52}]}]'
+      string: '[{"id":2,"name":"SPB_DET_AGIPD1M-1","identifier":"SPB_DET_AGIPD1M-1","karabo_name":"SPB_DET_AGIPD1M-1","karabo_id_control":"SPB_IRU_AGIPD1M1","source_name_pattern":"SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":2},{"instrument_id":7,"detector_id":2}]},{"id":24,"name":"SPB_IRDA_JF4M","identifier":"SPB_IRDA_JF4M","karabo_name":"SPB_IRDA_JF4M","karabo_id_control":"SPB_IRDA_JF4M","source_name_pattern":"SPB_IRDA_JF4M/DET/JNGFR{modno:02d}:daqOutput","number_of_modules":8,"first_module_index":1,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":24},{"instrument_id":7,"detector_id":24}]},{"id":37,"name":"SPB_50UM_GH2","identifier":"SPB_50UM_GH2","karabo_name":"SPB_50UM_GH2","karabo_id_control":"SPB_50UM_GH2","source_name_pattern":null,"number_of_modules":1,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":37}]},{"id":43,"name":"SPB_CFEL_JF1M","identifier":"SPB_CFEL_JF1M","karabo_name":"SPB_CFEL_JF1M","karabo_id_control":"SPB_CFEL_JF1M","source_name_pattern":null,"number_of_modules":2,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":43}]},{"id":47,"name":"SA1_XTD9_HIREX","identifier":"SA1_XTD9_HIREX","karabo_name":"SA1_XTD9_HIREX","karabo_id_control":"SA1_XTD9_HIREX","source_name_pattern":"SA1_XTD9_HIREX/DET/GOTTHARD2_MASTER:daqOutput","number_of_modules":2,"first_module_index":0,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":47},{"instrument_id":6,"detector_id":47},{"instrument_id":7,"detector_id":47},{"instrument_id":19,"detector_id":47}]},{"id":51,"name":"SPB_HIZ_JF1M","identifier":"SPB_HIZ_JF1M","karabo_name":"SPB_HIZ_JF1M","karabo_id_control":"SPB_HIZ_JF1M","source_name_pattern":null,"number_of_modules":2,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":51}]},{"id":52,"name":"SPB_MIC_HPVX2","identifier":"SPB_MIC_HPVX2","karabo_name":"SPB_MIC_HPVX2","karabo_id_control":"SPB_MIC_HPVX2","source_name_pattern":"SPB_EHD_MIC/CAM/HPVX2_{modno}:daqOutput","number_of_modules":6,"first_module_index":1,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":52}]}]'
     headers:
       Cache-Control:
       - max-age=0, private, must-revalidate
       Content-Length:
-      - '2492'
+      - '2483'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 27 Oct 2025 15:33:08 GMT
+      - Wed, 17 Dec 2025 15:10:19 GMT
       Etag:
-      - W/"00ad07ce21d7b4df3dfac75525534143"
+      - W/"c27d00c28588bd9f059c6e6ff5fcbaf2"
       Keep-Alive:
       - timeout=5, max=100
       Referrer-Policy:
@@ -300,9 +300,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - d4252cc4-49eb-4798-8d2d-01bb9961fd21
+      - b189e533-e7fc-4b89-ad49-2b4f776a8f1f
       X-Runtime:
-      - '0.024340'
+      - '0.022342'
       X-Xss-Protection:
       - '0'
     status:
@@ -322,75 +322,7 @@ interactions:
       content-type:
       - application/json
     method: GET
-    uri: http://exflcalproxy.desy.de:8080/api/detectors?identifier=SPB_IRDA_JF4M
-  response:
-    body:
-      string: '[{"id":24,"name":"SPB_IRDA_JF4M","identifier":"SPB_IRDA_JF4M","karabo_name":"SPB_IRDA_JF4M","karabo_id_control":"SPB_IRDA_JF4M","source_name_pattern":"SPB_IRDA_JF4M/DET/JNGFR{modno:02d}:daqOutput","number_of_modules":8,"first_module_index":1,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":24},{"instrument_id":7,"detector_id":24}]}]'
-    headers:
-      Cache-Control:
-      - max-age=0, private, must-revalidate
-      Content-Length:
-      - '383'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Mon, 27 Oct 2025 15:33:08 GMT
-      Etag:
-      - W/"6f2fb222661bd7025567184dcc278534"
-      Keep-Alive:
-      - timeout=5, max=100
-      Referrer-Policy:
-      - strict-origin-when-cross-origin
-      Server:
-      - Apache
-      Status:
-      - 200 OK
-      Strict-Transport-Security:
-      - max-age=16070400; includeSubDomains
-      Vary:
-      - Origin
-      Via:
-      - HTTP/1.1 xfel_oauth_proxy
-      X-Content-Type-Options:
-      - nosniff
-      X-Count-Per-Page:
-      - '100'
-      X-Current-Page:
-      - '1'
-      X-Frame-Options:
-      - SAMEORIGIN
-      X-Permitted-Cross-Domain-Policies:
-      - none
-      X-Powered-By:
-      - Phusion Passenger(R)
-      X-Request-Id:
-      - bd4eab27-4541-4f44-acb5-c1f48dc2e5e9
-      X-Runtime:
-      - '0.024919'
-      X-Total-Count:
-      - '1'
-      X-Total-Pages:
-      - '1'
-      X-Xss-Protection:
-      - '0'
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - application/json; version=2
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      User-Agent:
-      - EXtra/2025.1.131+fdd37f4
-      content-type:
-      - application/json
-    method: GET
-    uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=24&pdu_snapshot_at=
+    uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=24&pdu_snapshot_at=2025-10-27T14%3A50%3A13%2B00%3A00
   response:
     body:
       string: '[{"id":140,"physical_name":"Jungfrau_M275","karabo_da":"JNGFR01","virtual_device_name":null,"uuid":2500000000000,"float_uuid":1.235164114603e-311,"detector_type_id":4,"detector_id":24,"module_number":null,"flg_available":true,"description":null,"detector":{"id":24,"name":"SPB_IRDA_JF4M","identifier":"SPB_IRDA_JF4M","karabo_name":"SPB_IRDA_JF4M","karabo_id_control":"SPB_IRDA_JF4M","source_name_pattern":"SPB_IRDA_JF4M/DET/JNGFR{modno:02d}:daqOutput","number_of_modules":8,"first_module_index":1,"flg_available":true,"description":null},"detector_type":{"id":4,"name":"jungfrau-Type","flg_available":true,"description":"The
@@ -410,7 +342,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 27 Oct 2025 15:33:09 GMT
+      - Wed, 17 Dec 2025 15:10:19 GMT
       Etag:
       - W/"9fefdefacab4e0dbb1a1439594f7730e"
       Keep-Alive:
@@ -436,9 +368,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 663cf3b3-1d36-4474-82f9-b161e463c900
+      - ae175343-4b7a-426c-9931-25fcb575c377
       X-Runtime:
-      - '0.023067'
+      - '0.294212'
       X-Xss-Protection:
       - '0'
     status:
@@ -470,7 +402,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 27 Oct 2025 15:33:09 GMT
+      - Wed, 17 Dec 2025 15:10:20 GMT
       Etag:
       - W/"ce8cbe2ac8df3d832e865df129d0cf98"
       Keep-Alive:
@@ -500,9 +432,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 4bd635cd-2d3f-4a95-aec0-eb175efb3eda
+      - faaec00c-3578-4421-a21a-4c3b011021e6
       X-Runtime:
-      - '0.019946'
+      - '0.019545'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -538,7 +470,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 27 Oct 2025 15:33:09 GMT
+      - Wed, 17 Dec 2025 15:10:20 GMT
       Etag:
       - W/"552844cdc801c5b25e57d7fa7a98c5bc"
       Keep-Alive:
@@ -564,9 +496,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - be3e24c0-0c55-4c51-b1f7-e71580f16479
+      - 9f128df4-e7f9-49e0-8263-8f16ee77bc8a
       X-Runtime:
-      - '0.019281'
+      - '0.017034'
       X-Xss-Protection:
       - '0'
     status:
@@ -586,75 +518,7 @@ interactions:
       content-type:
       - application/json
     method: GET
-    uri: http://exflcalproxy.desy.de:8080/api/detectors?identifier=SA1_XTD9_HIREX
-  response:
-    body:
-      string: '[{"id":47,"name":"SA1_XTD9_HIREX","identifier":"SA1_XTD9_HIREX","karabo_name":"SA1_XTD9_HIREX","karabo_id_control":"SA1_XTD9_HIREX","source_name_pattern":"SA1_XTD9_HIREX/DET/GOTTHARD2_MASTER:daqOutput","number_of_modules":2,"first_module_index":0,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":3,"detector_id":47},{"instrument_id":6,"detector_id":47},{"instrument_id":7,"detector_id":47},{"instrument_id":19,"detector_id":47}]}]'
-    headers:
-      Cache-Control:
-      - max-age=0, private, must-revalidate
-      Content-Length:
-      - '463'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Mon, 27 Oct 2025 15:33:09 GMT
-      Etag:
-      - W/"552844cdc801c5b25e57d7fa7a98c5bc"
-      Keep-Alive:
-      - timeout=5, max=100
-      Referrer-Policy:
-      - strict-origin-when-cross-origin
-      Server:
-      - Apache
-      Status:
-      - 200 OK
-      Strict-Transport-Security:
-      - max-age=16070400; includeSubDomains
-      Vary:
-      - Origin
-      Via:
-      - HTTP/1.1 xfel_oauth_proxy
-      X-Content-Type-Options:
-      - nosniff
-      X-Count-Per-Page:
-      - '100'
-      X-Current-Page:
-      - '1'
-      X-Frame-Options:
-      - SAMEORIGIN
-      X-Permitted-Cross-Domain-Policies:
-      - none
-      X-Powered-By:
-      - Phusion Passenger(R)
-      X-Request-Id:
-      - fdaa5fc9-c4b9-4687-9eb5-bd47ac287106
-      X-Runtime:
-      - '0.016266'
-      X-Total-Count:
-      - '1'
-      X-Total-Pages:
-      - '1'
-      X-Xss-Protection:
-      - '0'
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - application/json; version=2
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      User-Agent:
-      - EXtra/2025.1.131+fdd37f4
-      content-type:
-      - application/json
-    method: GET
-    uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=47&pdu_snapshot_at=
+    uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=47&pdu_snapshot_at=2025-10-27T14%3A50%3A13%2B00%3A00
   response:
     body:
       string: '[{"id":233,"physical_name":"GH2-0149","karabo_da":"GH200/1","virtual_device_name":null,"uuid":1000000000060,"float_uuid":4.94065645871e-312,"detector_type_id":11,"detector_id":47,"module_number":null,"flg_available":true,"description":null,"detector":{"id":47,"name":"SA1_XTD9_HIREX","identifier":"SA1_XTD9_HIREX","karabo_name":"SA1_XTD9_HIREX","karabo_id_control":"SA1_XTD9_HIREX","source_name_pattern":"SA1_XTD9_HIREX/DET/GOTTHARD2_MASTER:daqOutput","number_of_modules":2,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":11,"name":"Gotthard2-Type","flg_available":true,"description":null}},{"id":234,"physical_name":"GH2-0150","karabo_da":"GH200/2","virtual_device_name":null,"uuid":1000000000070,"float_uuid":4.94065645876e-312,"detector_type_id":11,"detector_id":47,"module_number":null,"flg_available":true,"description":null,"detector":{"id":47,"name":"SA1_XTD9_HIREX","identifier":"SA1_XTD9_HIREX","karabo_name":"SA1_XTD9_HIREX","karabo_id_control":"SA1_XTD9_HIREX","source_name_pattern":"SA1_XTD9_HIREX/DET/GOTTHARD2_MASTER:daqOutput","number_of_modules":2,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":11,"name":"Gotthard2-Type","flg_available":true,"description":null}}]'
@@ -666,7 +530,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 27 Oct 2025 15:33:09 GMT
+      - Wed, 17 Dec 2025 15:10:20 GMT
       Etag:
       - W/"e579c5e35b0b824c91fc0584a48e9146"
       Keep-Alive:
@@ -692,9 +556,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 940da2c2-a11b-43f0-9727-186dbd020ed5
+      - b86a3cbe-f658-4a9b-bbec-c434aa929d4b
       X-Runtime:
-      - '0.024622'
+      - '0.286163'
       X-Xss-Protection:
       - '0'
     status:
