@@ -402,16 +402,16 @@ def test_DetectorData_from_identifier():
     assert pdu.ccv_params == (
         'AGIPD_SIV1_AGIPDV11_M517', 101003000000, 'AGIPD-Type')
 
-    # SQS-pnCCD, single-module detector with partial CalCat entries
-    pnccd = DetectorData.from_identifier('SQS_NQS_PNCCD1MP')
-    repr(pnccd)
+    # FXE-JFHZ, single-module detector with partial CalCat entries
+    jfhz = DetectorData.from_identifier('FXE_XAD_JFHZ')
+    repr(jfhz)
 
-    assert pnccd
-    assert len(pnccd) == 1
-    assert pnccd.number_of_modules is None
+    assert jfhz
+    assert len(jfhz) == 1
+    assert jfhz.number_of_modules is None
 
     with pytest.raises(AssertionError):
-        pnccd.first_module_index
+        jfhz.first_module_index
 
     # SQS-DSSC, PDU-less detector
     dssc = DetectorData.from_identifier('SQS_DET_DSSC1M-1')
