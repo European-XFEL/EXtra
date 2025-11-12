@@ -84,7 +84,7 @@ here, but you can also obtain the detector metadata and mapping information expl
 
 ::: extra.calibration.DetectorData
 
-::: extra.calibration.PhysicalDetectorUnit
+::: extra.calibration.DetectorModule
 
 ## Bad pixel values
 
