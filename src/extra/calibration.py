@@ -1398,9 +1398,9 @@ class DetectorModule:
     detector: str
     virtual_device_name: str
     module_index: int
-    module_number: int
+    module_number: int | None
     detector_type: str
-    legacy_uuid: int  # Deprecated, do not use
+    legacy_uuid: int | None  # Deprecated, do not use
 
     def __post_init__(self):
         if self.module_number is None:
