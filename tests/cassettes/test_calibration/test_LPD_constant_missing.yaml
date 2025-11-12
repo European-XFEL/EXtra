@@ -5,30 +5,30 @@ interactions:
       Accept:
       - application/json; version=2
       Accept-Encoding:
-      - gzip, deflate, br, zstd
+      - gzip, deflate
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2024.1.1.184+03da3c1
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
     uri: http://exflcalproxy.desy.de:8080/api/me
   response:
     body:
-      string: '{"id":-9,"email":"admin@example.com","created_at":"2015-03-12T17:02:47.000+01:00","updated_at":"2024-06-26T11:38:56.000+02:00","provider":"local","uid":null,"name":"Admin
-        User","first_name":"Admin","last_name":"User","nickname":null,"contact_email":"admin@example.com","ldap_synced_at":null,"flg_ldap_account_valid":false,"flg_service_account":true}'
+      string: '{"id":-9,"email":"admin@example.com","provider":"local","contact_email":"admin@example.com","name":"Admin
+        User","first_name":"Admin","last_name":"User","nickname":null,"uid":null,"ldap_synced_at":null,"flg_service_account":true,"flg_ldap_account_valid":false,"roles":["admin"]}'
     headers:
       Cache-Control:
       - max-age=0, private, must-revalidate
       Content-Length:
-      - '349'
+      - '277'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Fri, 08 Nov 2024 14:31:53 GMT
+      - Wed, 12 Nov 2025 09:52:24 GMT
       Etag:
-      - W/"4bf159598242c25bb9fb5b1598d140b2"
+      - W/"9ec4cec974b56aebafbb6dc312056934"
       Keep-Alive:
       - timeout=5, max=100
       Referrer-Policy:
@@ -45,8 +45,6 @@ interactions:
       - HTTP/1.1 xfel_oauth_proxy
       X-Content-Type-Options:
       - nosniff
-      X-Download-Options:
-      - noopen
       X-Frame-Options:
       - SAMEORIGIN
       X-Permitted-Cross-Domain-Policies:
@@ -54,79 +52,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 5d8b2e03-e5b8-4d47-bb3a-35d7b3ee140e
+      - ef64051e-5824-441c-b932-5952463cbd28
       X-Runtime:
-      - '0.021739'
-      X-Xss-Protection:
-      - '0'
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - application/json; version=2
-      Accept-Encoding:
-      - gzip, deflate, br, zstd
-      Connection:
-      - keep-alive
-      User-Agent:
-      - EXtra/2024.1.1.184+03da3c1
-      content-type:
-      - application/json
-    method: GET
-    uri: http://exflcalproxy.desy.de:8080/api/detectors?identifier=MID_DET_AGIPD1M-1
-  response:
-    body:
-      string: '[{"id":4,"name":"MID_DET_AGIPD1M-1","identifier":"MID_DET_AGIPD1M-1","karabo_name":"MID_DET_AGIPD1M-1","karabo_id_control":"MID_EXP_AGIPD1M1","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":4,"detector_id":4},{"instrument_id":7,"detector_id":4}]}]'
-    headers:
-      Cache-Control:
-      - max-age=0, private, must-revalidate
-      Content-Length:
-      - '359'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Fri, 08 Nov 2024 14:31:53 GMT
-      Etag:
-      - W/"482ffe83a86d14688f9ee0fa415bd62a"
-      Keep-Alive:
-      - timeout=5, max=100
-      Referrer-Policy:
-      - strict-origin-when-cross-origin
-      Server:
-      - Apache
-      Status:
-      - 200 OK
-      Strict-Transport-Security:
-      - max-age=16070400; includeSubDomains
-      Vary:
-      - Origin
-      Via:
-      - HTTP/1.1 xfel_oauth_proxy
-      X-Content-Type-Options:
-      - nosniff
-      X-Count-Per-Page:
-      - '100'
-      X-Current-Page:
-      - '1'
-      X-Download-Options:
-      - noopen
-      X-Frame-Options:
-      - SAMEORIGIN
-      X-Permitted-Cross-Domain-Policies:
-      - none
-      X-Powered-By:
-      - Phusion Passenger(R)
-      X-Request-Id:
-      - 01a51413-57e9-43ae-9c9e-73c94a012e28
-      X-Runtime:
-      - '0.020753'
-      X-Total-Count:
-      - '1'
-      X-Total-Pages:
-      - '1'
+      - '0.020509'
       X-Xss-Protection:
       - '0'
     status:
@@ -142,7 +70,7 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2025.1.105+5a88200
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
@@ -158,7 +86,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 16 Oct 2025 08:58:31 GMT
+      - Wed, 12 Nov 2025 09:52:24 GMT
       Etag:
       - W/"16d82889f839e37dca66ef8d5ae0fba5"
       Keep-Alive:
@@ -188,9 +116,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 1b3e0112-f294-4473-a5a6-3c51d4374f67
+      - 74b9908c-ce54-47b5-8083-d9e7a16913ee
       X-Runtime:
-      - '0.025458'
+      - '0.018514'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -210,7 +138,7 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2025.1.105+5a88200
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
@@ -226,7 +154,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 16 Oct 2025 08:58:31 GMT
+      - Wed, 12 Nov 2025 09:52:24 GMT
       Etag:
       - W/"3e849978bfad1223595819217cc16e98"
       Keep-Alive:
@@ -252,9 +180,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 01adaae9-ef23-42d2-bfce-558425ce8122
+      - 7b35f1db-3815-48a9-a7be-56aead36d125
       X-Runtime:
-      - '0.620825'
+      - '0.455750'
       X-Xss-Protection:
       - '0'
     status:
@@ -270,7 +198,7 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2025.1.105+5a88200
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
@@ -286,7 +214,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 16 Oct 2025 08:58:32 GMT
+      - Wed, 12 Nov 2025 09:52:24 GMT
       Etag:
       - W/"41e8088cc44ad976e577e40482d74dfb"
       Keep-Alive:
@@ -316,9 +244,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 0f7d431b-7121-4cdb-b893-60b6ad46e846
+      - f85205d7-ddc6-4f3d-830b-12eed34babd6
       X-Runtime:
-      - '0.026342'
+      - '0.017822'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -338,7 +266,7 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2025.1.105+5a88200
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
@@ -355,7 +283,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 16 Oct 2025 08:58:32 GMT
+      - Wed, 12 Nov 2025 09:52:24 GMT
       Etag:
       - W/"f1826d5b0b4d30aa8e2a90eb504451d1"
       Keep-Alive:
@@ -385,9 +313,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 031c6691-0201-4075-9d0f-2773059114fd
+      - 12cf6c6e-fe63-44b6-ab36-b9cbee9c0594
       X-Runtime:
-      - '0.024211'
+      - '0.022047'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -407,7 +335,7 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2025.1.105+5a88200
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
@@ -423,7 +351,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 16 Oct 2025 08:58:32 GMT
+      - Wed, 12 Nov 2025 09:52:24 GMT
       Etag:
       - W/"0e4753c0e3b62586fa4dd1eadedc8ec2"
       Keep-Alive:
@@ -453,9 +381,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 9f5672f1-51e8-40b8-8179-333cf3f252a0
+      - 11e6746e-f6f9-4e58-ba75-53de88cf5636
       X-Runtime:
-      - '0.027917'
+      - '0.016872'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -480,7 +408,7 @@ interactions:
       Content-Length:
       - '301'
       User-Agent:
-      - EXtra/2025.1.105+5a88200
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
@@ -631,7 +559,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 16 Oct 2025 08:58:32 GMT
+      - Wed, 12 Nov 2025 09:52:24 GMT
       Etag:
       - W/"4af83de6d41764bb678fe4e2c237dec2"
       Keep-Alive:
@@ -657,9 +585,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 2e142992-abef-4caa-85f0-96dc83d9ce37
+      - 4f2ed833-5d6b-48d7-937c-0fdd134acd1b
       X-Runtime:
-      - '0.882091'
+      - '0.669647'
       X-Xss-Protection:
       - '0'
     status:
@@ -675,7 +603,7 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2025.1.105+5a88200
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
@@ -691,7 +619,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 16 Oct 2025 08:58:33 GMT
+      - Wed, 12 Nov 2025 09:52:25 GMT
       Etag:
       - W/"094f27555a0cd731455610d18d5cc649"
       Keep-Alive:
@@ -721,9 +649,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 08709004-5264-4572-bcc4-b42cf6623761
+      - 3cc709e0-3e51-4e2a-b8cf-4053b92023fd
       X-Runtime:
-      - '0.028132'
+      - '0.021214'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -743,7 +671,7 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2025.1.105+5a88200
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
@@ -759,7 +687,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 16 Oct 2025 08:58:33 GMT
+      - Wed, 12 Nov 2025 09:52:25 GMT
       Etag:
       - W/"546277927cfe3a0b8623c120abe64e34"
       Keep-Alive:
@@ -789,9 +717,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 1356decd-4b9b-4796-91d0-96a68e430a3e
+      - f7390b9f-87e9-43aa-9203-6a9f034d817c
       X-Runtime:
-      - '0.026554'
+      - '0.017821'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -811,7 +739,7 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2025.1.105+5a88200
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
@@ -827,7 +755,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 16 Oct 2025 08:58:33 GMT
+      - Wed, 12 Nov 2025 09:52:25 GMT
       Etag:
       - W/"bac644b58dfc1cef85d9b1f8dbe2576f"
       Keep-Alive:
@@ -857,9 +785,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - dcf5a7bf-1e9d-4d4a-9c18-85ebd48a229d
+      - deb58479-5399-4e10-b775-21c551eeb2cb
       X-Runtime:
-      - '0.025623'
+      - '0.022150'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -879,7 +807,7 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2025.1.105+5a88200
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
@@ -895,7 +823,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 16 Oct 2025 08:58:33 GMT
+      - Wed, 12 Nov 2025 09:52:25 GMT
       Etag:
       - W/"8d637e112231afb0794d657d8bf9dd6c"
       Keep-Alive:
@@ -925,9 +853,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 901e73ff-563e-4ad5-8b58-bac68f6520da
+      - 11c29457-ca03-454e-8641-6a40720da8b3
       X-Runtime:
-      - '0.023205'
+      - '0.023395'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -953,7 +881,7 @@ interactions:
       Content-Length:
       - '398'
       User-Agent:
-      - EXtra/2025.1.105+5a88200
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
@@ -969,7 +897,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 16 Oct 2025 08:58:33 GMT
+      - Wed, 12 Nov 2025 09:52:25 GMT
       Etag:
       - W/"4f53cda18c2baa0c0354bb5f9a3ecbe5"
       Keep-Alive:
@@ -995,9 +923,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - c8bb781c-5347-4bca-b87e-79958ae96442
+      - 8bac58e7-89c4-4895-b3a1-96ed7c574938
       X-Runtime:
-      - '0.675684'
+      - '0.460717'
       X-Xss-Protection:
       - '0'
     status:

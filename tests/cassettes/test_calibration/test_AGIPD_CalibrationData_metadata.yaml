@@ -5,30 +5,30 @@ interactions:
       Accept:
       - application/json; version=2
       Accept-Encoding:
-      - gzip, deflate, br, zstd
+      - gzip, deflate
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2024.1.1.184+03da3c1
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
     uri: http://exflcalproxy.desy.de:8080/api/me
   response:
     body:
-      string: '{"id":-9,"email":"admin@example.com","created_at":"2015-03-12T17:02:47.000+01:00","updated_at":"2024-06-26T11:38:56.000+02:00","provider":"local","uid":null,"name":"Admin
-        User","first_name":"Admin","last_name":"User","nickname":null,"contact_email":"admin@example.com","ldap_synced_at":null,"flg_ldap_account_valid":false,"flg_service_account":true}'
+      string: '{"id":-9,"email":"admin@example.com","provider":"local","contact_email":"admin@example.com","name":"Admin
+        User","first_name":"Admin","last_name":"User","nickname":null,"uid":null,"ldap_synced_at":null,"flg_service_account":true,"flg_ldap_account_valid":false,"roles":["admin"]}'
     headers:
       Cache-Control:
       - max-age=0, private, must-revalidate
       Content-Length:
-      - '349'
+      - '277'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Fri, 08 Nov 2024 14:31:53 GMT
+      - Wed, 12 Nov 2025 09:51:59 GMT
       Etag:
-      - W/"4bf159598242c25bb9fb5b1598d140b2"
+      - W/"9ec4cec974b56aebafbb6dc312056934"
       Keep-Alive:
       - timeout=5, max=100
       Referrer-Policy:
@@ -45,8 +45,6 @@ interactions:
       - HTTP/1.1 xfel_oauth_proxy
       X-Content-Type-Options:
       - nosniff
-      X-Download-Options:
-      - noopen
       X-Frame-Options:
       - SAMEORIGIN
       X-Permitted-Cross-Domain-Policies:
@@ -54,9 +52,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 5d8b2e03-e5b8-4d47-bb3a-35d7b3ee140e
+      - 30160752-fa89-41c7-a4f3-13480f5c123f
       X-Runtime:
-      - '0.021739'
+      - '0.021405'
       X-Xss-Protection:
       - '0'
     status:
@@ -68,29 +66,29 @@ interactions:
       Accept:
       - application/json; version=2
       Accept-Encoding:
-      - gzip, deflate, br, zstd
+      - gzip, deflate
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2024.1.1.184+03da3c1
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
     uri: http://exflcalproxy.desy.de:8080/api/detectors?identifier=MID_DET_AGIPD1M-1
   response:
     body:
-      string: '[{"id":4,"name":"MID_DET_AGIPD1M-1","identifier":"MID_DET_AGIPD1M-1","karabo_name":"MID_DET_AGIPD1M-1","karabo_id_control":"MID_EXP_AGIPD1M1","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":4,"detector_id":4},{"instrument_id":7,"detector_id":4}]}]'
+      string: '[{"id":4,"name":"MID_DET_AGIPD1M-1","identifier":"MID_DET_AGIPD1M-1","karabo_name":"MID_DET_AGIPD1M-1","karabo_id_control":"MID_EXP_AGIPD1M1","source_name_pattern":"MID_DET_AGIPD1M-1/DET/{modno}CH0:xtdf","number_of_modules":16,"first_module_index":0,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":4,"detector_id":4},{"instrument_id":7,"detector_id":4}]}]'
     headers:
       Cache-Control:
       - max-age=0, private, must-revalidate
       Content-Length:
-      - '359'
+      - '389'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Fri, 08 Nov 2024 14:31:53 GMT
+      - Wed, 12 Nov 2025 09:51:59 GMT
       Etag:
-      - W/"482ffe83a86d14688f9ee0fa415bd62a"
+      - W/"6b4de85ef56d5f92608f49d423fd21ee"
       Keep-Alive:
       - timeout=5, max=100
       Referrer-Policy:
@@ -111,8 +109,6 @@ interactions:
       - '100'
       X-Current-Page:
       - '1'
-      X-Download-Options:
-      - noopen
       X-Frame-Options:
       - SAMEORIGIN
       X-Permitted-Cross-Domain-Policies:
@@ -120,9 +116,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 01a51413-57e9-43ae-9c9e-73c94a012e28
+      - 4ce445e7-27b0-473e-a163-55f56804c52b
       X-Runtime:
-      - '0.020753'
+      - '0.023571'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -142,7 +138,7 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2025.1.105+5a88200
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
@@ -158,7 +154,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 16 Oct 2025 08:58:00 GMT
+      - Wed, 12 Nov 2025 09:51:59 GMT
       Etag:
       - W/"006fa08c0ab65bc2ffd044685eec5368"
       Keep-Alive:
@@ -184,9 +180,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 5129080d-b0f9-4ed4-a109-f37d1e5419db
+      - 33e36331-30a7-4ac8-909c-2df0ee351d5c
       X-Runtime:
-      - '0.605401'
+      - '0.404577'
       X-Xss-Protection:
       - '0'
     status:
@@ -202,7 +198,7 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2025.1.105+5a88200
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
@@ -218,7 +214,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 16 Oct 2025 08:58:00 GMT
+      - Wed, 12 Nov 2025 09:51:59 GMT
       Etag:
       - W/"41e8088cc44ad976e577e40482d74dfb"
       Keep-Alive:
@@ -248,9 +244,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 5b4a9c87-9d65-4696-9b56-5789c1faf527
+      - 7b3cfa64-705f-40d6-a748-5acde168eceb
       X-Runtime:
-      - '0.026979'
+      - '0.021448'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -276,7 +272,7 @@ interactions:
       Content-Length:
       - '349'
       User-Agent:
-      - EXtra/2025.1.105+5a88200
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
@@ -340,7 +336,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 16 Oct 2025 08:58:00 GMT
+      - Wed, 12 Nov 2025 09:51:59 GMT
       Etag:
       - W/"6135c60d078280388d9a0fa23ce670b2"
       Keep-Alive:
@@ -366,9 +362,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - dd69d484-d795-4742-b174-3a3ed8090387
+      - 4d33de1a-89e7-4627-96e5-54d3a0cc3255
       X-Runtime:
-      - '1.536502'
+      - '1.282820'
       X-Xss-Protection:
       - '0'
     status:
@@ -384,7 +380,7 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2025.1.105+5a88200
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
@@ -400,7 +396,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 16 Oct 2025 08:58:02 GMT
+      - Wed, 12 Nov 2025 09:52:01 GMT
       Etag:
       - W/"50ec44b55aad814d2d09049e151bfba8"
       Keep-Alive:
@@ -430,9 +426,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - f4e29bfd-20be-4ef0-96b7-55772330970a
+      - 5a7f6f21-df96-4292-a84d-bc371b69e38e
       X-Runtime:
-      - '0.028009'
+      - '0.021481'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -458,7 +454,7 @@ interactions:
       Content-Length:
       - '400'
       User-Agent:
-      - EXtra/2025.1.105+5a88200
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
@@ -522,7 +518,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 16 Oct 2025 08:58:02 GMT
+      - Wed, 12 Nov 2025 09:52:01 GMT
       Etag:
       - W/"a46871c68313faae6db92238c2223c4c"
       Keep-Alive:
@@ -548,9 +544,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - e9ae0060-8952-4251-aec5-045dda5ac7e8
+      - b2358b41-ba76-4ce9-bbf0-57936db6df06
       X-Runtime:
-      - '1.235426'
+      - '1.384132'
       X-Xss-Protection:
       - '0'
     status:
