@@ -18,7 +18,7 @@ from extra.calibration import (
     LPDConditions,
     SingleConstant,
     DetectorData,
-    PhysicalDetectorUnit
+    DetectorModule
 )
 
 # Most of these tests use saved HTTP responses by default (with pytest-recording).
@@ -393,7 +393,7 @@ def test_DetectorData_from_identifier():
     assert agipd.detector_type == 'AGIPD-Type'
     assert len(agipd) == agipd.number_of_modules
     assert list(agipd)[0] == next(iter(agipd.keys())) == 'AGIPD00'
-    assert isinstance(next(iter(agipd.values())), PhysicalDetectorUnit)
+    assert isinstance(next(iter(agipd.values())), DetectorModule)
     assert agipd[0] == agipd['AGIPD00']
 
     # PDU
