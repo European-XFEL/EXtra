@@ -6,4 +6,6 @@
 
 ::: extra.components.MachinePulses
 
+::: extra.components.ManualPulses
+
 ::: extra.components.DldPulses
