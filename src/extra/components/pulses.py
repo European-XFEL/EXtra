@@ -10,6 +10,7 @@ from warnings import warn
 import re
 
 import numpy as np
+import pandas as pd
 
 from euxfel_bunch_pattern import is_sase, is_laser, \
     PPL_BITS, DESTINATION_TLD, DESTINATION_T4D, DESTINATION_T5D, \
@@ -225,7 +226,6 @@ class PulsePattern:
             # thus are equal if length matches.
             return act_entries
 
-        import pandas as pd
         ext_entries = pd.Series(
             np.zeros_like(train_ids, dtype=act_entries.dtype),
             index=pd.Index(train_ids, name='trainId'))
@@ -573,7 +573,6 @@ class PulsePattern:
             # Drop train ID dimensions.
             pulse_ids = _drop_first_level(pulse_ids)
         else:
-            import pandas as pd
             pulse_ids = pd.Series([], dtype=np.int32)
 
         return (pulse_ids if labelled else pulse_ids.to_numpy()).copy()
@@ -879,7 +878,6 @@ class PulsePattern:
         if pulse_dtype is not None:
             index_levels[pulse_dim] = index_levels[pulse_dim].astype(pulse_dtype)
 
-        import pandas as pd
         return pd.MultiIndex.from_arrays(
             list(index_levels.values()), names=list(index_levels.keys()))
 
@@ -927,7 +925,6 @@ class PulsePattern:
         pulse_ids = self.pulse_ids(copy=False)
 
         if labelled:
-            import pandas as pd
             def gen_pulse_ids(train_idx):
                 try:
                     return pulse_ids.loc[tids[train_idx]].copy()
@@ -1138,8 +1135,6 @@ class TimeserverPulses(PulsePattern):
                     for node in nodes], []))]
 
         counts = [len(pids) for pids in pids_by_train]
-
-        import pandas as pd
 
         if not counts:
             # Immediately return an empty series if there is no data.
@@ -1896,7 +1891,6 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
             fel_by_train.append(np.isin(pids, fel_pids))
             ppl_by_train.append(np.isin(pids, ppl_pids))
 
-        import pandas as pd
         index = pd.MultiIndex.from_arrays([
             np.repeat(train_ids, counts),
             np.concatenate([np.arange(count) for count in counts]),
@@ -2030,7 +2024,6 @@ class ManualPulses(PulsePattern):
         if isinstance(train_ids, TrainData):
             train_ids = train_ids.train_ids
 
-        import pandas as pd
         pulse_ids_ser = pd.Series(
             np.tile(pulse_ids, len(train_ids)), dtype=np.int32,
             index=pd.MultiIndex.from_product([
@@ -2157,7 +2150,6 @@ class DldPulses(PulsePattern):
             index_levels['fel'] = triggers['fel'].copy()
             index_levels['ppl'] = triggers['ppl'].copy()
 
-        import pandas as pd
         index = pd.MultiIndex.from_arrays(
             list(index_levels.values()), names=list(index_levels.keys()))
 
@@ -2187,7 +2179,6 @@ class DldPulses(PulsePattern):
         triggers = drop_fields(self._key.ndarray(), ['pulse', 'fel', 'ppl'])
 
         if labelled:
-            import pandas as pd
             return pd.DataFrame(data=triggers, index=self.build_pulse_index())
         else:
             return triggers
