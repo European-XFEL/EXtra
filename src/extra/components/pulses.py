@@ -129,16 +129,21 @@ class PulsePattern:
     """Abstract interface to pulse patterns.
 
     This class should not be instantiated directly, but one of its
-    implementationsd `XrayPulses` or `OpticalLaserPulses`. It provides
-    the shared interface to access any pulse pattern.
-
-    Instances of this class are assumed to be immutable, which is
-    exploited in various methods for caching purposes. An implementation
-    should not allow altering its internal object state in a way that
-    causes return values of public APIs to change.
-
-    Requires to implement _get_pulse_ids().
+    implementations such as `XrayPulses` or `OpticalLaserPulses`. It
+    provides the shared interface accessible from all oher pulse pattern
+    implementations, however.
     """
+
+    # Instances of this class are assumed to be immutable, which is
+    # exploited in various methods for caching purposes. An implementation
+    # should not allow altering its internal object state in a way that
+    # causes return values of public APIs to change.
+
+    # The minimum requirement for a custom pulse pattern type is to
+    # implement the abstract method `_get_pulse_ids()`.
+    # If the underlying pattern may also describe pulse-less trains,
+    # `_get_train_ids()` should be overwritten as well. Its default
+    # implementation will return only the train IDs with pulses.
 
     # Number of elements in bunch pattern table according to XFEL Timing
     # System Specification, Version 2.2 (2013). The original table may
@@ -899,12 +904,14 @@ class TimeserverPulses(PulsePattern):
     """Abstract interface to timeserver-based based pulse patterns.
 
     This class should not be instantiated directly, but one of its
-    implementations `XrayPulses` or `OpticalLaserPulses`. It provides
-    the shared interface to access pulse patterns encoded in the bunch
-    pattern table.
-
-    Requires _mask_table() and _get_ppdecoder_nodes() to be implemented.
+    implementations such as [`XrayPulses`][extra.components.XrayPulses]
+    or [`OpticalLaserPulses`][extra.components.OpticalLaserPulses]. It
+    provides the shared interface to access pulse patterns encoded in
+    the timeserver or pulse pattern decoder data.
     """
+
+    # An implementation os required to implement _mask_table() and
+    # _get_ppdecoder_nodes().
 
     # Timeserver class ID and regular expressions.
     _timeserver_class = 'TimeServer'
@@ -1161,7 +1168,7 @@ class TimeserverPulses(PulsePattern):
         return self.machine_pulses().pulse_repetition_rates().min()
 
     @lru_cache
-    def is_sa1_interleaved_with_sa3(self) -> Optional[bool]:
+    def is_sa1_interleaved_with_sa3(self) -> bool | None:
         """Check whether SASE1 and SASE3 pulses are interleaved.
 
         Due to their unique geometry, the pulses of the SASE1 and SASE3
@@ -1177,8 +1184,9 @@ class TimeserverPulses(PulsePattern):
         returned.
 
         Returns:
-            (bool or None) Whether SA1 and SA3 are interleaved or None
-                if the pulse patterns do not allow the determination.
+            is_interleaved (bool or None): Whether SA1 and SA3 are
+                interleaved or None if the pulse patterns do not allow
+                the determination.
         """
 
         sa1_pulses = XrayPulses(None, self._source, sase=1) \
