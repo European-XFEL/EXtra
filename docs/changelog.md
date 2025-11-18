@@ -28,6 +28,12 @@ Added:
   find the constants suitable for a given `DataCollection`
 - [DetectorData][extra.calibration.DetectorData] to obtain detector metadata and
   module mapping from the Calibration Cataloge (!408).
+- [PulsePattern.select_pulses][extra.components.pulses.PulsePattern.select_pulses],
+  [PulsePattern.deselect_pulses][extra.components.pulses.PulsePattern.deselect_pulses] and
+  [PulsePattern.union][extra.components.pulses.PulsePattern.union] to modify pulse patterns (!417).
+- [ManualPulses][extra.components.ManualPulses] to generate custom pulse pattern with
+  the same interface as existing
+  [PulsePattern][extra.components.pulses.PulsePattern]-based components (!417).
 - [SpectrometerCalibration][extra.gui.jupyter.SpectrometerCalibration] to
   provide a Jupyter widget for energy calibration of 2D X-ray spectrum data
   (!363).
