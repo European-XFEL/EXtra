@@ -889,9 +889,9 @@ class CalibrationData(Mapping):
         if any('module_number' not in d for d in module_details):
             det_info = client.detector_by_identifier(det_name)
             if len(module_details) == det_info['number_of_modules']:
-                first = det_info['first_module_index']
-                for i, d in enumerate(module_details, start=first):
-                    d['module_number'] = i
+                if (first := det_info['first_module_index']) is not None:
+                    for i, d in enumerate(module_details, start=first):
+                        d['module_number'] = i
 
         return cls(constant_groups, module_details, det_name)
 
