@@ -6,7 +6,7 @@ import re
 import numpy as np
 import pandas as pd
 
-from extra_data import by_id
+from extra_data import by_id, SourceNameError
 from extra_data.read_machinery import roi_shape
 from .pulses import XrayPulses, PulsePattern
 from .utils import _isinstance_no_import
@@ -134,8 +134,8 @@ class AdqRawChannel:
         key = f'digitizers.channel_{self._channel_name}.raw.samples'
 
         if key not in self._instrument_src:
-            raise ValueError(f'key {key} for channel {channel} not found '
-                             f'in digitizer instrument source {digitizer}')
+            raise SourceNameError(custom_message=f'key {key} for channel {channel} not found '
+                                                 f'in digitizer instrument source {digitizer}')
 
         self._raw_key = self._instrument_src[key]
 
@@ -216,14 +216,14 @@ class AdqRawChannel:
                 digitizers.add(m[0])
 
         if not digitizers:
-            raise ValueError(f'no digitizer source found for prefix={prefix} '
-                             f'and pattern={cls._adq_pipeline_re.pattern}, '
-                             f'please pass explicit instrument source')
+            raise SourceNameError(custom_message=f'no digitizer source found for prefix={prefix} '
+                                                 f'and pattern={cls._adq_pipeline_re.pattern}, '
+                                                 f'please pass explicit instrument source')
         elif len(digitizers) > 1:
-            raise ValueError('multiple digitzer sources found for '
-                             'prefix={} and pattern={}:\n{}'.format(
-                                prefix, cls._adq_pipeline_re.pattern,
-                                ', '.join(sorted(digitizers))))
+            raise SourceNameError(custom_message='multiple digitzer sources found for '
+                                                 'prefix={} and pattern={}:\n{}'.format(
+                                                    prefix, cls._adq_pipeline_re.pattern,
+                                                    ', '.join(sorted(digitizers))))
 
         return digitizers.pop()
 

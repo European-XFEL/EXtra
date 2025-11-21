@@ -5,6 +5,7 @@ import pytest
 import numpy as np
 import pandas as pd
 
+from extra.data import SourceNameError
 from extra.components import Timepix3, XrayPulses, PumpProbePulses
 from .mockdata import assert_equal_sourcedata, assert_equal_keydata
 
@@ -33,7 +34,7 @@ def test_timepix3_init(mock_sqs_timepix_run):
     assert 'raw, centroids' in repr(tpx)
 
     # Whole run contains more than one detector.
-    with pytest.raises(ValueError):
+    with pytest.raises(SourceNameError):
         tpx = Timepix3(mock_sqs_timepix_run)
 
     # But works with explicit naming
