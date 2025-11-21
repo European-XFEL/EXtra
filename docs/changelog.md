@@ -41,6 +41,8 @@ Fixed:
 
 - [fit_gaussian()][extra.utils.fit_gaussian] would sometimes return a negative
   sigma, now it will always return a positive sigma (!405).
+- Passing `colorbar=False` to [imshow2()][extra.utils.imshow2] now applies to
+  [DataArray][xarray.DataArray] inputs as well (!419).
 
 Changed:
 

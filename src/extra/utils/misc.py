@@ -122,6 +122,10 @@ def imshow2(image, *args, colorbar=True, lognorm=False, ax=None, **kwargs):
         if aspect_ratio > 4:
             kwargs["aspect"] = "auto"
 
+    # Disable the colorbar if requested
+    if not colorbar and is_dataarray:
+        kwargs["add_colorbar"] = False
+
     if ax is None:
         ax = plt.gca()
     fig = ax.get_figure()
