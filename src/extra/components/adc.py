@@ -1,12 +1,12 @@
 """Fast ADC component"""
 
+from typing import Literal
 import re
 
 import numpy as np
-import pandas as pd
-import xarray as xr
+from xarray import DataArray
 
-from extra_data import by_id, DataCollection
+from extra_data import by_id, DataCollection, KeyData, SourceData
 from extra_data.read_machinery import roi_shape
 from .pulses import XrayPulses, PulsePattern
 from .utils import _isinstance_no_import
@@ -28,13 +28,13 @@ class AdcRawChannel:
     def __init__(
         self,
         data: DataCollection,
-        adc_channel: str | int, *,
-        pulses: bool | None = None,  # In the future, + manual pulses
+        adc_channel: str | int,
+        *,
+        pulses: bool = True,  # In the future, + manual pulses
         first_pulse_offset: None | int = None,
-        drop_empty_trains: bool = False,
     ):
 
-        self._adc_channel = adc_channel
+        self._adc_channel = str(adc_channel)
         self._first_pulse_offset = first_pulse_offset
 
         self._instrument_sources = data.instrument_sources
@@ -60,22 +60,19 @@ class AdcRawChannel:
         self._number_of_samples = self._get_number_of_samples()
 
     @property
-    def pulses(self) -> PulsePattern | None:
-        """The pulse pattern (XrayPulses) if present, None if not."""
+    def pulses(self) -> PulsePattern | Literal[False]:
+        """The pulse pattern (XrayPulses) if present, False if not."""
+
         return self._pulses
 
     @property
     def pulse_period(self) -> int:
         """Check that there is one unique pulse period and extract it"""
 
-        if self._pulses is None:
-            raise RuntimeError(
-                "This component was not initialized with a pulse pattern."
-            ) from None
+        self._check_pulses_not_false()
 
         try:
             pulse_period = self._pulses.pulse_periods().unique()
-            pulse_period = int(pulse_period[0])
         except ValueError:
             # PulsePattern.pulse_period raises ValueError when there is only
             # one pulse per train, if so, catch it and set pulse period to
@@ -87,25 +84,51 @@ class AdcRawChannel:
             raise ValueError(
                 "There is more than one pulse period in this selection. To "
                 "proceed, split the trains into selections with a common "
-                "period and try again.") from None
+                "period and try again.")
+
+        pulse_period = int(pulse_period[0])
 
         return pulse_period
+
+    def _check_pulses_not_false(self) -> None:
+        """Raises ValueError if ._pulses is False."""
+
+        if self.pulses is False:
+            raise ValueError(
+                "This component was not initialized with a "
+                "pulse pattern.") from None
 
     @property
     def samples_per_pulse(self) -> int:
         """Compute the number of samples per pulse."""
+
+        # Raise a ValueError if user invokes this method when pulses = False
+        self._check_pulses_not_false()
+
         return self.pulse_period * self._clock_ratio
 
     @property
     def pulses_per_train(self) -> int:
         """The number of pulses per train."""
 
+        # Raise a ValueError if user invokes this method when pulses = False
+        self._check_pulses_not_false()
+
+        try:
+            ppt, = self.pulses.pulse_counts().unique()
+        except ValueError:
+            raise ValueError(
+                "The pulse pattern changed within this selection."
+            ) from None
+
+        return int(ppt)
+
     @property
     def trace_length(self) -> int | None:
         """Compute the trace length based on the pulse pattern"""
 
-        if self._pulses is None:
-            return None
+        # Raise a ValueError if user invokes this method when pulses = False
+        self._check_pulses_not_false()
 
         trace_len = self.samples_per_pulse * self.pulses_per_train
         trace_len += self._sample_first_bunch
@@ -115,7 +138,9 @@ class AdcRawChannel:
         # configured correctly before the run...
         trace_len = min(trace_len, self._number_of_samples)
 
-        return trace_len
+        # Technically, wrapping in int is not necessary as all values involved
+        # are of type int
+        return int(trace_len)
 
     @property
     def _channel_number(self):
@@ -151,9 +176,10 @@ class AdcRawChannel:
             value = self._get_unique_value(
                 self._ctrl_sourcedata, 'sampleFirstBunch.value')
         else:
-            raise TypeError("The `first_pulse_index` argument should be "
-                            "an integer or None, you passed an object of "
-                            "type {type(first_pulse_index)}.")
+            raise TypeError(
+                "The `first_pulse_offset` argument should be an integer "
+                "or None, you passed an object of type "
+                f"{type(self._first_pulse_offset)}.") from None
 
         return value
 
@@ -162,35 +188,33 @@ class AdcRawChannel:
             self._ctrl_sourcedata, 'numberRawSamples.value')
 
     @staticmethod
-    def _get_unique_value(sourcedata, key):
+    def _get_unique_value(source: SourceData, key: str) -> np.typing.ArrayLike:
         """General method that takes a key and returns a unique
         value in the KeyData.ndarray()."""
 
-        source_type = None
-        if sourcedata.is_control:
-            source_type = 'control'
-        elif sourcedata.is_instrument:
-            source_type = 'instrument'
-        else:
-            raise ValueError(
-                f"The SourceData I received, {sourcedata.canonical_name} "
-                "is not a control or instrument source.")
+        if key not in source:
+            raise KeyError(
+                f"The SourceData object you passed, {source}, does not "
+                f"contain the {key} key. Please provide a valid key."
+            )
 
-        if key not in sourcedata:
-            raise KeyError(f"The {key} key of the {source_type} source "
-                           f"{sourcedata.canonical_name} is missing.")
-
-        array = sourcedata[key].ndarray()
+        array = source[key].ndarray()
         array = np.unique(array)
 
         if len(array) > 1:
-            # This is highly unlikely but better save than sorry.
-            raise ValueError("It looks like the `sampleFirstBunch.value` key "
-                             "changed during the run. Please specify a value "
-                             f"explicitly. I found {array}.")
+            # 
+            raise ValueError(
+                f"It looks like the {key} key changed during the run. "
+                f"Please specify a value explicitly. I found {array}."
+            )
+
         return int(array[0])
 
-    def _validate_pulses_kwarg(self, data, pulses):
+    def _validate_pulses_kwarg(
+            self,
+            data: KeyData,
+            pulses: bool,
+    ) -> PulsePattern | Literal[False]:
         """Offloads pulses validation logic from the __init__ method.
 
         The validation needs to check for the following conditions:
@@ -199,12 +223,13 @@ class AdcRawChannel:
           2. The pulse pattern needs to be constant.
         """
 
+        # Do nothing if instantiated with `pulses=False`
         if pulses is False:
-            return None
+            return pulses
 
         # Write unit tests: no BPT, BPT_DECODER, full BPT, & both
         try:
-            pulses = XrayPulses(data)
+            pulses_ = XrayPulses(data)
         except ValueError:
             raise ValueError(
                 "No valid timeserver or pulse pattern decoder found. "
@@ -212,14 +237,13 @@ class AdcRawChannel:
                 "`pulses=False`.") from None
 
         # Make sure that the pulse pattern if constant
-        if not pulses.is_constant_pattern():
+        if not pulses_.is_constant_pattern():
             raise RuntimeError(
                 "The pulse pattern is not constant. Please split the "
                 "current selection into sub-selections with constant patterns."
-            ) from None
-        
-        #
-        return pulses
+            )
+
+        return pulses_
 
     # @property
     # def _control_sourcedata(self):
@@ -245,11 +269,11 @@ class AdcRawChannel:
 
         len_ = len(candidates)
         if len_ == 0:
-            raise AttributeError(
+            raise ValueError(
                     f"The source you provided, {adc_channel}, cannot "
                     f"be matched to one of instrument sources.")
         if len_ > 1:
-            raise AttributeError(
+            raise ValueError(
                     f"There are too many sources that match the "
                     f"source you provided, {adc_channel}. Namely "
                     f"{candidates}. Please be more specific.")
@@ -269,10 +293,19 @@ class AdcRawChannel:
 
         return ctrl_name
 
-    def train_data(self, labelled=True, out=None):
+    def train_data(
+            self,
+            labelled: bool = True,
+            train_roi: slice = slice(None),
+    ) -> np.ndarray | DataAray:
         """Return train data"""
 
-        out = np.empty((self._inst_keydata.shape))
+        # Validate the roi parameter
+        if not isinstance(train_roi, slice):
+            raise ValueError("The roi parameter must be a slice object.")
+
+        shape = self._inst_keydata[:, train_roi].shape
+        out = np.empty(shape)
 
         offset = 0
         for chunk in self._inst_keydata.split_trains(trains_per_part=200):
@@ -284,23 +317,36 @@ class AdcRawChannel:
             offset += num_trains
             out[this_slice] = chunk.ndarray()
 
-        if not labelled:
+        if labelled:
             return out
 
         coords = {'trainId': self._inst_keydata.train_id_coordinates()}
         coords.update({'sample': np.arange(out.shape[1])})
 
-        return xr.DataArray(out, coords=coords)
+        return DataArray(out, coords=coords)
 
-    def pulse_data(self, labelled=True, out=None):
+    def pulse_data(
+        self,
+        labelled: bool = True,
+        train_roi: slice = slice(None),
+        auto_trim_trace: bool = False,
+    ):
         """Identify all the pulses and return an array containing them."""
 
-        width = self.pulse_period
-        roi_ = slice(None, width)
-        out = np.empty((self._inst_keydata.shape[0], width))
+        if auto_trim_trace and self.trace_length is not None:
+            train_roi = slice(None, self.trace_length)
+
+        keydata = self._inst_keydata.drop_empty_trains()
+
+        width = train_roi.stop - train_roi.start
+
+        quotient, remainder = divmod()
+        # Check that the train_roi can be split into integer pulses
+        assert width % self.samples_per_pulse == 0
+        out = np.empty((keydata.shape[0], width))
 
         offset = 0
-        for chunk in self._inst_keydata.split_trains(trains_per_part=200):
+        for chunk in keydata.split_trains(trains_per_part=200):
             # In AdqRawChannel, there is a BEWARE about uint64, what is this
             # about? Doing `type(chunk.shape[0])` gives int... trainIds are 
             # uint64 but...
@@ -314,7 +360,8 @@ class AdcRawChannel:
 
         coords = {'trainId': self._inst_keydata.train_id_coordinates()}
         coords.update({'sample': np.arange(width)})
-        return xr.DataArray(out, coords=coords)
+
+        return DataArray(out, coords=coords)
 
     def find_peaks(self, labelled=True):
         """Find the peak heights and locations in the trace"""
@@ -322,9 +369,7 @@ class AdcRawChannel:
     def _prepare_pulses(self, train_ids):
         """Prepare pulse information."""
 
-        if self._pulses is None:
-            raise RuntimeError('component must be initialized with pulse '
-                               'information for this operation')
+        self._check_pulses_not_false()
 
         aligned_pulses = self._pulses.select_trains(by_id[train_ids])
 
@@ -341,14 +386,14 @@ class AdcRawChannel:
         # Samples per pulse based on the shortest difference between
         # pulses if available. All code below using this value is
         # protected against out-of-bounds access.
-        try:
-            # Beware, pulse_period is not aligned to train_ids here!
-            pulse_period = int(pulse_ids.groupby(level=0).diff().min())
-        except ValueError:
-            samples_per_pulse = self._single_pulse_length
-        else:
-            samples_per_pulse = self.samples_per_pulse(
-                pulse_period=pulse_period)
+        # try:
+        #     # Beware, pulse_period is not aligned to train_ids here!
+        #     pulse_period = int(pulse_ids.groupby(level=0).diff().min())
+        # except ValueError:
+        #     samples_per_pulse = self._single_pulse_length
+        # else:
+        #     samples_per_pulse = self.samples_per_pulse(
+        #         pulse_period=pulse_period)
 
         # Generate offsets of first pulse and last pulse of each
         # train relative to all pulses.
@@ -357,9 +402,10 @@ class AdcRawChannel:
 
         # Combine pulse layout into a single dataframe.
         # TODO: samples_per_pulses is currently assumed to be constant
-        pulse_layout = pd.DataFrame({'count': num_pulses,
-                                     'first': pulse_first,
-                                     'last': pulse_last,
-                                     'length': samples_per_pulse})
+        pulse_layout = pd.DataFrame({
+            'count': num_pulses,
+            'first': pulse_first,
+            'last': pulse_last,
+            'length': self.samples_per_pulse})
 
         return aligned_pulses, pulse_layout
