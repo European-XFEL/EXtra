@@ -372,49 +372,20 @@ class VSLight(SerializableMixin):
         Return a serializable dict.
         """
         d = {k: v for k, v in self.__dict__.items() if k in self._all_fields}
-        d["pca_x"] = {}
-        for tof_id, v in self.pca_x.items():
-            d["pca_x"][tof_id] = {name: getattr(v, name) for name in self._all_pca_fields}
-        d["pca_y"] = {}
-        for tof_id, v in self.pca_y.items():
-            d["pca_y"][tof_id] = {name: getattr(v, name) for name in self._all_pca_fields}
-        d["model"] = {}
-        for tof_id, v in self.model.items():
-            d["model"][tof_id] = dict()
-            for e, _ in enumerate(self.model[tof_id].estimators_):
-                d["model"][tof_id][e] = {name: getattr(self.model[tof_id].estimators_[e], name)
-                                         for name in self._all_model_fields}
+        d["model"] = self.model.model.state_dict()
         return d
+
     def _fromdict(self, all_data):
         """
         Actions to do after loading from file.
         """
-        from sklearn.decomposition import IncrementalPCA
-        from sklearn.linear_model import ARDRegression
-        from .vs_utils import MultiOutputGenericWithStd
+        from .bnn import BNNModel
         tof_ids = all_data["kwargs_adq"].keys()
-        self.pca_x = dict()
-        self.pca_y = dict()
         self.model = dict()
         for k, v in all_data.items():
-            if k == "pca_x":
-                for i in tof_ids:
-                    self.pca_x[i] = IncrementalPCA()
-                    for par in self._all_pca_fields:
-                        setattr(self.pca_x[i], par, v[i][par])
-            elif k == "pca_y":
-                for i in tof_ids:
-                    self.pca_y[i] = IncrementalPCA()
-                    for par in self._all_pca_fields:
-                        setattr(self.pca_y[i], par, v[i][par])
-            elif k == "model":
-                for i in tof_ids:
-                    self.model[i] = MultiOutputGenericWithStd(ARDRegression(tol=1e-8, verbose=True), n_jobs=8)
-                    self.model[i].estimators_ = list()
-                    for e in v[i].keys():
-                        self.model[i].estimators_ += [ARDRegression(tol=1e-8, verbose=True)]
-                        for par in self._all_model_fields:
-                            setattr(self.model[i].estimators_[-1], par, v[i][e][par])
+            if k == "model":
+                self.model = BNNModel()
+                self.model.model.load_state(v)
             else:
                 setattr(self, k, v)
         # fix some dicts
@@ -711,7 +682,7 @@ class VSLight(SerializableMixin):
             y = mu*np.exp(-0.5*(self.energy_axis[None, :] - self.calibration_energies[:, None])**2/((self.energy_width/2.355)**2))
         return tof_data, y
 
-    def update_fit(self):
+    def update_fit_original(self):
         """
         Fit TOF data to a Gaussian and collect results.
         """
@@ -780,6 +751,43 @@ class VSLight(SerializableMixin):
                 self.resolution[tof_id][i] = get_resolution(y, y_hat, self.energy_axis,
                                                             e_center, e_width)
 
+    def update_fit(self):
+        """
+        Fit TOF data to a Gaussian and collect results.
+        """
+        from .bnn import BNNModel
+
+        e = self.calibration_energies
+
+        # binning for energy
+        e_min = e.min()
+        e_max = e.max()
+        e_probe = np.linspace(e_min, e_max, 5)
+        e_width = (e_max - e_min)/(len(e_probe)-1)
+        self.e_width = e_width
+        self.e_probe = e_probe
+
+        # how many components in y?
+        self.tof2d = [k for k, v in dict(sorted(self.y.items()))]
+        # create 2D image (batch, channel, tof)
+        self.y2d = np.stack([self.y[tof_id] for tof_id in self.tof2d],
+                            axis=1)
+        self.x2d = np.stack([self.tof_data[tof_id] for tof_id in self.tof2d],
+                            axis=1)
+        self.model = BNNModel()
+        self.model.fit(self.x2d[:,None,:,:], self.y2d[:,None,:,:])
+        self.y2d_hat = self.model.predict(self.x2d[:,None,:,:])
+
+        for tof_id in self.tof2d:
+            # calculate resolution
+            logging.info(f"Calculate resolution ...")
+            self.resolution[tof_id] = dict()
+            for i, e_center in enumerate(e_probe):
+                self.resolution[tof_id][i] = get_resolution(self.y2d[:,tof_id,:],
+                                                            self.y2d_hat[:,tof_id,:],
+                                                            self.energy_axis,
+                                                            e_center, e_width)
+
     def load_trace(self, run: DataCollection, **extra_kwargs_adq: Dict[str, Any]) -> xr.DataArray:
         """
         Only load region of interest for the same settings in a new run and output a Dataset with it.
@@ -832,49 +840,33 @@ class VSLight(SerializableMixin):
         Returns:
           The calibrated data as a [DataArray][xarray.DataArray]. The axes of the output are `('trainId', 'pulseIndex', 'energy', 'tof')`.
         """
-        tof_idx = [idx
-                   for idx, tof_id in enumerate(self.kwargs_adq.keys())
-                   if self.mask[tof_id] and tof_id in trace.tof]
-        tof_ids = [tof_id
-                   for idx, tof_id in enumerate(self.kwargs_adq.keys())
-                   if self.mask[tof_id] and tof_id in trace.tof]
+        pulses = trace.transpose('trainId', 'pulseIndex', 'tof', 'sample')
+        spl = min([self.kwargs[adq_tof_id]["single_pulse_length"] for adq_tof_id in self.tof2d])
+        pulses = pulses.isel(sample=slice(0, spl))
+        # get it in the right order
+        coords = pulses.coords
+        # the sample axis to use for the calibration
+        n_t, n_p, _, n_s = pulses.shape
+        x2d = np.stack([pulses.sel(tof=tof_id).to_numpy() for tof_id in self.tof2d],
+                            axis=1)
 
-        def apply_correction(tof_id, tof_trace):
-            """
-            Apply the energy calibration and transmission correction for a given eTOF.
-            """
-            logging.info(f"Correcting eTOF {tof_id} ...")
-            # get it in the right order
-            pulses = tof_trace.transpose('trainId', 'pulseIndex', 'sample')
-            pulses = pulses.isel(sample=slice(0, self.kwargs_adq[tof_id]["single_pulse_length"]))
-            coords = pulses.coords
-            pulses = pulses.to_numpy()
-            # the sample axis to use for the calibration
-            n_t, n_p, n_s = pulses.shape
-
-            # apply model
-            pulses = np.reshape(pulses, (n_t*n_p, n_s))
-            pca_x = self.pca_x[tof_id].transform(pulses)
-            pca_y = self.model[tof_id].predict(pca_x)
-            o = self.pca_y[tof_id].inverse_transform(pca_y)
-            n_e = len(self.energy_axis)
-            o = np.reshape(o, (n_t, n_p, n_e))
-            # regenerate DataArray
-            o = xr.DataArray(data=o,
-                             dims=('trainId', 'pulseIndex', 'energy'),
+        # apply model
+        x2d = np.reshape(x2d, (n_t*n_p, len(self.tof2d), n_s))
+        y2d = self.model.predict(x2d[:,None,:,:])
+        n_e = len(self.energy_axis)
+        y2d = np.reshape(o, (n_t, n_p, len(self.tof2d), n_e))
+        # regenerate DataArray
+        o = xr.DataArray(data=o,
+                         dims=('trainId', 'pulseIndex', 'tof', 'energy'),
                              coords=dict(trainId=coords['trainId'],
                                          pulseIndex=coords['pulseIndex'],
-                                         energy=self.energy_axis
+                                         energy=self.energy_axis,
+                                         tof=self.tof2d
                                         )
                             )
-            return o
 
-        outdata = [apply_correction(tof_id, trace.sel(tof=tof_id))
-                   for tof_id in tof_ids]
-        outdata = xr.concat(outdata, pd.Index(tof_ids, name="tof"))
-        outdata = outdata.transpose('trainId', 'pulseIndex', 'energy', 'tof')
-
-        return outdata
+        o = o.transpose('trainId', 'pulseIndex', 'energy', 'tof')
+        return o
 
     def apply(self, run: DataCollection) -> xr.DataArray:
         """
