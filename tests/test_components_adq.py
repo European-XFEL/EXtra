@@ -6,6 +6,7 @@ import numpy as np
 import xarray as xr
 import pandas as pd
 
+from extra.data import SourceNameError
 from extra.components import AdqRawChannel, XrayPulses
 
 from .mockdata import assert_equal_sourcedata, assert_equal_keydata
@@ -30,7 +31,7 @@ def test_adq_init(mock_sqs_remi_run, channel):
 
     # Full auto-detection should fail on the entire run with two
     # digitizers.
-    with pytest.raises(ValueError):
+    with pytest.raises(SourceNameError):
         ch = AdqRawChannel(mock_sqs_remi_run, channel)
 
     # Full auto-detection should work after selection.
@@ -61,7 +62,7 @@ def test_adq_init(mock_sqs_remi_run, channel):
     timeless_run = subrun.deselect('SQS_RR_UTC/*')
 
     # Simply creating a channel should fail now.
-    with pytest.raises(ValueError):
+    with pytest.raises(SourceNameError):
         AdqRawChannel(timeless_run, channel)
 
     # But it still works with pulse information disabled.
