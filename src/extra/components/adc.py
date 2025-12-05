@@ -173,6 +173,7 @@ class AdcRawChannel:
         if isinstance(self._first_pulse_offset, int):
             value = self._first_pulse_offset
         elif self._first_pulse_offset is None:
+            # TODO: this could fail even if unlikely... try/except?
             value = self._get_unique_value(
                 self._ctrl_sourcedata, 'sampleFirstBunch.value')
         else:
@@ -294,15 +295,28 @@ class AdcRawChannel:
         return ctrl_name
 
     def train_data(
-            self,
-            labelled: bool = True,
-            train_roi: slice = slice(None),
-    ) -> np.ndarray | DataAray:
+        self,
+        labelled: bool = True,
+        train_roi: slice = slice(None),
+        auto_trim_trace: bool = False,
+        # num_cores_to_use: None | int = None,
+    ) -> np.ndarray | DataArray:
         """Return train data"""
 
         # Validate the roi parameter
         if not isinstance(train_roi, slice):
             raise ValueError("The roi parameter must be a slice object.")
+
+        # Trim the trace to avoid carrying useless information around
+        start, stop = None, None
+        if auto_trim_trace is True and self.trace_length is not None:
+            start = train_roi.start
+            if train_roi.stop is not None:
+                stop = train_roi.stop if train_roi.stop < self.trace_length \
+                       else self.trace_length
+            else:
+                stop = self.trace_length
+        train_roi = slice(start, stop)
 
         shape = self._inst_keydata[:, train_roi].shape
         out = np.empty(shape)
@@ -328,22 +342,25 @@ class AdcRawChannel:
     def pulse_data(
         self,
         labelled: bool = True,
-        train_roi: slice = slice(None),
-        auto_trim_trace: bool = False,
-    ):
+        # train_roi: slice = slice(None),
+        # auto_trim_trace: bool = False,
+    ) -> np.ndarray | DataArray:
         """Identify all the pulses and return an array containing them."""
-
-        if auto_trim_trace and self.trace_length is not None:
-            train_roi = slice(None, self.trace_length)
 
         keydata = self._inst_keydata.drop_empty_trains()
 
-        width = train_roi.stop - train_roi.start
+        pulse_trace = self.trace_length - self._sample_first_bunch
 
-        quotient, remainder = divmod()
-        # Check that the train_roi can be split into integer pulses
-        assert width % self.samples_per_pulse == 0
-        out = np.empty((keydata.shape[0], width))
+        # The quotient gives the number of full pulses supported by a trace
+        # of this length. The remainder can be used for diagnosing 
+        quotient, remainder = divmod(pulse_trace, self.samples_per_pulse)
+
+        pulse_trace_len = quotient * self.samples_per_pulse
+        pulse_trace_roi = slice(
+            self._sample_first_bunch,
+            self._sample_first_bunch + pulse_trace_len
+        )
+        out = np.empty((keydata.shape[0], pulse_trace_len))
 
         offset = 0
         for chunk in keydata.split_trains(trains_per_part=200):
@@ -353,59 +370,22 @@ class AdcRawChannel:
             num_trains = int(chunk.shape[0])
             this_slice = slice(offset, offset + num_trains)
             offset += num_trains
-            out[this_slice] = chunk.ndarray(roi=roi_)
+            out[this_slice] = chunk.ndarray(roi=pulse_trace_roi)
+
+        out = out.reshape((keydata.shape[0], quotient, self.samples_per_pulse))
 
         if not labelled:
             return out
 
-        coords = {'trainId': self._inst_keydata.train_id_coordinates()}
-        coords.update({'sample': np.arange(width)})
+        pulse_ids = self.pulses.peek_pulse_ids(labelled=False)
+        pulse_ids = pulse_ids[:quotient]
 
-        return DataArray(out, coords=coords)
+        coords = {
+            'trainId': self._inst_keydata.train_id_coordinates(),
+            'pulseId': pulse_ids,
+            'sample': np.arange(self.samples_per_pulse)
+        }
+        return DataArray(data=out, coords=coords)
 
     def find_peaks(self, labelled=True):
         """Find the peak heights and locations in the trace"""
-
-    def _prepare_pulses(self, train_ids):
-        """Prepare pulse information."""
-
-        self._check_pulses_not_false()
-
-        aligned_pulses = self._pulses.select_trains(by_id[train_ids])
-
-        pulse_ids = aligned_pulses.pulse_ids(labelled=True)
-        num_pulses = aligned_pulses.pulse_counts()
-
-        # Ensure pulse data is available for all trains.
-        try:
-            num_pulses.loc[train_ids]
-        except KeyError:
-            raise ValueError('missing pulse information for one or more '
-                             'trains') from None
-
-        # Samples per pulse based on the shortest difference between
-        # pulses if available. All code below using this value is
-        # protected against out-of-bounds access.
-        # try:
-        #     # Beware, pulse_period is not aligned to train_ids here!
-        #     pulse_period = int(pulse_ids.groupby(level=0).diff().min())
-        # except ValueError:
-        #     samples_per_pulse = self._single_pulse_length
-        # else:
-        #     samples_per_pulse = self.samples_per_pulse(
-        #         pulse_period=pulse_period)
-
-        # Generate offsets of first pulse and last pulse of each
-        # train relative to all pulses.
-        pulse_last = num_pulses.cumsum()
-        pulse_first = pulse_last - num_pulses
-
-        # Combine pulse layout into a single dataframe.
-        # TODO: samples_per_pulses is currently assumed to be constant
-        pulse_layout = pd.DataFrame({
-            'count': num_pulses,
-            'first': pulse_first,
-            'last': pulse_last,
-            'length': self.samples_per_pulse})
-
-        return aligned_pulses, pulse_layout
