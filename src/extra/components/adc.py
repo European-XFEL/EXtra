@@ -13,7 +13,16 @@ from .utils import _isinstance_no_import
 
 
 class AdcRawChannel:
-    """A high-level interface for the (raw) output of fast ADC channels.
+    r"""A high-level interface for the (raw) output of fast ADC channels.
+
+
+    ![](../images/pulses.svg)
+
+    Examples:
+        >>> import numpy as np
+        >>> arr = np.random.rand(10)
+        >>> arr.sum()
+        1234.0
     """
 
     # The maximum rate of 4.5 MHz (see extra.components.pulses)
@@ -30,6 +39,7 @@ class AdcRawChannel:
         data: DataCollection,
         adc_channel: str | int,
         *,
+        digitizer: str | None = None,
         pulses: bool = True,  # In the future, + manual pulses
         first_pulse_offset: None | int = None,
     ):
@@ -39,7 +49,11 @@ class AdcRawChannel:
 
         self._instrument_sources = data.instrument_sources
         self._control_sources = data.control_sources
+        
+        # TODO: digitizer paramter if multiple are present.
 
+        # TODO: remove the _inst_source_name and similar for ctrl since already
+        # present in source itself.
         # Check that the required instrument and control sources are present
         self._inst_source_name = self._validate_inst_source()
         self._ctrl_source_name = self._validate_ctrl_source()
@@ -53,14 +67,17 @@ class AdcRawChannel:
         self._pulses = self._validate_pulses_kwarg(data, pulses)
 
         # Check that the required keys are present and get keydata
-        self._inst_keydata = self._get_inst_keydata()
+        # self._inst_keydata = self._get_inst_keydata()
+        # extra.data will raise KeyError if key is not found
+        self._inst_keydata = self._inst_sourcedata['data.rawData']
 
         # Get two useful control source properties
         self._sample_first_bunch = self._get_sample_first_bunch()
         self._number_of_samples = self._get_number_of_samples()
 
+    # TODO: may have to change logic elsewhere since now return None
     @property
-    def pulses(self) -> PulsePattern | Literal[False]:
+    def pulses(self) -> PulsePattern | None:
         """The pulse pattern (XrayPulses) if present, False if not."""
 
         return self._pulses
@@ -74,6 +91,7 @@ class AdcRawChannel:
         try:
             pulse_period = self._pulses.pulse_periods().unique()
         except ValueError:
+            # TODO: remove this logic since now handled in .samples_per_pulse
             # PulsePattern.pulse_period raises ValueError when there is only
             # one pulse per train, if so, catch it and set pulse period to
             # to a reasonable value, 4 say
@@ -93,7 +111,7 @@ class AdcRawChannel:
     def _check_pulses_not_false(self) -> None:
         """Raises ValueError if ._pulses is False."""
 
-        if self.pulses is False:
+        if self.pulses is None:
             raise ValueError(
                 "This component was not initialized with a "
                 "pulse pattern.") from None
@@ -104,7 +122,7 @@ class AdcRawChannel:
 
         # Raise a ValueError if user invokes this method when pulses = False
         self._check_pulses_not_false()
-
+        # TODO: minimum length if 1 pulse per train
         return self.pulse_period * self._clock_ratio
 
     @property
@@ -124,7 +142,7 @@ class AdcRawChannel:
         return int(ppt)
 
     @property
-    def trace_length(self) -> int | None:
+    def trace_length(self) -> int:
         """Compute the trace length based on the pulse pattern"""
 
         # Raise a ValueError if user invokes this method when pulses = False
@@ -156,6 +174,7 @@ class AdcRawChannel:
         raise ValueError("Couldn't extract the channel number from "
                          "the source name.")
 
+    # TODO: remove this method
     def _get_inst_keydata(self):
         """Make sure the instrument raw data key is present and if so set
         raw."""
@@ -163,7 +182,7 @@ class AdcRawChannel:
         key = 'data.rawData'
         if key not in self._inst_sourcedata:
             raise KeyError(f"Source {self._inst_source_name} does not "
-                           f"contain a '{key}' key.")
+                           f"contain a '{key}' key.") 
 
         return self._inst_sourcedata[key]
 
@@ -174,19 +193,22 @@ class AdcRawChannel:
             value = self._first_pulse_offset
         elif self._first_pulse_offset is None:
             # TODO: this could fail even if unlikely... try/except?
-            value = self._get_unique_value(
-                self._ctrl_sourcedata, 'sampleFirstBunch.value')
+            value = self._ctrl_sourcedata['sampleFirstBunch.value'].as_single_value()
+            # TODO: delete the following + method
+            # value = self._get_unique_value(
+            #    self._ctrl_sourcedata, 'sampleFirstBunch.value')
         else:
             raise TypeError(
                 "The `first_pulse_offset` argument should be an integer "
                 "or None, you passed an object of type "
                 f"{type(self._first_pulse_offset)}.") from None
 
-        return value
+        return int(value)
 
     def _get_number_of_samples(self):
-        return self._get_unique_value(
-            self._ctrl_sourcedata, 'numberRawSamples.value')
+        return (self._ctrl_sourcedata['numberRawSamples.value']
+                .as_single_value()
+               )
 
     @staticmethod
     def _get_unique_value(source: SourceData, key: str) -> np.typing.ArrayLike:
@@ -255,6 +277,8 @@ class AdcRawChannel:
     #                              "does not exist.")
     #     return self._data[ctrl_src_name]
 
+    # TODO: merge with next method and pass DataCollection object
+    # then there is no need for the lists of sources
     def _validate_inst_source(self):
         """Check that source is in instrument_sources"""
 
@@ -297,28 +321,31 @@ class AdcRawChannel:
     def train_data(
         self,
         labelled: bool = True,
-        train_roi: slice = slice(None),
+        train_roi: slice | None = None,
         auto_trim_trace: bool = False,
         # num_cores_to_use: None | int = None,
     ) -> np.ndarray | DataArray:
         """Return train data"""
 
         # Validate the roi parameter
-        if not isinstance(train_roi, slice):
-            raise ValueError("The roi parameter must be a slice object.")
+        # if not isinstance(train_roi, slice):
+        #    raise ValueError("The roi parameter must be a slice object.")
 
         # Trim the trace to avoid carrying useless information around
-        start, stop = None, None
-        if auto_trim_trace is True and self.trace_length is not None:
+        if auto_trim_trace and train_roi is None:
             start = train_roi.start
             if train_roi.stop is not None:
-                stop = train_roi.stop if train_roi.stop < self.trace_length \
-                       else self.trace_length
+                stop = min(train_roi.stop, self.trace_length)
             else:
                 stop = self.trace_length
-        train_roi = slice(start, stop)
+            train_roi = slice(start, stop)
 
-        shape = self._inst_keydata[:, train_roi].shape
+        if train_roi is None:
+            train_roi = slice(None)
+
+        temp = roi_shape(self._inst_keydata.entry_shape, (train_roi,))
+        shape = (self._inst_keydata.shape[0],) \
+                 + temp
         out = np.empty(shape)
 
         offset = 0
@@ -329,13 +356,15 @@ class AdcRawChannel:
             num_trains = chunk.shape[0]
             this_slice = slice(offset, offset + num_trains)
             offset += num_trains
-            out[this_slice] = chunk.ndarray()
+            chunk.ndarray(roi=train_roi, out=out[this_slice])
 
         if labelled:
             return out
 
-        coords = {'trainId': self._inst_keydata.train_id_coordinates()}
-        coords.update({'sample': np.arange(out.shape[1])})
+        coords = {
+            'trainId': self._inst_keydata.train_id_coordinates(),
+            'sample': np.arange(out.shape[1]),
+        }
 
         return DataArray(out, coords=coords)
 
@@ -345,20 +374,28 @@ class AdcRawChannel:
         # train_roi: slice = slice(None),
         # auto_trim_trace: bool = False,
     ) -> np.ndarray | DataArray:
-        """Identify all the pulses and return an array containing them."""
+        """Identify all the pulses and return an array containing them.
+       
+        Notes
+        -----
+        See [XrayPulses.pulse_periods][extra.components.XrayPulses.pulse_periods]
+        for details about pulse component.
+        """
 
         keydata = self._inst_keydata.drop_empty_trains()
 
-        pulse_trace = self.trace_length - self._sample_first_bunch
+        # pulse_trace = self.trace_length - self._sample_first_bunch
 
         # The quotient gives the number of full pulses supported by a trace
         # of this length. The remainder can be used for diagnosing 
-        quotient, remainder = divmod(pulse_trace, self.samples_per_pulse)
+        # quotient, remainder = divmod(pulse_trace, self.samples_per_pulse)
+        quotient = (self.trace_length - self._sample_first_bunch)
+        quotient //= self.samples_per_pulse
 
         pulse_trace_len = quotient * self.samples_per_pulse
         pulse_trace_roi = slice(
             self._sample_first_bunch,
-            self._sample_first_bunch + pulse_trace_len
+            self.trace_length
         )
         out = np.empty((keydata.shape[0], pulse_trace_len))
 
@@ -370,7 +407,8 @@ class AdcRawChannel:
             num_trains = int(chunk.shape[0])
             this_slice = slice(offset, offset + num_trains)
             offset += num_trains
-            out[this_slice] = chunk.ndarray(roi=pulse_trace_roi)
+            # out[this_slice] = chunk.ndarray(roi=pulse_trace_roi)
+            chunk.ndarray(roi=pulse_trace_roi, out=out[this_slice])
 
         out = out.reshape((keydata.shape[0], quotient, self.samples_per_pulse))
 
