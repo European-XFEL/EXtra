@@ -26,4 +26,4 @@ pyzmq==27.1.0
 six==1.17.0
 typing_extensions~=4.15
 tzdata==2025.2
-xarray<=2025.11.0
+xarray<=2025.12.0
