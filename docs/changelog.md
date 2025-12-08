@@ -43,6 +43,8 @@ Fixed:
   sigma, now it will always return a positive sigma (!405).
 - Passing `colorbar=False` to [imshow2()][extra.utils.imshow2] now applies to
   [DataArray][xarray.DataArray] inputs as well (!419).
+- Fix incorrect time units when using [OpticalLaserDelay][extra.components.OpticalLaserDelay]
+  with pre-2022 BAM data (!425).
 
 Changed:
 

@@ -170,6 +170,8 @@ class OpticalLaserDelay:
         if bam:
             self._bam_src = data[bam]
 
+            # Before 2020, BAM data is solely slow data (not supported)
+
             if 'data.absoluteTD' in self._bam_src:
                 # Modern key.
                 self._bam_delay_key = self._bam_src['data.absoluteTD']
@@ -364,7 +366,12 @@ class OpticalLaserDelay:
             delays[start:stop] = train_bam[2 * train_pids] - self._bam_ref
             start = stop
 
-        delays *= (1e-15 * self.time_scale)
+        if self._bam_delay_key.key == 'data.lowChargeArrivalTime':
+            base_scale = 1e-12  # Legacy key is in picoseconds.
+        else:
+            base_scale = 1e-15  # All other keys are in femtoseconds.
+
+        delays *= (base_scale * self.time_scale)
 
         if labelled or not by_pulse:
             delays = pd.Series(
