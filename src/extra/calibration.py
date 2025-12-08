@@ -989,7 +989,7 @@ class CalibrationData(Mapping):
         creation_date = data[0].train_timestamps(pydatetime=True)[0]
 
         client = client or get_client()
-        det = DetectorData(detector_name)
+        det = DetectorData.from_identifier(detector_name)
 
         try:
             cond_cls = detector_cond_cls[det.detector_type]
@@ -1359,7 +1359,7 @@ class AGIPDConditions(ConditionsBase):
 
         if any_is_none(fpga_comp, mpod, fpga_control, xtdf):
             if not isinstance(detector, DetectorData):
-                detector = DetectorData(detector)
+                detector = DetectorData.from_identifier(detector)
 
             control_domain = detector.karabo_domain_control
 
@@ -1371,7 +1371,7 @@ class AGIPDConditions(ConditionsBase):
 
             if fpga_control is None:
                 fpga_control = ['{control_domain}/FPGA/M_{i}'
-                                for i in range(xtdf)]
+                                for i in range(len(xtdf))]
 
         fpga_comp, mpod, fpga_control, xtdf = cls._purge_missing_sources(
             data, fpga_comp, mpod, fpga_control, xtdf)
@@ -1560,7 +1560,7 @@ class LPDConditions(ConditionsBase):
                   client=None, **params):
         if any_is_none(fem_comp, xtdf):
             if not isinstance(detector, DetectorData):
-                detector = DetectorData(detector)
+                detector = DetectorData.from_identifier(detector)
 
             fem_comp = fem_comp or (
                 detector.karabo_domain_control + '/COMP/FEM_MDL_COMP')
