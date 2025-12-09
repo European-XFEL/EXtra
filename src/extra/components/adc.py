@@ -7,6 +7,7 @@ import numpy as np
 from xarray import DataArray
 
 from extra_data import by_id, DataCollection, KeyData, SourceData
+from extra_data.exceptions import SourceNameError
 from extra_data.read_machinery import roi_shape
 from .pulses import XrayPulses, PulsePattern
 from .utils import _isinstance_no_import
@@ -18,11 +19,25 @@ class AdcRawChannel:
 
     ![](../images/pulses.svg)
 
+    Args:
+        data (DataCollection): The object returned by `extra.data.RunDirectory`
+            or `extra.data.OpenRun`.
+        adc_channel (str | int): either a channel number if only one FastADC
+            digitizer is present or enough of the digitizer name to uniquely
+            identify it and the channel of interest (see examples below).
+        pulses (PulsePattern | None, optional): An instance of [XrayPulses]
+            [extra.components.XrayPulses]. Defaults to `None`.
+
+
+    Warning:
+        Instantiation will fail if the pulse pattern changed during teh run.
+
     Examples:
-        >>> import numpy as np
-        >>> arr = np.random.rand(10)
-        >>> arr.sum()
-        1234.0
+        >>> from extra.components import AdcRawChannel
+        >>> from extra.data import open_run
+        >>> run = open_run(700004, 19)
+        >>> adc1_8 = AdcRawChannel(run, 8)
+        ...
     """
 
     # The maximum rate of 4.5 MHz (see extra.components.pulses)
@@ -39,28 +54,24 @@ class AdcRawChannel:
         data: DataCollection,
         adc_channel: str | int,
         *,
-        digitizer: str | None = None,
-        pulses: bool = True,  # In the future, + manual pulses
+        pulses: PulsePattern | None = True,  # In the future, + manual pulses
         first_pulse_offset: None | int = None,
     ):
 
         self._adc_channel = str(adc_channel)
         self._first_pulse_offset = first_pulse_offset
 
-        self._instrument_sources = data.instrument_sources
-        self._control_sources = data.control_sources
-        
-        # TODO: digitizer paramter if multiple are present.
+        # TODO: digitizer parameter if multiple are present.
+        # NOTE: the adc_channel parameter already accomplishes this. No need
+        #       for an additional parameter.
 
-        # TODO: remove the _inst_source_name and similar for ctrl since already
-        # present in source itself.
         # Check that the required instrument and control sources are present
-        self._inst_source_name = self._validate_inst_source()
-        self._ctrl_source_name = self._validate_ctrl_source()
+        # and have the correct keys.
+        inst_name, ctrl_name = self._validate_sources(data)
 
         # If all is in order, assign the SourceData objects
-        self._inst_sourcedata = data[self._inst_source_name]
-        self._ctrl_sourcedata = data[self._ctrl_source_name]
+        self._inst_sourcedata = data[inst_name]
+        self._ctrl_sourcedata = data[ctrl_name]
 
         # Would be better to do this lazily but here we are... for example,
         # the .train_data method does not require it.
@@ -86,16 +97,8 @@ class AdcRawChannel:
     def pulse_period(self) -> int:
         """Check that there is one unique pulse period and extract it"""
 
-        self._check_pulses_not_false()
-
-        try:
-            pulse_period = self._pulses.pulse_periods().unique()
-        except ValueError:
-            # TODO: remove this logic since now handled in .samples_per_pulse
-            # PulsePattern.pulse_period raises ValueError when there is only
-            # one pulse per train, if so, catch it and set pulse period to
-            # to a reasonable value, 4 say
-            pulse_period = 4
+        if self._check_pulses_not_none():
+            pulse_period = self.pulses.pulse_periods().unique()
 
         # TODO: Probably should do this in the ._validate_pulses_kwarg method
         if len(pulse_period) > 1:
@@ -108,20 +111,22 @@ class AdcRawChannel:
 
         return pulse_period
 
-    def _check_pulses_not_false(self) -> None:
-        """Raises ValueError if ._pulses is False."""
+    def _check_pulses_not_none(self) -> Literal[True]:
+        """Raises ValueError if ._pulses is None else return True."""
 
         if self.pulses is None:
             raise ValueError(
                 "This component was not initialized with a "
                 "pulse pattern.") from None
 
+        return True
+
     @property
     def samples_per_pulse(self) -> int:
         """Compute the number of samples per pulse."""
 
         # Raise a ValueError if user invokes this method when pulses = False
-        self._check_pulses_not_false()
+        self._check_pulses_not_none()
         # TODO: minimum length if 1 pulse per train
         return self.pulse_period * self._clock_ratio
 
@@ -130,7 +135,7 @@ class AdcRawChannel:
         """The number of pulses per train."""
 
         # Raise a ValueError if user invokes this method when pulses = False
-        self._check_pulses_not_false()
+        self._check_pulses_not_none()
 
         try:
             ppt, = self.pulses.pulse_counts().unique()
@@ -146,7 +151,7 @@ class AdcRawChannel:
         """Compute the trace length based on the pulse pattern"""
 
         # Raise a ValueError if user invokes this method when pulses = False
-        self._check_pulses_not_false()
+        self._check_pulses_not_none()
 
         trace_len = self.samples_per_pulse * self.pulses_per_train
         trace_len += self._sample_first_bunch
@@ -192,11 +197,8 @@ class AdcRawChannel:
         if isinstance(self._first_pulse_offset, int):
             value = self._first_pulse_offset
         elif self._first_pulse_offset is None:
-            # TODO: this could fail even if unlikely... try/except?
+            # `.as_single_value` raises a ValueError if it cannot reduce to a single value
             value = self._ctrl_sourcedata['sampleFirstBunch.value'].as_single_value()
-            # TODO: delete the following + method
-            # value = self._get_unique_value(
-            #    self._ctrl_sourcedata, 'sampleFirstBunch.value')
         else:
             raise TypeError(
                 "The `first_pulse_offset` argument should be an integer "
@@ -236,7 +238,7 @@ class AdcRawChannel:
     def _validate_pulses_kwarg(
             self,
             data: KeyData,
-            pulses: bool,
+            pulses: PulsePattern | None,
     ) -> PulsePattern | Literal[False]:
         """Offloads pulses validation logic from the __init__ method.
 
@@ -247,7 +249,7 @@ class AdcRawChannel:
         """
 
         # Do nothing if instantiated with `pulses=False`
-        if pulses is False:
+        if pulses is None:
             return pulses
 
         # Write unit tests: no BPT, BPT_DECODER, full BPT, & both
@@ -277,13 +279,15 @@ class AdcRawChannel:
     #                              "does not exist.")
     #     return self._data[ctrl_src_name]
 
-    # TODO: merge with next method and pass DataCollection object
-    # then there is no need for the lists of sources
-    def _validate_inst_source(self):
-        """Check that source is in instrument_sources"""
+    def _validate_sources(
+            self,
+            data: DataCollection
+    ) -> tuple[str, str]:
+        """Check that instrument and control sources are present and valid.
+        """
 
         found = set(filter(self._adc_regex.search,
-                           self._instrument_sources))
+                           data.instrument_sources))
 
         adc_channel = self._adc_channel
 
@@ -294,29 +298,31 @@ class AdcRawChannel:
 
         len_ = len(candidates)
         if len_ == 0:
-            raise ValueError(
-                    f"The source you provided, {adc_channel}, cannot "
-                    f"be matched to one of instrument sources.")
+            message = (
+                    f"The source you provided, {adc_channel}, could not be "
+                    "be matched to any of the instrument sources in the "
+                    "data. See data.instrument_sources."
+            )
+            raise SourceNameError(custom_message=message)
+
         if len_ > 1:
             raise ValueError(
-                    f"There are too many sources that match the "
-                    f"source you provided, {adc_channel}. Namely "
+                    f"There are too many instrument sources in the data that "
+                    f"match the source you provided, {adc_channel}. Namely "
                     f"{candidates}. Please be more specific.")
 
-        return candidates.pop()
+        inst_name = candidates.pop()
+        ctrl_name = inst_name.split(':')[0]
 
-    def _validate_ctrl_source(self):
-        """Check that the corresponding control source is present"""
-
-        ctrl_name = self._inst_source_name.split(':')[0]
-
-        if ctrl_name not in self._control_sources:
-            raise KeyError(
+        if ctrl_name not in data.control_sources:
+            message = (
                 "The corresponding control source to the instrument "
-                f"{self._inst_source_name}, which should be called "
-                f"{ctrl_name}, is missing from `.control_sources`.")
+                f"{self._inst_keydata.source}, which should be called "
+                f"{ctrl_name}, is missing from `.control_sources`."
+            )
+            raise SourceNameError(custom_message=message)
 
-        return ctrl_name
+        return inst_name, ctrl_name
 
     def train_data(
         self,
@@ -375,11 +381,10 @@ class AdcRawChannel:
         # auto_trim_trace: bool = False,
     ) -> np.ndarray | DataArray:
         """Identify all the pulses and return an array containing them.
-       
-        Notes
-        -----
-        See [XrayPulses.pulse_periods][extra.components.XrayPulses.pulse_periods]
-        for details about pulse component.
+
+        See [XrayPulses.pulse_periods]
+        [extra.components.XrayPulses.pulse_periods] for details about the 
+        pulse component.
         """
 
         keydata = self._inst_keydata.drop_empty_trains()
