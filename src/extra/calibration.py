@@ -254,11 +254,6 @@ class CalCatAPIClient:
         return self._get_by_name(
             "physical_detector_units", name, name_key="physical_name")
 
-    def pdus_by_detector(self, det_id, pdu_snapshot_at):
-        return self.get(f'physical_detector_units/get_all_by_detector',
-                        {'detector_id': det_id,
-                         'event_at': self.format_time(pdu_snapshot_at)})
-
 
 global_client = None
 
