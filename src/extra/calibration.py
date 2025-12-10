@@ -1352,7 +1352,8 @@ class AGIPDConditions(ConditionsBase):
 
         if any_is_none(fpga_comp, mpod, fpga_control, xtdf):
             if not isinstance(detector, DetectorData):
-                detector = DetectorData.from_identifier(detector)
+                detector = DetectorData.from_identifier(
+                    detector, pdu_snapshot_at=data)
 
             control_domain = detector.karabo_domain_control
 
@@ -1553,7 +1554,8 @@ class LPDConditions(ConditionsBase):
                   client=None, **params):
         if any_is_none(fem_comp, xtdf):
             if not isinstance(detector, DetectorData):
-                detector = DetectorData.from_identifier(detector)
+                detector = DetectorData.from_identifier(
+                    detector, pdu_snapshot_at=data)
 
             fem_comp = fem_comp or (
                 detector.karabo_domain_control + '/COMP/FEM_MDL_COMP')
@@ -1719,8 +1721,11 @@ class JUNGFRAUConditions(ConditionsBase):
                   client=None, **params):
         if control is None:
             detector = (client or get_client()).detector_by_identifier(
-                detector_name)
-            control = control or '{}/DET/CONTROL'.format(detector['karabo_id_control'])
+                detector = DetectorData.from_identifier(
+                    detector, pdu_snapshot_at=data)
+
+            control = control or '{}/DET/CONTROL'.format(
+                detector['karabo_id_control'])
 
         control, = cls._purge_missing_sources(data, control)
 
