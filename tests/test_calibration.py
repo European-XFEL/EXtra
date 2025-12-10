@@ -389,7 +389,6 @@ def test_DetectorData_from_identifier():
     assert agipd
     assert agipd.identifier == 'SPB_DET_AGIPD1M-1'
     assert agipd.source_names[0] == 'SPB_DET_AGIPD1M-1/DET/0CH0:xtdf'
-    assert agipd.pdu_detector_types == {'AGIPD-Type'}
     assert agipd.detector_type == 'AGIPD-Type'
     assert len(agipd) == agipd.number_of_modules
     assert list(agipd)[0] == next(iter(agipd.keys())) == 'AGIPD00'
@@ -419,7 +418,6 @@ def test_DetectorData_from_identifier():
 
     assert not dssc
     assert len(dssc) == 0
-    assert not dssc.pdu_detector_types
 
     with pytest.raises(ValueError):
         dssc.detector_type

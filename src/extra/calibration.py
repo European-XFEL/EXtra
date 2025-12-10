@@ -1396,7 +1396,7 @@ class DetectorModule:
     physical_name: str
     aggregator: str
     detector: str
-    virtual_device_name: str
+    virtual_device_name: str | None
     module_index: int
     module_number: int | None
     detector_type: str
@@ -1484,7 +1484,7 @@ class DetectorData(Mapping):
 
     @classmethod
     def from_id(cls, detector_id, pdu_snapshot_at=None, client=None):
-        """Look up a detector and its modules by CalCat ID.
+        """Look up a detector and its modules by CalCat numerical ID.
 
         `pdu_snapshot_at` should either be an ISO 8601 compatible string
         or a datetime-like object. It may also be a DataCollection
@@ -1604,16 +1604,12 @@ class DetectorData(Mapping):
         return self._first_module_index
 
     @property
-    def pdu_detector_types(self) -> set[str]:
-        """Detector types of currently installed PDUs."""
-        return {pdu.detector_type for pdu in self.pdus}
-
-    @property
     def detector_type(self) -> str:
         """Detector type of all PDUs if unique."""
-        pdu_types = self.pdu_detector_types
+        pdu_types = {pdu.detector_type for pdu in self.pdus}
 
         if len(pdu_types) > 1:
+            # CalCat model enforces this.
             raise ValueError('more than one type of PDU: ' +
                              ', '.join(pdu_types))
         elif len(pdu_types) == 0:
