@@ -653,7 +653,7 @@ class CalibrationData(Mapping):
         # {calibration: {karabo_da: SingleConstant}}
         self.constant_groups = constant_groups
         self.detector = detector
-        self.condition = condition
+        self._condition = condition
 
     @staticmethod
     def _format_cond(condition):
