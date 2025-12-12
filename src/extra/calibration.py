@@ -299,6 +299,37 @@ def get_default_caldb_root():
     return _default_caldb_root
 
 
+def _summarise_mod_names(l):
+    grp = []
+    num_re = re.compile('(\d+)')
+
+    def extends_grp(split):
+        if len(split) != len(grp[0]):
+            return False
+
+        diffs_at = [i for i, (p1, p2) in enumerate(zip(grp[-1], split))
+                    if p1 != p2]
+        if len(diffs_at) != 1 or ((diff_at := diffs_at[0]) % 2 == 0):
+            return False  # >1 part changed, or non-numeric part changed
+
+        if len(grp) > 2 and (grp[-1][diff_at] == grp[0][diff_at]):
+            return False  # different part changing from current seq
+
+        return int(grp[-1][diff_at]) + 1 == int(split[diff_at])
+
+    for mod in l:
+        parts = num_re.split(mod)  # parts 1, 3, ... are numeric
+
+        if grp and not extends_grp(parts):
+            yield [''.join(p) for p in grp]
+            grp = [parts]
+        else:
+            grp.append(parts)
+
+    if grp:
+        yield [''.join(p) for p in grp]
+
+
 @dataclass
 class SingleConstant:
     """A calibration constant for one detector module
@@ -1125,6 +1156,34 @@ class CalibrationData(Mapping):
         from IPython.display import display, Markdown
         display(Markdown(self.markdown_table(module_naming=module_naming)))
 
+    def reports_info(self):
+        """Display information about the reports of found constants
+        """
+        by_rept_id = {}
+        for cal, mmc in self.constant_groups.items():
+            for mod, sc in mmc.items():
+                rid = sc.metadata('report_id')
+                by_rept_id.setdefault(sc.metadata('report_id'), []).append((sc, cal, mod))
+
+        tbl = [['Report ID', 'Calibration types', 'Modules', '# constants', ]]
+        for report_id, consts in by_rept_id.items():
+            cals = sorted(set(t[1] for t in consts))
+            mods = sorted(set(t[2] for t in consts))
+
+            if report_id is not None:
+                # This is ugly, but avoids assuming production CalCat
+                ccv_url = consts[0][0].metadata('view_url')
+                calcat_base_url = ccv_url.split('/calibration_constant_versions/')[0]
+                report_details = str(report_id), f"{calcat_base_url}/reports/{report_id}"
+            else:
+                report_details = "(No report)"
+
+            mods_summary = [f"{g[0]}–{g[-1]}" if len(g) > 1 else g[0]
+                            for g in _summarise_mod_names(mods)]
+
+            tbl.append([report_details, ', '.join(cals), ', '.join(mods_summary), str(len(consts))])
+
+        return DisplayTables([tbl])
 
 class ConditionsBase:
     calibration_types = {}  # For subclasses: {calibration: [parameter names]}
