@@ -318,6 +318,12 @@ def test_AGIPD_from_correction():
     # available for lazy loading.
     assert agipd_cd["Offset", "AGIPD00"]._metadata['report_id'] == 6512
 
+    # Smoketest
+    report_tbl = agipd_cd.reports_info()
+    md = report_tbl._repr_markdown_()
+    assert '[6512](https://in.xfel.eu/calibration/reports/6512)' in md
+    report_tbl._repr_latex_()
+
 
 @pytest.mark.vcr
 def test_LPD_from_correction():
