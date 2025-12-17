@@ -300,6 +300,10 @@ def get_default_caldb_root():
 
 
 def _summarise_mod_names(l):
+    """Group module names like 'LPD03' into contiguous numeric ranges
+
+    E.g. ['LPD00', 'LPD01', 'LPD03'] -> ['LPD00', 'LPD01'], ['LPD03']
+    """
     grp = []
     num_re = re.compile('(\d+)')
 
