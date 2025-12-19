@@ -788,9 +788,6 @@ class TimeserverPulses(PulsePattern):
         raise ValueError('no timeserver or ppdecoder found, please pass '
                          'one explicitly')
 
-    def _get_train_ids(self):
-        return self._key.train_id_coordinates()
-
     def _get_pulse_ids(self):
         if self._with_timeserver:
             pids_by_train = [np.flatnonzero(mask) for mask
@@ -1552,9 +1549,6 @@ class DldPulses(PulsePattern):
         self._clock_ratio = clock_ratio
         self._first_pulse_id = first_pulse_id
         self._negative_ppl_indices = negative_ppl_indices
-
-    def _get_train_ids(self):
-        return np.unique(self._key.train_id_coordinates())
 
     def _get_pulse_ids(self):
         triggers = self._key.ndarray()
