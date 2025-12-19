@@ -659,7 +659,7 @@ class TimeserverPulses(PulsePattern):
     # Timeserver class ID and regular expressions.
     _timeserver_class = 'TimeServer'
     _timeserver_control_re = re.compile(
-        r'^\w{3}_(BR|RR)_(UTC|SYS)\/TSYS\/TIMESERVER$')
+        r'^\w{3}_(BR|RR)_(UTC|SYS)\/TSYS\/(TIMESERVER|X2TIMER\d)$')
     _timeserver_pipeline_re = re.compile(r'^{}:outputBunchPattern'.format(
         _timeserver_control_re.pattern[:-1]))
 
