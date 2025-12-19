@@ -45,6 +45,8 @@ Fixed:
   [DataArray][xarray.DataArray] inputs as well (!419).
 - Fix incorrect time units when using [OpticalLaserDelay][extra.components.OpticalLaserDelay]
   with pre-2022 BAM data (!425).
+- [PulsePattern][extra.components.pulses.PulsePattern]-based components now properly account for
+  all selected trains internally, not only those with data records (!434).
 
 Changed:
 
