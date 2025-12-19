@@ -4,7 +4,7 @@ from textwrap import dedent
 
 import numpy as np
 
-from extra_data import SourceData, KeyData, MultiRunError
+from extra_data import SourceData, KeyData, MultiRunError, SourceNameError
 
 from .. import ureg
 from .utils import SASE_TOPICS, identify_sase
@@ -37,9 +37,9 @@ def _find_xgm(run, device):
     # If the user doesn't choose a device, attempt to pick one automatically
     if device is None:
         if len(available_xgms) == 0:
-            raise RuntimeError("Couldn't find an XGM in the run, please pass the device name with the `device` argument")
+            raise SourceNameError(custom_message="Couldn't find an XGM in the run, please pass the device name with the `device` argument")
         elif len(available_xgms) > 1:
-            raise RuntimeError(f"Multiple XGMs found, please select one with the `device` argument: {available_xgms}")
+            raise SourceNameError(custom_message=f"Multiple XGMs found, please select one with the `device` argument: {available_xgms}")
         elif len(available_xgms) == 1:
             device = available_xgms[0]
 
@@ -67,11 +67,11 @@ def _find_xgm(run, device):
                        if device.upper() in xgm_name]
 
             if len(matches) == 0:
-                raise RuntimeError(f"Couldn't identify an XGM from '{device}'; please pass a valid device name, alias, or unique substring")
+                raise SourceNameError(custom_message=f"Couldn't identify an XGM from '{device}'; please pass a valid device name, alias, or unique substring")
             elif len(matches) == 1:
                 device = matches[0]
             elif len(matches) > 1:
-                raise RuntimeError(f"Multiple XGMs found matching '{device}', please be more specific: {matches}")
+                raise SourceNameError(custom_message=f"Multiple XGMs found matching '{device}', please be more specific: {matches}")
     else:
         raise TypeError(f"Unrecognized `device` type '{type(device)}', must be a SourceData, KeyData, or string")
 

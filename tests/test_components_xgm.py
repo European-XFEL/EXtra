@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
+from extra.data import SourceNameError
 from extra.components import XGM
 from extra.components.xgm import PropertyGroup
 from extra_data.exceptions import MultiRunError
@@ -18,7 +19,7 @@ def test_create_xgm(multi_xgm_run):
     XGM(run.select(["SA2*"]))
 
     # With multiple XGMs it should throw an error
-    with pytest.raises(RuntimeError):
+    with pytest.raises(SourceNameError):
         XGM(run)
 
     # By selecting the SPB and SQS XGM we can trick the class into thinking that
