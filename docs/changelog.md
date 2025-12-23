@@ -36,6 +36,8 @@ Added:
 - [AdqRawChannel][extra.components.AdqRawChannel.pulses] now has a public `.pulses` property. It is either a `PulsePattern` object or None if the class is instantiated with the `pulses=False` option. (!411)
 - Added support for plotting wrapped Julia arrays from PythonCall.jl to
   [imshow2()][extra.utils.imshow2].
+- [PulsePattern.info()][extra.components.pulses.PulsePattern.info] to give a brief
+  summary about a pulse pattern (!435).
 
 Fixed:
 

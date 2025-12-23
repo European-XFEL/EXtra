@@ -164,6 +164,70 @@ class PulsePattern:
         """Source used for pulse information."""
         return self._source
 
+    def info(self):
+        """Print summary of described pulse pattern."""
+
+        counts = self.pulse_counts()
+        print(f'{counts.sum()} pulses across {len(counts)} trains')
+
+        unique_counts = counts.unique()
+        if len(unique_counts) == 1:
+            print(f' Number per train: {counts.iloc[0]}')
+        elif len(unique_counts) < 4:
+            counts_str = ', '.join([str(x) for x in sorted(unique_counts)])
+            print(f'Number per train: {counts_str} ({counts.mean():.1f} '
+                  'on average)')
+        else:
+            counts_str = f'{counts.min()} - {counts.max()}'
+            print(f'Number per train: {counts_str} ({counts.mean():.1f} '
+                  'on average)')
+
+        def _format_rate(rate):
+            if rate == 0:
+                return 'single pulse'
+
+            period = int(round(self.bunch_repetition_rate / rate, 0))
+
+            if rate > 1e6:
+                return f'{rate/1e6:.1f} MHz (every {period})'
+            elif rate > 1e4:
+                return f'{rate/1e3:.0f} kHz (every {period})'
+            else:
+                return f'{rate} Hz (every {period})'
+
+        rates = self.pulse_repetition_rates().dropna()
+        if rates.empty:
+            print(f' Repetition rate: no pulses')
+        elif len(rates.unique()) == 1:
+            print(f' Repetition rate: {_format_rate(rates.iloc[0])}')
+        else:
+            print(f' Repetition rates: {_format_rate(rates.min())}'
+                  f' - {_format_rate(rates.max())}')
+
+        def _format_duration(duration):
+            if duration == 0.0:
+                return 'single pulse'
+            elif duration > 1e-3:
+                return f'{duration*1e3:.1f} ms'
+            elif duration > 1e-6:
+                return f'{duration*1e6:.1f} µs'
+            else:
+                return f'{duration*1e9:.0f} ns'
+
+        durations = self.train_durations().dropna()
+        if durations.empty:
+            print(f' Train duration: no pulses')
+        elif len(durations.unique()) == 1:
+            print(f' Train duration: {_format_duration(durations.iloc[0])}')
+        else:
+            print(f' Train durations: {_format_duration(durations.min())} '
+                  f' - {_format_duration(durations.max())}')
+
+        if self.is_constant_pattern():
+            print(' Constant pattern')
+        else:
+            print(' Variable pattern')
+
     def select_trains(self, trains):
         """Select a subset of trains.
 
