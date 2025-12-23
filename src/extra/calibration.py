@@ -1591,13 +1591,6 @@ class DetectorData(Mapping):
         return self._source_name_pattern
 
     @property
-    def source_names(self) -> list[str]:
-        """Source names of currently mapped PDUs."""
-        return [self.source_name_pattern.format(
-            modno=pdu.module_number or i + self.first_module_index
-        ) for i, pdu in enumerate(self.pdus)]
-
-    @property
     def first_module_index(self) -> int:
         """Module index of the first module."""
         assert self._first_module_index is not None, \
