@@ -241,8 +241,7 @@ class SpectrometerCalibration:
             source (tuple[str, str]): data source
             image_data (np.ndarray): 2D array
             use_cache (bool): try loading data from cache if True (default).
-              Additionally, if it is set to False, loaded data will not be
-              cached.
+              If set to False, data will neither be loaded from nor written to cache.
         """
         self.image_data = image_data
         if image_data is None:
