@@ -362,7 +362,7 @@ class SpectrometerCalibration:
         mean_data = data.mean(dim="trainId")
 
         # cache data for faster loading unless use_cache=False
-        if not use_cache:
+        if use_cache:
             cache_path.mkdir(mode=666, exist_ok=True, parents=True)
             np.save(cache_path / fname, mean_data)
 
