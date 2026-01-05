@@ -1,6 +1,6 @@
 """Fast ADC component"""
 
-from typing import Literal
+from typing import Literal, TypeAlias
 import re
 
 import numpy as np
@@ -12,10 +12,12 @@ from extra_data.read_machinery import roi_shape
 from .pulses import XrayPulses, PulsePattern
 from .utils import _isinstance_no_import
 
+PulsesOrFalse: TypeAlias = PulsePattern | Literal[False] | None
+"""An optional PulsePattern type or `False` to explicitly disable it."""
+
 
 class AdcRawChannel:
     r"""A high-level interface for the (raw) output of fast ADC channels.
-
 
     ![](../images/pulses.svg)
 
@@ -25,8 +27,12 @@ class AdcRawChannel:
         adc_channel (str | int): either a channel number if only one FastADC
             digitizer is present or enough of the digitizer name to uniquely
             identify it and the channel of interest (see examples below).
-        pulses (PulsePattern | None, optional): An instance of [XrayPulses]
-            [extra.components.XrayPulses]. Defaults to `None`.
+        pulses (PulsesOrFalse, optional): An
+            `extra.components.PulsePattern` instance. For example,
+            [XrayPulses][extra.components.XrayPulses] or
+            [ManualPulses][extra.components.ManualPulses].
+            Defaults to `None`, in which case the pulse pattern is extracted
+            from the run if possible. Otherwise, it remains
 
 
     Warning:
@@ -36,8 +42,21 @@ class AdcRawChannel:
         >>> from extra.components import AdcRawChannel
         >>> from extra.data import open_run
         >>> run = open_run(700004, 19)
-        >>> adc1_8 = AdcRawChannel(run, 8)
-        ...
+        >>> adc2_8 = AdcRawChannel(run, 8)
+        Traceback (most recent call last):
+            ...
+        ValueError: More than one instrument source matched 
+            match the source you provided, 8. Namely {
+            'LA3_LAS_PPL/ADC/2:channel_8.output',
+        'LA3_LAS_PPL/ADC/3:channel_8.output'}. Please be more specific.
+
+        This failed because this run has two different FastADCs, both with a
+        channel 8. To instantiate either one, we need to provide more of the
+        name to uniquely identify the digitizer channel we're interested in.
+
+        >>> adc2_8 = AdcRawChannel(run, '2:channel_8')
+
+
     """
 
     # The maximum rate of 4.5 MHz (see extra.components.pulses)
@@ -54,39 +73,37 @@ class AdcRawChannel:
         data: DataCollection,
         adc_channel: str | int,
         *,
-        pulses: PulsePattern | None = True,  # In the future, + manual pulses
-        first_pulse_offset: None | int = None,
+        pulses: PulsesOrFalse = None,
+        first_pulse_offset: int | None  = None,
     ):
 
         self._adc_channel = str(adc_channel)
         self._first_pulse_offset = first_pulse_offset
 
-        # TODO: digitizer parameter if multiple are present.
-        # NOTE: the adc_channel parameter already accomplishes this. No need
-        #       for an additional parameter.
-
         # Check that the required instrument and control sources are present
         # and have the correct keys.
         inst_name, ctrl_name = self._validate_sources(data)
+        # extra.data will raise KeyError if key is not found
+        self._inst_keydata = data[inst_name, 'data.rawData']
+        self._ctrl_data = data.select(
+            ctrl_name, ['sampleFirstBunch.value', 'numberRawSamples.value']
+        )
+
+        self._pulses = self._validate_pulses(data, pulses)
 
         # If all is in order, assign the SourceData objects
-        self._inst_sourcedata = data[inst_name]
-        self._ctrl_sourcedata = data[ctrl_name]
-
-        # Would be better to do this lazily but here we are... for example,
-        # the .train_data method does not require it.
-        self._pulses = self._validate_pulses_kwarg(data, pulses)
-
-        # Check that the required keys are present and get keydata
-        # self._inst_keydata = self._get_inst_keydata()
-        # extra.data will raise KeyError if key is not found
-        self._inst_keydata = self._inst_sourcedata['data.rawData']
 
         # Get two useful control source properties
         self._sample_first_bunch = self._get_sample_first_bunch()
-        self._number_of_samples = self._get_number_of_samples()
 
-    # TODO: may have to change logic elsewhere since now return None
+        if first_pulse_offset is not None:
+            self._sample_first_pulse = \
+                data[ctrl_name, 'sampleFirstBunch.value'].as_single_value()
+            value = self._ctrl_sourcedata['sampleFirstBunch.value'] \
+                    .as_single_value()
+        self._number_of_samples = self._ctrl_data['numberRAwSample.value'] \
+            .as_single_value()
+
     @property
     def pulses(self) -> PulsePattern | None:
         """The pulse pattern (XrayPulses) if present, False if not."""
@@ -94,24 +111,32 @@ class AdcRawChannel:
         return self._pulses
 
     @property
-    def pulse_period(self) -> int:
-        """Check that there is one unique pulse period and extract it"""
+    def pulse_period(self) -> int | None:
+        """Get a unique pulse period from the data.
 
-        if self._check_pulses_not_none():
-            pulse_period = self.pulses.pulse_periods().unique()
+        If a pulse pattern was successfully detected or a `PulsePattern` object
+        was explicitly passed to the pulses parameter, extract the pulse
+        period.
 
-        # TODO: Probably should do this in the ._validate_pulses_kwarg method
-        if len(pulse_period) > 1:
-            raise ValueError(
-                "There is more than one pulse period in this selection. To "
-                "proceed, split the trains into selections with a common "
-                "period and try again.")
+        Returns:
+            The common pulse period for all trains in the data.
 
-        pulse_period = int(pulse_period[0])
+        """
 
-        return pulse_period
+        # If the condition evaluates to True, then .is_constant_pattern
+        # also evaluated to True and we can safely assume that there is a
+        # unique pulse_period etc.
+        if isinstance(self.pulses, PulsePattern):
+            # Take a reasonable guess, 10 say, for the pulse_period if the
+            # trains contain a single pulse. This will additionally prevent
+            # .pulse_periods from raising a ValueError.
+            pulse_period, = self.pulses.pulse_periods(
+                    single_pulse_value=10).unique()
+            return int(pulse_period)
 
-    def _check_pulses_not_none(self) -> Literal[True]:
+        return None
+
+    def _pulses_not_none_or_false(self) -> Literal[True]:
         """Raises ValueError if ._pulses is None else return True."""
 
         if self.pulses is None:
@@ -122,48 +147,42 @@ class AdcRawChannel:
         return True
 
     @property
-    def samples_per_pulse(self) -> int:
+    def samples_per_pulse(self) -> int | None:
         """Compute the number of samples per pulse."""
 
-        # Raise a ValueError if user invokes this method when pulses = False
-        self._check_pulses_not_none()
-        # TODO: minimum length if 1 pulse per train
-        return self.pulse_period * self._clock_ratio
+        if isinstance(self.pulses, PulsePattern):
+            samples = self.pulse_period * self._clock_ratio
+            return samples
+
+        return None
 
     @property
-    def pulses_per_train(self) -> int:
+    def pulses_per_train(self) -> int | None:
         """The number of pulses per train."""
 
-        # Raise a ValueError if user invokes this method when pulses = False
-        self._check_pulses_not_none()
-
-        try:
+        # Raise a ValueError, also if .is_constant_pattern() is False
+        if isinstance(self.pulses, PulsePattern):
             ppt, = self.pulses.pulse_counts().unique()
-        except ValueError:
-            raise ValueError(
-                "The pulse pattern changed within this selection."
-            ) from None
+            return int(ppt)
 
-        return int(ppt)
+        return None
 
     @property
-    def trace_length(self) -> int:
+    def trace_length(self) -> int | None:
         """Compute the trace length based on the pulse pattern"""
 
-        # Raise a ValueError if user invokes this method when pulses = False
-        self._check_pulses_not_none()
+        if isinstance(self.pulses, PulsePattern):
+            trace_len = self.samples_per_pulse * self.pulses_per_train \
+                    + self._sample_first_bunch
 
-        trace_len = self.samples_per_pulse * self.pulses_per_train
-        trace_len += self._sample_first_bunch
+            # Make sure trace_len <= self._number_of_samples.
+            # TODO: Issue warning if not? This would mean that the device was not
+            # configured correctly before the run...
+            trace_len = min(trace_len, self._number_of_samples)
 
-        # Make sure trace_len <= self._number_of_samples.
-        # TODO: Issue warning if not? This would mean that the device was not
-        # configured correctly before the run...
-        trace_len = min(trace_len, self._number_of_samples)
+            return int(trace_len)
 
-        # Technically, wrapping in int is not necessary as all values involved
-        # are of type int
-        return int(trace_len)
+        return None
 
     @property
     def _channel_number(self):
@@ -171,7 +190,7 @@ class AdcRawChannel:
 
         # Could also do AdcRawChannel._adc_regex or define a @classmethod
         # if this is deemed unclear
-        result = self._adc_regex.search(self._inst_source_name)
+        result = self._adc_regex.search(self._inst_keydata.source)
 
         if result:
             return int(result.group(1))
@@ -179,26 +198,16 @@ class AdcRawChannel:
         raise ValueError("Couldn't extract the channel number from "
                          "the source name.")
 
-    # TODO: remove this method
-    def _get_inst_keydata(self):
-        """Make sure the instrument raw data key is present and if so set
-        raw."""
-
-        key = 'data.rawData'
-        if key not in self._inst_sourcedata:
-            raise KeyError(f"Source {self._inst_source_name} does not "
-                           f"contain a '{key}' key.") 
-
-        return self._inst_sourcedata[key]
-
     def _get_sample_first_bunch(self):
         """Check if an explicit offset was passed otherwise extract it."""
 
         if isinstance(self._first_pulse_offset, int):
             value = self._first_pulse_offset
         elif self._first_pulse_offset is None:
-            # `.as_single_value` raises a ValueError if it cannot reduce to a single value
-            value = self._ctrl_sourcedata['sampleFirstBunch.value'].as_single_value()
+            # `.as_single_value` raises a ValueError if it cannot reduce data
+            # to a single value
+            value = self._ctrl_sourcedata['sampleFirstBunch.value'] \
+                    .as_single_value()
         else:
             raise TypeError(
                 "The `first_pulse_offset` argument should be an integer "
@@ -206,11 +215,6 @@ class AdcRawChannel:
                 f"{type(self._first_pulse_offset)}.") from None
 
         return int(value)
-
-    def _get_number_of_samples(self):
-        return (self._ctrl_sourcedata['numberRawSamples.value']
-                .as_single_value()
-               )
 
     @staticmethod
     def _get_unique_value(source: SourceData, key: str) -> np.typing.ArrayLike:
@@ -235,11 +239,11 @@ class AdcRawChannel:
 
         return int(array[0])
 
-    def _validate_pulses_kwarg(
+    def _validate_pulses(
             self,
             data: KeyData,
-            pulses: PulsePattern | None,
-    ) -> PulsePattern | Literal[False]:
+            pulses: PulsePattern | Literal[False] | None,
+    ) -> PulsePattern | None:
         """Offloads pulses validation logic from the __init__ method.
 
         The validation needs to check for the following conditions:
@@ -248,36 +252,33 @@ class AdcRawChannel:
           2. The pulse pattern needs to be constant.
         """
 
-        # Do nothing if instantiated with `pulses=False`
-        if pulses is None:
+        if pulses is False:
+            return None
+
+        if isinstance(pulses, PulsePattern):
             return pulses
 
-        # Write unit tests: no BPT, BPT_DECODER, full BPT, & both
-        try:
-            pulses_ = XrayPulses(data)
-        except ValueError:
-            raise ValueError(
-                "No valid timeserver or pulse pattern decoder found. "
-                "Please explicitly disable this feature by setting "
-                "`pulses=False`.") from None
+        if pulses is None:
+            # If none, try to auto-detect XrayPulses for this data.
+            try:
+                pulses = XrayPulses(data)
+            except ValueError:
+                # Probably better to re-raise the ValueError from the pulses
+                # component because it's much more fine-grained?
+                raise ValueError(
+                    'Could not auto-detect pulse information, please pass a '
+                    'PulsePattern object to the pulses parameter. Otherwise, '
+                    'please explicitly disable it with pulses=False.'
+                ) from None
 
         # Make sure that the pulse pattern if constant
-        if not pulses_.is_constant_pattern():
+        if not pulses.is_constant_pattern():
             raise RuntimeError(
                 "The pulse pattern is not constant. Please split the "
                 "current selection into sub-selections with constant patterns."
             )
 
-        return pulses_
-
-    # @property
-    # def _control_sourcedata(self):
-    #     inst_src_name = self._inst_sourcedata.canonical_name
-    #     ctrl_src_name = inst_src_name.split(':')[0]
-    #     if ctrl_src_name not in self._control_sources:
-    #         raise AttributeError(f"The control source {ctrl_src_name} "
-    #                              "does not exist.")
-    #     return self._data[ctrl_src_name]
+        return pulses
 
     def _validate_sources(
             self,
@@ -351,7 +352,7 @@ class AdcRawChannel:
 
         temp = roi_shape(self._inst_keydata.entry_shape, (train_roi,))
         shape = (self._inst_keydata.shape[0],) \
-                 + temp
+            + temp
         out = np.empty(shape)
 
         offset = 0
