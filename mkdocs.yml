@@ -18,6 +18,7 @@ theme:
 
 nav:
   - index.md
+  - proposal.md
   - reading-data.md
   - detector-geometry.md
   - damnit.md
@@ -92,6 +93,7 @@ plugins:
           - https://pint.readthedocs.io/en/stable/objects.inv
           - https://docs.scipy.org/doc/scipy/objects.inv
           - https://mpl-interactions.readthedocs.io/en/stable/objects.inv
+          - https://damnit.readthedocs.io/en/latest/objects.inv
           options:
             docstring_style: google
             separate_signature: yes
@@ -104,6 +106,8 @@ plugins:
             show_source: no
             inherited_members: yes
             show_symbol_type_toc: yes
+            preload_modules:
+              - extra_proposal
 
 extra_css:
   - css/mkdocstrings.css
