@@ -14,7 +14,7 @@ msgpack==1.1.2
 msgpack-numpy==0.4.8
 mypy-extensions==1.1.0
 numpy<=2.4.1
-packaging==25.0
+packaging==26.0
 pandas==2.3.3
 Pillow==12.1.0
 pint<=0.25.2
