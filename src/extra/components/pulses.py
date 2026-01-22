@@ -1322,6 +1322,10 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
             extrapolated from past trains if missing, true by default.
             An exception is raised if disabled and the PPL anchoring
             method is missing the minimum number of required FEL pulses.
+        fel_shutter (KeyData, optional): Scalar key evaluated as a
+            shutter state blocking FEL pulses in a given train.
+        ppl_shutter (KeyData, optional): Scalar key evaluated as a
+            shutter state blocking PPL pulses in a given train.
     """
 
     # This class inherits from two classes which both have the same
@@ -1341,7 +1345,8 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
 
     def __init__(self, data, source=None, instrument=None, *,
                  bunch_table_position=None, bunch_table_offset=None,
-                 pulse_offset=None, extrapolate=True):
+                 pulse_offset=None, extrapolate=True,
+                 fel_shutter=None, ppl_shutter=None):
         self._bunch_table_position = None
         self._bunch_table_offset = None
         self._pulse_offset = None  # Allowed to be float!
@@ -1388,6 +1393,20 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
             sase = identify_sase(data)
 
         self._sase = sase
+
+        if isinstance(fel_shutter, KeyData):
+            self._fel_shutter = fel_shutter
+        elif fel_shutter is not None:
+            raise TypeError('expected KeyData object for fel_shutter')
+        else:
+            self._fel_shutter = None
+
+        if isinstance(ppl_shutter, KeyData):
+            self._ppl_shutter = ppl_shutter
+        elif ppl_shutter is not None:
+            raise TypeError('expected KeyData object for ppl_shutter')
+        else:
+            self._ppl_shutter = None
 
     def __repr__(self):
         if self._bunch_table_position is not None:
@@ -1449,6 +1468,18 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
         train_ids = self._key.train_id_coordinates()
         prev_fel_pids = None
 
+        if self._fel_shutter is not None:
+            is_closed = self._fel_shutter.xarray().astype(bool)
+            trains_without_fel = set(is_closed.trainId[is_closed].data)
+        else:
+            trains_without_fel = set()
+
+        if self._ppl_shutter is not None:
+            is_closed = self._ppl_shutter.xarray().astype(bool)
+            trains_without_ppl = set(is_closed.trainId[is_closed].data)
+        else:
+            trains_without_ppl = set()
+
         for train_id, (fel_pids, ppl_pids) in zip(train_ids, iter_pulse_ids):
             try:
                 ppl_pids += self._get_ppl_offset(fel_pids)
@@ -1476,6 +1507,12 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
                 ppl_pids += self._get_ppl_offset(prev_fel_pids)
             else:
                 prev_fel_pids = fel_pids
+
+            if train_id in trains_without_fel:
+                fel_pids = np.zeros(0)
+
+            if train_id in trains_without_ppl:
+                ppl_pids = np.zeros(0)
 
             pids = np.union1d(fel_pids, ppl_pids)
 
