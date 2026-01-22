@@ -1,0 +1,191 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.131+fdd37f4
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/me
+  response:
+    body:
+      string: '{"id":-9,"email":"admin@example.com","provider":"local","contact_email":"admin@example.com","name":"Admin
+        User","first_name":"Admin","last_name":"User","nickname":null,"uid":null,"ldap_synced_at":null,"flg_service_account":true,"flg_ldap_account_valid":false,"roles":["admin"]}'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '277'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 17 Dec 2025 15:10:20 GMT
+      Etag:
+      - W/"9ec4cec974b56aebafbb6dc312056934"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 89593fa0-403d-4e28-9e3f-eafbab400250
+      X-Runtime:
+      - '0.020792'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.131+fdd37f4
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/instruments?identifier=SCS
+  response:
+    body:
+      string: '[{"id":1,"name":"SCS SASE3","identifier":"SCS","url":null,"flg_available":true,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '99'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 17 Dec 2025 15:10:20 GMT
+      Etag:
+      - W/"c707e2c93200c3b80579cc4c14e8005c"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - ab99e2fe-8c9e-400d-835d-cf8fac2dc2d1
+      X-Runtime:
+      - '0.016964'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.131+fdd37f4
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/detectors/get_all_by_instrument?instrument_id=1
+  response:
+    body:
+      string: '[{"id":1,"name":"SCS_DET_DSSC1M-1","identifier":"SCS_DET_DSSC1M-1","karabo_name":"SCS_DET_DSSC1M-1","karabo_id_control":"SCS_CDIDET_DSSC","source_name_pattern":null,"number_of_modules":16,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":1,"detector_id":1},{"instrument_id":7,"detector_id":1}]},{"id":46,"name":"SCS_HRIXS_JUNGF","identifier":"SCS_HRIXS_JUNGF","karabo_name":"SCS_HRIXS_JUNGF","karabo_id_control":"SCS_HRIXS_JUNGF","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":1,"detector_id":46}]},{"id":48,"name":"SCS_XOX_GH21","identifier":"SCS_XOX_GH21","karabo_name":"SCS_XOX_GH21","karabo_id_control":"SCS_XOX_GH21","source_name_pattern":null,"number_of_modules":1,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":1,"detector_id":48}]},{"id":49,"name":"SCS_XOX_GH22","identifier":"SCS_XOX_GH22","karabo_name":"SCS_XOX_GH22","karabo_id_control":"SCS_XOX_GH22","source_name_pattern":null,"number_of_modules":1,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":1,"detector_id":49}]},{"id":66,"name":"SCS_DET_DSSC2","identifier":"SCS_DET_DSSC2","karabo_name":"SCS_DET_DSSC2","karabo_id_control":"SCS_CDIDET_DSSC2","source_name_pattern":null,"number_of_modules":16,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":1,"detector_id":66}]}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '1584'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 17 Dec 2025 15:10:20 GMT
+      Etag:
+      - W/"48d6a0d18ff9c05e1176404ab579e32b"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 7375da50-776a-40d0-a838-22183acfd35a
+      X-Runtime:
+      - '0.023985'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+version: 1
