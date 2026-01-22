@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from extra.data import SourceNameError
 from extra.components import DelayLineDetector, XrayPulses
 
 from .mockdata import assert_equal_sourcedata
@@ -20,7 +21,7 @@ def test_dld_init(mock_sqs_remi_run):
         dld.instrument_source, run['SQS_REMI_DLD6/DET/TOP:output'])
 
     # Auto-detect with two detectors.
-    with pytest.raises(ValueError):
+    with pytest.raises(SourceNameError):
         dld = DelayLineDetector(run)
 
     # Explicit with two detectors.

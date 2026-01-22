@@ -2,7 +2,7 @@ from itertools import product
 
 import numpy as np
 import xarray
-from extra.data import PropertyNameError
+from extra.data import PropertyNameError, SourceNameError
 
 
 def mangle_device_id_underscore(device_id):
@@ -67,8 +67,8 @@ class DetectorMotors:
             try:
                 src, key = self.motors[label]
             except IndexError:
-                raise ValueError(
-                    f"The source for motor {label} is not specified.")
+                raise SourceNameError(
+                    custom_message=f"The source for motor {label} is not specified.")
 
             self.keys.append(self.dc[src, key])
 

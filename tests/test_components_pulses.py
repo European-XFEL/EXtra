@@ -9,7 +9,7 @@ import extra
 
 from euxfel_bunch_pattern import PPL_BITS, DESTINATION_TLD, DESTINATION_T5D, \
     PHOTON_LINE_DEFLECTION
-from extra.data import RunDirectory, SourceData, KeyData, by_id
+from extra.data import RunDirectory, SourceData, KeyData, SourceNameError, by_id
 from extra.components import XrayPulses, OpticalLaserPulses, MachinePulses, \
     PumpProbePulses, DldPulses
 
@@ -62,7 +62,7 @@ def test_init(mock_spb_aux_run):
     # exception.
     run = mock_spb_aux_run
 
-    with pytest.raises(ValueError):
+    with pytest.raises(SourceNameError):
         XrayPulses(run)
 
     # Pick one specifically.
@@ -84,10 +84,10 @@ def test_init(mock_spb_aux_run):
     # Remove all timeservers, should always raise exception.
     run_no_ts = run.select('*XGM*')
 
-    with pytest.raises(ValueError):
+    with pytest.raises(SourceNameError):
         XrayPulses(run_no_ts)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(SourceNameError):
         XrayPulses(run_no_ts, sase=1)
 
 
@@ -465,7 +465,7 @@ def test_optical_laser_specials(mock_spb_aux_run):
     # Full run with two timeservers.
     run = mock_spb_aux_run
 
-    with pytest.raises(ValueError):
+    with pytest.raises(SourceNameError):
         OpticalLaserPulses(run)
 
     OpticalLaserPulses(run, source='ODD_TIMESERVER_NAME')

@@ -14,7 +14,7 @@ import numpy as np
 from euxfel_bunch_pattern import is_sase, is_laser, \
     PPL_BITS, DESTINATION_TLD, DESTINATION_T4D, DESTINATION_T5D, \
     PHOTON_LINE_DEFLECTION
-from extra_data import SourceData, KeyData, by_id
+from extra_data import SourceData, KeyData, SourceNameError, by_id
 
 from .utils import identify_sase, _instrument_to_sase
 
@@ -784,9 +784,9 @@ class TimeserverPulses(PulsePattern):
         }
 
         if len(timeserver_sources) > 1:
-            raise ValueError('multiple timeserver sources found via device '
-                             'class, please pass one explicitly:\n' +
-                             ', '.join(sorted(timeserver_sources)))
+            raise SourceNameError(custom_message='multiple timeserver sources found via device '
+                                                 'class, please pass one explicitly:\n' +
+                                                 ', '.join(sorted(timeserver_sources)))
         elif timeserver_sources:
             return timeserver_sources.pop()
 
@@ -797,9 +797,9 @@ class TimeserverPulses(PulsePattern):
                 timeserver_sources.add(m[0])
 
         if len(timeserver_sources) > 1:
-            raise ValueError('multiple timeserver instrument sources found, '
-                             'please pass one explicitly:\n' + ', '.join(
-                                sorted(timeserver_sources)))
+            raise SourceNameError(custom_message='multiple timeserver instrument sources found, '
+                                                 'please pass one explicitly:\n' + ', '.join(
+                                                    sorted(timeserver_sources)))
         elif timeserver_sources:
             return timeserver_sources.pop()
 
@@ -811,9 +811,9 @@ class TimeserverPulses(PulsePattern):
                 timeserver_sources.add(m[0])
 
         if len(timeserver_sources) > 1:
-            raise ValueError('multiple timeserver control sources found, '
-                             'please pass one explicitly:\n' + ', '.join(
-                                sorted(timeserver_sources)))
+            raise SourceNameError(custom_message='multiple timeserver control sources found, '
+                                                 'please pass one explicitly:\n' + ', '.join(
+                                                    sorted(timeserver_sources)))
         elif timeserver_sources:
             return timeserver_sources.pop()
 
@@ -825,9 +825,9 @@ class TimeserverPulses(PulsePattern):
         }
 
         if len(ppdecoder_sources) > 1:
-            raise ValueError('multiple ppdecoder sources found via device '
-                             'class, please pass one explicitly:\n' +
-                             ', '.join(sorted(ppdecoder_sources)))
+            raise SourceNameError(custom_message='multiple ppdecoder sources found via device '
+                                                 'class, please pass one explicitly:\n' +
+                                                 ', '.join(sorted(ppdecoder_sources)))
         elif ppdecoder_sources:
             return ppdecoder_sources.pop()
 
@@ -838,14 +838,14 @@ class TimeserverPulses(PulsePattern):
                 ppdecoder_sources.add(m[0])
 
         if len(ppdecoder_sources) > 1:
-            raise ValueError('multiple ppdecoder control sources found, '
-                             'please pass one explicitly:\n' + ', '.join(
-                                sorted(ppdecoder_sources)))
+            raise SourceNameError(custom_message='multiple ppdecoder control sources found, '
+                                                 'please pass one explicitly:\n' + ', '.join(
+                                                    sorted(ppdecoder_sources)))
         elif ppdecoder_sources:
             return ppdecoder_sources.pop()
 
-        raise ValueError('no timeserver or ppdecoder found, please pass '
-                         'one explicitly')
+        raise SourceNameError(custom_message='no timeserver or ppdecoder found, please pass '
+                                             'one explicitly')
 
     def _get_train_ids(self):
         return self._key.train_id_coordinates()
