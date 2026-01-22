@@ -99,10 +99,14 @@ def test_init(mock_spb_aux_run):
     ids=['timeserver-control', 'timeserver-instrument', 'ppdecoder']
 )
 def test_no_trains(mock_spb_aux_run, source):
-    # Test with entirely empty data.
     pulses = XrayPulses(mock_spb_aux_run, source)
+
+    # No pulses at all in this data.
     assert pulses.pulse_ids().empty
-    assert pulses.pulse_counts().empty
+
+    # But trains (without pulses).
+    assert len(pulses.pulse_counts()) == 100
+    np.testing.assert_array_equal(pulses.pulse_counts(), 0)
 
 
 def test_info(mock_spb_aux_run):
@@ -572,11 +576,13 @@ def test_dld_pulses(capsys):
     triggers['ppl'] = False
 
     mock_key = MagicMock()
+    mock_key.train_ids = [1000]
     mock_key.train_id_coordinates.return_value = np.repeat(1000, 10)
     mock_key.data_counts.return_value = np.array([10])
     mock_key.ndarray.return_value = triggers
 
     mock_source = MagicMock()
+    mock_source.train_ids = [1000]
     mock_source.__getitem__ = lambda self, _: mock_key
 
     # Test regular.

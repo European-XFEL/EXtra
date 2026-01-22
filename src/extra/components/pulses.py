@@ -61,16 +61,21 @@ class PulsePattern:
         This method may be overriden by any implementation of this class
         for either performance or if the underlying data may contain
         train IDs that have no pulse IDs associated with it. The default
-        implementation draws train IDs from the series of pulse IDs, and
-        thus cannot contain trains without pulses. This is particularly
-        relevant when counting pulses.
+        implementation draws train IDs from the underlying source or key
+        if available. Otherwise, the trains occuring in the series of
+        pulse IDs is used, which is therefore not able to include trains
+        without pulses.
 
         Returns:
             (np.ndarray) Train IDs, expected to be in order.
         """
 
-        # This method turned out to be the fastest to get just the
-        # group labels.
+        if self._source is not None:
+            return self._source.train_ids
+        elif self._key is not None:
+            return self._key.train_ids
+
+        # Fallback using pulse IDs.
         return self._get_pulse_ids().index.to_frame()['trainId'].unique()
 
     def _get_pulse_ids(self):
@@ -847,9 +852,6 @@ class TimeserverPulses(PulsePattern):
         raise ValueError('no timeserver or ppdecoder found, please pass '
                          'one explicitly')
 
-    def _get_train_ids(self):
-        return self._key.train_id_coordinates()
-
     def _get_pulse_ids(self):
         if self._with_timeserver:
             pids_by_train = [np.flatnonzero(mask) for mask
@@ -1611,9 +1613,6 @@ class DldPulses(PulsePattern):
         self._clock_ratio = clock_ratio
         self._first_pulse_id = first_pulse_id
         self._negative_ppl_indices = negative_ppl_indices
-
-    def _get_train_ids(self):
-        return np.unique(self._key.train_id_coordinates())
 
     def _get_pulse_ids(self):
         triggers = self._key.ndarray()
