@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional, Union, Tuple
 
 import numpy as np
 from scipy.special import gamma
+import logging
 
 try:
     import torch
@@ -220,7 +221,7 @@ class _BayesConvNd(nn.Module):
         
         self.prior_mu = prior_mu
         self.prior_sigma = prior_sigma
-        self.prior_log_sigma = math.log(prior_sigma)
+        self.prior_log_sigma = nn.Parameter(torch.ones(1)*np.log(prior_sigma), requires_grad=True)
                 
         if transposed:
             self.weight_mu = nn.Parameter(torch.Tensor(
@@ -231,7 +232,7 @@ class _BayesConvNd(nn.Module):
         else:
             self.weight_mu = nn.Parameter(torch.Tensor(
                 out_channels, in_channels // groups, *kernel_size))
-            self.weight_log_sigma = Parameter(torch.Tensor(
+            self.weight_log_sigma = nn.Parameter(torch.Tensor(
                 out_channels, in_channels // groups, *kernel_size))
             self.register_buffer('weight_eps', None)
             
@@ -255,13 +256,13 @@ class _BayesConvNd(nn.Module):
         # Initialization method of Adv-BNN.
         n = self.in_channels
         n *= self.kernel_size[0] ** 2
-        stdv = 1.0 / math.sqrt(n)
+        stdv = 1.0 / np.sqrt(n)
         self.weight_mu.data.uniform_(-stdv, stdv)
-        self.weight_log_sigma.data.fill_(self.prior_log_sigma)
+        self.weight_log_sigma.data.fill_(self.prior_log_sigma.detach()[0])
 
         if self.bias :
             self.bias_mu.data.uniform_(-stdv, stdv)
-            self.bias_log_sigma.data.fill_(self.prior_log_sigma)
+            self.bias_log_sigma.data.fill_(self.prior_log_sigma.detach()[0])
 
         # Initialization method of the original torch nn.conv.
 #         init.kaiming_uniform_(self.weight_mu, a=math.sqrt(5))
@@ -534,21 +535,17 @@ class BNN(nn.Module):
                                                                      out_features=output_dimension)
                                         )
         else:
-            self.model = nn.Sequential(
-                                       BayesConv2d(prior_mu=0.0,
+            self.model = nn.Sequential(BayesConv2d(prior_mu=0.0,
                                                    prior_sigma=np.exp(-0.5*self.log_ilambda2),
                                                    in_channels=input_dimension,
                                                    out_channels=hidden_dimension,
-                                                   kernel_size=15, padding=7,
-                                                   ),
+                                                   kernel_size=15, padding=7),
                                        BayesConv2d(prior_mu=0.0,
                                                    prior_sigma=np.exp(-0.5*self.log_ilambda2),
                                                    in_channels=hidden_dimension,
                                                    out_channels=output_dimension,
-                                                   kernel_size=1,
-                                                   )
-                                       nn.ReLU(),
-                                        )
+                                                   kernel_size=1),
+                                       nn.ReLU())
         self.rvm = rvm
 
     def prune(self):
@@ -583,7 +580,7 @@ class BNN(nn.Module):
         sigma2 = torch.exp(-self.log_isigma2)
         norm_error = 0.5*squared_error/sigma2
         norm_term = 0.5*(np.log(2*np.pi) - self.log_isigma2)
-        return (norm_error + norm_term).sum(dim=1).mean(dim=0)
+        return (norm_error + norm_term).mean(dim=0).sum()
 
     def neg_log_hyperprior(self) -> torch.Tensor:
         """
@@ -602,7 +599,7 @@ class BNN(nn.Module):
                             ]
         else:
             log_ilambda2 = [-2.0*self.model[0].prior_log_sigma,
-                            -2.0*self.model[2].prior_log_sigma,
+                            -2.0*self.model[1].prior_log_sigma,
                             ]
         ilambda2 = [torch.exp(k) for k in log_ilambda2]
         neg_log_hyperprior_weights = sum(self.neg_log_gamma(log_k, k, self.alpha_lambda, self.beta_lambda).sum()
@@ -622,13 +619,13 @@ class BNN(nn.Module):
         """
         if self.rvm:
             log_ilambda2 = [-2.0*self.model[0].prior_log_sigma_w,
-                            -2.0*self.model[2].prior_log_sigma_w,
+                            -2.0*self.model[1].prior_log_sigma_w,
                             -2.0*self.model[0].prior_log_sigma_b,
-                            -2.0*self.model[2].prior_log_sigma_b
+                            -2.0*self.model[1].prior_log_sigma_b
                             ]
         else:
             log_ilambda2 = [-2.0*self.model[0].prior_log_sigma,
-                            -2.0*self.model[2].prior_log_sigma,
+                            -2.0*self.model[1].prior_log_sigma,
                             ]
         ilambda2 = [torch.exp(k) for k in log_ilambda2]
         return sum(k.mean() for k in ilambda2)/len(ilambda2)
@@ -639,7 +636,7 @@ class BNNModel(RegressorMixin, BaseEstimator):
 
     Args:
     """
-    def __init__(self, state_dict=None, rvm: bool=False, n_epochs: int=250):
+    def __init__(self, state_dict=None, rvm: bool=False, n_epochs: int=2):
         if state_dict is not None:
             Nx = state_dict["model.0.weight_mu"].shape[1]
             Ny = state_dict["model.2.weight_mu"].shape[0]
@@ -669,7 +666,7 @@ class BNNModel(RegressorMixin, BaseEstimator):
         if weights is None:
             weights = np.ones(len(X), dtype=np.float32)
         if len(weights.shape) == 1:
-            weights = weights[:, np.newaxis]
+            weights = weights[:, np.newaxis, np.newaxis]
 
         ds = TensorDataset(torch.from_numpy(X),
                            torch.from_numpy(y),

@@ -768,7 +768,7 @@ class VSLight(SerializableMixin):
         self.e_probe = e_probe
 
         # how many components in y?
-        self.tof2d = [k for k, v in dict(sorted(self.y.items()))]
+        self.tof2d = [k for k, v in dict(sorted(self.y.items())).items()]
         # create 2D image (batch, channel, tof)
         self.y2d = np.stack([self.y[tof_id] for tof_id in self.tof2d],
                             axis=1)
@@ -778,15 +778,15 @@ class VSLight(SerializableMixin):
         self.model.fit(self.x2d[:,None,:,:], self.y2d[:,None,:,:])
         self.y2d_hat = self.model.predict(self.x2d[:,None,:,:])
 
-        for tof_id in self.tof2d:
-            # calculate resolution
-            logging.info(f"Calculate resolution ...")
-            self.resolution[tof_id] = dict()
-            for i, e_center in enumerate(e_probe):
-                self.resolution[tof_id][i] = get_resolution(self.y2d[:,tof_id,:],
-                                                            self.y2d_hat[:,tof_id,:],
-                                                            self.energy_axis,
-                                                            e_center, e_width)
+        #for tof_id in self.tof2d:
+        #    # calculate resolution
+        #    logging.info(f"Calculate resolution ...")
+        #    self.resolution[tof_id] = dict()
+        #    for i, e_center in enumerate(e_probe):
+        #        self.resolution[tof_id][i] = get_resolution(self.y2d[:,tof_id,:],
+        #                                                    self.y2d_hat[:,tof_id,:],
+        #                                                    self.energy_axis,
+        #                                                    e_center, e_width)
 
     def load_trace(self, run: DataCollection, **extra_kwargs_adq: Dict[str, Any]) -> xr.DataArray:
         """

@@ -104,6 +104,8 @@ plugins:
             show_source: no
             inherited_members: yes
             show_symbol_type_toc: yes
+  - text-export:
+      markdown: true
 
 extra_css:
   - css/mkdocstrings.css
