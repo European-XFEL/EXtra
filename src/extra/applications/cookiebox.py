@@ -870,7 +870,8 @@ class CookieboxCalibration(SerializableMixin):
 
         dsig_dth = 0.5*(1 + beta*(3*np.cos(theta)**2 - 1)/2)
         detected = self.tof_fit_result[tof_id].A
-        produced = self.calibration_mean_xgm[tof_id] * self.tof_fit_result[tof_id].Aa * dsig_dth
+        #produced = self.calibration_mean_xgm[tof_id] * self.tof_fit_result[tof_id].Aa * dsig_dth
+        produced = self.tof_fit_result[tof_id].Aa * dsig_dth
         en = detected[mask][eidx]/produced[mask][eidx]
         # interpolate normalization
         self.normalization[tof_id] = np.interp(self.energy_axis,
@@ -954,7 +955,7 @@ class CookieboxCalibration(SerializableMixin):
             a.plot(self.energy_axis, self.normalization[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
         for a in ax:
             a.set(xlabel="Energy [eV]",
-                  ylabel=r"$\frac{\mathrm{detected}}{\mathrm{pulse energy} \times \mathrm{Auger-Meitner} \times \mathrm{polarization effect}}$ [1/$\mu$J]")
+                  ylabel=r"$\frac{\mathrm{detected}}{\mathrm{Auger-Meitner} \times \mathrm{polarization} \, \mathrm{effect}}$")
             a.legend(frameon=False, ncols=2)
 
     def plot_offsets(self):
@@ -1176,7 +1177,7 @@ class CookieboxCalibration(SerializableMixin):
 
             # interpolate
             #bad = np.isnan(pulses)
-            np.nan_to_num(pulses, copy=False)
+            pulses = np.nan_to_num(pulses, copy=True)
             o = np.apply_along_axis(lambda arr: np.interp(self.energy_axis, e[::-1], arr[::-1], left=0, right=0),
                                    axis=1,
                                    arr=pulses)
