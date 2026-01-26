@@ -301,6 +301,8 @@ class CookieboxCalibration(SerializableMixin):
                  Use `None` to guess it.
       stop_roi: End of the RoI, relative to the `first_pulse_offset`. Use `None` to guess it.
       parallel: Whether to average the input data in parallel.
+      polarization: Polarization of the XFEL during calibration to correct transmission.
+                    Can be 'horizontal' or 'circular'.
     """
     def __init__(self,
                  xgm_threshold: Union[str, float]='median',
@@ -309,11 +311,13 @@ class CookieboxCalibration(SerializableMixin):
                  stop_roi: Optional[int]=None,
                  interleaved: Optional[bool]=None,
                  parallel: bool=True,
+                 polarization: str='horizontal'
                 ):
         self._init_auger_start_roi = auger_start_roi
         self._init_start_roi = start_roi
         self._init_stop_roi = stop_roi
         self.parallel = parallel
+        self.polarization = polarization
 
         self._xgm_threshold = xgm_threshold
 
@@ -350,6 +354,7 @@ class CookieboxCalibration(SerializableMixin):
                             "calibration_energies",
                             "_tof_response",
                             "parallel",
+                            "polarization",
                             "_version",
                            ]
     def _asdict(self):
@@ -855,10 +860,19 @@ class CookieboxCalibration(SerializableMixin):
                                         ee,
                                         eo)
 
-        # interpolate amplitude as given by the
-        # Auger+Valence (related to the cross section and pulse intensity)
-        # normalized by the XGM mean intensity
-        en = self.tof_fit_result[tof_id].Aa[mask][eidx]/self.calibration_mean_xgm[tof_id][mask][eidx]
+        # Transmission = (detected intensity in photoelectron)/(produced intensity)
+        # Transmission = (detected ADU in photoelectron)/((pulse energy) (Auger-Meitner ADU) (dsigma/dtheta))
+        # dsigma/dtheta = 1/2*(1.0 + beta*(3*cos(theta)^2 - 1.0)/2.0)
+        theta = (2*np.pi/16)*tof_id
+        beta = 2.0
+        if self.polarization == "circular":
+            beta = 0.0
+
+        dsig_dth = 0.5*(1 + beta*(3*np.cos(theta)**2 - 1)/2)
+        detected = self.tof_fit_result[tof_id].A
+        produced = self.calibration_mean_xgm[tof_id] * self.tof_fit_result[tof_id].Aa * dsig_dth
+        en = detected[mask][eidx]/produced[mask][eidx]
+        # interpolate normalization
         self.normalization[tof_id] = np.interp(self.energy_axis,
                                                ee,
                                                en)
