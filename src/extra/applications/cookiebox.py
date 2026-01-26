@@ -954,7 +954,7 @@ class CookieboxCalibration(SerializableMixin):
             a.plot(self.energy_axis, self.normalization[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
         for a in ax:
             a.set(xlabel="Energy [eV]",
-                  ylabel="Transmission [a.u.]")
+                  ylabel=r"$\frac{\mathrm{detected}}{\mathrm{pulse energy} \times \mathrm{Auger-Meitner} \times \mathrm{polarization effect}}$ [1/$\mu$J]")
             a.legend(frameon=False, ncols=2)
 
     def plot_offsets(self):
