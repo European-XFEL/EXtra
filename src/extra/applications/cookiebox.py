@@ -171,6 +171,22 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
 
     return out_data, out_xgm
 
+def angular_dist(theta, beta, P1, tilt):
+    """Electron angular distribution with Stokes parameter.
+
+    Args:
+        theta: Emission angle
+        beta: Beta parameter -1 < β < 2
+        P1: First Stoke's parameter
+        tilt: Tilt angle
+
+    Returns:
+        Differential cross section dσ/dϑ
+
+    """
+
+    return (1 + (beta/4) * (1 + 3 * P1 * np.cos(2*(theta - tilt))))
+
 class CookieboxCalibration(SerializableMixin):
     """
     Calibrate a set of eTOFs read out using an ADQ digitizer device.
@@ -301,8 +317,10 @@ class CookieboxCalibration(SerializableMixin):
                  Use `None` to guess it.
       stop_roi: End of the RoI, relative to the `first_pulse_offset`. Use `None` to guess it.
       parallel: Whether to average the input data in parallel.
-      polarization: Polarization of the XFEL during calibration to correct transmission.
-                    Can be 'horizontal' or 'circular'.
+      beta: Polarization beta parameter. Set to 2 for linear polarization. Set to 0 to circular polarization.
+      tilt: Tilt angle for linear or elliptical polarization. Set to 0 for horizontal polarization,
+            or np.pi/2 for vertical linear polarization.
+      P1: First Stokes parameter. Set to 1 for linear or circular polarization.
     """
     def __init__(self,
                  xgm_threshold: Union[str, float]='median',
@@ -311,13 +329,17 @@ class CookieboxCalibration(SerializableMixin):
                  stop_roi: Optional[int]=None,
                  interleaved: Optional[bool]=None,
                  parallel: bool=True,
-                 polarization: str='horizontal'
+                 beta: float=2.0,
+                 tilt: float=0.0,
+                 P1: float=1.0
                 ):
         self._init_auger_start_roi = auger_start_roi
         self._init_start_roi = start_roi
         self._init_stop_roi = stop_roi
         self.parallel = parallel
-        self.polarization = polarization
+        self.beta = beta
+        self.tilt = tilt
+        self.P1 = P1
 
         self._xgm_threshold = xgm_threshold
 
@@ -354,7 +376,9 @@ class CookieboxCalibration(SerializableMixin):
                             "calibration_energies",
                             "_tof_response",
                             "parallel",
-                            "polarization",
+                            "beta",
+                            "tilt",
+                            "P1",
                             "_version",
                            ]
     def _asdict(self):
@@ -864,11 +888,12 @@ class CookieboxCalibration(SerializableMixin):
         # Transmission = (detected ADU in photoelectron)/((pulse energy) (Auger-Meitner ADU) (dsigma/dtheta))
         # dsigma/dtheta = 1/2*(1.0 + beta*(3*cos(theta)^2 - 1.0)/2.0)
         theta = (2*np.pi/16)*tof_id
-        beta = 2.0
-        if self.polarization == "circular":
-            beta = 0.0
+        beta = self.beta
+        tilt = self.tilt
+        P1 = self.P1
 
-        dsig_dth = 0.5*(1 + beta*(3*np.cos(theta)**2 - 1)/2)
+        dsig_dth = angular_dist(theta, beta, P1, tilt)
+        #0.5*(1 + beta*(3*np.cos(theta)**2 - 1)/2)
         detected = self.tof_fit_result[tof_id].A
         #produced = self.calibration_mean_xgm[tof_id] * self.tof_fit_result[tof_id].Aa * dsig_dth
         produced = self.tof_fit_result[tof_id].Aa * dsig_dth
