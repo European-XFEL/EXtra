@@ -47,6 +47,8 @@ Fixed:
   [DataArray][xarray.DataArray] inputs as well (!419).
 - Fix incorrect time units when using [OpticalLaserDelay][extra.components.OpticalLaserDelay]
   with pre-2022 BAM data (!425).
+- [CookieboxCalibration][extra.applications.CookieboxCalibration] takes polarization into account
+  when calculating transmission.
 
 Changed:
 
