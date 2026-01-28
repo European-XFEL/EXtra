@@ -317,7 +317,8 @@ class CookieboxCalibration(SerializableMixin):
                  Use `None` to guess it.
       stop_roi: End of the RoI, relative to the `first_pulse_offset`. Use `None` to guess it.
       parallel: Whether to average the input data in parallel.
-      beta: Polarization beta parameter. Set to 2 for linear polarization. Set to 0 to circular polarization.
+      beta: Beta parameter.
+            For l=0 electrons, set to 2 for linear polarization, 0 to circular polarization.
       tilt: Tilt angle for linear or elliptical polarization. Set to 0 for horizontal polarization,
             or np.pi/2 for vertical linear polarization.
       P1: First Stokes parameter. Set to 1 for linear or circular polarization.
