@@ -319,8 +319,11 @@ class CookieboxCalibration(SerializableMixin):
       parallel: Whether to average the input data in parallel.
       beta: Beta parameter.
             For l=0 electrons, set to 2 for linear polarization, 0 to circular polarization.
-      tilt: Tilt angle for linear or elliptical polarization. Set to 0 for horizontal polarization,
-            or np.pi/2 for vertical linear polarization.
+      tilt: Tilt angle for linear or elliptical polarization.
+            It is assumed eTOF 0 makes an angle of 0 deg and therefore, the tilt
+            refers to that angle. Under such assumption, set to 0 for horizontal polarization,
+            or np.pi/2 for vertical linear polarization, if eTOF 0 is aligned
+            to the horizontal plane.
       P1: First Stokes parameter. Set to 1 for linear or circular polarization.
     """
     def __init__(self,
