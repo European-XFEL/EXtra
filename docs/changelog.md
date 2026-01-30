@@ -18,6 +18,12 @@
 
 Added:
 
+- [select_pulses()][extra.components.pulses.PulsePattern.select_pulses],
+  [deselect_pulses()][extra.components.pulses.PulsePattern.deselect_pulses] and
+  [union()][extra.components.pulses.PulsePattern.union] to modify pulse patterns (!417).
+- [ManualPulses][extra.components.ManualPulses] to generate custom pulse pattern with
+  the same interface as existing
+  [PulsePattern][extra.components.pulses.PulsePattern]-based components (!417).
 - [SpectrometerCalibration][extra.gui.jupyter.SpectrometerCalibration] to
   provide a Jupyter widget for energy calibration of 2D X-ray spectrum data
   (!363).
