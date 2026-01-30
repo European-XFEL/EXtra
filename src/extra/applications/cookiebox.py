@@ -171,6 +171,22 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
 
     return out_data, out_xgm
 
+def angular_dist(theta, beta, P1, tilt):
+    """Electron angular distribution with Stokes parameter.
+
+    Args:
+        theta: Emission angle
+        beta: Beta parameter -1 < β < 2
+        P1: First Stoke's parameter
+        tilt: Tilt angle
+
+    Returns:
+        Differential cross section dσ/dϑ
+
+    """
+
+    return (1 + (beta/4) * (1 + 3 * P1 * np.cos(2*(theta - tilt))))
+
 class CookieboxCalibration(SerializableMixin):
     """
     Calibrate a set of eTOFs read out using an ADQ digitizer device.
@@ -301,6 +317,14 @@ class CookieboxCalibration(SerializableMixin):
                  Use `None` to guess it.
       stop_roi: End of the RoI, relative to the `first_pulse_offset`. Use `None` to guess it.
       parallel: Whether to average the input data in parallel.
+      beta: Beta parameter.
+            For l=0 electrons, set to 2 for linear polarization, 0 to circular polarization.
+      tilt: Tilt angle for linear or elliptical polarization.
+            It is assumed eTOF 0 makes an angle of 0 deg and therefore, the tilt
+            refers to that angle. Under such assumption, set to 0 for horizontal polarization,
+            or np.pi/2 for vertical linear polarization, if eTOF 0 is aligned
+            to the horizontal plane.
+      P1: First Stokes parameter. Set to 1 for linear or circular polarization.
     """
     def __init__(self,
                  xgm_threshold: Union[str, float]='median',
@@ -309,11 +333,17 @@ class CookieboxCalibration(SerializableMixin):
                  stop_roi: Optional[int]=None,
                  interleaved: Optional[bool]=None,
                  parallel: bool=True,
+                 beta: float=2.0,
+                 tilt: float=0.0,
+                 P1: float=1.0
                 ):
         self._init_auger_start_roi = auger_start_roi
         self._init_start_roi = start_roi
         self._init_stop_roi = stop_roi
         self.parallel = parallel
+        self.beta = beta
+        self.tilt = tilt
+        self.P1 = P1
 
         self._xgm_threshold = xgm_threshold
 
@@ -350,6 +380,9 @@ class CookieboxCalibration(SerializableMixin):
                             "calibration_energies",
                             "_tof_response",
                             "parallel",
+                            "beta",
+                            "tilt",
+                            "P1",
                             "_version",
                            ]
     def _asdict(self):
@@ -855,10 +888,21 @@ class CookieboxCalibration(SerializableMixin):
                                         ee,
                                         eo)
 
-        # interpolate amplitude as given by the
-        # Auger+Valence (related to the cross section and pulse intensity)
-        # normalized by the XGM mean intensity
-        en = self.tof_fit_result[tof_id].Aa[mask][eidx]/self.calibration_mean_xgm[tof_id][mask][eidx]
+        # Transmission = (detected intensity in photoelectron)/(produced intensity)
+        # Transmission = (detected ADU in photoelectron)/((pulse energy) (Auger-Meitner ADU) (dsigma/dtheta))
+        # dsigma/dtheta = 1/2*(1.0 + beta*(3*cos(theta)^2 - 1.0)/2.0)
+        theta = (2*np.pi/16)*tof_id
+        beta = self.beta
+        tilt = self.tilt
+        P1 = self.P1
+
+        dsig_dth = angular_dist(theta, beta, P1, tilt)
+        #0.5*(1 + beta*(3*np.cos(theta)**2 - 1)/2)
+        detected = self.tof_fit_result[tof_id].A
+        #produced = self.calibration_mean_xgm[tof_id] * self.tof_fit_result[tof_id].Aa * dsig_dth
+        produced = self.tof_fit_result[tof_id].Aa * dsig_dth
+        en = detected[mask][eidx]/produced[mask][eidx]
+        # interpolate normalization
         self.normalization[tof_id] = np.interp(self.energy_axis,
                                                ee,
                                                en)
@@ -940,7 +984,7 @@ class CookieboxCalibration(SerializableMixin):
             a.plot(self.energy_axis, self.normalization[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
         for a in ax:
             a.set(xlabel="Energy [eV]",
-                  ylabel="Transmission [a.u.]")
+                  ylabel=r"$\frac{\mathrm{detected}}{\mathrm{Auger-Meitner} \times \mathrm{polarization} \, \mathrm{effect}}$")
             a.legend(frameon=False, ncols=2)
 
     def plot_offsets(self):
@@ -1162,7 +1206,7 @@ class CookieboxCalibration(SerializableMixin):
 
             # interpolate
             #bad = np.isnan(pulses)
-            np.nan_to_num(pulses, copy=False)
+            pulses = np.nan_to_num(pulses, copy=True)
             o = np.apply_along_axis(lambda arr: np.interp(self.energy_axis, e[::-1], arr[::-1], left=0, right=0),
                                    axis=1,
                                    arr=pulses)
