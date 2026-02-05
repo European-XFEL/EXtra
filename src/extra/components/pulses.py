@@ -47,7 +47,8 @@ class PulsePattern:
     # System Specification, Version 2.2 (2013). The original table may
     # have up to 7222 entries at 9 MHz with the Karabo Timeserver device
     # only forwarding the even places at 4.5 MHz.
-    _bunch_pattern_table_len = 3611
+    # This was increasd from 3611 to 4096 entries during the LIMP 2025.
+    _bunch_pattern_table_len = 4096
 
     def __init__(self, source: SourceData = None, key: KeyData = None):
         self._source = source

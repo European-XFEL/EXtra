@@ -59,6 +59,8 @@ Changed:
 - [imshow2()][extra.utils.imshow2] will now add a colorbar automatically (!351).
 - [Calibration](calibration.md) conditions objects can now be displayed as
   Markdown in Jupyter notebooks (!381).
+- Increased maximal length of pulse masks returned by
+  [pulse_mask()][extra.components.pulses.PulsePattern.pulse_mask] to 4096 (!461).
 
 ## [2025.1]
 
