@@ -16,7 +16,7 @@ mypy-extensions==1.1.0
 numpy<=2.4.2
 packaging==26.0
 pandas==3.0.0
-Pillow==12.1.0
+Pillow==12.1.1
 pint<=0.25.2
 platformdirs~=4.5.1
 pyparsing==3.3.2
