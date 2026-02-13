@@ -6,7 +6,7 @@ import re
 import numpy as np
 import pandas as pd
 
-from scipy.signal import filtfilt, lfilter, firwin
+from scipy.signal import fftconvolve, firwin
 
 from extra_data import by_id
 from extra_data.read_machinery import roi_shape
@@ -18,7 +18,7 @@ def lowpass_filter(x, n_win):
     N = n_win
     f = 1.0/float(n_win)
     b = firwin(N, f/2.0, window=('hamming'))
-    return filtfilt(b, [1.0], x).astype(x.dtype)
+    return fftconvolve(x, b[np.newaxis, :], axes=-1, mode='same').astype(x.dtype)
 
 class AdqRawChannel:
     """A high-level interface to raw output of ADQ digitizer channels.
