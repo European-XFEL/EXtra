@@ -360,7 +360,8 @@ class CookieboxCalibration(SerializableMixin):
                                "cm_period",
                                "interleaved",
                                "single_pulse_length",
-                               "extra_cm_period"]
+                               "extra_cm_period",
+                               "baseline_filter"]
         self._all_fields = ["_energy_axis",
                             "kwargs_adq",
                             "_auger_start_roi",
