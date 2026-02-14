@@ -19,7 +19,7 @@ def lowpass_filter(x, n_win):
     N = n_win
     f = 1.0/float(n_win)
     b = firwin(N, f/2.0, window=('hamming'))
-    return fftconvolve(x, b[np.newxais, :], axes=-1, mode='same').astype(x.dtype)
+    return fftconvolve(x, b[np.newaxis, :], axes=-1, mode='same').astype(x.dtype)
 
 def nn_deconvolution(data: np.ndarray, h: np.ndarray, n_iter: int=4000, n_shift: int=0, nonneg: bool=True):
     r'''
