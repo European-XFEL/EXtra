@@ -432,8 +432,9 @@ class TOFAnalogResponse(SerializableMixin):
             xi = np.arange(mono_data.shape[-1]) - m + self.n_filter
             h += [np.interp(h_axis, xi, mono_data)]
         h = np.stack(h, axis=0)
-        bkg = lowpass_filter(h, self.baseline_filter)
-        h = h - bkg
+        if self.baseline_filter > 0:
+            bkg = lowpass_filter(h, self.baseline_filter)
+            h = h - bkg
         h_unc = h.std(0)
         h = h.mean(0)
         self.h = h
