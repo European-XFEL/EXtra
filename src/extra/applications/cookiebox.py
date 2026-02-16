@@ -335,7 +335,7 @@ class CookieboxCalibration(SerializableMixin):
                  parallel: bool=True,
                  beta: float=2.0,
                  tilt: float=0.0,
-                 P1: float=1.0
+                 P1: float=1.0,
                 ):
         self._init_auger_start_roi = auger_start_roi
         self._init_start_roi = start_roi
@@ -693,6 +693,7 @@ class CookieboxCalibration(SerializableMixin):
         parallel = self.parallel
         if correction_fn is not None:
             parallel = False # correction function has in-build parallelism
+
 
         if parallel:
             with ProcessPoolExecutor(max_workers=10) as p:

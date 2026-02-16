@@ -1,7 +1,6 @@
 from typing import Tuple, Union, Optional, List
 from functools import partial
 from scipy.linalg import convolution_matrix
-from scipy.signal import fftconvolve, firwin
 import numpy as np
 import xarray as xr
 from .base import SerializableMixin
@@ -14,12 +13,6 @@ from extra_data import by_id
 
 def clip_at_zero(x):
     return np.clip(x, a_min=0, a_max=None)
-
-def lowpass_filter(x, n_win):
-    N = n_win
-    f = 1.0/float(n_win)
-    b = firwin(N, f/2.0, window=('hamming'))
-    return fftconvolve(x, b[np.newaxis, :], axes=-1, mode='same').astype(x.dtype)
 
 def nn_deconvolution(data: np.ndarray, h: np.ndarray, n_iter: int=4000, n_shift: int=0, nonneg: bool=True):
     r'''
@@ -364,26 +357,22 @@ class TOFAnalogResponse(SerializableMixin):
     Args:
       roi: Region of interest. Keep None to use the full trace.
       n_samples: Total number of samples use for impulse response.
-      baseline_filter: Window size for baseline filter.
     """
     def __init__(self,
                  roi: Optional[slice]=None,
                  n_samples: int=300,
                  n_filter: int=75,
-                 baseline_filter: int=600,
                  ):
         self.roi = roi
         self.n_samples = n_samples
         self.n_filter = n_filter
         self.h = None
-        self.baseline_filter = baseline_filter
         self._version = 1
         self._all_fields = [
                             "h",
                             "h_unc",
                             "n_samples",
                             "n_filter",
-                            "baseline_filter",
                             "_version",
                            ]
 
@@ -432,9 +421,6 @@ class TOFAnalogResponse(SerializableMixin):
             xi = np.arange(mono_data.shape[-1]) - m + self.n_filter
             h += [np.interp(h_axis, xi, mono_data)]
         h = np.stack(h, axis=0)
-        if self.baseline_filter > 0:
-            bkg = lowpass_filter(h, self.baseline_filter)
-            h = h - bkg
         h_unc = h.std(0)
         h = h.mean(0)
         self.h = h
