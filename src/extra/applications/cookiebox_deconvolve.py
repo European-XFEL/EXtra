@@ -488,8 +488,6 @@ class TOFAnalogResponse(SerializableMixin):
 
     def apply(self, tof_trace: Union[xr.DataArray, np.ndarray],
               n_iter: int=5000,
-              reflection_period: List[int]=list(),
-              reflection_amplitude: List[float]=list(),
               method: str="tv_matrix",
               extra_shift: int=2,
               normalization: str="integral",
@@ -600,7 +598,7 @@ class TOFAnalogResponse(SerializableMixin):
             original.data /= norm2
         else:
             raise ValueError("Expect `tof_trace` to be a numpy array or xarray DataArray.")
-        h = self.get_response(reflection_period=reflection_period, reflection_amplitude=reflection_amplitude)
+        h = self.get_response()
         if method == "nn_matrix":
             result_trace = nn_deconvolution(original.data, h=h, n_iter=n_iter, n_shift=self.n_filter+extra_shift, **kwargs)
         elif method == "tv_matrix":
