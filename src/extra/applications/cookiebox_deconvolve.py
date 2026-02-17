@@ -1,6 +1,7 @@
 from typing import Tuple, Union, Optional, List
 from functools import partial
 from scipy.linalg import convolution_matrix
+from scipy.signal import find_peaks
 import numpy as np
 import xarray as xr
 from .base import SerializableMixin
@@ -172,6 +173,7 @@ def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=1e-5, n_iter
         hl = np.concatenate((h, np.zeros(N - len(h))))
     elif len(h) >= N:
         hl = np.copy(h[:N])
+    hl = hl.astype(np.float64)
     hl = hl/np.sum(hl)
 
     # roll over to match the effect of fftcovolve
@@ -361,18 +363,21 @@ class TOFAnalogResponse(SerializableMixin):
     def __init__(self,
                  roi: Optional[slice]=None,
                  n_samples: int=300,
-                 n_filter: int=75,
+                 n_filter: int=100,
+                 deconvolve: bool=False,
                  ):
         self.roi = roi
         self.n_samples = n_samples
         self.n_filter = n_filter
         self.h = None
+        self.deconvolve = deconvolve
         self._version = 1
         self._all_fields = [
                             "h",
                             "h_unc",
                             "n_samples",
                             "n_filter",
+                            "deconvolve",
                             "_version",
                            ]
 
@@ -389,9 +394,42 @@ class TOFAnalogResponse(SerializableMixin):
         for k, v in all_data.items():
             setattr(self, k, v)
 
+    def estimate_h(self, data, h_axis):
+        """
+        Estimate response function from data.
+
+        Args:
+          data: The data as an xr.DataArray.
+          h_axis: The response function x-axis.
+
+        Returns: The response function.
+        """
+        mono_data = data.mean('trainId').mean('pulseIndex').to_numpy()
+        mono_data /= np.amax(mono_data)
+        this_h = mono_data
+        # deconvolve it from double peak to remove Auger and photo-electron lines
+        if self.deconvolve:
+            peaks, _ = find_peaks(this_h, prominence=0.2)
+            peaks = peaks[:2]
+            if len(peaks) > 1:
+                ia = np.min(peaks)
+                ip = np.max(peaks)
+                double_peak = np.zeros_like(this_h)
+                double_peak[ia] = this_h[ia]
+                double_peak[ip] = this_h[ip]
+                this_h_dec = tv_deconvolution(this_h, np.roll(double_peak, -ia), Lambda=1e-5, nonneg=False)
+                this_h_dec /= np.max(this_h_dec)
+                this_h = this_h_dec
+            else:
+                logging.info("Single peak found. Not deconvolving.")
+        m = np.argmax(this_h)
+        xi = np.arange(this_h.shape[-1]) - m + self.n_filter
+        this_h = np.interp(h_axis, xi, this_h)
+        return this_h
+
     def setup(self,
               tof: AdqRawChannel,
-              scan: Scan,
+              scan: Scan=None
               ):
         """
         Given a [AdqRawChannel][extra.components.AdqRawChannel] object, and an energy scan object
@@ -414,30 +452,26 @@ class TOFAnalogResponse(SerializableMixin):
         logging.info("Get energy means ...")
         h_axis = np.arange(self.n_samples)
         h = list()
-        for k, e in enumerate(scan.positions):
-            mono_data = this_tof_data.sel(trainId=scan.positions_train_ids[k]).mean('trainId').mean('pulseIndex').to_numpy()
-            mono_data /= np.amax(mono_data)
-            m = np.argmax(mono_data)
-            xi = np.arange(mono_data.shape[-1]) - m + self.n_filter
-            h += [np.interp(h_axis, xi, mono_data)]
+        if scan is not None:
+            for k, e in enumerate(scan.positions):
+                this_h = self.estimate_h(this_tof_data.sel(trainId=scan.positions_train_ids[k]), h_axis)
+                h += [this_h]
+        else:
+            this_h = self.estimate_h(this_tof_data, h_axis)
+            h += [this_h]
         h = np.stack(h, axis=0)
         h_unc = h.std(0)
         h = h.mean(0)
+        bl = h[0]
+        h = h/np.amax(h)
         self.h = h
         self.h_unc = h_unc
 
-    def get_response(self, reflection_period: List[int]=list(), reflection_amplitude: List[float]=list()):
+    def get_response(self):
         """
         Returns the instrument response.
-
-        Args:
-          reflection_period: Simulate reflection with these distances.
-          reflection_amplitude: Amplitudes of the reflections.
         """
-        h = self.h
-        if len(reflection_period) > 0:
-            h = fftconvolve(h, comb(reflection_period, reflection_amplitude), mode='same')
-        return h
+        return self.h
 
     def plot(self):
         """
