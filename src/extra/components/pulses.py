@@ -259,6 +259,12 @@ class PulsePattern:
 
         return res
 
+    def data_counts(self, labelled=True):
+        if self._key is not None:
+            return self._key.data_counts(labelled=labelled)
+
+        raise NotImplementedError('data_counts')
+
     def pulse_ids(self, labelled=True, copy=True):
         """Get pulse IDs.
 
