@@ -505,7 +505,8 @@ class TOFAnalogResponse(SerializableMixin):
             else:
                 h += [this_h]
 
-        h = np.stack([shift_h(k, h_axis) for k in h_dec], 0)
+        if self.deconvolve:
+            h = np.stack([self.shift_h(k, h_axis) for k in h_dec], 0)
 
         self.h = np.mean(h, 0)
         self.h_unc = np.std(h, 0)
