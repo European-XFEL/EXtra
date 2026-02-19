@@ -417,11 +417,48 @@ class TOFAnalogResponse(SerializableMixin):
                 double_peak = np.zeros_like(this_h)
                 double_peak[ia] = this_h[ia]
                 double_peak[ip] = this_h[ip]
-                this_h_dec = tv_deconvolution(this_h, np.roll(double_peak, -ia), Lambda=1e-5, nonneg=False)
+                this_h_dec = tv_deconvolution(this_h, np.roll(double_peak, -ia), Lambda=1, nonneg=False)
                 this_h_dec /= np.max(this_h_dec)
                 this_h = this_h_dec
             else:
                 logging.info("Single peak found. Not deconvolving.")
+        m = np.argmax(this_h)
+        xi = np.arange(this_h.shape[-1]) - m + self.n_filter
+        this_h = np.interp(h_axis, xi, this_h)
+        return this_h
+
+    def estimate_truth(self, data):
+        """
+        Estimate response function from data.
+
+        Args:
+          data: The data as an numpy array.
+
+        Returns: The response function.
+        """
+        mono_data = data
+        mono_data /= np.amax(mono_data)
+        this_h = mono_data
+        # estimate double peak structure to remove Auger and photo-electron lines
+        peaks, _ = find_peaks(this_h, prominence=0.2)
+        peaks = peaks[:2]
+        double_peak = np.zeros_like(this_h)
+        double_peak[peaks] = this_h[peaks]
+        return double_peak, np.min(peaks)
+
+    def shift_h(self, data, h_axis):
+        """
+        Align data.
+
+        Args:
+          data: The data as a numpy array.
+          h_axis: The response function x-axis.
+
+        Returns: The response function.
+        """
+        mono_data = data
+        mono_data /= np.amax(mono_data)
+        this_h = mono_data
         m = np.argmax(this_h)
         xi = np.arange(this_h.shape[-1]) - m + self.n_filter
         this_h = np.interp(h_axis, xi, this_h)
@@ -451,21 +488,27 @@ class TOFAnalogResponse(SerializableMixin):
         # get means
         logging.info("Get energy means ...")
         h_axis = np.arange(self.n_samples)
+        data = list()
         h = list()
         if scan is not None:
             for k, e in enumerate(scan.positions):
-                this_h = self.estimate_h(this_tof_data.sel(trainId=scan.positions_train_ids[k]), h_axis)
-                h += [this_h]
+                data += [this_tof_data.sel(trainId=scan.positions_train_ids[k]).mean('trainId').mean('pulseIndex').to_numpy()]
         else:
-            this_h = self.estimate_h(this_tof_data, h_axis)
-            h += [this_h]
-        h = np.stack(h, axis=0)
-        h_unc = h.std(0)
-        h = h.mean(0)
-        bl = h[0]
-        h = h/np.amax(h)
-        self.h = h
-        self.h_unc = h_unc
+            data += [this_tof_data.mean('trainId').mean('pulseIndex').to_numpy()]
+
+        for d in data:
+            this_h = self.shift_h(d, h_axis)
+            if self.deconvolve:
+                this_t, p = self.estimate_truth(this_h)
+                h_dec = tv_deconvolution(this_h, np.roll(this_t, -p), Lambda=1, nonneg=False)
+                h += [h_dec]
+            else:
+                h += [this_h]
+
+        h = np.stack([shift_h(k, h_axis) for k in h_dec], 0)
+
+        self.h = np.mean(h, 0)
+        self.h_unc = np.std(h, 0)
 
     def get_response(self):
         """
