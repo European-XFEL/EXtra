@@ -362,7 +362,7 @@ class TOFAnalogResponse(SerializableMixin):
     """
     def __init__(self,
                  roi: Optional[slice]=None,
-                 n_samples: int=300,
+                 n_samples: int=350,
                  n_filter: int=100,
                  deconvolve: bool=False,
                  ):
@@ -394,39 +394,6 @@ class TOFAnalogResponse(SerializableMixin):
         for k, v in all_data.items():
             setattr(self, k, v)
 
-    def estimate_h(self, data, h_axis):
-        """
-        Estimate response function from data.
-
-        Args:
-          data: The data as an xr.DataArray.
-          h_axis: The response function x-axis.
-
-        Returns: The response function.
-        """
-        mono_data = data.mean('trainId').mean('pulseIndex').to_numpy()
-        mono_data /= np.amax(mono_data)
-        this_h = mono_data
-        # deconvolve it from double peak to remove Auger and photo-electron lines
-        if self.deconvolve:
-            peaks, _ = find_peaks(this_h, prominence=0.2)
-            peaks = peaks[:2]
-            if len(peaks) > 1:
-                ia = np.min(peaks)
-                ip = np.max(peaks)
-                double_peak = np.zeros_like(this_h)
-                double_peak[ia] = this_h[ia]
-                double_peak[ip] = this_h[ip]
-                this_h_dec = tv_deconvolution(this_h, np.roll(double_peak, -ia), Lambda=1, nonneg=False)
-                this_h_dec /= np.max(this_h_dec)
-                this_h = this_h_dec
-            else:
-                logging.info("Single peak found. Not deconvolving.")
-        m = np.argmax(this_h)
-        xi = np.arange(this_h.shape[-1]) - m + self.n_filter
-        this_h = np.interp(h_axis, xi, this_h)
-        return this_h
-
     def estimate_truth(self, data):
         """
         Estimate response function from data.
@@ -436,9 +403,7 @@ class TOFAnalogResponse(SerializableMixin):
 
         Returns: The response function.
         """
-        mono_data = data
-        mono_data /= np.amax(mono_data)
-        this_h = mono_data
+        this_h = data
         # estimate double peak structure to remove Auger and photo-electron lines
         peaks, _ = find_peaks(this_h, prominence=0.2)
         peaks = peaks[:2]
@@ -456,9 +421,7 @@ class TOFAnalogResponse(SerializableMixin):
 
         Returns: The response function.
         """
-        mono_data = data
-        mono_data /= np.amax(mono_data)
-        this_h = mono_data
+        this_h = data
         m = np.argmax(this_h)
         xi = np.arange(this_h.shape[-1]) - m + self.n_filter
         this_h = np.interp(h_axis, xi, this_h)
@@ -498,17 +461,21 @@ class TOFAnalogResponse(SerializableMixin):
 
         for d in data:
             this_h = self.shift_h(d, h_axis)
+            this_h /= np.amax(this_h)
             if self.deconvolve:
                 this_t, p = self.estimate_truth(this_h)
                 h_dec = tv_deconvolution(this_h, np.roll(this_t, -p), Lambda=1, nonneg=False)
+                h_dec /= np.amax(h_dec)
                 h += [h_dec]
             else:
                 h += [this_h]
 
         if self.deconvolve:
-            h = np.stack([self.shift_h(k, h_axis) for k in h_dec], 0)
+            h = np.stack([self.shift_h(k, h_axis) for k in h], 0)
+        else:
+            h = np.stack(h, 0)
 
-        self.h = np.mean(h, 0)
+        self.h = np.median(h, 0)
         self.h_unc = np.std(h, 0)
 
     def get_response(self):
