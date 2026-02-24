@@ -1277,10 +1277,10 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
     temporal relation, it is corrected during initialization by exactly
     one of three methods:
 
-    1) Offset all PPL pulses to a fixed bunch table position.
-    2) Offset all PPL pulses relative to the first FEL pulse in units of
+    1. Offset all PPL pulses to a fixed bunch table position.
+    2. Offset all PPL pulses relative to the first FEL pulse in units of
        the bunch pattern table.
-    3) Offset all PPL pulses relative to the first FEL pulse in units of
+    3. Offset all PPL pulses relative to the first FEL pulse in units of
        FEL pulses.
 
     In cases where there are no FEL pulses (for method 2) or too few
