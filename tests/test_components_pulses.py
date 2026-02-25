@@ -9,9 +9,9 @@ import extra
 
 from euxfel_bunch_pattern import PPL_BITS, DESTINATION_TLD, DESTINATION_T5D, \
     PHOTON_LINE_DEFLECTION
-from extra.data import RunDirectory, SourceData, KeyData, by_id
+from extra.data import RunDirectory, SourceData, KeyData, by_index, by_id
 from extra.components import XrayPulses, OpticalLaserPulses, MachinePulses, \
-    PumpProbePulses, DldPulses
+    PumpProbePulses, ManualPulses, DldPulses
 
 from .mockdata import assert_equal_sourcedata, assert_equal_keydata
 
@@ -749,3 +749,171 @@ def test_pump_probe_specials(mock_spb_aux_run, mock_sqs_remi_run):
             names=('trainId', 'pulseIndex', 'fel', 'ppl')))
 
     assert not pulses.is_constant_pattern()
+
+
+def test_manual_pulses():
+    tids = [100, 101, 102, 104]
+    pids = [1, 2, 3, 1, 2, 3, 1, 2, 4, 5]
+    index = pd.MultiIndex.from_arrays(
+        # 2nd-to-last train has four pulses, last train has no pulses.
+        [tids[:-1] * 3 + [tids[-2]], [0, 1, 2] * 3 + [3]],
+        names=['trainId', 'pulseIndex'])
+    p = ManualPulses(tids, pd.Series(pids, dtype=np.int32, index=index))
+    np.testing.assert_array_equal(p.pulse_counts(), [3, 3, 4, 0])
+    np.testing.assert_array_equal(p.pulse_ids(), pids)
+    assert p.pulse_ids().index.names == ['trainId', 'pulseIndex']
+
+    p = ManualPulses.from_constant_pulses(
+        [100, 101, 102], [20, 22, 26, 28, 32, 34])
+    np.testing.assert_array_equal(p.pulse_ids(), [20, 22, 26, 28, 32, 34] * 3)
+    np.testing.assert_array_equal(p.pulse_counts(), 6)
+
+    with pytest.raises(ValueError):
+        # Missing repetition_rate / pulse_period.
+        ManualPulses.from_constant_pattern([100, 101, 102], 2)
+
+    p = ManualPulses.from_constant_pattern(
+        [100, 101, 102], 2, repetition_rate=1.1e6, pulse_id_offset=10)
+    np.testing.assert_array_equal(p.pulse_ids(), [10, 14, 10, 14, 10, 14])
+    np.testing.assert_array_equal(p.pulse_counts(), 2)
+
+
+def test_select_pulses(mock_spb_aux_run):
+    p = XrayPulses(mock_spb_aux_run.select('SPB*'))
+
+    # Basic index-based slices.
+    subp = p.select_pulses(np.s_[2:4])
+    assert isinstance(subp, ManualPulses)
+
+    pids = subp.pulse_ids()  # Also used below to compare with other modes.
+    assert len(pids) == 180
+    np.testing.assert_array_equal(pids.iloc[:80], [1012, 1018] * 40)
+    np.testing.assert_array_equal(pids.iloc[80:], [1024, 1036] * 50)
+
+    np.testing.assert_array_equal(
+        pids.index.get_level_values('pulseIndex'), [0, 1] * 90)
+
+    counts = subp.pulse_counts()
+    np.testing.assert_array_equal(counts.index, np.arange(10000, 10100))
+    np.testing.assert_array_equal(counts[:10], 0)
+    np.testing.assert_array_equal(counts[10:], 2)
+
+    # Construct index list identical to index slice above.
+    pd.testing.assert_series_equal(pids, p.select_pulses([2, 3]).pulse_ids())
+    pd.testing.assert_series_equal(
+        pids, p.select_pulses(np.array([2, 3])).pulse_ids())
+
+    # Explicit use of by_index
+    pd.testing.assert_series_equal(
+        pids, p.select_pulses(by_index[2:4]).pulse_ids())
+    pd.testing.assert_series_equal(
+        pids, p.select_pulses(by_index[[2, 3]]).pulse_ids())
+    pd.testing.assert_series_equal(
+        pids, p.select_pulses(by_index[np.array([2, 3])]).pulse_ids())
+
+    # Construct mask identical to index-based selection above.
+    mask = np.zeros(50, dtype=bool)
+    mask[2:4] = True
+    pd.testing.assert_series_equal(pids, p.select_pulses(mask).pulse_ids())
+
+    with pytest.raises(ValueError):
+        p.select_pulses(mask[:-1])  # Mask too short
+
+    # ID-based slices.
+    subp = p.select_pulses(by_id[1020:1040])
+    pids = subp.pulse_ids()
+    np.testing.assert_array_equal(pids.iloc[:120], [1024, 1030, 1036] * 40)
+    np.testing.assert_array_equal(pids.iloc[120:], [1024, 1036] * 50)
+
+    counts = subp.pulse_counts()
+    np.testing.assert_array_equal(counts.index, np.arange(10000, 10100))
+    np.testing.assert_array_equal(counts[:10], 0)
+    np.testing.assert_array_equal(counts[10:50], 3)
+    np.testing.assert_array_equal(counts[50:], 2)
+
+    # Construct ID list identical to ID slice above.
+    pd.testing.assert_series_equal(
+        pids, p.select_pulses(by_id[[1024, 1030, 1036]]).pulse_ids())
+    pd.testing.assert_series_equal(
+        pids, p.select_pulses(by_id[np.array([1024, 1030, 1036])]).pulse_ids())
+
+    # Index-based slices, but with steps.
+    pids = p.select_pulses(by_index[2:8:4]).pulse_ids()
+    assert len(pids) == 180
+    np.testing.assert_array_equal(pids.iloc[:80], [1012, 1036] * 40)
+    np.testing.assert_array_equal(pids.iloc[80:], [1024, 1072] * 50)
+
+    # Index-based slices, but negative.
+    pids = p.select_pulses(by_index[-6:-2]).pulse_ids()
+    assert len(pids) == 360
+    np.testing.assert_array_equal(
+        pids.iloc[:160], [1264, 1270, 1276, 1282] * 40)
+    np.testing.assert_array_equal(
+        pids.iloc[160:], [1228, 1240, 1252, 1264] * 50)
+
+    # ID-based slices, but with steps.
+    pids = p.select_pulses(by_id[1024:1040:6]).pulse_ids()
+    assert len(pids) == 130
+    np.testing.assert_array_equal(pids.iloc[:80], [1030, 1036] * 40)
+    np.testing.assert_array_equal(pids.iloc[80:], 1036)
+
+    # Without resetting index.
+    np.testing.assert_array_equal(
+        p.select_pulses(np.s_[2:4], reset_index=False).pulse_ids() \
+         .index.get_level_values('pulseIndex'),
+        [2, 3] * 90)
+
+    # Also using a train selector.
+    subp = p.select_pulses(by_id[[1024, 1030, 1036]],
+                           train_sel=by_id[10045:10055])
+
+    pids = subp.pulse_ids()
+    np.testing.assert_array_equal(pids.iloc[:15], [1024, 1030, 1036] * 5)
+    np.testing.assert_array_equal(pids.iloc[15:], [1024, 1036] * 5)
+
+    np.testing.assert_array_equal(
+        subp.pulse_counts().index, np.arange(10000, 10100))
+
+
+def test_deselect_pulses(mock_spb_aux_run):
+    p = XrayPulses(mock_spb_aux_run.select('SPB*'))
+
+    subp = p.deselect_pulses(by_id[1010:1250])
+    assert isinstance(subp, ManualPulses)
+
+    pids = subp.pulse_ids()
+    assert len(pids) == 650
+
+    np.testing.assert_array_equal(
+        pids.iloc[:400],
+        [1000, 1006, 1252, 1258, 1264, 1270, 1276, 1282, 1288, 1294] * 40)
+    np.testing.assert_array_equal(
+        pids.iloc[400:],
+        [1000, 1252, 1264, 1276, 1288] * 50)
+
+    np.testing.assert_array_equal(
+        pids.iloc[:400].index.get_level_values('pulseIndex'),
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] * 40)
+    np.testing.assert_array_equal(
+        pids.iloc[400:].index.get_level_values('pulseIndex'),
+        [0, 1, 2, 3, 4] * 50)
+
+    counts = subp.pulse_counts()
+    np.testing.assert_array_equal(counts.index, np.arange(10000, 10100))
+    np.testing.assert_array_equal(counts[:10], 0)
+    np.testing.assert_array_equal(counts[10:50], 10)
+    np.testing.assert_array_equal(counts[50:], 5)
+
+
+def test_union_pulses():
+    p1 = ManualPulses.from_constant_pulses(
+        [1000, 1001, 1002], [100, 102, 104])
+    p2 = ManualPulses.from_constant_pulses(
+        [1002, 1003, 1004], [100, 103, 105])
+    p = p1 | p2
+
+    assert isinstance(p, ManualPulses)
+    np.testing.assert_array_equal(p.pulse_counts(), [3, 3, 5, 3, 3])
+    np.testing.assert_array_equal(
+        p.pulse_ids(),
+        2 * [100, 102, 104] + [100, 102, 103, 104, 105] + 2 * [100, 103, 105])
