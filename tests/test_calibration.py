@@ -406,7 +406,7 @@ def test_DetectorData_from_identifier():
         'AGIPD_SIV1_AGIPDV11_M517', 101003000000, 'AGIPD-Type')
 
     # FXE-JFHZ, single-module detector with partial CalCat entries
-    jfhz = DetectorData.from_identifier('FXE_XAD_JFHZ')
+    jfhz = DetectorData.from_identifier('FXE_XAD_JFHZ', **pdu_date_kw)
     repr(jfhz)
 
     assert jfhz

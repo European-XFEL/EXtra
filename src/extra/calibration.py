@@ -1543,8 +1543,8 @@ class DetectorData(Mapping):
 
         return cls._from_detector(rows[0], pdu_snapshot_at, client)
 
-    @classmethod
-    def list_by_instrument(cls, instrument, client=None):
+    @staticmethod
+    def list_by_instrument(instrument, client=None):
         """List all detectors by instrument."""
 
         client = client or get_client()
