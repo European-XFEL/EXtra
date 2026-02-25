@@ -5,30 +5,30 @@ interactions:
       Accept:
       - application/json; version=2
       Accept-Encoding:
-      - gzip, deflate, br, zstd
+      - gzip, deflate
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2024.1.1.184+03da3c1
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
     uri: http://exflcalproxy.desy.de:8080/api/me
   response:
     body:
-      string: '{"id":-9,"email":"admin@example.com","created_at":"2015-03-12T17:02:47.000+01:00","updated_at":"2024-06-26T11:38:56.000+02:00","provider":"local","uid":null,"name":"Admin
-        User","first_name":"Admin","last_name":"User","nickname":null,"contact_email":"admin@example.com","ldap_synced_at":null,"flg_ldap_account_valid":false,"flg_service_account":true}'
+      string: '{"id":-9,"email":"admin@example.com","provider":"local","contact_email":"admin@example.com","name":"Admin
+        User","first_name":"Admin","last_name":"User","nickname":null,"uid":null,"ldap_synced_at":null,"flg_service_account":true,"flg_ldap_account_valid":false,"roles":["admin"]}'
     headers:
       Cache-Control:
       - max-age=0, private, must-revalidate
       Content-Length:
-      - '349'
+      - '277'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Fri, 08 Nov 2024 14:31:53 GMT
+      - Wed, 12 Nov 2025 09:52:22 GMT
       Etag:
-      - W/"4bf159598242c25bb9fb5b1598d140b2"
+      - W/"9ec4cec974b56aebafbb6dc312056934"
       Keep-Alive:
       - timeout=5, max=100
       Referrer-Policy:
@@ -45,8 +45,6 @@ interactions:
       - HTTP/1.1 xfel_oauth_proxy
       X-Content-Type-Options:
       - nosniff
-      X-Download-Options:
-      - noopen
       X-Frame-Options:
       - SAMEORIGIN
       X-Permitted-Cross-Domain-Policies:
@@ -54,79 +52,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 5d8b2e03-e5b8-4d47-bb3a-35d7b3ee140e
+      - d8dbffe7-f12f-47fb-b3e6-20e1fc482c1b
       X-Runtime:
-      - '0.021739'
-      X-Xss-Protection:
-      - '0'
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - application/json; version=2
-      Accept-Encoding:
-      - gzip, deflate, br, zstd
-      Connection:
-      - keep-alive
-      User-Agent:
-      - EXtra/2024.1.1.184+03da3c1
-      content-type:
-      - application/json
-    method: GET
-    uri: http://exflcalproxy.desy.de:8080/api/detectors?identifier=MID_DET_AGIPD1M-1
-  response:
-    body:
-      string: '[{"id":4,"name":"MID_DET_AGIPD1M-1","identifier":"MID_DET_AGIPD1M-1","karabo_name":"MID_DET_AGIPD1M-1","karabo_id_control":"MID_EXP_AGIPD1M1","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":4,"detector_id":4},{"instrument_id":7,"detector_id":4}]}]'
-    headers:
-      Cache-Control:
-      - max-age=0, private, must-revalidate
-      Content-Length:
-      - '359'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Fri, 08 Nov 2024 14:31:53 GMT
-      Etag:
-      - W/"482ffe83a86d14688f9ee0fa415bd62a"
-      Keep-Alive:
-      - timeout=5, max=100
-      Referrer-Policy:
-      - strict-origin-when-cross-origin
-      Server:
-      - Apache
-      Status:
-      - 200 OK
-      Strict-Transport-Security:
-      - max-age=16070400; includeSubDomains
-      Vary:
-      - Origin
-      Via:
-      - HTTP/1.1 xfel_oauth_proxy
-      X-Content-Type-Options:
-      - nosniff
-      X-Count-Per-Page:
-      - '100'
-      X-Current-Page:
-      - '1'
-      X-Download-Options:
-      - noopen
-      X-Frame-Options:
-      - SAMEORIGIN
-      X-Permitted-Cross-Domain-Policies:
-      - none
-      X-Powered-By:
-      - Phusion Passenger(R)
-      X-Request-Id:
-      - 01a51413-57e9-43ae-9c9e-73c94a012e28
-      X-Runtime:
-      - '0.020753'
-      X-Total-Count:
-      - '1'
-      X-Total-Pages:
-      - '1'
+      - '0.017486'
       X-Xss-Protection:
       - '0'
     status:
@@ -142,25 +70,25 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2025.1.105+5a88200
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
     uri: http://exflcalproxy.desy.de:8080/api/detectors?identifier=SQS_DET_DSSC1M-1
   response:
     body:
-      string: '[{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":2,"detector_id":28},{"instrument_id":7,"detector_id":28}]}]'
+      string: '[{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":16,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":2,"detector_id":28},{"instrument_id":7,"detector_id":28}]}]'
     headers:
       Cache-Control:
       - max-age=0, private, must-revalidate
       Content-Length:
-      - '355'
+      - '353'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 16 Oct 2025 08:58:29 GMT
+      - Wed, 12 Nov 2025 09:52:22 GMT
       Etag:
-      - W/"a8d2d9773c98d7aa08414d4272e23394"
+      - W/"38699660786c33246fb4e6c8fd4a6dc4"
       Keep-Alive:
       - timeout=5, max=100
       Referrer-Policy:
@@ -188,9 +116,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - df71dc29-293f-498c-88a2-d97ad10c486a
+      - f64d8251-ca02-439f-92df-3c9efcc43e71
       X-Runtime:
-      - '0.023405'
+      - '0.023918'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -210,25 +138,25 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2025.1.105+5a88200
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
     uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=28&pdu_snapshot_at=2023-11-29+00%3A00%3A00
   response:
     body:
-      string: '[{"id":121,"physical_name":"DSSC_MiniSDDV1_F2_004","karabo_da":"DSSC00","virtual_device_name":"Q1M1","uuid":404000400000,"float_uuid":1.99602718546e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":120,"physical_name":"DSSC_MiniSDDV1_F2_003","karabo_da":"DSSC01","virtual_device_name":"Q1M2","uuid":404000300000,"float_uuid":1.996026691396e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":119,"physical_name":"DSSC_MiniSDDV1_F2_002","karabo_da":"DSSC02","virtual_device_name":"Q1M3","uuid":404000200000,"float_uuid":1.99602619733e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":118,"physical_name":"DSSC_MiniSDDV1_F2_001","karabo_da":"DSSC03","virtual_device_name":"Q1M4","uuid":404000100000,"float_uuid":1.996025703264e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":126,"physical_name":"DSSC_MiniSDDV1_F2_009","karabo_da":"DSSC08","virtual_device_name":"Q3M1","uuid":404000900000,"float_uuid":1.99602965579e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":127,"physical_name":"DSSC_MiniSDDV1_F2_010","karabo_da":"DSSC09","virtual_device_name":"Q3M2","uuid":404001000000,"float_uuid":1.996030149855e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":128,"physical_name":"DSSC_MiniSDDV1_F2_011","karabo_da":"DSSC10","virtual_device_name":"Q3M3","uuid":404001100000,"float_uuid":1.99603064392e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":129,"physical_name":"DSSC_MiniSDDV1_F2_012","karabo_da":"DSSC11","virtual_device_name":"Q3M4","uuid":404001200000,"float_uuid":1.996031137986e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":130,"physical_name":"DSSC_MiniSDDV1_F2_013","karabo_da":"DSSC12","virtual_device_name":"Q4M1","uuid":404001300000,"float_uuid":1.99603163205e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":131,"physical_name":"DSSC_MiniSDDV1_F2_014","karabo_da":"DSSC13","virtual_device_name":"Q4M2","uuid":404001400000,"float_uuid":1.99603212612e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":132,"physical_name":"DSSC_MiniSDDV1_F2_015","karabo_da":"DSSC14","virtual_device_name":"Q4M3","uuid":404001500000,"float_uuid":1.996032620183e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":133,"physical_name":"DSSC_MiniSDDV1_F2_016","karabo_da":"DSSC15","virtual_device_name":"Q4M4","uuid":404001600000,"float_uuid":1.99603311425e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}}]'
+      string: '[{"id":121,"physical_name":"DSSC_MiniSDDV1_F2_004","karabo_da":"DSSC00","virtual_device_name":"Q1M1","uuid":404000400000,"float_uuid":1.99602718546e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":16,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":120,"physical_name":"DSSC_MiniSDDV1_F2_003","karabo_da":"DSSC01","virtual_device_name":"Q1M2","uuid":404000300000,"float_uuid":1.996026691396e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":16,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":119,"physical_name":"DSSC_MiniSDDV1_F2_002","karabo_da":"DSSC02","virtual_device_name":"Q1M3","uuid":404000200000,"float_uuid":1.99602619733e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":16,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":118,"physical_name":"DSSC_MiniSDDV1_F2_001","karabo_da":"DSSC03","virtual_device_name":"Q1M4","uuid":404000100000,"float_uuid":1.996025703264e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":16,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":126,"physical_name":"DSSC_MiniSDDV1_F2_009","karabo_da":"DSSC08","virtual_device_name":"Q3M1","uuid":404000900000,"float_uuid":1.99602965579e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":16,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":127,"physical_name":"DSSC_MiniSDDV1_F2_010","karabo_da":"DSSC09","virtual_device_name":"Q3M2","uuid":404001000000,"float_uuid":1.996030149855e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":16,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":128,"physical_name":"DSSC_MiniSDDV1_F2_011","karabo_da":"DSSC10","virtual_device_name":"Q3M3","uuid":404001100000,"float_uuid":1.99603064392e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":16,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":129,"physical_name":"DSSC_MiniSDDV1_F2_012","karabo_da":"DSSC11","virtual_device_name":"Q3M4","uuid":404001200000,"float_uuid":1.996031137986e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":16,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":130,"physical_name":"DSSC_MiniSDDV1_F2_013","karabo_da":"DSSC12","virtual_device_name":"Q4M1","uuid":404001300000,"float_uuid":1.99603163205e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":16,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":131,"physical_name":"DSSC_MiniSDDV1_F2_014","karabo_da":"DSSC13","virtual_device_name":"Q4M2","uuid":404001400000,"float_uuid":1.99603212612e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":16,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":132,"physical_name":"DSSC_MiniSDDV1_F2_015","karabo_da":"DSSC14","virtual_device_name":"Q4M3","uuid":404001500000,"float_uuid":1.996032620183e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":16,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}},{"id":133,"physical_name":"DSSC_MiniSDDV1_F2_016","karabo_da":"DSSC15","virtual_device_name":"Q4M4","uuid":404001600000,"float_uuid":1.99603311425e-312,"detector_type_id":7,"detector_id":28,"module_number":null,"flg_available":true,"description":null,"detector":{"id":28,"name":"SQS_DET_DSSC1M-1","identifier":"SQS_DET_DSSC1M-1","karabo_name":"SQS_DET_DSSC1M-1","karabo_id_control":"SQS_NQS_DSSC","source_name_pattern":null,"number_of_modules":16,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":7,"name":"DSSC-Type","flg_available":true,"description":null}}]'
     headers:
       Cache-Control:
       - max-age=0, private, must-revalidate
       Content-Length:
-      - '7218'
+      - '7194'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 16 Oct 2025 08:58:29 GMT
+      - Wed, 12 Nov 2025 09:52:22 GMT
       Etag:
-      - W/"8306e1d172eb64a33186dde32e2e7bba"
+      - W/"edef7ac6d7f9bfd0fbce69d666bbb327"
       Keep-Alive:
       - timeout=5, max=100
       Referrer-Policy:
@@ -252,9 +180,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - ee46ef78-85c7-4df8-994e-9f0a854cfa58
+      - aa743820-5eae-4944-9c2e-0f86707ecc21
       X-Runtime:
-      - '0.524134'
+      - '0.382675'
       X-Xss-Protection:
       - '0'
     status:
@@ -270,7 +198,7 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2025.1.105+5a88200
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
@@ -286,7 +214,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 16 Oct 2025 08:58:30 GMT
+      - Wed, 12 Nov 2025 09:52:23 GMT
       Etag:
       - W/"41e8088cc44ad976e577e40482d74dfb"
       Keep-Alive:
@@ -316,9 +244,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 9f6eb375-343e-4278-be87-6d84092bb61a
+      - 5443cfb9-e514-4b04-94d4-fab9f19b03c0
       X-Runtime:
-      - '0.026962'
+      - '0.021379'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -338,7 +266,7 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - EXtra/2025.1.105+5a88200
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
@@ -355,7 +283,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 16 Oct 2025 08:58:30 GMT
+      - Wed, 12 Nov 2025 09:52:23 GMT
       Etag:
       - W/"f1826d5b0b4d30aa8e2a90eb504451d1"
       Keep-Alive:
@@ -385,9 +313,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 8dd611d2-87d7-4ab0-9c75-6345237063c6
+      - a6e6370e-d7c3-4f4b-aea0-5ac335c94da8
       X-Runtime:
-      - '0.029018'
+      - '0.020564'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -411,7 +339,7 @@ interactions:
       Content-Length:
       - '245'
       User-Agent:
-      - EXtra/2025.1.105+5a88200
+      - EXtra/2025.1.131+fdd37f4
       content-type:
       - application/json
     method: GET
@@ -499,7 +427,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 16 Oct 2025 08:58:30 GMT
+      - Wed, 12 Nov 2025 09:52:23 GMT
       Etag:
       - W/"1a0189659154ceeb56b3374bd5072c84"
       Keep-Alive:
@@ -525,9 +453,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - ca05c13a-ee1b-42b2-bbdb-f727f8b7594b
+      - e94b616a-7dbc-4fb0-b045-80b0126b4c29
       X-Runtime:
-      - '1.055998'
+      - '0.798318'
       X-Xss-Protection:
       - '0'
     status:
