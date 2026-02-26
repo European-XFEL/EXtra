@@ -843,18 +843,22 @@ class CookieboxCalibration(SerializableMixin):
             iisig = 10 #np.sqrt(np.sum((x -ii)**2*(y-np.min(y)))/np.sum(y-np.min(y)))
             result = gmodel.fit(y, x=x, center=x[ii], amplitude=np.max(y), sigma=iisig, c=np.median(y))
             # we care about the normalization coefficient, not the normalized amplitude
-            A += [result.best_values["amplitude"]]
+            #A += [result.best_values["amplitude"]]
+            m = result.best_values["center"]
+            s = result.best_values["sigma"]
+            norm = np.sum(y[int(m-2*s-start_roi):int(m+2*s-start_roi)])
+            A += [norm]
             mu += [result.best_values["center"]]
             sigma += [result.best_values["sigma"]]
             energy += [energies[e]]
             offset += [result.best_values["c"]]
             mu_auger += [resulta.best_values["center"]]
             # integrate Auger
-            #m = resulta.best_values["center"]
-            #s = resulta.best_values["sigma"]
-            #norm_auger = np.sum(ya[int(m-2*s):int(m+2*s)])
-            Aa += [resulta.best_values["amplitude"]]
-            #Aa += [norm_auger]
+            m = resulta.best_values["center"]
+            s = resulta.best_values["sigma"]
+            norm_auger = np.sum(ya[int(m-2*s-auger_start_roi):int(m+2*s-auger_start_roi)])
+            Aa += [norm_auger]
+            #Aa += [resulta.best_values["amplitude"]]
         energy = np.array(energy)
         mu = np.array(mu)
         mu_auger = np.array(mu_auger)
