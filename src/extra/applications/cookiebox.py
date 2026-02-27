@@ -335,7 +335,7 @@ class CookieboxCalibration(SerializableMixin):
                  parallel: bool=True,
                  beta: float=2.0,
                  tilt: float=0.0,
-                 P1: float=1.0,
+                 P1: float=1.0
                 ):
         self._init_auger_start_roi = auger_start_roi
         self._init_start_roi = start_roi
@@ -360,8 +360,7 @@ class CookieboxCalibration(SerializableMixin):
                                "cm_period",
                                "interleaved",
                                "single_pulse_length",
-                               "extra_cm_period",
-                               "baseline_filter"]
+                               "extra_cm_period"]
         self._all_fields = ["_energy_axis",
                             "kwargs_adq",
                             "_auger_start_roi",
