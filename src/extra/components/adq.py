@@ -6,18 +6,12 @@ import re
 import numpy as np
 import pandas as pd
 
-from scipy.signal import fftconvolve, firwin
-
 from extra_data import by_id
 from extra_data.read_machinery import roi_shape
 from .pulses import XrayPulses, PulsePattern
 from .utils import _isinstance_no_import
 from ._adq import _reshape_flat_pulses
 
-def highpass_filter(x, n_win, N=1000):
-    f = 1.0/float(n_win)
-    b = firwin(N, f, window=('hamming'), pass_zero=False, fs=1.0)
-    return fftconvolve(x, b[np.newaxis, :], axes=-1, mode='same').astype(x.dtype)
 
 class AdqRawChannel:
     """A high-level interface to raw output of ADQ digitizer channels.
@@ -101,10 +95,6 @@ class AdqRawChannel:
             specified otherwise here.
         extra_cm_period (list, optional): Apply the common mode correction
             sequentially with the settings in the list.
-        baseline_filter (int): If nonzero, apply a filter for
-            additional baseline correction with the digital frequency given by
-            the inverse of this number.
-        baseline_window (int): Window size for baseline filter.
     """
 
     # 4.5 Mhz, see extra.components.pulses.
@@ -122,8 +112,7 @@ class AdqRawChannel:
                  interleaved=None, clock_ratio=None, sample_dim='sample',
                  first_pulse_offset=10000, single_pulse_length=25000,
                  cm_period=None, baselevel=None, baseline=np.s_[:1000],
-                 extra_cm_period = list(), baseline_filter=0,
-                 baseline_window=1001):
+                 extra_cm_period = list()):
         if digitizer is None or digitizer not in data.instrument_sources:
             digitizer = self._find_adq_pipeline(data, digitizer or '')
 
@@ -208,8 +197,6 @@ class AdqRawChannel:
         self._extra_cm_period = list(extra_cm_period)
         self._baselevel = baselevel
         self._baseline = baseline
-        self._baseline_filter = baseline_filter
-        self._baseline_window = baseline_window
 
     def __repr__(self):
         source = self._instrument_src.source
@@ -241,8 +228,7 @@ class AdqRawChannel:
         return digitizers.pop()
 
     @staticmethod
-    def _correct_cm_by_train(signal, out, period, baseline, baselevel=None,
-                             baseline_filter=None, baseline_window=None):
+    def _correct_cm_by_train(signal, out, period, baseline, baselevel=None):
         """Correct common mode in signal by each train trace."""
 
         if isinstance(baseline, slice):
@@ -265,12 +251,8 @@ class AdqRawChannel:
                     baseline[..., sel].mean(axis=signal.ndim - 1)[..., None],
                     out=out[..., sel], casting='safe')
 
-        if isinstance(baseline_filter, int) and baseline_filter > 1:
-            out[:] = highpass_filter(out, baseline_filter, baseline_window)
-
     @staticmethod
-    def _correct_cm_by_mean(signal, out, period, baseline, baselevel=None,
-                            baseline_filter=None, baseline_window=None):
+    def _correct_cm_by_mean(signal, out, period, baseline, baselevel=None):
         """Correct common mode in signal by the mean trace."""
 
         if isinstance(baseline, slice):
@@ -284,13 +266,8 @@ class AdqRawChannel:
             np.subtract(signal[..., sel], baseline[sel].mean(),
                         out=out[..., sel], casting='safe')
 
-        if isinstance(baseline_filter, int) and baseline_filter > 1:
-            out[:] = highpass_filter(out, baseline_filter, baseline_window)
-
-
     @staticmethod
-    def _pull_to_baselevel(signal, out, baseline, baselevel=None,
-                           baseline_filter=None, baseline_window=None):
+    def _pull_to_baselevel(signal, out, baseline, baselevel=None):
         """Pull baseline to a certain level."""
 
         if isinstance(baseline, slice):
@@ -301,9 +278,6 @@ class AdqRawChannel:
             correction -= baselevel
 
         np.subtract(signal, correction[..., None], out=out, casting='unsafe')
-
-        if isinstance(baseline_filter, int) and baseline_filter > 1:
-            out[:] = highpass_filter(out, baseline_filter, baseline_window)
 
     @staticmethod
     def _minimize_ragged_array(array):
@@ -383,10 +357,10 @@ class AdqRawChannel:
         if self._cm_period > 0:
             # Apply common mode corrections (includes baselevel).
             self._correct_cm_by_train(data, out, [self._cm_period] + list(self._extra_cm_period),
-                                      self._baseline, self._baselevel, self._baseline_filter, self._baseline_window)
+                                      self._baseline, self._baselevel)
 
         elif self._baselevel is not None:
-            self._pull_to_baselevel(data, out, self._baseline, self._baselevel, self._baseline_filter, self._baseline_window)
+            self._pull_to_baselevel(data, out, self._baseline, self._baselevel)
 
         return out
 
@@ -732,8 +706,7 @@ class AdqRawChannel:
 
         return self._clock_ratio * pulse_period
 
-    def correct_common_mode(self, data, cm_period, baseline, baselevel=None,
-                            baseline_filter=None):
+    def correct_common_mode(self, data, cm_period, baseline, baselevel=None):
         """Correct common mode.
 
         For ADQ digitizers, a common mode is present for every Nth
@@ -756,8 +729,6 @@ class AdqRawChannel:
             baselevel (float or None, optional): ADU value to pull the
                 baseline to, None by default which implicitly pulls the
                 baseline to 0.
-            baseline_filter (int or None, optional): Filter length
-                applied to the signal to obtain a background template.
 
         Returns:
             out (numpy.ndarray): Corrected input data, same dtype as
@@ -772,11 +743,11 @@ class AdqRawChannel:
 
         out = np.zeros_like(data, dtype=data.dtype \
             if np.issubdtype(data.dtype, np.floating) else np.float32)
-        self._correct_cm_by_train(data, out, cm_period, baseline, baselevel, baseline_filter)
+        self._correct_cm_by_train(data, out, cm_period, baseline, baselevel)
 
         return out
 
-    def pull_baseline(self, data, baseline, baselevel, baseline_filter):
+    def pull_baseline(self, data, baseline, baselevel):
         """Pull baseline to certain level.
 
         The signal baseline may be at different values than 0 either
@@ -792,8 +763,6 @@ class AdqRawChannel:
                 or direct baseline data to use.
             baselevel (float): ADU value to pull the baseline
                 to.
-            baseline_filter (int): Filter length applied to the signal
-                to obtain a background template.
 
         Returns:
             out (numpy.ndarray): Modified input data.
@@ -803,7 +772,7 @@ class AdqRawChannel:
             data = np.asarray(data)
 
         out = np.zeros_like(data, dtype=np.float32)
-        self._pull_to_baselevel(data, out, baseline, baselevel, baseline_filter)
+        self._pull_to_baselevel(data, out, baseline, baselevel)
 
         return out
 
