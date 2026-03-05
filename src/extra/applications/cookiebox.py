@@ -905,8 +905,9 @@ class CookieboxCalibration(SerializableMixin):
         #0.5*(1 + beta*(3*np.cos(theta)**2 - 1)/2)
         detected = self.tof_fit_result[tof_id].A
         #produced = self.calibration_mean_xgm[tof_id] * self.tof_fit_result[tof_id].Aa * dsig_dth
-        produced = self.tof_fit_result[tof_id].Aa * dsig_dth
-        en = detected[mask][eidx]/produced[mask][eidx]
+        #produced = self.tof_fit_result[tof_id].Aa * dsig_dth
+        produced = dsig_dth
+        en = detected[mask][eidx]/produced
         # interpolate normalization
         self.normalization[tof_id] = np.interp(self.energy_axis,
                                                ee,
@@ -989,7 +990,7 @@ class CookieboxCalibration(SerializableMixin):
             a.plot(self.energy_axis, self.normalization[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
         for a in ax:
             a.set(xlabel="Energy [eV]",
-                  ylabel=r"$\frac{\mathrm{detected}}{\mathrm{Auger-Meitner} \times \mathrm{polarization} \, \mathrm{effect}}$")
+                  ylabel=r"$\frac{\mathrm{detected}}{\mathrm{polarization} \, \mathrm{effect}}$")
             a.legend(frameon=False, ncols=2)
 
     def plot_offsets(self):
