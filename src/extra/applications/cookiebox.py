@@ -12,6 +12,7 @@ from extra_data import open_run, by_id, DataCollection
 import h5py
 import xarray as xr
 import pandas as pd
+from scipy.signal import find_peaks
 
 from .base import SerializableMixin
 from .cookiebox_deconvolve import TOFAnalogResponse
@@ -812,8 +813,6 @@ class CookieboxCalibration(SerializableMixin):
 
         Returns: Energy vector used, means and std. dev. in the sample axis scale, and integral of Gaussian.
         """
-        from lmfit.models import GaussianModel, ConstantModel
-        from lmfit.model import ModelResult
         energies = self.calibration_energies
         data = self.calibration_data[tof_id]
         mu = list()
@@ -827,37 +826,46 @@ class CookieboxCalibration(SerializableMixin):
         start_roi = self.start_roi[tof_id]
         stop_roi = self.stop_roi[tof_id]
         for e in range(data.shape[0]):
-            # fit Auger
-            xa = np.arange(auger_start_roi, start_roi)
-            ya = data[e, auger_start_roi:start_roi]
-            gamodel = GaussianModel() + ConstantModel()
-            ii = np.argmax(ya)
-            iisig = 2 #np.sqrt(np.sum((xa -ii)**2*(ya-np.min(ya)))/np.sum(ya-np.min(ya)))
-            resulta = gamodel.fit(ya, x=xa, center=xa[ii], amplitude=np.max(ya), sigma=iisig, c=np.median(ya))
-            # fit data
-            x = np.arange(start_roi, stop_roi)
-            y = data[e, start_roi:stop_roi]
-            gmodel = GaussianModel() + ConstantModel()
-            ii = np.argmax(y)
-            iisig = 10 #np.sqrt(np.sum((x -ii)**2*(y-np.min(y)))/np.sum(y-np.min(y)))
-            result = gmodel.fit(y, x=x, center=x[ii], amplitude=np.max(y), sigma=iisig, c=np.median(y))
-            # we care about the normalization coefficient, not the normalized amplitude
-            #A += [result.best_values["amplitude"]]
-            m = result.best_values["center"]
-            s = result.best_values["sigma"]
-            norm = np.sum(y[int(m-2*s-start_roi):int(m+2*s-start_roi)])
-            A += [norm]
-            mu += [result.best_values["center"]]
-            sigma += [result.best_values["sigma"]]
+            # get offset
+            o = np.min(data[e, :])
+            offset += [o]
+            # store energy
             energy += [energies[e]]
-            offset += [result.best_values["c"]]
-            mu_auger += [resulta.best_values["center"]]
-            # integrate Auger
-            m = resulta.best_values["center"]
-            s = resulta.best_values["sigma"]
-            norm_auger = np.sum(ya[int(m-2*s-auger_start_roi):int(m+2*s-auger_start_roi)])
-            Aa += [norm_auger]
-            #Aa += [resulta.best_values["amplitude"]]
+            # get Auger
+            peak, peak_dict = find_peaks(data[e, auger_start_roi:start_roi],
+                                         prominence=0.25,
+                                         distance=10,
+                                         width=0,
+                                         height=0)
+            if len(peak) == 0:
+                Aa += [0]
+                mu_auger += [0]
+            else:
+                peak_heights = peak_dict['peak_heights']
+                peak_widths = peak_dict['widths']
+                highest_peak_index = peak[np.argmax(peak_heights)]
+                highest_peak_index += auger_start_roi
+                mu_auger += [highest_peak_index]
+                s = int(peak_widths[np.argmax(peak_heights)]/2.355)
+                Aa += [np.sum(data[e, highest_peak_index-2*s:highest_peak_index+2*s] - o)]
+            # get photon line
+            peak, peaks_dict = find_peaks(data[e, start_roi:stop_roi],
+                                          prominence=0.25,
+                                          distance=10,
+                                          width=0,
+                                          height=0)
+            if len(peak) == 0:
+                A += [0]
+                mu += [0]
+            else:
+                peak_heights = peaks_dict['peak_heights']
+                peak_widths = peaks_dict['widths']
+                highest_peak_index = peak[np.argmax(peak_heights)]
+                highest_peak_index += start_roi
+                mu += [highest_peak_index]
+                s = int(peak_widths[np.argmax(peak_heights)]/2.355)
+                sigma += [s]
+                A += [np.sum(data[e, highest_peak_index-2*s:highest_peak_index+2*s] - o)]
         energy = np.array(energy)
         mu = np.array(mu)
         mu_auger = np.array(mu_auger)
@@ -1054,34 +1062,25 @@ class CookieboxCalibration(SerializableMixin):
         Args:
           tof_id: eTOF ID.
         """
-        from lmfit.models import GaussianModel, ConstantModel
-        from lmfit.model import ModelResult
         import matplotlib.pyplot as plt
-        from matplotlib.colors import CSS4_COLORS
         data = self.calibration_data[tof_id]
         auger_start_roi = self.auger_start_roi[tof_id]
         start_roi = self.start_roi[tof_id]
         stop_roi = self.stop_roi[tof_id]
         ts = np.arange(auger_start_roi, stop_roi)
+
         fig = plt.figure(figsize=(20,10))
-        for e, c in zip(range(data.shape[0]), CSS4_COLORS.keys()):
+        prop_cycle = plt.rcParams['axes.prop_cycle']
+        colors = prop_cycle.by_key()['color']
+
+        for e, c in zip(range(data.shape[0]), colors):
             energy = self.calibration_energies[e]
-            plt.scatter(ts, data[e,auger_start_roi:stop_roi], c=c, label=f"{energy:.1f} eV")
+
             mu = self.tof_fit_result[tof_id].mu[e]
-            amplitude = self.tof_fit_result[tof_id].A[e]
-            sigma = self.tof_fit_result[tof_id].sigma[e]
-            offset = self.tof_fit_result[tof_id].offset[e]
-            gmodel = GaussianModel() + ConstantModel()
-            gresult = ModelResult(gmodel, gmodel.make_params(center=mu, amplitude=amplitude, sigma=sigma, c=offset))
-            plt.plot(ts, gresult.eval(x=ts), c=c, lw=2)
+            plt.plot(ts, data[e,auger_start_roi:stop_roi], c=c, alpha=0.5,
+                     label=f"{energy:.1f} eV")
+            plt.axvline(mu, ls='--', lw=2, c=c, alpha=0.5)
 
-            #auger_amplitude = self.tof_fit_result[tof_id].Aa[e]
-            #mu_auger = self.tof_fit_result[tof_id].mu_auger[e]
-            #sigma_auger = self.tof_fit_result[tof_id].sigma[e]
-            #gmodela = GaussianModel()
-            #gresulta = ModelResult(gmodela, gmodela.make_params(center=mu_auger, amplitude=auger_amplitude, sigma=sigma_auger))
-
-            #plt.plot(ts, gresulta.eval(x=ts), c=c, lw=4, ls="--")
         plt.xlabel("Samples")
         plt.ylabel("Intensty [a.u.]")
         plt.legend()
