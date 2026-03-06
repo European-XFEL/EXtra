@@ -846,8 +846,8 @@ class CookieboxCalibration(SerializableMixin):
                 highest_peak_index = peak[np.argmax(peak_heights)]
                 highest_peak_index += auger_start_roi
                 mu_auger += [highest_peak_index]
-                s = int(peak_widths[np.argmax(peak_heights)]/2.355)
-                Aa += [np.sum(data[e, highest_peak_index-2*s:highest_peak_index+2*s] - o)]
+                s = peak_widths[np.argmax(peak_heights)]/2.355
+                Aa += [np.sum(data[e, int(highest_peak_index-3*s):int(highest_peak_index+3*s)] - o)]
             # get photon line
             peak, peaks_dict = find_peaks(data[e, start_roi:stop_roi],
                                           prominence=0.25,
@@ -863,9 +863,9 @@ class CookieboxCalibration(SerializableMixin):
                 highest_peak_index = peak[np.argmax(peak_heights)]
                 highest_peak_index += start_roi
                 mu += [highest_peak_index]
-                s = int(peak_widths[np.argmax(peak_heights)]/2.355)
+                s = peak_widths[np.argmax(peak_heights)]/2.355
                 sigma += [s]
-                A += [np.sum(data[e, highest_peak_index-2*s:highest_peak_index+2*s] - o)]
+                A += [np.sum(data[e, int(highest_peak_index-3*s):int(highest_peak_index+3*s)] - o)]
         energy = np.array(energy)
         mu = np.array(mu)
         mu_auger = np.array(mu_auger)
