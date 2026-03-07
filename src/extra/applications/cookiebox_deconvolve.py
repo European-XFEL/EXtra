@@ -11,7 +11,6 @@ import logging
 from extra.components import AdqRawChannel, Scan
 from extra_data import by_id
 
-
 def clip_at_zero(x):
     return np.clip(x, a_min=0, a_max=None)
 
@@ -443,21 +442,20 @@ class TOFAnalogResponse(SerializableMixin):
 
         # get pulse data
         logging.info("Get pulse data ...")
-        this_tof_data = -tof.pulse_data(pulse_dim='pulseIndex')
-        if self.roi is not None:
-            this_tof_data = this_tof_data.isel(sample=self.roi)
-        this_tof_data = this_tof_data.unstack('pulse')
-
-        # get means
-        logging.info("Get energy means ...")
         h_axis = np.arange(self.n_samples)
         data = list()
         h = list()
         if scan is not None:
             for k, e in enumerate(scan.positions):
-                data += [this_tof_data.sel(trainId=scan.positions_train_ids[k]).mean('trainId').mean('pulseIndex').to_numpy()]
+                this_tof_data = -tof.select_trains(by_id[scan.position_train_ids[k]]).pulse_data(pulse_dim="pulseIndex")
+                if self.roi is not None:
+                    this_tof_data = this_tof_data.isel(sample=self.roi)
+                data += [this_tof_data.mean('pulse').to_numpy()]
         else:
-            data += [this_tof_data.mean('trainId').mean('pulseIndex').to_numpy()]
+            this_tof_data = -tof.pulse_data(pulse_dim="pulseIndex")
+            if self.roi is not None:
+                this_tof_data = this_tof_data.isel(sample=self.roi)
+            data += [this_tof_data.mean('pulse').to_numpy()]
 
         for d in data:
             this_h = self.shift_h(d, h_axis)
