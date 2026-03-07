@@ -398,17 +398,22 @@ class CookieboxCalibration(SerializableMixin):
         """
         for k, v in all_data.items():
             setattr(self, k, v)
-        self.tof_fit_result = {k: TofFitResult(**v) for k, v in self.tof_fit_result.items()}
-        self._auger_start_roi = {int(k): v for k, v in self._auger_start_roi.items()}
-        self._start_roi = {int(k): v for k, v in self._start_roi.items()}
-        self._stop_roi = {int(k): v for k, v in self._stop_roi.items()}
-        self.mask = {int(k): v for k, v in self.mask.items()}
-        self.calibration_mask = {int(k): v for k, v in self.calibration_mask.items()}
-        self.kwargs_adq = {int(k): v for k, v in self.kwargs_adq.items()}
+        sort_dict = lambda x: dict(sorted(x.items(), key=lambda item: item[0]))
+        self.tof_fit_result = sort_dict({int(k): TofFitResult(**v) for k, v in self.tof_fit_result.items()})
+        self._auger_start_roi = sort_dict({int(k): v for k, v in self._auger_start_roi.items()})
+        self._start_roi = sort_dict({int(k): v for k, v in self._start_roi.items()})
+        self._stop_roi = sort_dict({int(k): v for k, v in self._stop_roi.items()})
+        self.mask = sort_dict({int(k): v for k, v in self.mask.items()})
+        self.model_params = sort_dict({int(k): v for k, v in self.model_params.items()})
+        self.jacobian = sort_dict({int(k): v for k, v in self.jacobian.items()})
+        self.normalization = sort_dict({int(k): v for k, v in self.normalization.items()})
+        self.offset = sort_dict({int(k): v for k, v in self.offset.items()})
+        self.calibration_mask = sort_dict({int(k): v for k, v in self.calibration_mask.items()})
+        self.kwargs_adq = sort_dict({int(k): v for k, v in self.kwargs_adq.items()})
         self._tof_response = None
         if "_tof_response" in all_data.keys():
             self._tof_response = dict()
-            for tof_id in all_data["_tof_response"].keys():
+            for tof_id in sorted(all_data["_tof_response"].keys()):
                 self._tof_response[tof_id] = TOFAnalogResponse()
                 self._tof_response[tof_id]._fromdict(all_data["_tof_response"][tof_id])
 
@@ -1052,12 +1057,12 @@ class CookieboxCalibration(SerializableMixin):
             if eV_per_sample:
                 a.set(xlabel="Energy [eV]",
                       ylabel=r"$\left\vert\frac{dE}{dt}\right\vert$ [eV/samp.]",
-                      ylim=(0, 15),
+                      ylim=(0, 5),
                       )
             else:
                 a.set(xlabel="Energy [eV]",
                       ylabel=r"$\left\vert\frac{dt}{dE}\right\vert$ [samp./eV]",
-                      ylim=(0, 15),
+                      ylim=(0, 5),
                       )
             a.legend(frameon=False, ncols=2)
 
