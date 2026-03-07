@@ -950,7 +950,9 @@ class CookieboxCalibration(SerializableMixin):
             a.plot(ts, e, c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
         for a in ax:
             a.set(xlabel="Samples",
-                  ylabel="Energy [eV]")
+                  ylabel="Energy [eV]",
+                  ylim=(self.energy_axis[0]-2, self.energy_axis[-1]+2),
+                  )
             a.legend(frameon=False, ncols=2)
 
     def plot_diagnostics(self, tof_id: int):
@@ -1049,18 +1051,23 @@ class CookieboxCalibration(SerializableMixin):
         for a in ax:
             if eV_per_sample:
                 a.set(xlabel="Energy [eV]",
-                      ylabel=r"$\left\vert\frac{dE}{dt}\right\vert$ [eV/samp.]")
+                      ylabel=r"$\left\vert\frac{dE}{dt}\right\vert$ [eV/samp.]",
+                      ylim=(0, 15),
+                      )
             else:
                 a.set(xlabel="Energy [eV]",
-                      ylabel=r"$\left\vert\frac{dt}{dE}\right\vert$ [samp./eV]")
+                      ylabel=r"$\left\vert\frac{dt}{dE}\right\vert$ [samp./eV]",
+                      ylim=(0, 15),
+                      )
             a.legend(frameon=False, ncols=2)
 
-    def plot_fit(self, tof_id: int):
+    def plot_fit(self, tof_id: int, ax=None):
         """
         Diagnostics plots for fit.
 
         Args:
           tof_id: eTOF ID.
+          ax: Axis in which to plot.
         """
         import matplotlib.pyplot as plt
         data = self.calibration_data[tof_id]
@@ -1069,7 +1076,10 @@ class CookieboxCalibration(SerializableMixin):
         stop_roi = self.stop_roi[tof_id]
         ts = np.arange(auger_start_roi, stop_roi)
 
-        fig = plt.figure(figsize=(20,10))
+        if ax is None:
+            fig = plt.figure(figsize=(20,10))
+            ax = plt.gca()
+
         prop_cycle = plt.rcParams['axes.prop_cycle']
         colors = prop_cycle.by_key()['color']
 
@@ -1077,14 +1087,14 @@ class CookieboxCalibration(SerializableMixin):
             energy = self.calibration_energies[e]
 
             mu = self.tof_fit_result[tof_id].mu[e]
-            plt.plot(ts, data[e,auger_start_roi:stop_roi], c=c, alpha=0.5,
+            ax.plot(ts, data[e,auger_start_roi:stop_roi], c=c, alpha=0.5,
                      label=f"{energy:.1f} eV")
-            plt.axvline(mu, ls='--', lw=2, c=c, alpha=0.5)
+            ax.axvline(mu, ls='--', lw=2, c=c, alpha=0.5)
 
-        plt.xlabel("Samples")
-        plt.ylabel("Intensty [a.u.]")
-        plt.legend()
-        plt.title(f"TOF {tof_id}")
+        ax.set_xlabel("Samples")
+        ax.set_ylabel("Intensty [a.u.]")
+        ax.legend(frameon=False)
+        ax.set_title(f"TOF {tof_id}")
 
     def load_trace(self, run: DataCollection, **extra_kwargs_adq: Dict[str, Any]) -> xr.Dataset:
         """
