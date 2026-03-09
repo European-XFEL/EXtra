@@ -448,7 +448,7 @@ class TOFAnalogResponse(SerializableMixin):
         h = list()
         if scan is not None:
             for k, e in enumerate(scan.positions):
-                this_tof_data = -tof.select_trains(by_id[scan.position_train_ids[k]]).pulse_data(pulse_dim="pulseIndex")
+                this_tof_data = -tof.select_trains(by_id[scan.positions_train_ids[k]]).pulse_data(pulse_dim="pulseIndex")
                 if self.roi is not None:
                     this_tof_data = this_tof_data.isel(sample=self.roi)
                 data += [this_tof_data.mean('pulse').to_numpy()]
