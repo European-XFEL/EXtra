@@ -920,6 +920,8 @@ class CookieboxCalibration(SerializableMixin):
         #produced = self.calibration_mean_xgm[tof_id] * self.tof_fit_result[tof_id].Aa * dsig_dth
         #produced = self.tof_fit_result[tof_id].Aa * dsig_dth
         produced = dsig_dth
+        if produced == 0:
+            produced += 1e-1
         en = detected[mask][eidx]/produced
         # interpolate normalization
         self.normalization[tof_id] = np.interp(self.energy_axis,
