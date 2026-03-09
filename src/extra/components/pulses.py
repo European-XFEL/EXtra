@@ -47,7 +47,8 @@ class PulsePattern:
     # System Specification, Version 2.2 (2013). The original table may
     # have up to 7222 entries at 9 MHz with the Karabo Timeserver device
     # only forwarding the even places at 4.5 MHz.
-    _bunch_pattern_table_len = 3611
+    # This was increasd from 3611 to 4096 entries during the LIMP 2025.
+    _bunch_pattern_table_len = 4096
 
     def __init__(self, source: SourceData = None, key: KeyData = None):
         self._source = source
@@ -1276,10 +1277,10 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
     temporal relation, it is corrected during initialization by exactly
     one of three methods:
 
-    1) Offset all PPL pulses to a fixed bunch table position.
-    2) Offset all PPL pulses relative to the first FEL pulse in units of
+    1. Offset all PPL pulses to a fixed bunch table position.
+    2. Offset all PPL pulses relative to the first FEL pulse in units of
        the bunch pattern table.
-    3) Offset all PPL pulses relative to the first FEL pulse in units of
+    3. Offset all PPL pulses relative to the first FEL pulse in units of
        FEL pulses.
 
     In cases where there are no FEL pulses (for method 2) or too few
