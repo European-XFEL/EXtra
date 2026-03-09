@@ -101,7 +101,7 @@ def nn_deconvolution(data: np.ndarray, h: np.ndarray, n_iter: int=4000, n_shift:
 
     return np.transpose(x)
 
-def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=1e-5, n_iter: int=5000, n_shift: int=0, nonneg: bool=True):
+def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=1e-5, n_iter: int=5000, n_shift: int=0, nonneg: bool=True, step_ratio: float=1.0):
     r'''
     Chambolle-Pock algorithm for the minimization of the objective function
         $\min_x 1/2||h \otimes x - data||^2 + Lambda TV(x)$
@@ -147,6 +147,7 @@ def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=1e-5, n_iter
         n_iter: Number of iterations.
         n_shift: At which point the impulse response function start in h.
         nonneg: If True, impose non-negativity constraint.
+        step_ratio: Ratio of the deconvolution vs regularization step size. A value of 1/20 leads to faster convergence.
     '''
 
     # if data includes multiple shots, it will be (n_shots, n_samples)
@@ -185,8 +186,8 @@ def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=1e-5, n_iter
     # sigma * tau L^2 <= 1
     L = np.linalg.norm(A)
 
-    sigma = 0.9/L
-    tau = 0.9/L
+    sigma = 0.9*step_ratio/L
+    tau = 0.9/step_ratio/L
 
     # we need the proximal operator of F and G
     # The function G(x) is as follows:
