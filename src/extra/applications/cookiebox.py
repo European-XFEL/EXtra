@@ -1126,7 +1126,7 @@ class CookieboxCalibration(SerializableMixin):
         tof_ids = sorted([tof_id
                           for idx, tof_id in enumerate(self.kwargs_adq.keys())
                           if self.mask[tof_id]])
-        response_args = ["method", "n_iter", "extra_shift", "nonneg", "Lambda", "step_size"]
+        response_args = ["method", "n_iter", "extra_shift", "nonneg", "Lambda", "step_ratio"]
         kwargs_response = {k: v for k, v in extra_kwargs_adq.items()
                            if k in response_args}
         def fetch(tof_id):
