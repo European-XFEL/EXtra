@@ -1,4 +1,6 @@
 
+from .utils import TrainData, align
+
 from .scantool import Scantool  # noqa
 from .pulses import XrayPulses, OpticalLaserPulses, MachinePulses, \
     PumpProbePulses, DldPulses  # noqa
