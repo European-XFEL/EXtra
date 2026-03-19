@@ -12,6 +12,7 @@ from extra_data import open_run, by_id, DataCollection
 import h5py
 import xarray as xr
 import pandas as pd
+from scipy.signal import find_peaks
 
 from .base import SerializableMixin
 from .cookiebox_deconvolve import TOFAnalogResponse
@@ -397,17 +398,22 @@ class CookieboxCalibration(SerializableMixin):
         """
         for k, v in all_data.items():
             setattr(self, k, v)
-        self.tof_fit_result = {k: TofFitResult(**v) for k, v in self.tof_fit_result.items()}
-        self._auger_start_roi = {int(k): v for k, v in self._auger_start_roi.items()}
-        self._start_roi = {int(k): v for k, v in self._start_roi.items()}
-        self._stop_roi = {int(k): v for k, v in self._stop_roi.items()}
-        self.mask = {int(k): v for k, v in self.mask.items()}
-        self.calibration_mask = {int(k): v for k, v in self.calibration_mask.items()}
-        self.kwargs_adq = {int(k): v for k, v in self.kwargs_adq.items()}
+        sort_dict = lambda x: dict(sorted(x.items(), key=lambda item: item[0]))
+        self.tof_fit_result = sort_dict({int(k): TofFitResult(**v) for k, v in self.tof_fit_result.items()})
+        self._auger_start_roi = sort_dict({int(k): v for k, v in self._auger_start_roi.items()})
+        self._start_roi = sort_dict({int(k): v for k, v in self._start_roi.items()})
+        self._stop_roi = sort_dict({int(k): v for k, v in self._stop_roi.items()})
+        self.mask = sort_dict({int(k): v for k, v in self.mask.items()})
+        self.model_params = sort_dict({int(k): v for k, v in self.model_params.items()})
+        self.jacobian = sort_dict({int(k): v for k, v in self.jacobian.items()})
+        self.normalization = sort_dict({int(k): v for k, v in self.normalization.items()})
+        self.offset = sort_dict({int(k): v for k, v in self.offset.items()})
+        self.calibration_mask = sort_dict({int(k): v for k, v in self.calibration_mask.items()})
+        self.kwargs_adq = sort_dict({int(k): v for k, v in self.kwargs_adq.items()})
         self._tof_response = None
         if "_tof_response" in all_data.keys():
             self._tof_response = dict()
-            for tof_id in all_data["_tof_response"].keys():
+            for tof_id in sorted(all_data["_tof_response"].keys()):
                 self._tof_response[tof_id] = TOFAnalogResponse()
                 self._tof_response[tof_id]._fromdict(all_data["_tof_response"][tof_id])
 
@@ -693,6 +699,7 @@ class CookieboxCalibration(SerializableMixin):
         if correction_fn is not None:
             parallel = False # correction function has in-build parallelism
 
+
         if parallel:
             with ProcessPoolExecutor(max_workers=10) as p:
                 itr_gen = list(itertools.product(tof_ids, energy_ids))
@@ -811,8 +818,6 @@ class CookieboxCalibration(SerializableMixin):
 
         Returns: Energy vector used, means and std. dev. in the sample axis scale, and integral of Gaussian.
         """
-        from lmfit.models import GaussianModel, ConstantModel
-        from lmfit.model import ModelResult
         energies = self.calibration_energies
         data = self.calibration_data[tof_id]
         mu = list()
@@ -826,33 +831,46 @@ class CookieboxCalibration(SerializableMixin):
         start_roi = self.start_roi[tof_id]
         stop_roi = self.stop_roi[tof_id]
         for e in range(data.shape[0]):
-            # fit Auger
-            xa = np.arange(auger_start_roi, start_roi)
-            ya = data[e, auger_start_roi:start_roi]
-            gamodel = GaussianModel() + ConstantModel()
-            ii = np.argmax(ya)
-            iisig = 2 #np.sqrt(np.sum((xa -ii)**2*(ya-np.min(ya)))/np.sum(ya-np.min(ya)))
-            resulta = gamodel.fit(ya, x=xa, center=xa[ii], amplitude=np.max(ya), sigma=iisig, c=np.median(ya))
-            # fit data
-            x = np.arange(start_roi, stop_roi)
-            y = data[e, start_roi:stop_roi]
-            gmodel = GaussianModel() + ConstantModel()
-            ii = np.argmax(y)
-            iisig = 10 #np.sqrt(np.sum((x -ii)**2*(y-np.min(y)))/np.sum(y-np.min(y)))
-            result = gmodel.fit(y, x=x, center=x[ii], amplitude=np.max(y), sigma=iisig, c=np.median(y))
-            # we care about the normalization coefficient, not the normalized amplitude
-            A += [result.best_values["amplitude"]]
-            mu += [result.best_values["center"]]
-            sigma += [result.best_values["sigma"]]
+            # get offset
+            o = np.min(data[e, :])
+            offset += [o]
+            # store energy
             energy += [energies[e]]
-            offset += [result.best_values["c"]]
-            mu_auger += [resulta.best_values["center"]]
-            # integrate Auger
-            #m = resulta.best_values["center"]
-            #s = resulta.best_values["sigma"]
-            #norm_auger = np.sum(ya[int(m-2*s):int(m+2*s)])
-            Aa += [resulta.best_values["amplitude"]]
-            #Aa += [norm_auger]
+            # get Auger
+            peak, peak_dict = find_peaks(data[e, auger_start_roi:start_roi],
+                                         prominence=0.25,
+                                         distance=10,
+                                         width=0,
+                                         height=0)
+            if len(peak) == 0:
+                Aa += [0]
+                mu_auger += [0]
+            else:
+                peak_heights = peak_dict['peak_heights']
+                peak_widths = peak_dict['widths']
+                highest_peak_index = peak[np.argmax(peak_heights)]
+                highest_peak_index += auger_start_roi
+                mu_auger += [highest_peak_index]
+                s = peak_widths[np.argmax(peak_heights)]/2.355
+                Aa += [np.sum(data[e, int(highest_peak_index-3*s):int(highest_peak_index+3*s)] - o)]
+            # get photon line
+            peak, peaks_dict = find_peaks(data[e, start_roi:stop_roi],
+                                          prominence=0.25,
+                                          distance=10,
+                                          width=0,
+                                          height=0)
+            if len(peak) == 0:
+                A += [0]
+                mu += [0]
+            else:
+                peak_heights = peaks_dict['peak_heights']
+                peak_widths = peaks_dict['widths']
+                highest_peak_index = peak[np.argmax(peak_heights)]
+                highest_peak_index += start_roi
+                mu += [highest_peak_index]
+                s = peak_widths[np.argmax(peak_heights)]/2.355
+                sigma += [s]
+                A += [np.sum(data[e, int(highest_peak_index-3*s):int(highest_peak_index+3*s)] - o)]
         energy = np.array(energy)
         mu = np.array(mu)
         mu_auger = np.array(mu_auger)
@@ -900,8 +918,11 @@ class CookieboxCalibration(SerializableMixin):
         #0.5*(1 + beta*(3*np.cos(theta)**2 - 1)/2)
         detected = self.tof_fit_result[tof_id].A
         #produced = self.calibration_mean_xgm[tof_id] * self.tof_fit_result[tof_id].Aa * dsig_dth
-        produced = self.tof_fit_result[tof_id].Aa * dsig_dth
-        en = detected[mask][eidx]/produced[mask][eidx]
+        #produced = self.tof_fit_result[tof_id].Aa * dsig_dth
+        produced = dsig_dth
+        if produced == 0:
+            produced += 1e-1
+        en = detected[mask][eidx]/produced
         # interpolate normalization
         self.normalization[tof_id] = np.interp(self.energy_axis,
                                                ee,
@@ -936,7 +957,9 @@ class CookieboxCalibration(SerializableMixin):
             a.plot(ts, e, c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
         for a in ax:
             a.set(xlabel="Samples",
-                  ylabel="Energy [eV]")
+                  ylabel="Energy [eV]",
+                  ylim=(self.energy_axis[0]-2, self.energy_axis[-1]+2),
+                  )
             a.legend(frameon=False, ncols=2)
 
     def plot_diagnostics(self, tof_id: int):
@@ -984,7 +1007,7 @@ class CookieboxCalibration(SerializableMixin):
             a.plot(self.energy_axis, self.normalization[tof_id], c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
         for a in ax:
             a.set(xlabel="Energy [eV]",
-                  ylabel=r"$\frac{\mathrm{detected}}{\mathrm{Auger-Meitner} \times \mathrm{polarization} \, \mathrm{effect}}$")
+                  ylabel=r"$\frac{\mathrm{detected}}{\mathrm{polarization} \, \mathrm{effect}}$")
             a.legend(frameon=False, ncols=2)
 
     def plot_offsets(self):
@@ -1035,51 +1058,50 @@ class CookieboxCalibration(SerializableMixin):
         for a in ax:
             if eV_per_sample:
                 a.set(xlabel="Energy [eV]",
-                      ylabel=r"$\left\vert\frac{dE}{dt}\right\vert$ [eV/samp.]")
+                      ylabel=r"$\left\vert\frac{dE}{dt}\right\vert$ [eV/samp.]",
+                      ylim=(0, 5),
+                      )
             else:
                 a.set(xlabel="Energy [eV]",
-                      ylabel=r"$\left\vert\frac{dt}{dE}\right\vert$ [samp./eV]")
+                      ylabel=r"$\left\vert\frac{dt}{dE}\right\vert$ [samp./eV]",
+                      ylim=(0, 5),
+                      )
             a.legend(frameon=False, ncols=2)
 
-    def plot_fit(self, tof_id: int):
+    def plot_fit(self, tof_id: int, ax=None):
         """
         Diagnostics plots for fit.
 
         Args:
           tof_id: eTOF ID.
+          ax: Axis in which to plot.
         """
-        from lmfit.models import GaussianModel, ConstantModel
-        from lmfit.model import ModelResult
         import matplotlib.pyplot as plt
-        from matplotlib.colors import CSS4_COLORS
         data = self.calibration_data[tof_id]
         auger_start_roi = self.auger_start_roi[tof_id]
         start_roi = self.start_roi[tof_id]
         stop_roi = self.stop_roi[tof_id]
         ts = np.arange(auger_start_roi, stop_roi)
-        fig = plt.figure(figsize=(20,10))
-        for e, c in zip(range(data.shape[0]), CSS4_COLORS.keys()):
+
+        if ax is None:
+            fig = plt.figure(figsize=(20,10))
+            ax = plt.gca()
+
+        prop_cycle = plt.rcParams['axes.prop_cycle']
+        colors = prop_cycle.by_key()['color']
+
+        for e, c in zip(range(data.shape[0]), colors):
             energy = self.calibration_energies[e]
-            plt.scatter(ts, data[e,auger_start_roi:stop_roi], c=c, label=f"{energy:.1f} eV")
+
             mu = self.tof_fit_result[tof_id].mu[e]
-            amplitude = self.tof_fit_result[tof_id].A[e]
-            sigma = self.tof_fit_result[tof_id].sigma[e]
-            offset = self.tof_fit_result[tof_id].offset[e]
-            gmodel = GaussianModel() + ConstantModel()
-            gresult = ModelResult(gmodel, gmodel.make_params(center=mu, amplitude=amplitude, sigma=sigma, c=offset))
-            plt.plot(ts, gresult.eval(x=ts), c=c, lw=2)
+            ax.plot(ts, data[e,auger_start_roi:stop_roi], c=c, alpha=0.5,
+                     label=f"{energy:.1f} eV")
+            ax.axvline(mu, ls='--', lw=2, c=c, alpha=0.5)
 
-            #auger_amplitude = self.tof_fit_result[tof_id].Aa[e]
-            #mu_auger = self.tof_fit_result[tof_id].mu_auger[e]
-            #sigma_auger = self.tof_fit_result[tof_id].sigma[e]
-            #gmodela = GaussianModel()
-            #gresulta = ModelResult(gmodela, gmodela.make_params(center=mu_auger, amplitude=auger_amplitude, sigma=sigma_auger))
-
-            #plt.plot(ts, gresulta.eval(x=ts), c=c, lw=4, ls="--")
-        plt.xlabel("Samples")
-        plt.ylabel("Intensty [a.u.]")
-        plt.legend()
-        plt.title(f"TOF {tof_id}")
+        ax.set_xlabel("Samples")
+        ax.set_ylabel("Intensty [a.u.]")
+        ax.legend(frameon=False)
+        ax.set_title(f"TOF {tof_id}")
 
     def load_trace(self, run: DataCollection, **extra_kwargs_adq: Dict[str, Any]) -> xr.Dataset:
         """
@@ -1104,7 +1126,7 @@ class CookieboxCalibration(SerializableMixin):
         tof_ids = sorted([tof_id
                           for idx, tof_id in enumerate(self.kwargs_adq.keys())
                           if self.mask[tof_id]])
-        response_args = ["method", "n_iter", "extra_shift", "nonneg", "Lambda"]
+        response_args = ["method", "n_iter", "extra_shift", "nonneg", "Lambda", "step_ratio"]
         kwargs_response = {k: v for k, v in extra_kwargs_adq.items()
                            if k in response_args}
         def fetch(tof_id):
