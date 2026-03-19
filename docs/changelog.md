@@ -52,6 +52,8 @@ Fixed:
 
 Changed:
 
+- [SpectrometerCalibration][extra.gui.jupyter.SpectrometerCalibration] no longer
+  saves loaded data to cache if `user_cache=False`.
 - `extra.recipes` package renamed to `extra.applications`
 - [XGM.pulse_energy()][extra.components.XGM.pulse_energy] will now insert NaNs
   instead of zeros as a fill value for runs with a varying number of pulses
