@@ -684,4 +684,689 @@ interactions:
     status:
       code: 200
       message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.131+fdd37f4
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/me
+  response:
+    body:
+      string: '{"id":-9,"email":"admin@example.com","provider":"local","contact_email":"admin@example.com","name":"Admin
+        User","first_name":"Admin","last_name":"User","nickname":null,"uid":null,"ldap_synced_at":null,"flg_service_account":true,"flg_ldap_account_valid":false,"roles":["admin"]}'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '277'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 20 Mar 2026 13:57:09 GMT
+      Etag:
+      - W/"9ec4cec974b56aebafbb6dc312056934"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 868c95d1-21fd-442c-b2b4-02ffbc9bd5d4
+      X-Runtime:
+      - '0.021050'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.131+fdd37f4
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/detectors?identifier=FXE_XAD_JF1M
+  response:
+    body:
+      string: '[{"id":21,"name":"FXE_XAD_JF1M","identifier":"FXE_XAD_JF1M","karabo_name":"FXE_XAD_JF1M","karabo_id_control":"CONTROL","source_name_pattern":null,"number_of_modules":2,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":6,"detector_id":21},{"instrument_id":7,"detector_id":21}]}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '335'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 20 Mar 2026 13:57:09 GMT
+      Etag:
+      - W/"82ff160220fdfe65a2f11beda609abc6"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 625b7253-6393-47ef-926e-5e599736f3fb
+      X-Runtime:
+      - '0.028619'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.131+fdd37f4
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=21&pdu_snapshot_at=2024-03-04+17%3A56%3A05.172132%2B00%3A00
+  response:
+    body:
+      string: '[{"id":190,"physical_name":"Jungfrau_M530","karabo_da":"JNGFR01","virtual_device_name":null,"uuid":800000000010,"float_uuid":3.95252516678e-312,"detector_type_id":4,"detector_id":21,"module_number":null,"flg_available":true,"description":null,"detector":{"id":21,"name":"FXE_XAD_JF1M","identifier":"FXE_XAD_JF1M","karabo_name":"FXE_XAD_JF1M","karabo_id_control":"CONTROL","source_name_pattern":null,"number_of_modules":2,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":4,"name":"jungfrau-Type","flg_available":true,"description":"The
+        Jungfrau detector type"}},{"id":179,"physical_name":"Jungfrau_M512","karabo_da":"JNGFR02","virtual_device_name":null,"uuid":1120000000002,"float_uuid":5.53353523343e-312,"detector_type_id":4,"detector_id":21,"module_number":null,"flg_available":true,"description":null,"detector":{"id":21,"name":"FXE_XAD_JF1M","identifier":"FXE_XAD_JF1M","karabo_name":"FXE_XAD_JF1M","karabo_id_control":"CONTROL","source_name_pattern":null,"number_of_modules":2,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":4,"name":"jungfrau-Type","flg_available":true,"description":"The
+        Jungfrau detector type"}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '1202'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 20 Mar 2026 13:57:09 GMT
+      Etag:
+      - W/"88cbe7d3aad549c3a316254fb80a534d"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 47bd8bd6-947c-44dc-91dc-a99a51cea0fb
+      X-Runtime:
+      - '0.621037'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.131+fdd37f4
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=Offset10Hz
+  response:
+    body:
+      string: '[{"id":21,"name":"Offset10Hz","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":""}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '119'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 20 Mar 2026 13:57:10 GMT
+      Etag:
+      - W/"e4e40d978bd2a78e470e9960fbecbcb0"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 1ca287ff-4680-4836-8c26-d24b14d0c7bc
+      X-Runtime:
+      - '0.023323'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.131+fdd37f4
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=Noise10Hz
+  response:
+    body:
+      string: '[{"id":22,"name":"Noise10Hz","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":""}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '118'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 20 Mar 2026 13:57:10 GMT
+      Etag:
+      - W/"9c65a34a136fcfe8638c7a6397d873ff"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 2e8b6394-b6dc-49f7-8159-3ec4734b93c7
+      X-Runtime:
+      - '0.028889'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.131+fdd37f4
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=BadPixelsDark10Hz
+  response:
+    body:
+      string: '[{"id":23,"name":"BadPixelsDark10Hz","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":""}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '127'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 20 Mar 2026 13:57:10 GMT
+      Etag:
+      - W/"6f72b3ba4656468787f92060cded8b97"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - dd42d704-7a83-403d-9d1f-5a9f92eeaf71
+      X-Runtime:
+      - '0.028860'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"parameters_conditions_attributes": [{"parameter_name": "Sensor Bias Voltage",
+      "value": 90.0}, {"parameter_name": "Memory Cells", "value": 1.0}, {"parameter_name":
+      "Pixels X", "value": 1024.0}, {"parameter_name": "Pixels Y", "value": 512.0},
+      {"parameter_name": "Integration Time", "value": 400.0}, {"parameter_name": "Sensor
+      temperature", "value": 291.0}, {"parameter_name": "Gain Setting", "value": 0.0}]}'
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '407'
+      User-Agent:
+      - EXtra/2025.1.131+fdd37f4
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=FXE_XAD_JF1M&calibration_id=%5B21%2C+22%2C+23%5D&karabo_da=&event_at=2024-03-04+17%3A56%3A05.172132%2B00%3A00&pdu_snapshot_at=2024-03-04+17%3A56%3A05.172132%2B00%3A00&begin_at_strategy=closest
+  response:
+    body:
+      string: '[{"id":196179,"name":"20240304_125702_sIdx=0","file_name":"cal.1709557021.2759159.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m530/","data_set_name":"/Jungfrau_M530/Offset10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2024-03-04T13:33:29.000+01:00","end_validity_at":null,"begin_at":"2024-03-04T13:33:29.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p007136
+        runs:62 63 64","report_id":4704,"description":"","created_at":"2024-03-04T13:57:02.000+01:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/196179","calibration_constant":{"id":33375,"name":"jungfrau-Type_Offset10Hz_Jungfrau
+        DefUS3c8Yvpm9WKEHSSq5hvQw==\n-2","detector_type_id":4,"calibration_id":21,"condition_id":10791,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-04-13T10:07:28.000+02:00","updated_at":"2025-11-28T09:46:30.000+01:00"},"physical_detector_unit":{"id":190,"physical_name":"Jungfrau_M530","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-07-18T17:07:34.000+02:00","updated_at":"2022-07-18T17:07:34.000+02:00","karabo_da":"JNGFR01","detector_id":21,"virtual_device_name":null,"uuid":800000000010,"float_uuid":3.95252516678e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR01","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":196180,"name":"20240304_125703_sIdx=0","file_name":"cal.1709557022.6874795.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m530/","data_set_name":"/Jungfrau_M530/Noise10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2024-03-04T13:33:29.000+01:00","end_validity_at":null,"begin_at":"2024-03-04T13:33:29.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p007136
+        runs:62 63 64","report_id":4704,"description":"","created_at":"2024-03-04T13:57:03.000+01:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/196180","calibration_constant":{"id":33376,"name":"jungfrau-Type_Noise10Hz_Jungfrau
+        DefUS3c8Yvpm9WKEHSSq5hvQw==\n-2","detector_type_id":4,"calibration_id":22,"condition_id":10791,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-04-13T10:07:30.000+02:00","updated_at":"2025-11-28T09:46:30.000+01:00"},"physical_detector_unit":{"id":190,"physical_name":"Jungfrau_M530","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-07-18T17:07:34.000+02:00","updated_at":"2022-07-18T17:07:34.000+02:00","karabo_da":"JNGFR01","detector_id":21,"virtual_device_name":null,"uuid":800000000010,"float_uuid":3.95252516678e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR01","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":196181,"name":"20240304_125705_sIdx=0","file_name":"cal.1709557023.9768043.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m530/","data_set_name":"/Jungfrau_M530/BadPixelsDark10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2024-03-04T13:33:29.000+01:00","end_validity_at":null,"begin_at":"2024-03-04T13:33:29.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p007136
+        runs:62 63 64","report_id":4704,"description":"","created_at":"2024-03-04T13:57:05.000+01:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/196181","calibration_constant":{"id":33377,"name":"jungfrau-Type_BadPixelsDark10Hz_Jungfrau
+        DefUS3c8Yvpm9WKEHSSq5hvQw==\n-2","detector_type_id":4,"calibration_id":23,"condition_id":10791,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) dark pixels","created_at":"2022-04-13T10:07:32.000+02:00","updated_at":"2025-11-28T09:46:31.000+01:00"},"physical_detector_unit":{"id":190,"physical_name":"Jungfrau_M530","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-07-18T17:07:34.000+02:00","updated_at":"2022-07-18T17:07:34.000+02:00","karabo_da":"JNGFR01","detector_id":21,"virtual_device_name":null,"uuid":800000000010,"float_uuid":3.95252516678e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR01","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":196176,"name":"20240304_125659_sIdx=0","file_name":"cal.1709557017.8419747.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m512/","data_set_name":"/Jungfrau_M512/Offset10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2024-03-04T13:33:29.000+01:00","end_validity_at":null,"begin_at":"2024-03-04T13:33:29.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p007136
+        runs:62 63 64","report_id":4704,"description":"","created_at":"2024-03-04T13:56:59.000+01:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/196176","calibration_constant":{"id":33375,"name":"jungfrau-Type_Offset10Hz_Jungfrau
+        DefUS3c8Yvpm9WKEHSSq5hvQw==\n-2","detector_type_id":4,"calibration_id":21,"condition_id":10791,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) offset","created_at":"2022-04-13T10:07:28.000+02:00","updated_at":"2025-11-28T09:46:30.000+01:00"},"physical_detector_unit":{"id":179,"physical_name":"Jungfrau_M512","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-01-20T15:15:31.000+01:00","updated_at":"2022-01-20T15:15:31.000+01:00","karabo_da":"JNGFR02","detector_id":21,"virtual_device_name":null,"uuid":1120000000002,"float_uuid":5.53353523343e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR02","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":196177,"name":"20240304_125700_sIdx=0","file_name":"cal.1709557019.2333462.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m512/","data_set_name":"/Jungfrau_M512/Noise10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2024-03-04T13:33:29.000+01:00","end_validity_at":null,"begin_at":"2024-03-04T13:33:29.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p007136
+        runs:62 63 64","report_id":4704,"description":"","created_at":"2024-03-04T13:57:00.000+01:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/196177","calibration_constant":{"id":33376,"name":"jungfrau-Type_Noise10Hz_Jungfrau
+        DefUS3c8Yvpm9WKEHSSq5hvQw==\n-2","detector_type_id":4,"calibration_id":22,"condition_id":10791,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) noise","created_at":"2022-04-13T10:07:30.000+02:00","updated_at":"2025-11-28T09:46:30.000+01:00"},"physical_detector_unit":{"id":179,"physical_name":"Jungfrau_M512","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-01-20T15:15:31.000+01:00","updated_at":"2022-01-20T15:15:31.000+01:00","karabo_da":"JNGFR02","detector_id":21,"virtual_device_name":null,"uuid":1120000000002,"float_uuid":5.53353523343e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR02","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":196178,"name":"20240304_125701_sIdx=0","file_name":"cal.1709557020.61544.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m512/","data_set_name":"/Jungfrau_M512/BadPixelsDark10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2024-03-04T13:33:29.000+01:00","end_validity_at":null,"begin_at":"2024-03-04T13:33:29.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p007136
+        runs:62 63 64","report_id":4704,"description":"","created_at":"2024-03-04T13:57:01.000+01:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/196178","calibration_constant":{"id":33377,"name":"jungfrau-Type_BadPixelsDark10Hz_Jungfrau
+        DefUS3c8Yvpm9WKEHSSq5hvQw==\n-2","detector_type_id":4,"calibration_id":23,"condition_id":10791,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) dark pixels","created_at":"2022-04-13T10:07:32.000+02:00","updated_at":"2025-11-28T09:46:31.000+01:00"},"physical_detector_unit":{"id":179,"physical_name":"Jungfrau_M512","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-01-20T15:15:31.000+01:00","updated_at":"2022-01-20T15:15:31.000+01:00","karabo_da":"JNGFR02","detector_id":21,"virtual_device_name":null,"uuid":1120000000002,"float_uuid":5.53353523343e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR02","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '8770'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 20 Mar 2026 13:57:10 GMT
+      Etag:
+      - W/"c9512bc94fee2203d423e578921a07b9"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 429efb1d-3573-441a-828e-74c8481119dc
+      X-Runtime:
+      - '0.750865'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.131+fdd37f4
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=RelativeGain10Hz
+  response:
+    body:
+      string: '[{"id":30,"name":"RelativeGain10Hz","unit_id":3,"max_value":null,"min_value":null,"allowed_deviation":null,"description":""}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '125'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 20 Mar 2026 13:57:11 GMT
+      Etag:
+      - W/"88a34ea66bac3eb83982e16bd86f3b77"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 3ba44355-1c24-4fb8-a41b-b9adcd457162
+      X-Runtime:
+      - '0.027539'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.131+fdd37f4
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=BadPixelsFF10Hz
+  response:
+    body:
+      string: '[{"id":39,"name":"BadPixelsFF10Hz","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '127'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 20 Mar 2026 13:57:11 GMT
+      Etag:
+      - W/"963375627e36b9ff3d2cb9feb4cbad38"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 401b60e3-0f4c-4bca-995a-d725bb5ba8dc
+      X-Runtime:
+      - '0.026722'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"parameters_conditions_attributes": [{"parameter_name": "Sensor Bias Voltage",
+      "value": 90.0}, {"parameter_name": "Memory Cells", "value": 1.0}, {"parameter_name":
+      "Pixels X", "value": 1024.0}, {"parameter_name": "Pixels Y", "value": 512.0},
+      {"parameter_name": "Integration Time", "value": 400.0}, {"parameter_name": "Sensor
+      temperature", "value": 291.0}, {"parameter_name": "Gain Setting", "value": 0.0}]}'
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '407'
+      User-Agent:
+      - EXtra/2025.1.131+fdd37f4
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=FXE_XAD_JF1M&calibration_id=%5B30%2C+39%5D&karabo_da=&event_at=2024-03-04+17%3A56%3A05.172132%2B00%3A00&pdu_snapshot_at=2024-03-04+17%3A56%3A05.172132%2B00%3A00&begin_at_strategy=closest
+  response:
+    body:
+      string: '[{"id":155619,"name":"20230208_154420_sIdx=0","file_name":"cal.1675871058.9999344.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m530/","data_set_name":"/Jungfrau_M530/RelativeGain10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-02-05T16:20:13.000+01:00","end_validity_at":null,"begin_at":"2023-02-05T16:20:13.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"/gpfs/exfel/data/user/mramilli/jungfrau/module_PSI_gainmaps/M530/R0108_gainMaps_Single_JNGFR01_20230208.h5","report_id":null,"description":"","created_at":"2023-02-08T16:44:20.000+01:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/155619","calibration_constant":{"id":33718,"name":"jungfrau-Type_RelativeGain10Hz_Jungfrau
+        Def6ZDmZnWxgj/CqE1zI2MusA==\n-2","detector_type_id":4,"calibration_id":30,"condition_id":10902,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) relative gain","created_at":"2023-02-08T16:44:20.000+01:00","updated_at":"2025-11-28T09:52:15.000+01:00"},"physical_detector_unit":{"id":190,"physical_name":"Jungfrau_M530","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-07-18T17:07:34.000+02:00","updated_at":"2022-07-18T17:07:34.000+02:00","karabo_da":"JNGFR01","detector_id":21,"virtual_device_name":null,"uuid":800000000010,"float_uuid":3.95252516678e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR01","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":155621,"name":"20230208_155627_sIdx=0","file_name":"cal.1675871786.3909953.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m512/","data_set_name":"/Jungfrau_M512/RelativeGain10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-02-05T16:20:13.000+01:00","end_validity_at":null,"begin_at":"2023-02-05T16:20:13.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"/gpfs/exfel/data/user/mramilli/jungfrau/module_PSI_gainmaps/M512/R0108_gainMaps_Single_JNGFR02_20230208.h5","report_id":null,"description":"","created_at":"2023-02-08T16:56:27.000+01:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/155621","calibration_constant":{"id":33718,"name":"jungfrau-Type_RelativeGain10Hz_Jungfrau
+        Def6ZDmZnWxgj/CqE1zI2MusA==\n-2","detector_type_id":4,"calibration_id":30,"condition_id":10902,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) relative gain","created_at":"2023-02-08T16:44:20.000+01:00","updated_at":"2025-11-28T09:52:15.000+01:00"},"physical_detector_unit":{"id":179,"physical_name":"Jungfrau_M512","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-01-20T15:15:31.000+01:00","updated_at":"2022-01-20T15:15:31.000+01:00","karabo_da":"JNGFR02","detector_id":21,"virtual_device_name":null,"uuid":1120000000002,"float_uuid":5.53353523343e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR02","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '3104'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 20 Mar 2026 13:57:11 GMT
+      Etag:
+      - W/"ad1921b987be419ab2d806eb1a8efa2c"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 3f693fc9-3fbd-4393-b2c2-3be65c3acf11
+      X-Runtime:
+      - '0.683008'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
 version: 1
