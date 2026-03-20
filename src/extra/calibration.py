@@ -1436,18 +1436,16 @@ class AGIPDConditions(ConditionsBase):
     def bias_voltage_from_control(sd):
         # These device used to suffer from switching to excessive values
         # randomly, so cut off any unreasonable values.
-        values = sd['highVoltage.actual'].ndarray()
+        values = sd['highVoltage.target'].ndarray()
         values = values[values < 1000.0]
         return int(np.median(values))
 
     @staticmethod
     def bias_voltage_from_mpod(sd, modules=None):
         if modules is not None:
-            keys = [f'channels.U{modno}.measurementSenseVoltage'
-                    for modno in modules]
+            keys = [f'channels.U{modno}.voltage' for modno in modules]
         else:
-            keys = sd.select_keys(
-                'channels.U*.measurementSenseVoltage').keys(False)
+            keys = sd.select_keys('channels.U*.voltage').keys(False)
 
         for key in keys:
             if (val := sd[key].as_single_value(atol=1, rtol=1)) > 0:
