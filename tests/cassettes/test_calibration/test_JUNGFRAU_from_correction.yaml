@@ -26,7 +26,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 12 Nov 2025 09:52:30 GMT
+      - Mon, 23 Mar 2026 13:36:04 GMT
       Etag:
       - W/"9ec4cec974b56aebafbb6dc312056934"
       Keep-Alive:
@@ -52,9 +52,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 02fad2c9-40ee-478c-a516-55dc45195e02
+      - 05b82efd-ba1e-4885-a9c2-d52e6b98bf84
       X-Runtime:
-      - '0.022216'
+      - '0.025720'
       X-Xss-Protection:
       - '0'
     status:
@@ -77,20 +77,20 @@ interactions:
     uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/155621
   response:
     body:
-      string: '{"id":155621,"name":"20230208_155627_sIdx=0","file_name":"cal.1675871786.3909953.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m512/","data_set_name":"/Jungfrau_M512/RelativeGain10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-02-05T16:20:13.000+01:00","end_validity_at":null,"begin_at":"2023-02-05T16:20:13.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"/gpfs/exfel/data/user/mramilli/jungfrau/module_PSI_gainmaps/M512/R0108_gainMaps_Single_JNGFR02_20230208.h5","report_id":null,"description":"","created_at":"2023-02-08T16:56:27.000+01:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/155621","calibration_constant":{"id":22323,"name":"jungfrau-Type_RelativeGain10Hz_Jungfrau
-        DefoxQ/O4yIBXEWX5X5myc8cw==\n","detector_type_id":4,"calibration_id":30,"condition_id":6923,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
-        (per-memory cell) relative gain","created_at":"2023-02-08T16:56:27.000+01:00","updated_at":"2023-02-08T16:56:27.000+01:00"},"physical_detector_unit":{"id":179,"physical_name":"Jungfrau_M512","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-01-20T15:15:31.000+01:00","updated_at":"2022-01-20T15:15:31.000+01:00","karabo_da":"JNGFR02","detector_id":21,"virtual_device_name":null,"uuid":1120000000002,"float_uuid":5.53353523343e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR02","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}}'
+      string: '{"id":155621,"name":"20230208_155627_sIdx=0","file_name":"cal.1675871786.3909953.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m512/","data_set_name":"/Jungfrau_M512/RelativeGain10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-02-05T16:20:13.000+01:00","end_validity_at":null,"begin_at":"2023-02-05T16:20:13.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"/gpfs/exfel/data/user/mramilli/jungfrau/module_PSI_gainmaps/M512/R0108_gainMaps_Single_JNGFR02_20230208.h5","report_id":null,"description":"","created_at":"2023-02-08T16:56:27.000+01:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/155621","calibration_constant":{"id":33718,"name":"jungfrau-Type_RelativeGain10Hz_Jungfrau
+        Def6ZDmZnWxgj/CqE1zI2MusA==\n-2","detector_type_id":4,"calibration_id":30,"condition_id":10902,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) relative gain","created_at":"2023-02-08T16:44:20.000+01:00","updated_at":"2025-11-28T09:52:15.000+01:00"},"physical_detector_unit":{"id":179,"physical_name":"Jungfrau_M512","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-01-20T15:15:31.000+01:00","updated_at":"2022-01-20T15:15:31.000+01:00","karabo_da":"JNGFR02","detector_id":21,"virtual_device_name":null,"uuid":1120000000002,"float_uuid":5.53353523343e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR02","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}}'
     headers:
       Cache-Control:
       - max-age=0, private, must-revalidate
       Content-Length:
-      - '1548'
+      - '1551'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 12 Nov 2025 09:52:30 GMT
+      - Mon, 23 Mar 2026 13:36:04 GMT
       Etag:
-      - W/"4027ade837cc88a08e0f4f1085e1c684"
+      - W/"b333c9728864eae705e196329bcae967"
       Keep-Alive:
       - timeout=5, max=100
       Referrer-Policy:
@@ -114,9 +114,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - f1c20d54-6d13-4a58-a505-759a3005878e
+      - b7d1d2df-febb-4a30-9117-fa0ff6df3552
       X-Runtime:
-      - '0.019875'
+      - '0.028387'
       X-Xss-Protection:
       - '0'
     status:
@@ -139,20 +139,20 @@ interactions:
     uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/155619
   response:
     body:
-      string: '{"id":155619,"name":"20230208_154420_sIdx=0","file_name":"cal.1675871058.9999344.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m530/","data_set_name":"/Jungfrau_M530/RelativeGain10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-02-05T16:20:13.000+01:00","end_validity_at":null,"begin_at":"2023-02-05T16:20:13.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"/gpfs/exfel/data/user/mramilli/jungfrau/module_PSI_gainmaps/M530/R0108_gainMaps_Single_JNGFR01_20230208.h5","report_id":null,"description":"","created_at":"2023-02-08T16:44:20.000+01:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/155619","calibration_constant":{"id":22321,"name":"jungfrau-Type_RelativeGain10Hz_Jungfrau
-        Def6ZDmZnWxgj/CqE1zI2MusA==\n","detector_type_id":4,"calibration_id":30,"condition_id":6921,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
-        (per-memory cell) relative gain","created_at":"2023-02-08T16:44:20.000+01:00","updated_at":"2023-02-08T16:44:20.000+01:00"},"physical_detector_unit":{"id":190,"physical_name":"Jungfrau_M530","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-07-18T17:07:34.000+02:00","updated_at":"2022-07-18T17:07:34.000+02:00","karabo_da":"JNGFR01","detector_id":21,"virtual_device_name":null,"uuid":800000000010,"float_uuid":3.95252516678e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR01","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}}'
+      string: '{"id":155619,"name":"20230208_154420_sIdx=0","file_name":"cal.1675871058.9999344.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m530/","data_set_name":"/Jungfrau_M530/RelativeGain10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-02-05T16:20:13.000+01:00","end_validity_at":null,"begin_at":"2023-02-05T16:20:13.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"/gpfs/exfel/data/user/mramilli/jungfrau/module_PSI_gainmaps/M530/R0108_gainMaps_Single_JNGFR01_20230208.h5","report_id":null,"description":"","created_at":"2023-02-08T16:44:20.000+01:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/155619","calibration_constant":{"id":33718,"name":"jungfrau-Type_RelativeGain10Hz_Jungfrau
+        Def6ZDmZnWxgj/CqE1zI2MusA==\n-2","detector_type_id":4,"calibration_id":30,"condition_id":10902,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) relative gain","created_at":"2023-02-08T16:44:20.000+01:00","updated_at":"2025-11-28T09:52:15.000+01:00"},"physical_detector_unit":{"id":190,"physical_name":"Jungfrau_M530","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-07-18T17:07:34.000+02:00","updated_at":"2022-07-18T17:07:34.000+02:00","karabo_da":"JNGFR01","detector_id":21,"virtual_device_name":null,"uuid":800000000010,"float_uuid":3.95252516678e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR01","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}}'
     headers:
       Cache-Control:
       - max-age=0, private, must-revalidate
       Content-Length:
-      - '1547'
+      - '1550'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 12 Nov 2025 09:52:30 GMT
+      - Mon, 23 Mar 2026 13:36:04 GMT
       Etag:
-      - W/"e165a6e4ce35859efd62d706815464f8"
+      - W/"dc7be2da8ad8b627a4da527922cbf932"
       Keep-Alive:
       - timeout=5, max=100
       Referrer-Policy:
@@ -176,9 +176,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 126ea05c-9c27-487a-96ea-6646b641f169
+      - 7244d9e7-67dd-4934-8b49-4660c0f213fa
       X-Runtime:
-      - '0.021378'
+      - '0.034011'
       X-Xss-Protection:
       - '0'
     status:
@@ -202,19 +202,19 @@ interactions:
   response:
     body:
       string: '{"id":242620,"name":"20250428_050629_sIdx=0","file_name":"cal.1745816789.3507857.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m512","data_set_name":"/Jungfrau_M512/Offset10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2025-04-28T07:00:47.000+02:00","end_validity_at":null,"begin_at":"2025-04-28T07:00:47.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p007948
-        runs: 142 143 144","report_id":7252,"description":"","created_at":"2025-04-28T07:06:30.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/242620","calibration_constant":{"id":30884,"name":"jungfrau-Type_Offset10Hz_jungfrau
-        DefZ8GTm3XsQgjvshZ5wbBfCA==\n","detector_type_id":4,"calibration_id":21,"condition_id":9915,"flg_auto_approve":true,"flg_available":true,"description":"","created_at":"2025-01-24T09:34:21.000+01:00","updated_at":"2025-01-24T09:34:21.000+01:00"},"physical_detector_unit":{"id":179,"physical_name":"Jungfrau_M512","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-01-20T15:15:31.000+01:00","updated_at":"2022-01-20T15:15:31.000+01:00","karabo_da":"JNGFR02","detector_id":21,"virtual_device_name":null,"uuid":1120000000002,"float_uuid":5.53353523343e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR02","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}}'
+        runs: 142 143 144","report_id":7252,"description":"","created_at":"2025-04-28T07:06:30.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/242620","calibration_constant":{"id":34322,"name":"jungfrau-Type_Offset10Hz_jungfrau
+        DefaUjWGN5+w5eGzmT6lXMD6g==\n-2","detector_type_id":4,"calibration_id":21,"condition_id":11142,"flg_auto_approve":true,"flg_available":true,"description":"","created_at":"2025-01-24T09:34:16.000+01:00","updated_at":"2025-11-28T10:00:21.000+01:00"},"physical_detector_unit":{"id":179,"physical_name":"Jungfrau_M512","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-01-20T15:15:31.000+01:00","updated_at":"2022-01-20T15:15:31.000+01:00","karabo_da":"JNGFR02","detector_id":21,"virtual_device_name":null,"uuid":1120000000002,"float_uuid":5.53353523343e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR02","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}}'
     headers:
       Cache-Control:
       - max-age=0, private, must-revalidate
       Content-Length:
-      - '1422'
+      - '1425'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 12 Nov 2025 09:52:30 GMT
+      - Mon, 23 Mar 2026 13:36:04 GMT
       Etag:
-      - W/"5b8293babf7ae384d56cf2772bd39853"
+      - W/"11d66ddafdee1089ea6cf6502f704c74"
       Keep-Alive:
       - timeout=5, max=100
       Referrer-Policy:
@@ -238,9 +238,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - c891c7aa-6717-45eb-801f-7206d97c589d
+      - 271665da-36b1-4da6-af6b-df728f5bc1f0
       X-Runtime:
-      - '0.018927'
+      - '0.028568'
       X-Xss-Protection:
       - '0'
     status:
@@ -264,29 +264,29 @@ interactions:
   response:
     body:
       string: '{"id":7252,"name":"dark_007948_r0142_r0143_r0144_250428_050609_244722.pdf","file_path":"/gpfs/exfel/d/cal/caldb_store/xfel/reports/FXE/FXE_XAD_JF1M/dark/dark_007948_r0142_r0143_r0144_250428_050609_244722.pdf","flg_available":true,"description":"","calibration_constant_versions":[{"id":242620,"name":"20250428_050629_sIdx=0","file_name":"cal.1745816789.3507857.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m512","data_set_name":"/Jungfrau_M512/Offset10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2025-04-28T07:00:47.000+02:00","end_validity_at":null,"begin_at":"2025-04-28T07:00:47.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p007948
-        runs: 142 143 144","report_id":7252,"description":"","created_at":"2025-04-28T07:06:30.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/242620","calibration_constant":{"id":30884,"name":"jungfrau-Type_Offset10Hz_jungfrau
-        DefZ8GTm3XsQgjvshZ5wbBfCA==\n","detector_type_id":4,"calibration_id":21,"condition_id":9915,"flg_auto_approve":true,"flg_available":true,"description":"","created_at":"2025-01-24T09:34:21.000+01:00","updated_at":"2025-01-24T09:34:21.000+01:00"},"physical_detector_unit":{"id":179,"physical_name":"Jungfrau_M512","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-01-20T15:15:31.000+01:00","updated_at":"2022-01-20T15:15:31.000+01:00","karabo_da":"JNGFR02","detector_id":21,"virtual_device_name":null,"uuid":1120000000002,"float_uuid":5.53353523343e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR02","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":242621,"name":"20250428_050630_sIdx=0","file_name":"cal.1745816789.4686568.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m530","data_set_name":"/Jungfrau_M530/Offset10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2025-04-28T07:00:47.000+02:00","end_validity_at":null,"begin_at":"2025-04-28T07:00:47.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p007948
-        runs: 142 143 144","report_id":7252,"description":"","created_at":"2025-04-28T07:06:30.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/242621","calibration_constant":{"id":30881,"name":"jungfrau-Type_Offset10Hz_jungfrau
-        DefaUjWGN5+w5eGzmT6lXMD6g==\n","detector_type_id":4,"calibration_id":21,"condition_id":9914,"flg_auto_approve":true,"flg_available":true,"description":"","created_at":"2025-01-24T09:34:16.000+01:00","updated_at":"2025-01-24T09:34:16.000+01:00"},"physical_detector_unit":{"id":190,"physical_name":"Jungfrau_M530","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-07-18T17:07:34.000+02:00","updated_at":"2022-07-18T17:07:34.000+02:00","karabo_da":"JNGFR01","detector_id":21,"virtual_device_name":null,"uuid":800000000010,"float_uuid":3.95252516678e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR01","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":242622,"name":"20250428_050630_sIdx=0","file_name":"cal.1745816790.0658343.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m512","data_set_name":"/Jungfrau_M512/Noise10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2025-04-28T07:00:47.000+02:00","end_validity_at":null,"begin_at":"2025-04-28T07:00:47.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p007948
-        runs: 142 143 144","report_id":7252,"description":"","created_at":"2025-04-28T07:06:30.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/242622","calibration_constant":{"id":30885,"name":"jungfrau-Type_Noise10Hz_jungfrau
-        DefZ8GTm3XsQgjvshZ5wbBfCA==\n","detector_type_id":4,"calibration_id":22,"condition_id":9915,"flg_auto_approve":true,"flg_available":true,"description":"","created_at":"2025-01-24T09:34:21.000+01:00","updated_at":"2025-01-24T09:34:21.000+01:00"},"physical_detector_unit":{"id":179,"physical_name":"Jungfrau_M512","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-01-20T15:15:31.000+01:00","updated_at":"2022-01-20T15:15:31.000+01:00","karabo_da":"JNGFR02","detector_id":21,"virtual_device_name":null,"uuid":1120000000002,"float_uuid":5.53353523343e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR02","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":242623,"name":"20250428_050631_sIdx=0","file_name":"cal.1745816790.5066779.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m530","data_set_name":"/Jungfrau_M530/Noise10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2025-04-28T07:00:47.000+02:00","end_validity_at":null,"begin_at":"2025-04-28T07:00:47.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p007948
-        runs: 142 143 144","report_id":7252,"description":"","created_at":"2025-04-28T07:06:31.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/242623","calibration_constant":{"id":30882,"name":"jungfrau-Type_Noise10Hz_jungfrau
-        DefaUjWGN5+w5eGzmT6lXMD6g==\n","detector_type_id":4,"calibration_id":22,"condition_id":9914,"flg_auto_approve":true,"flg_available":true,"description":"","created_at":"2025-01-24T09:34:16.000+01:00","updated_at":"2025-01-24T09:34:16.000+01:00"},"physical_detector_unit":{"id":190,"physical_name":"Jungfrau_M530","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-07-18T17:07:34.000+02:00","updated_at":"2022-07-18T17:07:34.000+02:00","karabo_da":"JNGFR01","detector_id":21,"virtual_device_name":null,"uuid":800000000010,"float_uuid":3.95252516678e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR01","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":242624,"name":"20250428_050631_sIdx=0","file_name":"cal.1745816790.6755974.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m512","data_set_name":"/Jungfrau_M512/BadPixelsDark10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2025-04-28T07:00:47.000+02:00","end_validity_at":null,"begin_at":"2025-04-28T07:00:47.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p007948
-        runs: 142 143 144","report_id":7252,"description":"","created_at":"2025-04-28T07:06:31.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/242624","calibration_constant":{"id":30886,"name":"jungfrau-Type_BadPixelsDark10Hz_jungfrau
-        DefZ8GTm3XsQgjvshZ5wbBfCA==\n","detector_type_id":4,"calibration_id":23,"condition_id":9915,"flg_auto_approve":true,"flg_available":true,"description":"","created_at":"2025-01-24T09:34:22.000+01:00","updated_at":"2025-01-24T09:34:22.000+01:00"},"physical_detector_unit":{"id":179,"physical_name":"Jungfrau_M512","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-01-20T15:15:31.000+01:00","updated_at":"2022-01-20T15:15:31.000+01:00","karabo_da":"JNGFR02","detector_id":21,"virtual_device_name":null,"uuid":1120000000002,"float_uuid":5.53353523343e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR02","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":242625,"name":"20250428_050631_sIdx=0","file_name":"cal.1745816791.1869333.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m530","data_set_name":"/Jungfrau_M530/BadPixelsDark10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2025-04-28T07:00:47.000+02:00","end_validity_at":null,"begin_at":"2025-04-28T07:00:47.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p007948
-        runs: 142 143 144","report_id":7252,"description":"","created_at":"2025-04-28T07:06:31.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/242625","calibration_constant":{"id":30883,"name":"jungfrau-Type_BadPixelsDark10Hz_jungfrau
-        DefaUjWGN5+w5eGzmT6lXMD6g==\n","detector_type_id":4,"calibration_id":23,"condition_id":9914,"flg_auto_approve":true,"flg_available":true,"description":"","created_at":"2025-01-24T09:34:17.000+01:00","updated_at":"2025-01-24T09:34:17.000+01:00"},"physical_detector_unit":{"id":190,"physical_name":"Jungfrau_M530","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-07-18T17:07:34.000+02:00","updated_at":"2022-07-18T17:07:34.000+02:00","karabo_da":"JNGFR01","detector_id":21,"virtual_device_name":null,"uuid":800000000010,"float_uuid":3.95252516678e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR01","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}}]}'
+        runs: 142 143 144","report_id":7252,"description":"","created_at":"2025-04-28T07:06:30.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/242620","calibration_constant":{"id":34322,"name":"jungfrau-Type_Offset10Hz_jungfrau
+        DefaUjWGN5+w5eGzmT6lXMD6g==\n-2","detector_type_id":4,"calibration_id":21,"condition_id":11142,"flg_auto_approve":true,"flg_available":true,"description":"","created_at":"2025-01-24T09:34:16.000+01:00","updated_at":"2025-11-28T10:00:21.000+01:00"},"physical_detector_unit":{"id":179,"physical_name":"Jungfrau_M512","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-01-20T15:15:31.000+01:00","updated_at":"2022-01-20T15:15:31.000+01:00","karabo_da":"JNGFR02","detector_id":21,"virtual_device_name":null,"uuid":1120000000002,"float_uuid":5.53353523343e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR02","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":242621,"name":"20250428_050630_sIdx=0","file_name":"cal.1745816789.4686568.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m530","data_set_name":"/Jungfrau_M530/Offset10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2025-04-28T07:00:47.000+02:00","end_validity_at":null,"begin_at":"2025-04-28T07:00:47.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p007948
+        runs: 142 143 144","report_id":7252,"description":"","created_at":"2025-04-28T07:06:30.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/242621","calibration_constant":{"id":34322,"name":"jungfrau-Type_Offset10Hz_jungfrau
+        DefaUjWGN5+w5eGzmT6lXMD6g==\n-2","detector_type_id":4,"calibration_id":21,"condition_id":11142,"flg_auto_approve":true,"flg_available":true,"description":"","created_at":"2025-01-24T09:34:16.000+01:00","updated_at":"2025-11-28T10:00:21.000+01:00"},"physical_detector_unit":{"id":190,"physical_name":"Jungfrau_M530","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-07-18T17:07:34.000+02:00","updated_at":"2022-07-18T17:07:34.000+02:00","karabo_da":"JNGFR01","detector_id":21,"virtual_device_name":null,"uuid":800000000010,"float_uuid":3.95252516678e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR01","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":242622,"name":"20250428_050630_sIdx=0","file_name":"cal.1745816790.0658343.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m512","data_set_name":"/Jungfrau_M512/Noise10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2025-04-28T07:00:47.000+02:00","end_validity_at":null,"begin_at":"2025-04-28T07:00:47.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p007948
+        runs: 142 143 144","report_id":7252,"description":"","created_at":"2025-04-28T07:06:30.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/242622","calibration_constant":{"id":34323,"name":"jungfrau-Type_Noise10Hz_jungfrau
+        DefaUjWGN5+w5eGzmT6lXMD6g==\n-2","detector_type_id":4,"calibration_id":22,"condition_id":11142,"flg_auto_approve":true,"flg_available":true,"description":"","created_at":"2025-01-24T09:34:16.000+01:00","updated_at":"2025-11-28T10:00:22.000+01:00"},"physical_detector_unit":{"id":179,"physical_name":"Jungfrau_M512","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-01-20T15:15:31.000+01:00","updated_at":"2022-01-20T15:15:31.000+01:00","karabo_da":"JNGFR02","detector_id":21,"virtual_device_name":null,"uuid":1120000000002,"float_uuid":5.53353523343e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR02","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":242623,"name":"20250428_050631_sIdx=0","file_name":"cal.1745816790.5066779.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m530","data_set_name":"/Jungfrau_M530/Noise10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2025-04-28T07:00:47.000+02:00","end_validity_at":null,"begin_at":"2025-04-28T07:00:47.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p007948
+        runs: 142 143 144","report_id":7252,"description":"","created_at":"2025-04-28T07:06:31.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/242623","calibration_constant":{"id":34323,"name":"jungfrau-Type_Noise10Hz_jungfrau
+        DefaUjWGN5+w5eGzmT6lXMD6g==\n-2","detector_type_id":4,"calibration_id":22,"condition_id":11142,"flg_auto_approve":true,"flg_available":true,"description":"","created_at":"2025-01-24T09:34:16.000+01:00","updated_at":"2025-11-28T10:00:22.000+01:00"},"physical_detector_unit":{"id":190,"physical_name":"Jungfrau_M530","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-07-18T17:07:34.000+02:00","updated_at":"2022-07-18T17:07:34.000+02:00","karabo_da":"JNGFR01","detector_id":21,"virtual_device_name":null,"uuid":800000000010,"float_uuid":3.95252516678e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR01","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":242624,"name":"20250428_050631_sIdx=0_242624","file_name":"cal.1745816790.6755974.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m512","data_set_name":"/Jungfrau_M512/BadPixelsDark10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2025-04-28T07:00:47.000+02:00","end_validity_at":null,"begin_at":"2025-04-28T07:00:47.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p007948
+        runs: 142 143 144","report_id":7252,"description":"","created_at":"2025-04-28T07:06:31.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/242624","calibration_constant":{"id":34324,"name":"jungfrau-Type_BadPixelsDark10Hz_jungfrau
+        DefaUjWGN5+w5eGzmT6lXMD6g==\n-2","detector_type_id":4,"calibration_id":23,"condition_id":11142,"flg_auto_approve":true,"flg_available":true,"description":"","created_at":"2025-01-24T09:34:17.000+01:00","updated_at":"2025-11-28T10:00:22.000+01:00"},"physical_detector_unit":{"id":179,"physical_name":"Jungfrau_M512","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-01-20T15:15:31.000+01:00","updated_at":"2022-01-20T15:15:31.000+01:00","karabo_da":"JNGFR02","detector_id":21,"virtual_device_name":null,"uuid":1120000000002,"float_uuid":5.53353523343e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR02","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":242625,"name":"20250428_050631_sIdx=0","file_name":"cal.1745816791.1869333.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m530","data_set_name":"/Jungfrau_M530/BadPixelsDark10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2025-04-28T07:00:47.000+02:00","end_validity_at":null,"begin_at":"2025-04-28T07:00:47.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p007948
+        runs: 142 143 144","report_id":7252,"description":"","created_at":"2025-04-28T07:06:31.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/242625","calibration_constant":{"id":34324,"name":"jungfrau-Type_BadPixelsDark10Hz_jungfrau
+        DefaUjWGN5+w5eGzmT6lXMD6g==\n-2","detector_type_id":4,"calibration_id":23,"condition_id":11142,"flg_auto_approve":true,"flg_available":true,"description":"","created_at":"2025-01-24T09:34:17.000+01:00","updated_at":"2025-11-28T10:00:22.000+01:00"},"physical_detector_unit":{"id":190,"physical_name":"Jungfrau_M530","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-07-18T17:07:34.000+02:00","updated_at":"2022-07-18T17:07:34.000+02:00","karabo_da":"JNGFR01","detector_id":21,"virtual_device_name":null,"uuid":800000000010,"float_uuid":3.95252516678e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR01","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}}]}'
     headers:
       Cache-Control:
       - max-age=0, private, must-revalidate
       Content-Length:
-      - '8840'
+      - '8865'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 12 Nov 2025 09:52:30 GMT
+      - Mon, 23 Mar 2026 13:36:04 GMT
       Etag:
-      - W/"30e4304c51c393847a693b8812cf1bef"
+      - W/"3a50020a0569fec7ce929aecee7a9940"
       Keep-Alive:
       - timeout=5, max=100
       Referrer-Policy:
@@ -310,9 +310,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - d3e1e355-60ad-4b80-9348-54e74b8f8ce6
+      - ee719f13-3697-4cdc-bf37-caf38ec9c989
       X-Runtime:
-      - '0.035622'
+      - '0.055595'
       X-Xss-Protection:
       - '0'
     status:
@@ -335,20 +335,20 @@ interactions:
     uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/155622
   response:
     body:
-      string: '{"id":155622,"name":"20230208_155629_sIdx=0","file_name":"cal.1675871788.0321329.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m512/","data_set_name":"/Jungfrau_M512/BadPixelsFF10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-02-05T16:20:13.000+01:00","end_validity_at":null,"begin_at":"2023-02-05T16:20:13.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"/gpfs/exfel/data/user/mramilli/jungfrau/module_PSI_gainmaps/M512/R0108_gainMaps_Single_JNGFR02_20230208.h5","report_id":null,"description":"","created_at":"2023-02-08T16:56:29.000+01:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/155622","calibration_constant":{"id":22324,"name":"jungfrau-Type_BadPixelsFF10Hz_Jungfrau
-        Defi94n3eVF5UPM+R4CaOO4fA==\n","detector_type_id":4,"calibration_id":39,"condition_id":6924,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
-        (per-memory cell) bad pixels from FF runs","created_at":"2023-02-08T16:56:29.000+01:00","updated_at":"2023-02-08T16:56:29.000+01:00"},"physical_detector_unit":{"id":179,"physical_name":"Jungfrau_M512","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-01-20T15:15:31.000+01:00","updated_at":"2022-01-20T15:15:31.000+01:00","karabo_da":"JNGFR02","detector_id":21,"virtual_device_name":null,"uuid":1120000000002,"float_uuid":5.53353523343e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR02","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}}'
+      string: '{"id":155622,"name":"20230208_155629_sIdx=0","file_name":"cal.1675871788.0321329.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m512/","data_set_name":"/Jungfrau_M512/BadPixelsFF10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-02-05T16:20:13.000+01:00","end_validity_at":null,"begin_at":"2023-02-05T16:20:13.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"/gpfs/exfel/data/user/mramilli/jungfrau/module_PSI_gainmaps/M512/R0108_gainMaps_Single_JNGFR02_20230208.h5","report_id":null,"description":"","created_at":"2023-02-08T16:56:29.000+01:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/155622","calibration_constant":{"id":33719,"name":"jungfrau-Type_BadPixelsFF10Hz_Jungfrau
+        Def1OCwYHU6WlMBV+vqerqRyQ==\n-2","detector_type_id":4,"calibration_id":39,"condition_id":10903,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from FF runs","created_at":"2023-02-08T16:44:21.000+01:00","updated_at":"2025-11-28T09:52:16.000+01:00"},"physical_detector_unit":{"id":179,"physical_name":"Jungfrau_M512","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-01-20T15:15:31.000+01:00","updated_at":"2022-01-20T15:15:31.000+01:00","karabo_da":"JNGFR02","detector_id":21,"virtual_device_name":null,"uuid":1120000000002,"float_uuid":5.53353523343e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR02","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}}'
     headers:
       Cache-Control:
       - max-age=0, private, must-revalidate
       Content-Length:
-      - '1556'
+      - '1559'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 12 Nov 2025 09:52:30 GMT
+      - Mon, 23 Mar 2026 13:36:04 GMT
       Etag:
-      - W/"0ff91105265069ca33c3207b2ac76977"
+      - W/"797c340de748ba65b187b8dd69e6ed60"
       Keep-Alive:
       - timeout=5, max=100
       Referrer-Policy:
@@ -372,9 +372,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - c87ec80d-05e0-4ca4-a1d6-ac8be9c9aeac
+      - 50288e0b-8f49-49a7-b5c7-ddf49ea8ec61
       X-Runtime:
-      - '0.018249'
+      - '0.034326'
       X-Xss-Protection:
       - '0'
     status:
@@ -397,20 +397,20 @@ interactions:
     uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/155620
   response:
     body:
-      string: '{"id":155620,"name":"20230208_154421_sIdx=0","file_name":"cal.1675871060.3388195.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m530/","data_set_name":"/Jungfrau_M530/BadPixelsFF10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-02-05T16:20:13.000+01:00","end_validity_at":null,"begin_at":"2023-02-05T16:20:13.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"/gpfs/exfel/data/user/mramilli/jungfrau/module_PSI_gainmaps/M530/R0108_gainMaps_Single_JNGFR01_20230208.h5","report_id":null,"description":"","created_at":"2023-02-08T16:44:21.000+01:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/155620","calibration_constant":{"id":22322,"name":"jungfrau-Type_BadPixelsFF10Hz_Jungfrau
-        Def1OCwYHU6WlMBV+vqerqRyQ==\n","detector_type_id":4,"calibration_id":39,"condition_id":6922,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
-        (per-memory cell) bad pixels from FF runs","created_at":"2023-02-08T16:44:21.000+01:00","updated_at":"2023-02-08T16:44:21.000+01:00"},"physical_detector_unit":{"id":190,"physical_name":"Jungfrau_M530","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-07-18T17:07:34.000+02:00","updated_at":"2022-07-18T17:07:34.000+02:00","karabo_da":"JNGFR01","detector_id":21,"virtual_device_name":null,"uuid":800000000010,"float_uuid":3.95252516678e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR01","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}}'
+      string: '{"id":155620,"name":"20230208_154421_sIdx=0","file_name":"cal.1675871060.3388195.h5","path_to_file":"xfel/cal/jungfrau-type/jungfrau_m530/","data_set_name":"/Jungfrau_M530/BadPixelsFF10Hz/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-02-05T16:20:13.000+01:00","end_validity_at":null,"begin_at":"2023-02-05T16:20:13.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"/gpfs/exfel/data/user/mramilli/jungfrau/module_PSI_gainmaps/M530/R0108_gainMaps_Single_JNGFR01_20230208.h5","report_id":null,"description":"","created_at":"2023-02-08T16:44:21.000+01:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/155620","calibration_constant":{"id":33719,"name":"jungfrau-Type_BadPixelsFF10Hz_Jungfrau
+        Def1OCwYHU6WlMBV+vqerqRyQ==\n-2","detector_type_id":4,"calibration_id":39,"condition_id":10903,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        (per-memory cell) bad pixels from FF runs","created_at":"2023-02-08T16:44:21.000+01:00","updated_at":"2025-11-28T09:52:16.000+01:00"},"physical_detector_unit":{"id":190,"physical_name":"Jungfrau_M530","detector_type_id":4,"flg_available":true,"description":null,"created_at":"2022-07-18T17:07:34.000+02:00","updated_at":"2022-07-18T17:07:34.000+02:00","karabo_da":"JNGFR01","detector_id":21,"virtual_device_name":null,"uuid":800000000010,"float_uuid":3.95252516678e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"JNGFR01","detector_id_at_ccv_begin_at":21,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}}'
     headers:
       Cache-Control:
       - max-age=0, private, must-revalidate
       Content-Length:
-      - '1555'
+      - '1558'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 12 Nov 2025 09:52:30 GMT
+      - Mon, 23 Mar 2026 13:36:04 GMT
       Etag:
-      - W/"24483fca0d8c8d537b5f0713c03285a2"
+      - W/"fca273505039283aec69948b391b098c"
       Keep-Alive:
       - timeout=5, max=100
       Referrer-Policy:
@@ -434,9 +434,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 1b96cd22-1ea4-4a6d-a53c-6096a70d4003
+      - f36ac2c4-4b1f-403d-a6df-932eae6919a3
       X-Runtime:
-      - '0.022215'
+      - '0.029546'
       X-Xss-Protection:
       - '0'
     status:
@@ -468,7 +468,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 12 Nov 2025 09:52:30 GMT
+      - Mon, 23 Mar 2026 13:36:04 GMT
       Etag:
       - W/"82ff160220fdfe65a2f11beda609abc6"
       Keep-Alive:
@@ -498,9 +498,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - fe37de37-bd35-43e3-a25c-c0854be23276
+      - dbf7541d-69b8-481f-8e96-aa615a9051d2
       X-Runtime:
-      - '0.019238'
+      - '0.033629'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -540,7 +540,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 12 Nov 2025 09:52:30 GMT
+      - Mon, 23 Mar 2026 13:36:05 GMT
       Etag:
       - W/"1f006d391b7bd84ab06d715d484bc412"
       Keep-Alive:
@@ -570,9 +570,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 5c22634d-bbb9-41b3-801e-933faabc4617
+      - 3a10e734-223c-49fb-b8f5-3af3051a4b8e
       X-Runtime:
-      - '0.021468'
+      - '0.025360'
       X-Total-Count:
       - '13'
       X-Total-Pages:
