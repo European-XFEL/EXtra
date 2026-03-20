@@ -1308,7 +1308,7 @@ class AGIPDConditions(ConditionsBase):
     pixels_x: int = 512
     pixels_y: int = 128
 
-    _gain_parameters = [
+    _base_parameters = [
         "Sensor Bias Voltage",
         "Pixels X",
         "Pixels Y",
@@ -1317,18 +1317,20 @@ class AGIPDConditions(ConditionsBase):
         "Gain setting",
         "Integration time",
     ]
-    _other_dark_parameters = _gain_parameters + ["Gain mode"]
-    _illuminated_parameters = _gain_parameters + ["Source energy"]
+    _dark_parameters = _base_parameters + ["Gain mode"]
+    _illuminated_parameters = _base_parameters + ["Source energy"]
 
     calibration_types = {
-        "Offset": _other_dark_parameters,
-        "Noise": _other_dark_parameters,
-        "ThresholdsDark": _other_dark_parameters,
-        "BadPixelsDark": _other_dark_parameters,
-        "BadPixelsPC": _gain_parameters,
-        "SlopesPC": _gain_parameters,
+        "Offset": _dark_parameters,
+        "Noise": _dark_parameters,
+        "ThresholdsDark": _dark_parameters,
+        "BadPixelsDark": _dark_parameters,
+        "BadPixelsPC": _base_parameters,
+        "SlopesPC": _base_parameters,
         "BadPixelsFF": _illuminated_parameters,
         "SlopesFF": _illuminated_parameters,
+        "BadPixelsCS": _dark_parameters,
+        "SlopesCS": _dark_parameters
     }
 
     def make_dict(self, parameters):
