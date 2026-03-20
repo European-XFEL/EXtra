@@ -1,6 +1,6 @@
 import os
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import numpy as np
@@ -17,6 +17,8 @@ from extra.calibration import (
     JUNGFRAUConditions,
     LPDConditions,
     SingleConstant,
+    DetectorData,
+    DetectorModule
 )
 
 # Most of these tests use saved HTTP responses by default (with pytest-recording).
@@ -376,3 +378,80 @@ def test_conditions_markdown():
     cond = LPDConditions()
     md = MarkdownFormatter()(cond)  # Smoketest
     assert isinstance(md, str)
+
+
+pdu_date_kw = dict(pdu_snapshot_at=datetime(
+    year=2025, month=10, day=27, hour=15, minute=50, second=13,
+    tzinfo=timezone(timedelta(hours=1))))
+
+
+@pytest.mark.vcr
+def test_DetectorData_from_identifier():
+    # SPB-AGIPD, multi-module detector with full CalCat entries
+    agipd = DetectorData.from_identifier('SPB_DET_AGIPD1M-1', **pdu_date_kw)
+    repr(agipd)
+
+    assert agipd
+    assert agipd.identifier == 'SPB_DET_AGIPD1M-1'
+    assert agipd.detector_type == 'AGIPD-Type'
+    assert len(agipd) == agipd.number_of_modules
+    assert list(agipd)[0] == next(iter(agipd.keys())) == 'AGIPD00'
+    assert isinstance(next(iter(agipd.values())), DetectorModule)
+    assert agipd[0] == agipd['AGIPD00']
+
+    # PDU
+    pdu = agipd[0]
+    assert pdu.aggregator == 'AGIPD00'
+    assert pdu.ccv_params == (
+        'AGIPD_SIV1_AGIPDV11_M517', 101003000000, 'AGIPD-Type')
+
+    # FXE-JFHZ, single-module detector with partial CalCat entries
+    jfhz = DetectorData.from_identifier('FXE_XAD_JFHZ', **pdu_date_kw)
+    repr(jfhz)
+
+    assert jfhz
+    assert len(jfhz) == 1
+    assert jfhz.number_of_modules is None
+
+    with pytest.raises(AssertionError):
+        jfhz.first_module_index
+
+    # SQS-DSSC, PDU-less detector
+    dssc = DetectorData.from_identifier('SQS_DET_DSSC1M-1', **pdu_date_kw)
+    repr(dssc)
+
+    assert not dssc
+    assert len(dssc) == 0
+
+    with pytest.raises(ValueError):
+        dssc.detector_type
+
+
+@pytest.mark.vcr
+def test_DetectorData_from_instrument():
+    with pytest.raises(ValueError):
+        DetectorData.from_instrument('SPB')  # More than one detector.
+
+    with pytest.raises(ValueError):
+        DetectorData.from_instrument('SPB', '*JF*')  # More than one JF.
+
+    # Sufficiently narrow glob.
+    jf4m = DetectorData.from_instrument('SPB', '*JF4M', **pdu_date_kw)
+    assert jf4m.identifier == 'SPB_IRDA_JF4M'
+
+    # Instrument with single detector.
+    hirex = DetectorData.from_instrument('SA1', **pdu_date_kw)
+    assert hirex.identifier == 'SA1_XTD9_HIREX'
+
+
+@pytest.mark.vcr
+def test_DetectorData_list_by_instrument():
+    assert DetectorData.list_by_instrument('SCS') == [
+        'SCS_DET_DSSC1M-1', 'SCS_HRIXS_JUNGF', 'SCS_XOX_GH21',
+        'SCS_XOX_GH22', 'SCS_DET_DSSC2']
+
+
+@pytest.mark.vcr
+def test_DetectorData_from_CalibrationData():
+    agipd_cd = CalibrationData.from_report(3757)
+    assert agipd_cd.detector.identifier == 'SPB_DET_AGIPD1M-1'
