@@ -1174,6 +1174,7 @@ class AGIPDConditions(ConditionsBase):
     ]
     _other_dark_parameters = _gain_parameters + ["Gain mode"]
     _illuminated_parameters = _gain_parameters + ["Source energy"]
+    _current_source_parameters = list(filter(lambda x: x != "Integration time", _gain_parameters))
 
     calibration_types = {
         "Offset": _other_dark_parameters,
@@ -1184,6 +1185,8 @@ class AGIPDConditions(ConditionsBase):
         "SlopesPC": _gain_parameters,
         "BadPixelsFF": _illuminated_parameters,
         "SlopesFF": _illuminated_parameters,
+        "BadPixelsCS": _current_source_parameters,
+        "SlopesCS": _current_source_parameters
     }
 
     def make_dict(self, parameters):
