@@ -124,15 +124,15 @@ def test_AGIPD_CalibrationData_metadata_SPB():
         sensor_bias_voltage=300,
         memory_cells=352,
         acquisition_rate=1.1,
-        integration_time=12,
+        integration_time=20,
         source_energy=9.2,
-        gain_mode=0,
+        gain_mode=None,
         gain_setting=0,
     )
     agipd_cd = CalibrationData.from_condition(
         cond,
         "SPB_DET_AGIPD1M-1",
-        event_at="2020-01-07 13:26:48.00",
+        event_at="2024-04-25 17:19:23",
     )
     assert "Offset" in agipd_cd
     assert set(agipd_cd["Offset"].constants) == {f"AGIPD{m:02}" for m in range(16)}
@@ -141,6 +141,7 @@ def test_AGIPD_CalibrationData_metadata_SPB():
         f"Q{(m // 4) + 1}M{(m % 4) + 1}" for m in range(16)
     ]
     assert isinstance(agipd_cd["Offset", 0], SingleConstant)
+    assert "SlopesCS" in agipd_cd
 
 
 @pytest.mark.skipif(not os.path.isdir("/gpfs/exfel/d"), reason="GPFS not available")
