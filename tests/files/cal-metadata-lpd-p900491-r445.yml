@@ -1,0 +1,650 @@
+calibration-configurations:
+  bias-voltage: 250.0
+  cal-db-interface: tcp://max-exfl-cal001:8015#8044
+  cal-db-root: /gpfs/exfel/d/cal/caldb_store
+  cal-db-timeout: 300000
+  capacitor: 5pf
+  category: 0
+  chunks-data: 1
+  chunks-ids: 32
+  combine-parallel-gain: true
+  control-source: '{karabo_id}/COMP/FEM_MDL_COMP'
+  create-virtual-cxi-in: ''
+  creation-time: ''
+  drop-last-frames-parallelgain: 1
+  ff-map: true
+  gain-amp-map: true
+  ignore-no-frames-no-pulses: false
+  in-folder: /gpfs/exfel/exp/FXE/202530/p900491/raw
+  input-source: '{karabo_id}/DET/{module_index}CH0:xtdf'
+  karabo-da:
+  - LPD00
+  - LPD01
+  - LPD02
+  - LPD03
+  - LPD04
+  - LPD05
+  - LPD06
+  - LPD07
+  - LPD08
+  - LPD09
+  - LPD10
+  - LPD11
+  - LPD12
+  - LPD13
+  - LPD14
+  - LPD15
+  karabo-id: FXE_DET_LPD1M-1
+  max-nodes: 8
+  mem-cells: 512
+  metadata-folder: ''
+  modules:
+  - -1
+  num-threads-per-worker: 32
+  num-workers: 6
+  offset-corr: true
+  out-folder: /gpfs/exfel/d/proc/FXE/202530/p900491/r0445
+  output-source: '{karabo_id}/CORR/{module_index}CH0:output'
+  overwrite: true
+  photon-energy: 9.2
+  rel-gain: true
+  run: 445
+  sequences:
+  - -1
+  sequences-per-node: 1
+  threshold-sigma-high: 5.0
+  threshold-sigma-mid: 100.0
+  use-cell-order: auto
+  xgm-pulse-count-key: pulseEnergy.numberOfSa1BunchesActual
+  xgm-source: SA1_XTD2_XGM/DOOCS/MAIN
+concurrency:
+  default:
+  - -1
+  function: balance_sequences
+  parameter: sequences
+notebook:
+  author: anonymous
+  title: LPD Offline Correction
+pycalibration-version: 3.16.0-1-g8ae91018
+python-environment:
+  path: /home/xcal/deployments/development/git.xfel.eu/detectors/pycalibration/current/.venv/bin/python
+  python-version: 3.11.9
+report-path: /gpfs/exfel/exp/FXE/202530/p900491/usr/Reports/r0445/FXE_DET_LPD1M-1_correct_900491_r0445_250316_224941_028562.pdf
+reproducible: true
+retrieved-constants:
+  LPD00:
+    constants:
+      BadPixelsDark:
+        ccv_id: 237877
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM015/BadPixelsDark/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm015/cal.1741952879.344853.h5
+      BadPixelsFF:
+        ccv_id: 167227
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM015/BadPixelsFF/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm015/cal.1683895065.0643032.h5
+      FFMap:
+        ccv_id: 167205
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM015/FFMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm015/cal.1683895033.8990366.h5
+      GainAmpMap:
+        ccv_id: 167186
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM015/GainAmpMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm015/cal.1683894999.9529185.h5
+      Offset:
+        ccv_id: 237845
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM015/Offset/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm015/cal.1741952863.803856.h5
+      RelativeGain:
+        ccv_id: 167185
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM015/RelativeGain/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm015/cal.1683894999.8789177.h5
+    physical-name: LPD_SIV1_LPDV2_SM015
+  LPD01:
+    constants:
+      BadPixelsDark:
+        ccv_id: 237868
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM012/BadPixelsDark/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm012/cal.1741952875.562684.h5
+      BadPixelsFF:
+        ccv_id: 167232
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM012/BadPixelsFF/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm012/cal.1683895072.837728.h5
+      FFMap:
+        ccv_id: 167210
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM012/FFMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm012/cal.1683895041.1429372.h5
+      GainAmpMap:
+        ccv_id: 167191
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM012/GainAmpMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm012/cal.1683895010.20587.h5
+      Offset:
+        ccv_id: 237843
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM012/Offset/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm012/cal.1741952861.1344466.h5
+      RelativeGain:
+        ccv_id: 167188
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM012/RelativeGain/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm012/cal.1683895009.0538955.h5
+    physical-name: LPD_SIV1_LPDV2_SM012
+  LPD02:
+    constants:
+      BadPixelsDark:
+        ccv_id: 237885
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM011/BadPixelsDark/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm011/cal.1741952887.506442.h5
+      BadPixelsFF:
+        ccv_id: 167237
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM011/BadPixelsFF/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm011/cal.1683895080.9179022.h5
+      FFMap:
+        ccv_id: 167215
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM011/FFMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm011/cal.1683895048.0563838.h5
+      GainAmpMap:
+        ccv_id: 167196
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM011/GainAmpMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm011/cal.1683895018.4933574.h5
+      Offset:
+        ccv_id: 237855
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM011/Offset/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm011/cal.1741952867.7723253.h5
+      RelativeGain:
+        ccv_id: 167193
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM011/RelativeGain/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm011/cal.1683895016.3602607.h5
+    physical-name: LPD_SIV1_LPDV2_SM011
+  LPD03:
+    constants:
+      BadPixelsDark:
+        ccv_id: 237875
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM014/BadPixelsDark/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm014/cal.1741952877.6045234.h5
+      BadPixelsFF:
+        ccv_id: 167242
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM014/BadPixelsFF/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm014/cal.1683895088.8988206.h5
+      FFMap:
+        ccv_id: 167220
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM014/FFMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm014/cal.1683895055.1096401.h5
+      GainAmpMap:
+        ccv_id: 167200
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM014/GainAmpMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm014/cal.1683895026.2881086.h5
+      Offset:
+        ccv_id: 237848
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM014/Offset/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm014/cal.1741952863.8503149.h5
+      RelativeGain:
+        ccv_id: 167198
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM014/RelativeGain/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm014/cal.1683895023.3775086.h5
+    physical-name: LPD_SIV1_LPDV2_SM014
+  LPD04:
+    constants:
+      BadPixelsDark:
+        ccv_id: 237862
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SM-2021-003/BadPixelsDark/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_sm-2021-003/cal.1741952874.6622057.h5
+      BadPixelsFF:
+        ccv_id: 167224
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SM-2021-003/BadPixelsFF/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_sm-2021-003/cal.1683895062.3347216.h5
+      FFMap:
+        ccv_id: 167206
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SM-2021-003/FFMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_sm-2021-003/cal.1683895034.4169052.h5
+      GainAmpMap:
+        ccv_id: 167202
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SM-2021-003/GainAmpMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_sm-2021-003/cal.1683895026.8087947.h5
+      Offset:
+        ccv_id: 237838
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SM-2021-003/Offset/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_sm-2021-003/cal.1741952855.1530995.h5
+      RelativeGain:
+        ccv_id: 167183
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SM-2021-003/RelativeGain/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_sm-2021-003/cal.1683894999.8358607.h5
+    physical-name: LPD_SM-2021-003
+  LPD05:
+    constants:
+      BadPixelsDark:
+        ccv_id: 237863
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM003/BadPixelsDark/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm003/cal.1741952874.923434.h5
+      BadPixelsFF:
+        ccv_id: 167229
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM003/BadPixelsFF/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm003/cal.1683895069.5678635.h5
+      FFMap:
+        ccv_id: 167211
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM003/FFMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm003/cal.1683895042.072769.h5
+      GainAmpMap:
+        ccv_id: 167207
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM003/GainAmpMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm003/cal.1683895034.5848706.h5
+      Offset:
+        ccv_id: 237840
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM003/Offset/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm003/cal.1741952857.2954226.h5
+      RelativeGain:
+        ccv_id: 167190
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM003/RelativeGain/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm003/cal.1683895009.9477043.h5
+    physical-name: LPD_SIV1_LPDV2_SM003
+  LPD06:
+    constants:
+      BadPixelsDark:
+        ccv_id: 237864
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SM-2021-002/BadPixelsDark/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_sm-2021-002/cal.1741952875.0807076.h5
+      BadPixelsFF:
+        ccv_id: 167234
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SM-2021-002/BadPixelsFF/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_sm-2021-002/cal.1683895076.4370394.h5
+      FFMap:
+        ccv_id: 167216
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SM-2021-002/FFMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_sm-2021-002/cal.1683895049.500234.h5
+      GainAmpMap:
+        ccv_id: 167212
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SM-2021-002/GainAmpMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_sm-2021-002/cal.1683895042.2675586.h5
+      Offset:
+        ccv_id: 237839
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SM-2021-002/Offset/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_sm-2021-002/cal.1741952855.8130345.h5
+      RelativeGain:
+        ccv_id: 167195
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SM-2021-002/RelativeGain/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_sm-2021-002/cal.1683895018.0756328.h5
+    physical-name: LPD_SM-2021-002
+  LPD07:
+    constants:
+      BadPixelsDark:
+        ccv_id: 237872
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM002/BadPixelsDark/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm002/cal.1741952876.648364.h5
+      BadPixelsFF:
+        ccv_id: 167239
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM002/BadPixelsFF/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm002/cal.1683895083.4556665.h5
+      FFMap:
+        ccv_id: 167221
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM002/FFMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm002/cal.1683895057.0430799.h5
+      GainAmpMap:
+        ccv_id: 167217
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM002/GainAmpMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm002/cal.1683895049.847318.h5
+      Offset:
+        ccv_id: 237844
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM002/Offset/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm002/cal.1741952862.9063046.h5
+      RelativeGain:
+        ccv_id: 167201
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM002/RelativeGain/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm002/cal.1683895026.4383945.h5
+    physical-name: LPD_SIV1_LPDV2_SM002
+  LPD08:
+    constants:
+      BadPixelsDark:
+        ccv_id: 237876
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM009/BadPixelsDark/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm009/cal.1741952878.9049318.h5
+      BadPixelsFF:
+        ccv_id: 167225
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM009/BadPixelsFF/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm009/cal.1683895064.4516954.h5
+      FFMap:
+        ccv_id: 167222
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM009/FFMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm009/cal.1683895057.1557665.h5
+      GainAmpMap:
+        ccv_id: 167203
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM009/GainAmpMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm009/cal.1683895030.1222148.h5
+      Offset:
+        ccv_id: 237847
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM009/Offset/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm009/cal.1741952864.289192.h5
+      RelativeGain:
+        ccv_id: 167182
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM009/RelativeGain/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm009/cal.1683894997.7409842.h5
+    physical-name: LPD_SIV1_LPDV2_SM009
+  LPD09:
+    constants:
+      BadPixelsDark:
+        ccv_id: 237865
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM006/BadPixelsDark/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm006/cal.1741952875.3045185.h5
+      BadPixelsFF:
+        ccv_id: 167230
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM006/BadPixelsFF/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm006/cal.1683895072.3703878.h5
+      FFMap:
+        ccv_id: 167226
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM006/FFMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm006/cal.1683895064.6312828.h5
+      GainAmpMap:
+        ccv_id: 167208
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM006/GainAmpMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm006/cal.1683895037.6212237.h5
+      Offset:
+        ccv_id: 237841
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM006/Offset/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm006/cal.1741952857.7715302.h5
+      RelativeGain:
+        ccv_id: 167187
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM006/RelativeGain/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm006/cal.1683895004.6848395.h5
+    physical-name: LPD_SIV1_LPDV2_SM006
+  LPD10:
+    constants:
+      BadPixelsDark:
+        ccv_id: 237866
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM007/BadPixelsDark/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm007/cal.1741952875.4120696.h5
+      BadPixelsFF:
+        ccv_id: 167235
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM007/BadPixelsFF/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm007/cal.1683895080.640112.h5
+      FFMap:
+        ccv_id: 167231
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM007/FFMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm007/cal.1683895072.7109957.h5
+      GainAmpMap:
+        ccv_id: 167213
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM007/GainAmpMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm007/cal.1683895044.454637.h5
+      Offset:
+        ccv_id: 237842
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM007/Offset/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm007/cal.1741952860.9828575.h5
+      RelativeGain:
+        ccv_id: 167192
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM007/RelativeGain/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm007/cal.1683895011.667675.h5
+    physical-name: LPD_SIV1_LPDV2_SM007
+  LPD11:
+    constants:
+      BadPixelsDark:
+        ccv_id: 237883
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM005/BadPixelsDark/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm005/cal.1741952883.6752985.h5
+      BadPixelsFF:
+        ccv_id: 167240
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM005/BadPixelsFF/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm005/cal.1683895087.8807285.h5
+      FFMap:
+        ccv_id: 167236
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM005/FFMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm005/cal.1683895080.9822006.h5
+      GainAmpMap:
+        ccv_id: 167219
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM005/GainAmpMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm005/cal.1683895053.5129526.h5
+      Offset:
+        ccv_id: 237851
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM005/Offset/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm005/cal.1741952865.4944685.h5
+      RelativeGain:
+        ccv_id: 167197
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM005/RelativeGain/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm005/cal.1683895018.9036982.h5
+    physical-name: LPD_SIV1_LPDV2_SM005
+  LPD12:
+    constants:
+      BadPixelsDark:
+        ccv_id: 237884
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM013/BadPixelsDark/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm013/cal.1741952885.5351343.h5
+      BadPixelsFF:
+        ccv_id: 167241
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM013/BadPixelsFF/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm013/cal.1683895088.8577616.h5
+      FFMap:
+        ccv_id: 167223
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM013/FFMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm013/cal.1683895061.136627.h5
+      GainAmpMap:
+        ccv_id: 167204
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM013/GainAmpMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm013/cal.1683895032.2966015.h5
+      Offset:
+        ccv_id: 237859
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM013/Offset/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm013/cal.1741952870.0866063.h5
+      RelativeGain:
+        ccv_id: 167184
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM013/RelativeGain/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm013/cal.1683894999.9044755.h5
+    physical-name: LPD_SIV1_LPDV2_SM013
+  LPD13:
+    constants:
+      BadPixelsDark:
+        ccv_id: 237881
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM010/BadPixelsDark/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm010/cal.1741952880.9339652.h5
+      BadPixelsFF:
+        ccv_id: 167243
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM010/BadPixelsFF/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm010/cal.1683895095.6678774.h5
+      FFMap:
+        ccv_id: 167228
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM010/FFMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm010/cal.1683895068.3286915.h5
+      GainAmpMap:
+        ccv_id: 167209
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM010/GainAmpMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm010/cal.1683895039.475091.h5
+      Offset:
+        ccv_id: 237849
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM010/Offset/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm010/cal.1741952864.8589964.h5
+      RelativeGain:
+        ccv_id: 167189
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM010/RelativeGain/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm010/cal.1683895009.3048754.h5
+    physical-name: LPD_SIV1_LPDV2_SM010
+  LPD14:
+    constants:
+      BadPixelsDark:
+        ccv_id: 237880
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM008/BadPixelsDark/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm008/cal.1741952880.1031752.h5
+      BadPixelsFF:
+        ccv_id: 167244
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM008/BadPixelsFF/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm008/cal.1683895102.4940746.h5
+      FFMap:
+        ccv_id: 167233
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM008/FFMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm008/cal.1683895075.2840552.h5
+      GainAmpMap:
+        ccv_id: 167214
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM008/GainAmpMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm008/cal.1683895046.337841.h5
+      Offset:
+        ccv_id: 237846
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SIV1_LPDV2_SM008/Offset/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm008/cal.1741952863.990287.h5
+      RelativeGain:
+        ccv_id: 167194
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SIV1_LPDV2_SM008/RelativeGain/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_siv1_lpdv2_sm008/cal.1683895017.6914165.h5
+    physical-name: LPD_SIV1_LPDV2_SM008
+  LPD15:
+    constants:
+      BadPixelsDark:
+        ccv_id: 237878
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SM-2021-001/BadPixelsDark/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_sm-2021-001/cal.1741952879.7859614.h5
+      BadPixelsFF:
+        ccv_id: 167245
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SM-2021-001/BadPixelsFF/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_sm-2021-001/cal.1683895109.2687914.h5
+      FFMap:
+        ccv_id: 167238
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SM-2021-001/FFMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_sm-2021-001/cal.1683895082.4587646.h5
+      GainAmpMap:
+        ccv_id: 167218
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SM-2021-001/GainAmpMap/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_sm-2021-001/cal.1683895053.4216187.h5
+      Offset:
+        ccv_id: 237850
+        creation-time: '2025-03-14T12:36:59.000+01:00'
+        dataset: /LPD_SM-2021-001/Offset/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_sm-2021-001/cal.1741952865.1392424.h5
+      RelativeGain:
+        ccv_id: 167199
+        creation-time: '2023-05-12T14:37:09.000+02:00'
+        dataset: /LPD_SM-2021-001/RelativeGain/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/lpd-type/lpd_sm-2021-001/cal.1683895025.1961641.h5
+    physical-name: LPD_SM-2021-001
+runtime-summary:
+  calibration-jobs:
+  - Elapsed: 00:01:18
+    End: '2025-03-16T23:52:06'
+    JobID: '13523697'
+    Start: '2025-03-16T23:50:48'
+    State: COMPLETED
+    Suspended: 00:00:00
+  - Elapsed: 00:01:15
+    End: '2025-03-16T23:52:05'
+    JobID: '13523698'
+    Start: '2025-03-16T23:50:50'
+    State: COMPLETED
+    Suspended: 00:00:00
+  - Elapsed: 00:01:13
+    End: '2025-03-16T23:52:05'
+    JobID: '13523699'
+    Start: '2025-03-16T23:50:52'
+    State: COMPLETED
+    Suspended: 00:00:00
+  - Elapsed: 00:01:12
+    End: '2025-03-16T23:52:06'
+    JobID: '13523700'
+    Start: '2025-03-16T23:50:54'
+    State: COMPLETED
+    Suspended: 00:00:00
+  - Elapsed: 00:01:16
+    End: '2025-03-16T23:52:10'
+    JobID: '13523701'
+    Start: '2025-03-16T23:50:54'
+    State: COMPLETED
+    Suspended: 00:00:00
+  - Elapsed: 00:01:10
+    End: '2025-03-16T23:52:05'
+    JobID: '13523702'
+    Start: '2025-03-16T23:50:55'
+    State: COMPLETED
+    Suspended: 00:00:00
+  - Elapsed: 00:00:08
+    End: '2025-03-16T23:52:18'
+    JobID: '13523703'
+    Start: '2025-03-16T23:52:10'
+    State: RUNNING
+    Suspended: 00:00:00
+  pipeline-steps:
+    report-compilation-time: 2025-03-16 22:52:18.188555+00:00
+    request-time: 2025-03-16 22:49:41.028562+00:00
+    submission-time: 2025-03-16 22:50:44.082342+00:00

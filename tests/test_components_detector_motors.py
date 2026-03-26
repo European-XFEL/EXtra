@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 import xarray as xa
-from extra.components import AGIPD1MQuadrantMotors
+from extra.components import AGIPD1MQuadrantMotors, JF4MHalfMotors
 
 testdata = [
     ("SPB_IRU_AGIPD1M", "SPB_IRU_AGIPD1M/MOTOR/Q{q}M{m}", "actualPosition"),
@@ -11,7 +11,7 @@ testdata = [
 
 @pytest.mark.parametrize(["detector_id", "src_ptrn", "key_ptrn"], testdata,
                          ids=["motors", "data_selector"])
-def test_detector_motors(mock_spb_aux_run, detector_id, src_ptrn, key_ptrn):
+def test_agipd1m_motors(mock_spb_aux_run, detector_id, src_ptrn, key_ptrn):
     nparts = 3
 
     with pytest.raises(ValueError):
@@ -75,3 +75,29 @@ def test_detector_motors(mock_spb_aux_run, detector_id, src_ptrn, key_ptrn):
         p = motors.positions_at(trains[-1] + one)
 
     assert np.array_equal(motors.most_frequent_positions(), unique_pos[-1])
+
+
+def test_jf4_motors(mock_spb_aux_run):
+    motors = JF4MHalfMotors(mock_spb_aux_run)
+
+    ntrains = len(mock_spb_aux_run.train_ids)
+    trains = np.array(mock_spb_aux_run.train_ids)
+
+    px = motors.positions()
+    assert isinstance(px, xa.DataArray)
+    assert len(px) == ntrains
+    assert px.dims == ('trainId', 'q', 'm')
+
+    t, p = motors.positions(labelled=False)
+    assert isinstance(p, np.ndarray)
+    assert len(p) == ntrains
+    assert np.array_equal(motors.train_ids, t)
+
+    assert np.array_equal(px.values, p)
+    assert p.shape == (ntrains, 2, 1)
+
+    a = np.zeros([ntrains, 2, 1])
+    a[:, 0, 0] = 10
+    a[:10, 1, 0] = 5
+    a[10:, 1, 0] = 6
+    assert np.array_equal(p, a)

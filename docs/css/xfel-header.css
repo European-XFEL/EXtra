@@ -1,0 +1,170 @@
+/* XFEL Cross-Documentation Header Styles */
+
+/* CSS Variables - Edit these to customize the header */
+:root {
+  --xfel-header-bg-color: #1a237e;
+  --xfel-header-text-color: white;
+  --xfel-header-link-color: #bbdefb;
+  --xfel-header-link-hover-color: white;
+  --xfel-header-separator-color: rgba(255, 255, 255, 0.5);
+  --xfel-header-height: 40px;
+  --xfel-header-padding-vertical: 10px;
+  --xfel-header-padding-horizontal: 1rem;
+  --xfel-header-font-size: 14px;
+  --xfel-header-line-height: 20px;
+  --xfel-header-font-size-mobile: 12px;
+  --xfel-header-max-width: 1200px;
+  --xfel-header-gap: 0.5rem;
+}
+
+.xfel-cross-nav {
+  background-color: var(--xfel-header-bg-color);
+  color: var(--xfel-header-text-color);
+  padding: 0;
+  width: 100%;
+  position: relative;
+  z-index: 10000;
+  margin: 0;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-height: var(--xfel-header-height);
+  box-sizing: border-box;
+}
+
+/* ReadTheDocs theme specific adjustments */
+/* Only apply fixed positioning when ReadTheDocs elements are present */
+.wy-body-for-nav .xfel-cross-nav {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+}
+
+.wy-body-for-nav {
+  padding-top: var(--xfel-header-height) !important;
+}
+
+.wy-nav-side {
+  top: var(--xfel-header-height) !important;
+  height: calc(100% - var(--xfel-header-height)) !important;
+}
+
+.wy-nav-content-wrap {
+  margin-top: var(--xfel-header-height) !important;
+}
+
+.wy-nav-top {
+  top: var(--xfel-header-height) !important;
+}
+
+.xfel-header-nav {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  min-height: var(--xfel-header-height);
+  box-sizing: border-box;
+}
+
+.xfel-header-content {
+  max-width: var(--xfel-header-max-width);
+  margin: 0 auto;
+  padding: var(--xfel-header-padding-vertical) var(--xfel-header-padding-horizontal);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--xfel-header-gap);
+  font-size: var(--xfel-header-font-size);
+  line-height: var(--xfel-header-line-height);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  min-height: var(--xfel-header-height);
+  box-sizing: border-box;
+}
+
+.xfel-header-label {
+  font-weight: 600;
+  margin-right: 0.5rem;
+  white-space: nowrap;
+  color: var(--xfel-header-text-color);
+  font-size: var(--xfel-header-font-size);
+}
+
+.xfel-header-link {
+  color: var(--xfel-header-link-color);
+  text-decoration: none;
+  white-space: nowrap;
+  font-size: var(--xfel-header-font-size);
+  font-weight: normal;
+  border: none;
+  background: none;
+}
+
+.xfel-header-link:hover {
+  color: var(--xfel-header-link-hover-color);
+  text-decoration: underline;
+  background: none;
+}
+
+.xfel-header-link:visited {
+  color: var(--xfel-header-link-color);
+}
+
+.xfel-header-separator {
+  color: var(--xfel-header-separator-color);
+  margin: 0 0.25rem;
+  font-size: var(--xfel-header-font-size);
+}
+
+/* Dropdown menu */
+.xfel-header-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.xfel-header-dropdown-content {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: var(--xfel-header-bg-color);
+  min-width: 180px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  margin-top: 0;
+  padding-top: 0.5rem;
+  border-radius: 4px;
+  padding: 0.5rem 0;
+  z-index: 10001;
+}
+
+.xfel-header-dropdown:hover .xfel-header-dropdown-content {
+  display: block;
+}
+
+.xfel-header-dropdown-content a {
+  display: block;
+  padding: 0.5rem 1rem;
+}
+
+.xfel-header-dropdown-content a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .xfel-header-content {
+    font-size: var(--xfel-header-font-size-mobile);
+  }
+
+  .xfel-header-label {
+    width: 100%;
+    margin-bottom: 0.25rem;
+    font-size: var(--xfel-header-font-size-mobile);
+  }
+
+  .xfel-header-link {
+    font-size: var(--xfel-header-font-size-mobile);
+  }
+
+  .xfel-header-separator {
+    font-size: var(--xfel-header-font-size-mobile);
+  }
+}

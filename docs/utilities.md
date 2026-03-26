@@ -16,9 +16,15 @@ else.
 
 ::: extra.utils.find_nearest_value
 
+::: extra.utils.reorder_axes_to_shape
+
 ## Plotting functions
 
 ::: extra.utils.imshow2
+
+::: extra.utils.hyperslicer2
+
+::: extra.utils.ridgeplot
 
 ## Fitting functions
 

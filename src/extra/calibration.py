@@ -1,10 +1,11 @@
 import json
 import re
 from collections.abc import Mapping
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field, fields, replace
 from datetime import date, datetime, time, timezone
 from enum import IntFlag
 from functools import lru_cache
+from operator import index
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 from urllib.parse import urljoin
@@ -13,7 +14,11 @@ from warnings import warn
 import h5py
 import pasha as psh
 import requests
+from extra_data.read_machinery import find_proposal
 from oauth2_xfel_client import Oauth2ClientBackend
+
+from .utils.misc import _isinstance_no_import
+
 
 __all__ = [
     "CalCatAPIError",
@@ -24,6 +29,8 @@ __all__ = [
     "AGIPDConditions",
     "LPDConditions",
     "DSSCConditions",
+    "JUNGFRAUConditions",
+    "ShimadzuHPVX2Conditions",
 ]
 
 # Default address to connect to, only available internally
@@ -38,8 +45,16 @@ class ModuleNameError(KeyError):
         return f"No module named {self.name!r}"
 
 
+
+class NoDimensionLabelsError(ValueError):
+    pass
+
+
 class CalCatAPIError(requests.HTTPError):
     """Used when the response includes error details as JSON"""
+    @property
+    def status_code(self):
+        return self.response.status_code
 
 
 class CalCatAPIClient:
@@ -56,6 +71,10 @@ class CalCatAPIClient:
         self.user_email = user_email
         # Ensure the base URL has a trailing slash
         self.base_api_url = base_api_url.rstrip("/") + "/"
+
+    def __repr__(self):
+        auth = " (with Oauth)" if self.oauth_client else ""
+        return f"<CalCatAPIClient for {self.base_api_url}{auth}>"
 
     def default_headers(self):
         from . import __version__
@@ -74,6 +93,10 @@ class CalCatAPIClient:
             return dt.astimezone(timezone.utc).isoformat()
         elif isinstance(dt, date):
             return cls.format_time(datetime.combine(dt, time()))
+        elif _isinstance_no_import(dt, 'extra_data', 'DataCollection'):
+            return cls.format_time(dt[0].train_timestamps(pydatetime=True)[0])
+        elif dt is None:
+            return ""  # Not specified - for searches, this usually means now
         elif not isinstance(dt, str):
             raise TypeError(
                 f"Timestamp parameter ({dt!r}) must be a string, datetime or "
@@ -82,7 +105,7 @@ class CalCatAPIClient:
 
         return dt
 
-    def get_request(self, relative_url, params=None, headers=None, **kwargs):
+    def request(self, method, relative_url, params=None, headers=None, **kwargs):
         """Make a GET request, return the HTTP response object"""
         # Base URL may include e.g. '/api/'. This is a prefix for all URLs;
         # even if they look like an absolute path.
@@ -90,7 +113,9 @@ class CalCatAPIClient:
         _headers = self.default_headers()
         if headers:
             _headers.update(headers)
-        return self.session.get(url, params=params, headers=_headers, **kwargs)
+        return self.session.request(
+            method, url, params=params, headers=_headers, **kwargs
+        )
 
     @staticmethod
     def _parse_response(resp: requests.Response):
@@ -102,7 +127,8 @@ class CalCatAPIClient:
             else:
                 raise CalCatAPIError(
                     f"Error {resp.status_code} from API: "
-                    f"{d.get('info', 'missing details')}"
+                    f"{d.get('info', 'missing details')}",
+                    response=resp
                 )
 
         if resp.content == b"":
@@ -112,7 +138,7 @@ class CalCatAPIClient:
 
     def get(self, relative_url, params=None, **kwargs):
         """Make a GET request, return response content from JSON"""
-        resp = self.get_request(relative_url, params, **kwargs)
+        resp = self.request('GET', relative_url, params, **kwargs)
         return self._parse_response(resp)
 
     _pagination_headers = (
@@ -124,7 +150,7 @@ class CalCatAPIClient:
 
     def get_paged(self, relative_url, params=None, **kwargs):
         """Make a GET request, return response content & pagination info"""
-        resp = self.get_request(relative_url, params, **kwargs)
+        resp = self.request('GET', relative_url, params, **kwargs)
         content = self._parse_response(resp)
         pagination_info = {
             k[2:].lower().replace("-", "_"): int(resp.headers[k])
@@ -132,6 +158,11 @@ class CalCatAPIClient:
             if k in resp.headers
         }
         return content, pagination_info
+
+    def post(self, relative_url, json, **kwargs):
+        """Make a POST request, return response content from JSON"""
+        resp = self.request('POST', relative_url, json=json, **kwargs)
+        return self._parse_response(resp)
 
     # ------------------
     # Cached wrappers for simple ID lookups of fixed-ish info
@@ -149,24 +180,31 @@ class CalCatAPIClient:
     # --------------------
     # Shortcuts to find 1 of something by an ID-like field (e.g. name) other
     # than CalCat's own integer IDs. Error on no match or >1 matches.
-    @lru_cache()
-    def detector_by_identifier(self, identifier):
-        # The "identifier", "name" & "karabo_name" fields seem to have the same names
-        res = self.get("detectors", {"identifier": identifier})
+    @lru_cache
+    def _get_by_name(self, endpoint, name, name_key="name"):
+        res = self.get(endpoint, {name_key: name})
         if not res:
-            raise KeyError(f"No detector with identifier {identifier}")
+            raise KeyError(f"No {endpoint[:-1]} with name {name}")
         elif len(res) > 1:
-            raise ValueError(f"Multiple detectors found with identifier {identifier}")
+            raise ValueError(f"Multiple {endpoint} found with name {name}")
         return res[0]
 
-    @lru_cache()
+    def detector_by_identifier(self, identifier):
+        return self._get_by_name(
+            "detectors", identifier, name_key="identifier")
+
     def calibration_by_name(self, name):
-        res = self.get("calibrations", {"name": name})
-        if not res:
-            raise KeyError(f"No calibration with name {name}")
-        elif len(res) > 1:
-            raise ValueError(f"Multiple calibrations found with name {name}")
-        return res[0]
+        return self._get_by_name("calibrations", name)
+
+    def parameter_by_name(self, name):
+        return self._get_by_name("parameters", name)
+
+    def detector_type_by_name(self, name):
+        return self._get_by_name("detector_types", name)
+
+    def pdu_by_name(self, name):
+        return self._get_by_name(
+            "physical_detector_units", name, name_key="physical_name")
 
 
 global_client = None
@@ -220,7 +258,7 @@ def setup_client(
     if oauth_client is None and base_url == CALCAT_PROXY_URL:
         try:
             # timeout=(connect_timeout, read_timeout)
-            global_client.get_request("me", timeout=(1, 5))
+            global_client.request("GET", "me", timeout=(1, 5))
         except requests.ConnectionError as e:
             raise RuntimeError(
                 "Could not connect to calibration catalog proxy. This proxy allows "
@@ -233,8 +271,17 @@ def setup_client(
 
 _default_caldb_root = None
 
+def set_default_caldb_root(p: Path):
+    """Override the default root directory for constants in CalCat"""
+    global _default_caldb_root
+    _default_caldb_root = p
 
-def _get_default_caldb_root():
+def get_default_caldb_root():
+    """Get the root directory for constants in CalCat.
+
+    The default location is different on Maxwell & ONC; this checks which one
+    exists. Calling ``set_default_caldb_root()`` overrides this.
+    """
     global _default_caldb_root
     if _default_caldb_root is None:
         onc_path = Path("/common/cal/caldb_store")
@@ -277,18 +324,38 @@ class SingleConstant:
             _have_calcat_metadata=True,
         )
 
-    def dataset_obj(self, caldb_root=None) -> h5py.Dataset:
+    def file_path(self, caldb_root=None) -> Path:
         if caldb_root is not None:
             caldb_root = Path(caldb_root)
         else:
-            caldb_root = _get_default_caldb_root()
+            caldb_root = get_default_caldb_root()
+        return caldb_root / self.path
 
-        f = h5py.File(caldb_root / self.path, "r")
+    def dataset_obj(self, caldb_root=None) -> h5py.Dataset:
+        f = h5py.File(self.file_path(caldb_root), "r")
         return f[self.dataset]["data"]
 
     def ndarray(self, caldb_root=None):
         """Load the constant data as a Numpy array"""
         return self.dataset_obj(caldb_root)[:]
+
+    def dimension_names(self, caldb_root=None):
+        """Get the order of dimensions from the constant file (if it was saved)
+
+        This is the same as the .dimensions property, but allows passing the
+        root directory for calibration files.
+        """
+        try:
+            return tuple(self.dataset_obj(caldb_root).attrs['dims'].tolist())
+        except KeyError:
+            raise NoDimensionLabelsError(
+                "This constant was saved without dimension labels"
+            )
+
+    @property
+    def dimensions(self):
+        """Get the order of dimensions from the constant file (if it was saved)"""
+        return self.dimension_names()
 
     def _load_calcat_metadata(self, client=None):
         client = client or get_client()
@@ -297,7 +364,6 @@ class SingleConstant:
         # this can't change a value that was previously returned.
         self._metadata = calcat_meta | self._metadata
         self._have_calcat_metadata = True
-
 
     def metadata(self, key, client=None):
         """Get a specific metadata field, e.g. 'begin_validity_at'
@@ -383,8 +449,13 @@ class MultiModuleConstant(Mapping):
         if key in self.constants:  # Karabo DA name, e.g. 'LPD00'
             candidate_kdas.add(key)
 
+        undef = object()
         for m in self.module_details:
-            names = (m["module_number"], m["virtual_device_name"], m["physical_name"])
+            names = (
+                m.get("module_number", undef),
+                m.get("virtual_device_name", undef),
+                m["physical_name"]
+            )
             if key in names and m["karabo_da"] in self.constants:
                 candidate_kdas.add(m["karabo_da"])
 
@@ -468,6 +539,25 @@ class MultiModuleConstant(Mapping):
         load_ctx.map(_load_constant_dataset, self.aggregator_names)
         return arr
 
+    def dimension_names(self, caldb_root=None):
+        """Get the order of dimensions for this constant (if it was saved)
+
+        Possible dimension names include "module", "cell", "gain", "fast_scan"
+        and "slow_scan".
+
+        This is the same as the .dimensions property, but allows passing the
+        root directory for calibration files.
+        """
+        # We'll assume the constants for different modules have the same axis
+        # order. The ndarray and xarray methods also assume this.
+        kda = next(iter(self.constants))
+        return ("module",) + self.constants[kda].dimension_names(caldb_root)
+
+    @property
+    def dimensions(self):
+        """Get the order of dimensions for this constant (if it was saved)"""
+        return self.dimension_names()
+
     def xarray(self, module_naming="modnum", caldb_root=None, *, parallel=0):
         """Load this constant as an xarray DataArray.
 
@@ -487,13 +577,16 @@ class MultiModuleConstant(Mapping):
             modules = self.qm_names
         else:
             raise ValueError(
-                f"{module_naming=} (must be 'aggregator', 'modnum' or 'qm'"
+                f"{module_naming=} (must be 'aggregator', 'modnum' or 'qm')"
             )
 
         ndarr = self.ndarray(caldb_root, parallel=parallel)
 
         # Dimension labels
-        dims = ["module"] + ["dim_%d" % i for i in range(ndarr.ndim - 1)]
+        try:
+            dims = self.dimension_names(caldb_root)
+        except NoDimensionLabelsError:
+            dims = ["module"] + ["dim_%d" % i for i in range(ndarr.ndim - 1)]
         coords = {"module": modules}
         name = self.calibration_name
 
@@ -525,19 +618,15 @@ class CalibrationData(Mapping):
             (dict) Operating condition for use in CalCat API.
         """
 
-        def to_float_or_string(value):
-            """CALCAT expects data to either be float or a string."""
-            try:  # Any digit or boolean
-                return float(value)
-            except:
-                return str(value)
+        if not all([isinstance(v, (float, str)) for v in condition.values()]):
+            raise TypeError('Operating condition parameters may only be '
+                            'float or str')
 
         return {
-            "parameters_conditions_attributes": [
-                {
-                    "parameter_name": k,
-                    "value": to_float_or_string(v)
-                } for k, v in condition.items()
+            "parameters_conditions_attributes": [{
+                "parameter_name": k,
+                "value": v
+            } for k, v in condition.items()
             ]
         }
 
@@ -550,12 +639,24 @@ class CalibrationData(Mapping):
             client=None,
             event_at=None,
             pdu_snapshot_at=None,
+            begin_at_strategy="closest",
     ):
         """Look up constants for the given detector conditions & timestamp.
 
         `condition` should be a conditions object for the relevant detector type,
         e.g. `DSSCConditions`.
+
+        `event_at` and `pdu_snapshot_at` should either be an ISO 8601
+        compatible string or a datetime-like object. It may also be a
+        DataCollection object from EXtra-data to use the beginning of the
+        run as a point in time.
         """
+        accepted_strategies = ["closest", "prior"]
+        if begin_at_strategy not in accepted_strategies:
+            raise ValueError(
+                "Invalid begin_at_strategy. "
+                f"Expected one of {accepted_strategies}")
+
         if calibrations is None:
             calibrations = set(condition.calibration_types)
         if pdu_snapshot_at is None:
@@ -599,6 +700,7 @@ class CalibrationData(Mapping):
                     "karabo_da": "",
                     "event_at": client.format_time(event_at),
                     "pdu_snapshot_at": client.format_time(pdu_snapshot_at),
+                    "begin_at_strategy": begin_at_strategy,
                 },
                 data=json.dumps(cls._format_cond(condition_dict)),
             )
@@ -674,6 +776,125 @@ class CalibrationData(Mapping):
         module_details = sorted(pdus.values(), key=lambda d: d["karabo_da"])
         return cls(constant_groups, module_details, det_name)
 
+    @staticmethod
+    def _read_correction_file(metadata_path: Path):
+        import yaml
+
+        if metadata_path.is_dir():
+            metadata_path = metadata_path / "calibration_metadata.yml"
+
+        with metadata_path.open('r') as f:
+            metadata = yaml.safe_load(f)
+
+        constant_groups = {}  # keyed by calib type (e.g. 'Offset'), then karabo_da ('AGIPD00')
+        pdus = {}  # keyed by karabo_da (e.g. 'AGIPD00')
+        det_name = metadata['calibration-configurations']['karabo-id']
+
+        for kda, grp in metadata['retrieved-constants'].items():
+            if 'constants' not in grp:  # e.g. 'time-summary' key
+                continue
+
+            pdu_name = grp['physical-name']
+            # Missing: module_number, virtual_device_name
+            pdus[kda] = {'karabo_da': kda, 'physical_name': pdu_name}
+
+            for cal_type, details in grp['constants'].items():
+                const_group = constant_groups.setdefault(cal_type, {})
+                const_group[kda] = SingleConstant(
+                    path=details['path'],
+                    dataset=details['dataset'],
+                    ccv_id=details['ccv_id'],
+                    pdu_name=pdu_name,
+                    _metadata={'begin_validity_at': details['creation-time']}
+                )
+
+        return constant_groups, pdus, det_name
+
+    @classmethod
+    def from_correction(
+            cls,  metadata_file_or_proposal: str | Path | int, run: int | None =None,
+            detector_name=None, *, client=None, use_calcat=True
+    ):
+        """Find constants used to produce corrected data.
+
+        This can be called with a proposal & run number and a detector name
+        (e.g. 'FXE_XAD_JF1M'), or with the path of a YAML metadata file from the
+        EuXFEL offline calibration pipeline.
+
+        By default, this method retrieves additional metadata from CalCat.
+        Pass use_calcat=False to read only the minimal info in a YAML file.
+        """
+        if run is not None:
+            if detector_name is None:
+                raise TypeError("detector_name required with proposal/run numbers")
+            proposal = metadata_file_or_proposal
+            if isinstance(proposal, str):
+                if ('/' not in proposal) and not proposal.startswith('p'):
+                    proposal = 'p' + proposal.rjust(6, '0')
+            else:
+                # Allow integers, including numpy integers
+                proposal = 'p{:06d}'.format(index(proposal))
+
+            run_dir = Path(find_proposal(proposal)) / 'proc' / f'r{run:04d}'
+            yaml_path = run_dir / f"calibration_metadata_{detector_name}.yml"
+        elif detector_name is not None:
+            raise TypeError("detector_name was passed but run was not")
+        else:
+            yaml_path = Path(metadata_file_or_proposal)
+
+
+        constant_groups, pdus, det_name = cls._read_correction_file(yaml_path)
+        module_details = sorted(pdus.values(), key=lambda d: d["karabo_da"])
+        if not use_calcat:
+            return cls(constant_groups, module_details, det_name)
+
+        # Get module_number, virtual_device_name from CCV info if possible
+        need_metadata = {
+            sc.ccv_id: sc for mmc in constant_groups.values() for sc in mmc.values()
+        }
+
+        def extend_module_info(pdu_dict):
+            kda = pdu_dict['karabo_da_at_ccv_begin_at']
+            if vdn := pdu_dict['virtual_device_name_at_ccv_begin_at']:
+                pdus[kda]['virtual_device_name'] = vdn
+            if modnum := pdu_dict['module_number_at_ccv_begin_at']:
+                pdus[kda]['module_number'] = modnum
+
+        # Retrieve constant metadata from CalCat
+        # If possible, we retrieve batches of CCVs by report ID.
+        # A correction will normally use e.g. offset constants for all
+        # modules from one report, i.e. generated at the same time.
+        # E.g. for LPD-1M, this can do 4 requests (2 CCVs + 2 reports)
+        # instead of 96 individual CCVs.
+        client = client or get_client()
+        while need_metadata:
+            # .metadata_dict() fetches & caches CCV metadata from CalCat
+            md = need_metadata.popitem()[1].metadata_dict()
+
+            extend_module_info(md['physical_detector_unit'])
+
+            if (report_id := md['report_id']) is None:
+                continue  # CCV not associated with a report
+
+            # Fill metadata for other CCVs belonging to this report
+            report_info = client.get(f"reports/{report_id}")
+            for ccv_dict in report_info['calibration_constant_versions']:
+                if const_obj := need_metadata.pop(ccv_dict['id'], None):
+                    const_obj._metadata = ccv_dict
+                    const_obj._have_calcat_metadata = True
+                extend_module_info(ccv_dict['physical_detector_unit'])
+
+        # If we didn't get module numbers from the PDU mapping, and we have
+        # the expected number of modules, fill the numbers in sequentially.
+        if any('module_number' not in d for d in module_details):
+            det_info = client.detector_by_identifier(det_name)
+            if len(module_details) == det_info['number_of_modules']:
+                if (first := det_info['first_module_index']) is not None:
+                    for i, d in enumerate(module_details, start=first):
+                        d['module_number'] = i
+
+        return cls(constant_groups, module_details, det_name)
+
     def __getitem__(self, key):
         if isinstance(key, str):
             return MultiModuleConstant(
@@ -690,6 +911,10 @@ class CalibrationData(Mapping):
 
     def __len__(self):
         return len(self.constant_groups)
+
+    def __bool__(self):
+        # Do we have any constants of any type?
+        return any(bool(grp) for grp in self.constant_groups.values())
 
     def __contains__(self, item):
         return item in self.constant_groups
@@ -729,7 +954,10 @@ class CalibrationData(Mapping):
         """Drop any modules missing the specified constant types"""
         mods = set(self.aggregator_names)
         for cal_type in calibrations:
-            mods.intersection_update(self[cal_type].constants)
+            if cal_type in self:
+                mods.intersection_update(self[cal_type].constants)
+            else:
+                mods = set()  # None of this found
         return self.select_modules(aggregator_names=mods)
 
     def select_modules(
@@ -808,19 +1036,20 @@ class CalibrationData(Mapping):
 
         return type(self)(constant_groups, module_details, det_name)
 
-    def markdown_table(self, module_naming="modnum") -> str:
-        """Make a markdown table overview of the constants found.
+    def summary_table(self, module_naming="modnum"):
+        """Make a table overview of the constants found.
 
         Columns are calibration types, rows are modules.
         If there are >4 calibrations, the table will be split up into several
         pieces with up to 4 calibrations in each.
 
+        The table(s) returned should be rendered within Jupyter notebooks,
+        including when converting them to Latex & PDF.
+
         Args:
             module_naming (str): modnum, aggregator or qm, to change how the
                 modules are labelled in the table. Defaults to modnum.
         """
-        from tabulate import tabulate
-
         if module_naming == "aggregator":
             modules = self.aggregator_names
         elif module_naming == "modnum":
@@ -836,7 +1065,7 @@ class CalibrationData(Mapping):
             sorted(self.constant_groups)[x:x+4] for x in range(0, len(self.constant_groups), 4)
         ]
 
-        md_tables = []
+        tables = []
         # Loop over groups of calibrations.
         for cal_group in cal_groups:
             table = [["Modules"] + cal_group]
@@ -859,15 +1088,28 @@ class CalibrationData(Mapping):
                                 "%Y-%m-%d %H:%M")
                         try:
                             view_url = singleconst.metadata("view_url")
-                            mod_consts.append(f"[{c_time}]({view_url})")
+                            mod_consts.append((c_time, view_url))
                         except KeyError:
                             mod_consts.append(f"{c_time} ({singleconst.ccv_id})")
 
-                table.append([mod] + mod_consts)
+                table.append([str(mod)] + mod_consts)
 
-            md_tables.append(tabulate(table, tablefmt="pipe", headers="firstrow"))
+            tables.append(table)
 
-        return '\n\n'.join(md_tables)
+        return DisplayTables(tables)
+
+    def markdown_table(self, module_naming="modnum") -> str:
+        """Make a markdown table overview of the constants found.
+
+        Columns are calibration types, rows are modules.
+        If there are >4 calibrations, the table will be split up into several
+        pieces with up to 4 calibrations in each.
+
+        Args:
+            module_naming (str): modnum, aggregator or qm, to change how the
+                modules are labelled in the table. Defaults to modnum.
+        """
+        return self.summary_table(module_naming)._repr_markdown_()
 
     def display_markdown_table(self, module_naming="modnum"):
         """Display a table of the constants found (in a Jupyter notebook).
@@ -887,13 +1129,23 @@ class CalibrationData(Mapping):
 class ConditionsBase:
     calibration_types = {}  # For subclasses: {calibration: [parameter names]}
 
+    def _repr_markdown_(self):
+        attr_names = [f.name for f in fields(self)]
+        items = []
+        for n in attr_names:
+            if (value := getattr(self, n)) is not None:
+                items.append(f"- {n.replace('_', ' ').capitalize()}: {value}")
+        return '\n'.join(items)
+
     def make_dict(self, parameters) -> dict:
         d = dict()
 
         for db_name in parameters:
             value = getattr(self, db_name.lower().replace(" ", "_"))
-            if value is not None:
+            if isinstance(value, str):
                 d[db_name] = value
+            elif value is not None:
+                d[db_name] = float(value)
 
         return d
 
@@ -949,15 +1201,15 @@ class AGIPDConditions(ConditionsBase):
 
 @dataclass
 class LPDConditions(ConditionsBase):
-    """Conditions for LPD detectors"""
-    sensor_bias_voltage: float
-    memory_cells: int
+    sensor_bias_voltage: float = 250.0
+    memory_cells: int = 512
     memory_cell_order: Optional[str] = None
     feedback_capacitor: float = 5.0
-    source_energy: float = 9.2
-    category: int = 1
+    source_energy: float = 9.3
+    category: int = 0
     pixels_x: int = 256
     pixels_y: int = 256
+    parallel_gain: bool = False
 
     _base_params = [
         "Sensor Bias Voltage",
@@ -967,7 +1219,7 @@ class LPDConditions(ConditionsBase):
         "Feedback capacitor",
     ]
     _dark_parameters = _base_params + [
-        "Memory cell order",
+        "Memory cell order", "Parallel gain"
     ]
     _illuminated_parameters = _base_params + ["Source Energy", "category"]
 
@@ -980,6 +1232,16 @@ class LPDConditions(ConditionsBase):
         "FFMap": _illuminated_parameters,
         "BadPixelsFF": _illuminated_parameters,
     }
+
+    def make_dict(self, parameters):
+        cond = super().make_dict(parameters)
+
+        # Legacy value for no parallel gain not injected for backwards
+        # compatibility with prior calibration data.
+        if int(cond.get("Parallel gain", -1)) == 0:
+            del cond["Parallel gain"]
+
+        return cond
 
 
 @dataclass
@@ -1018,6 +1280,7 @@ class JUNGFRAUConditions(ConditionsBase):
     integration_time: float
     gain_setting: int
     gain_mode: Optional[int] = None
+    exposure_timeout: int = 25
     sensor_temperature: float = 291
     pixels_x: int = 1024
     pixels_y: int = 512
@@ -1032,10 +1295,12 @@ class JUNGFRAUConditions(ConditionsBase):
         "Gain Setting",
         "Gain mode",
     ]
+    _dark_params = _params + ["Exposure timeout"]
+
     calibration_types = {
-        "Offset10Hz": _params,
-        "Noise10Hz": _params,
-        "BadPixelsDark10Hz": _params,
+        "Offset10Hz": _dark_params,
+        "Noise10Hz": _dark_params,
+        "BadPixelsDark10Hz": _dark_params,
         "RelativeGain10Hz": _params,
         "BadPixelsFF10Hz": _params,
     }
@@ -1047,7 +1312,21 @@ class JUNGFRAUConditions(ConditionsBase):
         if int(cond.get("Gain mode", -1)) == 0:
             del cond["Gain mode"]
 
+        # Fix-up some database quirks.
+        if int(cond.get("Exposure timeout", -1)) == 25:
+            del cond["Exposure timeout"]
+
         return cond
+
+
+@dataclass
+class ShimadzuHPVX2Conditions(ConditionsBase):
+    burst_frame_count: float
+
+    calibration_types = {
+        'Offset': ['Burst Frame Count'],
+        'DynamicFF': ['Burst Frame Count'],
+    }
 
 
 class BadPixels(IntFlag):
@@ -1075,3 +1354,83 @@ class BadPixels(IntFlag):
     NON_LIN_RESPONSE_REGION  = 1 << 20
     WRONG_GAIN_VALUE         = 1 << 21
     NON_STANDARD_SIZE        = 1 << 22
+
+
+def tex_escape(text):
+    """
+    Escape latex special characters found in the text
+
+    :param text: a plain text message
+    :return: the message escaped to appear correctly in LaTeX
+    """
+    conv = {
+        '&': r'\&',
+        '%': r'\%',
+        '$': r'\$',
+        '#': r'\#',
+        '_': r'\_',
+        '{': r'\{',
+        '}': r'\}',
+        '~': r'\textasciitilde{}',
+        '^': r'\^{}',
+        '\\': r'\textbackslash{}',
+        '<': r'\textless{}',
+        '>': r'\textgreater{}',
+        '—': r'\textemdash',
+    }
+
+    key_list = sorted(conv.keys(), key=lambda item: - len(item))
+    regex = re.compile('|'.join(re.escape(str(key)) for key in key_list))
+    return regex.sub(lambda match: conv[match.group()], text)
+
+
+class DisplayTables:
+    def __init__(self, tables):
+        # list (tables) of lists (rows) of lists (cells). A cell may be str,
+        # or a (text, url) tuple to make a link.
+        self.tables = tables
+
+    @staticmethod
+    def _build_table(table, fmt_link, escape=lambda s: s):
+        res = []
+        for row in table:
+            prepd_row = []
+            for cell in row:
+                if isinstance(cell, tuple):
+                    text, url = cell
+                else:
+                    text = cell
+                    url = None
+
+                if url is None:
+                    prepd_row.append(escape(text))
+                else:
+                    prepd_row.append(fmt_link(escape(text), url))
+            res.append(prepd_row)
+        return res
+
+    def _repr_markdown_(self):
+        from tabulate import tabulate
+
+        def fmt_link(text, url):
+            return f"[{text}]({url})"
+
+        prepd_tables = [self._build_table(table, fmt_link) for table in self.tables]
+
+        return '\n\n'.join(
+            tabulate(t, tablefmt="pipe", headers="firstrow")
+            for t in prepd_tables
+        )
+
+    def _repr_latex_(self):
+        from tabulate import tabulate
+
+        def fmt_link(text, url):
+            return r'\href{%s}{%s}' % (url, text)
+
+        prepd_tables = [self._build_table(table, fmt_link, escape=tex_escape) for table in self.tables]
+
+        return '\n\n'.join(
+            tabulate(t, tablefmt="latex_raw", headers="firstrow")
+            for t in prepd_tables
+        )

@@ -1,11 +1,16 @@
 import os
 import re
+from datetime import datetime, timedelta
+from pathlib import Path
 
 import numpy as np
 import pytest
 import xarray as xr
+from IPython.core.formatters import MarkdownFormatter
 
+import extra.calibration
 from extra.calibration import (
+    CalCatAPIClient,
     AGIPDConditions,
     CalibrationData,
     DSSCConditions,
@@ -14,9 +19,12 @@ from extra.calibration import (
     SingleConstant,
 )
 
-# These tests all use saved HTTP responses by default (with pytest-recording).
+# Most of these tests use saved HTTP responses by default (with pytest-recording).
 # To ignore these & use exflcalproxy, run pytest with the --disable-recording flag.
+# To record responses for a new test making HTTP requests, pass --record-mode=once.
 # To update the saved cassettes from exflcalproxy, pass --record-mode=rewrite.
+
+TEST_DIR = Path(__file__).parent
 
 
 def drop_cookie_header(response):
@@ -32,6 +40,12 @@ def vcr_config():
         "filter_headers": ["authorization"],
         "before_record_response": drop_cookie_header,
     }
+
+@pytest.fixture(autouse=True)
+def reset_calibration_client():
+    """Reset the global client object after each test, to avoid leaking state"""
+    yield
+    extra.calibration.global_client = None
 
 
 @pytest.mark.vcr
@@ -157,6 +171,15 @@ def test_AGIPD_load_data():
     xr.testing.assert_identical(arr_p, arr)
 
 
+@pytest.mark.skipif(not os.path.isdir("/gpfs/exfel/d"), reason="GPFS not available")
+@pytest.mark.vcr
+def test_JUNGFRAU_dimension_labels():
+    jf_cd = CalibrationData.from_report(7673)
+    offset = jf_cd["Offset10Hz"]
+    assert offset["JNGFR02"].dimensions == ("fast_scan", "slow_scan", "cell", "gain")
+    assert offset.dimensions == ("module", "fast_scan", "slow_scan", "cell", "gain")
+
+
 @pytest.mark.vcr
 def test_DSSC_modules_missing():
     dssc_cd = CalibrationData.from_condition(
@@ -227,6 +250,31 @@ def test_JUNGFRAU_constant():
 
 
 @pytest.mark.vcr
+def test_JUNGFRAU_constant_prior_strategy():
+    cond = JUNGFRAUConditions(
+        sensor_bias_voltage=90.,
+        memory_cells=1,
+        integration_time=400.,
+        gain_setting=0,
+        sensor_temperature=291.,
+    )
+    # Just before a new constant
+    ts = datetime.fromisoformat("2024-03-04T13:33:28.000+01:00")
+    cd_closest = CalibrationData.from_condition(
+        cond, "FXE_XAD_JF1M", event_at=ts, begin_at_strategy="closest",
+    )
+    assert datetime.fromisoformat(
+        cd_closest["Noise10Hz", "JNGFR01"].metadata("begin_at")
+    ) > ts
+    cd_prior = CalibrationData.from_condition(
+        cond, "FXE_XAD_JF1M", event_at=ts, begin_at_strategy="prior",
+    )
+    assert datetime.fromisoformat(
+        cd_prior["Noise10Hz", "JNGFR01"].metadata("begin_at")
+    ) < ts
+
+
+@pytest.mark.vcr
 def test_AGIPD_CalibrationData_report():
     """Test CalibrationData with data from report"""
     # Report ID: https://in.xfel.eu/calibration/reports/3757
@@ -235,3 +283,96 @@ def test_AGIPD_CalibrationData_report():
     assert set(agipd_cd) == {"Offset", "Noise", "ThresholdsDark", "BadPixelsDark"}
     assert agipd_cd.aggregator_names == [f"AGIPD{n:02}" for n in range(16)]
     assert isinstance(agipd_cd["Offset", "AGIPD00"], SingleConstant)
+
+
+def test_AGIPD_from_correction_minimal():
+    agipd_cd = CalibrationData.from_correction(
+        TEST_DIR / "files" / "cal-metadata-agipd-p900508-r22.yml", use_calcat=False,
+    )
+
+    assert agipd_cd.detector_name == "SPB_DET_AGIPD1M-1"
+    assert set(agipd_cd) == {
+        "Offset", "Noise", "ThresholdsDark", "BadPixelsDark", "SlopesPC", "BadPixelsPC",
+    }
+    assert agipd_cd.aggregator_names == [f"AGIPD{n:02}" for n in range(16)]
+    assert isinstance(agipd_cd["Offset", "AGIPD00"], SingleConstant)
+    assert agipd_cd["Offset", "AGIPD00"].ccv_id == 229094
+
+
+@pytest.mark.vcr
+def test_AGIPD_from_correction():
+    agipd_cd = CalibrationData.from_correction(
+        TEST_DIR / "files" / "cal-metadata-agipd-p900508-r22.yml",
+    )
+
+    assert agipd_cd.detector_name == "SPB_DET_AGIPD1M-1"
+    assert set(agipd_cd) == {
+        "Offset", "Noise", "ThresholdsDark", "BadPixelsDark", "SlopesPC", "BadPixelsPC",
+    }
+    assert agipd_cd.aggregator_names == [f"AGIPD{n:02}" for n in range(16)]
+    assert agipd_cd.module_nums == list(range(16))
+    assert agipd_cd.qm_names == [f"Q{(m // 4) + 1}M{(m % 4) + 1}" for m in range(16)]
+    assert isinstance(agipd_cd["Offset", "AGIPD00"], SingleConstant)
+    assert agipd_cd["Offset", "AGIPD00"].ccv_id == 229094
+    # Using the private attribute to check metadata is already loaded, not just
+    # available for lazy loading.
+    assert agipd_cd["Offset", "AGIPD00"]._metadata['report_id'] == 6512
+
+
+@pytest.mark.vcr
+def test_LPD_from_correction():
+    lpd_cd = CalibrationData.from_correction(
+        TEST_DIR / "files" / "cal-metadata-lpd-p900491-r445.yml"
+    )
+
+    assert lpd_cd.detector_name == "FXE_DET_LPD1M-1"
+    assert set(lpd_cd) == {
+        "Offset", "BadPixelsDark", "RelativeGain", "GainAmpMap", "FFMap", "BadPixelsFF",
+    }
+    assert lpd_cd.aggregator_names == [f"LPD{n:02}" for n in range(16)]
+    assert lpd_cd.module_nums == list(range(16))
+    assert lpd_cd.qm_names == [f"Q{(m // 4) + 1}M{(m % 4) + 1}" for m in range(16)]
+    assert lpd_cd["Offset", "LPD00"].ccv_id == 237845
+
+
+@pytest.mark.vcr
+def test_JUNGFRAU_from_correction():
+    jf_cd = CalibrationData.from_correction(
+        TEST_DIR / "files" / "cal-metadata-jf-p900491-r487.yml"
+    )
+
+    assert jf_cd.detector_name == "FXE_XAD_JF1M"
+    assert set(jf_cd) == {
+        "Offset10Hz", "BadPixelsDark10Hz", "RelativeGain10Hz", "BadPixelsFF10Hz",
+    }
+    assert jf_cd.aggregator_names == ["JNGFR01", "JNGFR02"]
+    assert jf_cd.pdu_names == ["Jungfrau_M530", "Jungfrau_M512"]
+    assert jf_cd["Offset10Hz", "JNGFR01"].ccv_id == 242621
+
+
+@pytest.mark.skipif(not os.path.isdir("/gpfs/exfel/d"), reason="GPFS not available")
+@pytest.mark.vcr
+def test_JUNGFRAU_from_correction_by_run():
+    jf_cd = CalibrationData.from_correction(700002, 13, "FXE_XAD_JF1M")
+
+    assert jf_cd.detector_name == "FXE_XAD_JF1M"
+    assert set(jf_cd) == {
+        "Offset10Hz", "BadPixelsDark10Hz", "RelativeGain10Hz", "BadPixelsFF10Hz",
+    }
+    assert jf_cd.aggregator_names == ["JNGFR01", "JNGFR02"]
+    assert jf_cd.pdu_names == ["Jungfrau_M530", "Jungfrau_M512"]
+    assert jf_cd["Offset10Hz", "JNGFR01"].ccv_id == 235941
+
+
+def test_format_time(mock_spb_aux_run):
+    by_run = datetime.fromisoformat(
+        CalCatAPIClient.format_time(mock_spb_aux_run))
+
+    assert by_run.tzinfo is not None
+    assert (by_run - datetime.now(tz=by_run.tzinfo)) < timedelta(minutes=10)
+
+
+def test_conditions_markdown():
+    cond = LPDConditions()
+    md = MarkdownFormatter()(cond)  # Smoketest
+    assert isinstance(md, str)

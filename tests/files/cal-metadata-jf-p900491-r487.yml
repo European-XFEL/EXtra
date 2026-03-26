@@ -1,0 +1,139 @@
+calibration-configurations:
+  bias-voltage: -1.0
+  cal-db-interface: tcp://max-exfl-cal001:8015#8044
+  cal-db-root: /gpfs/exfel/d/cal/caldb_store
+  cal-db-timeout: 300000
+  cell-id-preview: 15
+  chunks-data: 1
+  chunks-ids: 32
+  creation-time: ''
+  ctrl-source-template: '{}/DET/CONTROL'
+  exposure-timeout: -1
+  gain-mode: -1
+  gain-setting: -1
+  in-folder: /gpfs/exfel/exp/FXE/202530/p900491/raw
+  input-source-template: '{karabo_id}/DET/{receiver}:daqOutput'
+  integration-time: -1.0
+  karabo-da:
+  - JNGFR01
+  - JNGFR02
+  karabo-id: FXE_XAD_JF1M
+  karabo-id-control: ''
+  limit-trains: 0
+  mem-cells: -1
+  metadata-folder: ''
+  out-folder: /gpfs/exfel/d/proc/FXE/202530/p900491/r0487
+  output-source-template: '{karabo_id}/CORR/{receiver}:daqOutput'
+  plot-trains: 500
+  receiver-template: JNGFR{:02d}
+  relative-gain: true
+  replace-wrong-gain-value: 0
+  roi-definitions:
+  - -1
+  roi-threshold: 2.0
+  run: 487
+  sequences:
+  - -1
+  sequences-per-node: 1
+  skip-plots: false
+  strixel-double-norm: 2.0
+  strixel-sensor: ''
+  wrong-gain-pixels:
+  - -1
+concurrency:
+  default:
+  - -1
+  function: balance_sequences
+  parameter: sequences
+notebook:
+  author: European XFEL Detector Group
+  title: Jungfrau Offline Correction
+pycalibration-version: 3.16.0-1-g8ae91018
+python-environment:
+  path: /home/xcal/deployments/development/git.xfel.eu/detectors/pycalibration/current/.venv/bin/python
+  python-version: 3.11.9
+report-path: /gpfs/exfel/exp/FXE/202530/p900491/usr/Reports/r0487/FXE_XAD_JF1M_correct_900491_r0487_250430_214641_250720.pdf
+reproducible: true
+retrieved-constants:
+  JNGFR01:
+    constants:
+      BadPixelsDark10Hz:
+        ccv_id: 242625
+        creation-time: '2025-04-28T07:00:47.000+02:00'
+        dataset: /Jungfrau_M530/BadPixelsDark10Hz/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/jungfrau-type/jungfrau_m530/cal.1745816791.1869333.h5
+      BadPixelsFF10Hz:
+        ccv_id: 155620
+        creation-time: '2023-02-05T16:20:13.000+01:00'
+        dataset: /Jungfrau_M530/BadPixelsFF10Hz/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/jungfrau-type/jungfrau_m530/cal.1675871060.3388195.h5
+      Offset10Hz:
+        ccv_id: 242621
+        creation-time: '2025-04-28T07:00:47.000+02:00'
+        dataset: /Jungfrau_M530/Offset10Hz/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/jungfrau-type/jungfrau_m530/cal.1745816789.4686568.h5
+      RelativeGain10Hz:
+        ccv_id: 155619
+        creation-time: '2023-02-05T16:20:13.000+01:00'
+        dataset: /Jungfrau_M530/RelativeGain10Hz/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/jungfrau-type/jungfrau_m530/cal.1675871058.9999344.h5
+    physical-name: Jungfrau_M530
+  JNGFR02:
+    constants:
+      BadPixelsDark10Hz:
+        ccv_id: 242624
+        creation-time: '2025-04-28T07:00:47.000+02:00'
+        dataset: /Jungfrau_M512/BadPixelsDark10Hz/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/jungfrau-type/jungfrau_m512/cal.1745816790.6755974.h5
+      BadPixelsFF10Hz:
+        ccv_id: 155622
+        creation-time: '2023-02-05T16:20:13.000+01:00'
+        dataset: /Jungfrau_M512/BadPixelsFF10Hz/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/jungfrau-type/jungfrau_m512/cal.1675871788.0321329.h5
+      Offset10Hz:
+        ccv_id: 242620
+        creation-time: '2025-04-28T07:00:47.000+02:00'
+        dataset: /Jungfrau_M512/Offset10Hz/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/jungfrau-type/jungfrau_m512/cal.1745816789.3507857.h5
+      RelativeGain10Hz:
+        ccv_id: 155621
+        creation-time: '2023-02-05T16:20:13.000+01:00'
+        dataset: /Jungfrau_M512/RelativeGain10Hz/0
+        path: /gpfs/exfel/d/cal/caldb_store/xfel/cal/jungfrau-type/jungfrau_m512/cal.1675871786.3909953.h5
+    physical-name: Jungfrau_M512
+runtime-summary:
+  calibration-jobs:
+  - Elapsed: 00:00:09
+    End: '2025-04-30T23:47:57'
+    JobID: '14016441'
+    Start: '2025-04-30T23:47:48'
+    State: COMPLETED
+    Suspended: 00:00:00
+  - Elapsed: 00:00:09
+    End: '2025-04-30T23:47:57'
+    JobID: '14016442'
+    Start: '2025-04-30T23:47:48'
+    State: COMPLETED
+    Suspended: 00:00:00
+  - Elapsed: 00:00:08
+    End: '2025-04-30T23:47:56'
+    JobID: '14016443'
+    Start: '2025-04-30T23:47:48'
+    State: COMPLETED
+    Suspended: 00:00:00
+  - Elapsed: 00:00:06
+    End: '2025-04-30T23:47:57'
+    JobID: '14016444'
+    Start: '2025-04-30T23:47:51'
+    State: COMPLETED
+    Suspended: 00:00:00
+  - Elapsed: 00:00:06
+    End: '2025-04-30T23:48:04'
+    JobID: '14016445'
+    Start: '2025-04-30T23:47:58'
+    State: RUNNING
+    Suspended: 00:00:00
+  pipeline-steps:
+    report-compilation-time: 2025-04-30 21:48:04.841166+00:00
+    request-time: 2025-04-30 21:46:41.250720+00:00
+    submission-time: 2025-04-30 21:47:44.073232+00:00

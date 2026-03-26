@@ -2,6 +2,7 @@ from extra.components import Scan
 
 import pytest
 import numpy as np
+import pandas as pd
 import xarray as xr
 
 import extra_data
@@ -113,11 +114,35 @@ def test_scan_bin_multidimensional(mock_spb_aux_run):
 
     # Test scan binning with data with additional dimensionsn
     xgm_intensity = mock_spb_aux_run[
-        "SPB_XTD9_XGM/DOOCS/MAIN:output", "data.intensityTD"
+        "SPB_XTD9_XGM/XGM/DOOCS:output", "data.intensityTD"
     ].xarray(extra_dims=["pulse"])
 
     binned = s.bin_by_steps(xgm_intensity)
     assert binned.dims == ("position", "pulse")
-    # pulse is present as a dimension, but doesn't have coordinates
-    assert set(binned.coords.keys()) == {"position", "uncertainty", "counts"}
+    assert set(binned.coords.keys()) == {"position", "pulse", "uncertainty", "counts"}
     assert binned.shape == (10, 1000)
+
+    # Smoke test
+    s.plot_bin_by_steps(xgm_intensity)
+
+
+def test_scan_group_data(mock_spb_aux_run):
+    s = Scan(mock_spb_aux_run["MOTOR/MCMOTORYFACE"])
+
+    pulse_midx = pd.MultiIndex.from_product([
+        mock_spb_aux_run.train_ids[:-5], range(10)
+    ], names=['trainId', 'pulseIndex'])
+
+    # With xarray
+    data_xr = xr.DataArray(
+        np.zeros((len(pulse_midx), 5)),
+        dims=('pulse', 'sample'),
+        coords={'pulse': pulse_midx}
+    )
+    gb = s.group_data(data_xr)
+    assert len(gb) == len(s.positions)
+
+    # With pandas
+    data_pd = pd.Series(np.zeros(len(pulse_midx)), index=pulse_midx)
+    gb2 = s.group_data(data_pd)
+    assert len(gb2) == len(s.positions)

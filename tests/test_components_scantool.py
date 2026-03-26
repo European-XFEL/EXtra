@@ -69,11 +69,13 @@ def test_scantool():
     # Karabacon 3.0.10 renamed the acquisition time again to
     # deviceEnv.acquisitionTimes and data type changed from Double to VectorDouble.
     # Allows defining acq time per step.
+    mock_run_values["deviceEnv.acquisitionMode.value"] = "Continuous"
     mock_run_values["deviceEnv.acquisitionTimes.value"] = np.ones(1000, dtype=np.uint8)
     mock_run_values["deviceEnv.acquisitionTimes.value"][0] = 20
     del mock_run_values["acquisitionTime.value"]
-    
+
     scantool = Scantool(mock_run)
+    assert scantool.acquisition_time == 20
 
     # Smoke tests
     scantool.info()

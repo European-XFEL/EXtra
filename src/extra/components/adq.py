@@ -6,8 +6,9 @@ import re
 import numpy as np
 import pandas as pd
 
+from extra_data import by_id
 from extra_data.read_machinery import roi_shape
-from .pulses import XrayPulses
+from .pulses import XrayPulses, PulsePattern
 from .utils import _isinstance_no_import
 from ._adq import _reshape_flat_pulses
 
@@ -92,6 +93,8 @@ class AdqRawChannel:
             to, None by default. Note that common mode corrections
             if enabled always pull the baselevel to zero unless
             specified otherwise here.
+        extra_cm_period (list, optional): Apply the common mode correction
+            sequentially with the settings in the list.
     """
 
     # 4.5 Mhz, see extra.components.pulses.
@@ -108,7 +111,8 @@ class AdqRawChannel:
     def __init__(self, data, channel, digitizer=None, pulses=None,
                  interleaved=None, clock_ratio=None, sample_dim='sample',
                  first_pulse_offset=10000, single_pulse_length=25000,
-                 cm_period=None, baselevel=None, baseline=np.s_[:1000]):
+                 cm_period=None, baselevel=None, baseline=np.s_[:1000],
+                 extra_cm_period = list()):
         if digitizer is None or digitizer not in data.instrument_sources:
             digitizer = self._find_adq_pipeline(data, digitizer or '')
 
@@ -190,6 +194,7 @@ class AdqRawChannel:
             cm_period = int(cm_period)
 
         self._cm_period = cm_period
+        self._extra_cm_period = list(extra_cm_period)
         self._baselevel = baselevel
         self._baseline = baseline
 
@@ -236,12 +241,15 @@ class AdqRawChannel:
         # going to be float64 and not castable via `safe`.
         baseline = baseline.astype(out.dtype, copy=False)
 
-        for offset in range(period):
-            sel = np.s_[offset::period]
-            np.subtract(
-                signal[..., sel],
-                baseline[..., sel].mean(axis=signal.ndim - 1)[..., None],
-                out=out[..., sel], casting='safe')
+        if isinstance(period, int):
+            period = [period]
+        for p in period:
+            for offset in range(p):
+                sel = np.s_[offset::p]
+                np.subtract(
+                    signal[..., sel],
+                    baseline[..., sel].mean(axis=signal.ndim - 1)[..., None],
+                    out=out[..., sel], casting='safe')
 
     @staticmethod
     def _correct_cm_by_mean(signal, out, period, baseline, baselevel=None):
@@ -348,7 +356,7 @@ class AdqRawChannel:
 
         if self._cm_period > 0:
             # Apply common mode corrections (includes baselevel).
-            self._correct_cm_by_train(data, out, self._cm_period,
+            self._correct_cm_by_train(data, out, [self._cm_period] + list(self._extra_cm_period),
                                       self._baseline, self._baselevel)
 
         elif self._baselevel is not None:
@@ -356,24 +364,31 @@ class AdqRawChannel:
 
         return out
 
-    def _prepare_pulses(self):
+    def _prepare_pulses(self, train_ids):
         """Prepare pulse information."""
 
         if self._pulses is None:
             raise RuntimeError('component must be initialized with pulse '
                                'information for this operation')
 
-        pulse_ids = self._pulses.get_pulse_ids(labelled=True)
-        pids_by_train = pulse_ids.groupby(level=0)
+        aligned_pulses = self._pulses.select_trains(by_id[train_ids])
 
-        # Number of pulses per train.
-        num_pulses = pids_by_train.count()
+        pulse_ids = aligned_pulses.pulse_ids(labelled=True)
+        num_pulses = aligned_pulses.pulse_counts()
+
+        # Ensure pulse data is available for all trains.
+        try:
+            num_pulses.loc[train_ids]
+        except KeyError:
+            raise ValueError('missing pulse information for one or more '
+                             'trains') from None
 
         # Samples per pulse based on the shortest difference between
         # pulses if available. All code below using this value is
         # protected against out-of-bounds access.
         try:
-            pulse_period = int(pids_by_train.diff().min())
+            # Beware, pulse_period is not aligned to train_ids here!
+            pulse_period = int(pulse_ids.groupby(level=0).diff().min())
         except ValueError:
             samples_per_pulse = self._single_pulse_length
         else:
@@ -382,8 +397,8 @@ class AdqRawChannel:
 
         # Generate offsets of first pulse and last pulse of each
         # train relative to all pulses.
-        pulse_first = num_pulses.cumsum() - num_pulses.iloc[0]
-        pulse_last = pulse_first + num_pulses
+        pulse_last = num_pulses.cumsum()
+        pulse_first = pulse_last - num_pulses
 
         # Combine pulse layout into a single dataframe.
         # TODO: samples_per_pulses is currently assumed to be constant
@@ -392,7 +407,7 @@ class AdqRawChannel:
                                      'last': pulse_last,
                                      'length': samples_per_pulse})
 
-        return pulse_ids, pulse_layout
+        return aligned_pulses, pulse_layout
 
     def _reshape_pulses_by_train(self, data, num_pulses, samples_per_pulse,
                                  first_pulse_offset=None):
@@ -403,7 +418,7 @@ class AdqRawChannel:
 
         if pulses_end > data.shape[-1]:
             raise ValueError(f'trace axis too short for {num_pulses} pulses '
-                             f'located at {pulses_start}:{pulses_end}]')
+                             f'located at {pulses_start}:{pulses_end}')
 
         return data[..., pulses_start:pulses_end].reshape(
             *data.shape[:-1], num_pulses, samples_per_pulse)
@@ -540,6 +555,11 @@ class AdqRawChannel:
     def trace_duration(self):
         """Duration of a single trace in seconds."""
         return self.trace_shape * self.sampling_period
+
+    @property
+    def pulses(self) -> PulsePattern | None:
+        """The pulse pattern if available, None if not."""
+        return self._pulses
 
     @property
     def board_parameters(self):
@@ -1138,7 +1158,7 @@ class AdqRawChannel:
         if not labelled:
             return out
 
-        coords = {'pulse': self._pulses.build_pulse_index(pulse_dim)}
+        coords = {'pulse': pulses.build_pulse_index(pulse_dim)}
         coords.update(self._build_sample_coords(out))
 
         import xarray as xr
@@ -1215,13 +1235,16 @@ class AdqRawChannel:
 
         edge_func = self._validate_edge_method(edge_func, edge_kw)
 
+        # Drop empty trains for efficient access to train IDs.
+        raw_key = self._raw_key.drop_empty_trains()
+
         if max_edges is None:
-            max_edges = self._raw_key.entry_shape[0] // 5000
+            max_edges = raw_key.entry_shape[0] // 5000
 
         # Set-up pasha for parallel processing.
         psh = self._prepare_pasha(parallel)
-        trace_out = np.zeros(self._raw_key.entry_shape, dtype=np.float32)
-        edges = psh.alloc(shape=(self._raw_key.shape[0], max_edges),
+        trace_out = np.zeros(raw_key.entry_shape, dtype=np.float32)
+        edges = psh.alloc(shape=(raw_key.shape[0], max_edges),
                           dtype=np.float32, fill=np.nan)
         amplitudes = psh.alloc(like=edges, fill=np.nan)
 
@@ -1230,14 +1253,14 @@ class AdqRawChannel:
                       edges=edges[index], amplitudes=amplitudes[index],
                       **edge_kw)
 
-        psh.map(digitize_edges, self._raw_key)
+        psh.map(digitize_edges, raw_key)
 
         if self._sample_dim == 'time':
             edges *= self.sampling_period
 
         return self._shape_edge_array(
             edges, amplitudes,
-            {'trainId': self._raw_key.train_id_coordinates()},
+            {'trainId': raw_key.train_id_coordinates()},
             labelled, squeeze_edges)
 
     def pulse_edges(self, pulse_dim='pulseId', edge_func=None, max_edges=10,
@@ -1275,8 +1298,12 @@ class AdqRawChannel:
         edges, amplitudes = self.pulse_edge_array(
             False, False, pulse_dim, edge_func, max_edges, parallel, **edge_kw)
 
+        # Make sure to select down pulses as needed.
+        pulses, _ = self._prepare_pulses(
+            self._raw_key.drop_empty_trains().train_ids)
+
         return self._shape_edges(
-            edges, amplitudes, self._pulses.build_pulse_index(pulse_dim))
+            edges, amplitudes, pulses.build_pulse_index(pulse_dim))
 
     def pulse_edge_array(self, labelled=True, squeeze_edges=True,
                          pulse_dim='pulseId', edge_func=None, max_edges=10,
@@ -1317,37 +1344,51 @@ class AdqRawChannel:
 
         edge_func = self._validate_edge_method(edge_func, edge_kw)
 
+        # Drop empty trains for efficient access to train IDs.
+        raw_key = self._raw_key.drop_empty_trains()
+
         # Obtain information about pulse layout.
-        pulse_ids, pulse_layout = self._prepare_pulses()
+        pulses, pulse_layout = self._prepare_pulses(raw_key.train_ids)
+        pulse_ids = pulses.pulse_ids(labelled=False)
 
         if max_edges is None:
             max_edges = pulse_layout['length'].max() // 100
 
         # Set-up pasha for parallel processing.
         psh = self._prepare_pasha(parallel)
-        trace_out = np.zeros(self._raw_key.entry_shape, dtype=np.float32)
         edges = psh.alloc(shape=(len(pulse_ids), max_edges),
                           dtype=np.float32, fill=np.nan)
         amplitudes = psh.alloc(like=edges, fill=np.nan)
 
+        # These buffers are only used locally and not in shared memory!
+        trace_out = np.zeros(raw_key.entry_shape, dtype=np.float32)
+        trace_split = np.zeros(
+            (pulse_layout['count'].max(), pulse_layout['length'].max()),
+            dtype=np.float32)
+
         def digitize_hits(wid, train_index, train_id, trace_in):
-            layout = pulse_layout.iloc[train_index]
+            _, first, last, pulse_len = pulse_layout.iloc[train_index]
 
-            pulse_traces = self._reshape_pulses_by_train(
-                self._preprocess(trace_in, trace_out),
-                layout['count'], layout['length'])
-            pulse_sel = range(layout['first'], layout['last'])
+            self._reshape_flat_pulses(
+                self._preprocess(trace_in, trace_out)[np.newaxis, :],
+                trace_split, pulse_ids[first:last], pulse_len)
 
-            for pulse_trace, pulse_index in zip(pulse_traces, pulse_sel):
-                edge_func(signal=pulse_trace, edges=edges[pulse_index],
+            # No need to slice trace_split to the actual number of
+            # pulses, as first:last limits the loop. It's still
+            # important to limit the sample axis to the actual length
+            # of pulses in this train, as the reshape above would leave
+            # any samples after the actual length untouched from an
+            # earlier train with potentially longer pulses.
+            for signal, pulse_index in zip(trace_split, range(first, last)):
+                edge_func(signal=signal[:pulse_len], edges=edges[pulse_index],
                           amplitudes=amplitudes[pulse_index], **edge_kw)
 
-        psh.map(digitize_hits, self._raw_key)
+        psh.map(digitize_hits, raw_key)
 
         if self._sample_dim == 'time':
             edges *= self.sampling_period
 
         return self._shape_edge_array(
             edges, amplitudes,
-            {'pulse':  self._pulses.build_pulse_index(pulse_dim)},
+            {'pulse':  pulses.build_pulse_index(pulse_dim)},
             labelled, squeeze_edges)

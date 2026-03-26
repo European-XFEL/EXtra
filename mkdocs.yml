@@ -18,6 +18,7 @@ theme:
 
 nav:
   - index.md
+  - proposal.md
   - reading-data.md
   - detector-geometry.md
   - damnit.md
@@ -31,9 +32,14 @@ nav:
     - components/optical-lasers.md
     - components/adq-digitizers.md
     - components/detector-motors.md
+  - Applications:
+    - applications/index.md
+    - applications/cookiebox.md
+    - applications/grating.md
   - karabo-bridge.md
   - calibration.md
   - signal.md
+  - gui.md
   - utilities.md
   - changelog.md
 
@@ -42,6 +48,8 @@ watch:
 
 markdown_extensions:
   - admonition
+  - codehilite:
+      guess_lang: false
   - pymdownx.arithmatex:
       generic: true
   - pymdownx.details
@@ -75,7 +83,7 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          import:
+          inventories:
           - https://docs.python.org/3/objects.inv
           - https://extra-data.readthedocs.io/en/latest/objects.inv
           - https://numpy.org/doc/stable/objects.inv
@@ -84,6 +92,8 @@ plugins:
           - https://docs.xarray.dev/en/stable/objects.inv
           - https://pint.readthedocs.io/en/stable/objects.inv
           - https://docs.scipy.org/doc/scipy/objects.inv
+          - https://mpl-interactions.readthedocs.io/en/stable/objects.inv
+          - https://damnit.readthedocs.io/en/latest/objects.inv
           options:
             docstring_style: google
             separate_signature: yes
@@ -96,11 +106,14 @@ plugins:
             show_source: no
             inherited_members: yes
             show_symbol_type_toc: yes
+            preload_modules:
+              - extra_proposal
 
 extra_css:
   - css/mkdocstrings.css
 
 extra_javascript:
+  - js/inject-header.js
   - css/mathjax.js
   - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js

@@ -111,14 +111,13 @@ class DelayLineDetector:
             raise ValueError('missing pulse information for one or more '
                              'trains with data')
 
-        if len(entry_counts) < min(len(data_counts), len(pulse_counts)):
-            # Missing counts in one or more trains in data, select data
-            # and pulses down.
+        if len(entry_counts) < len(pulse_counts):
+            # Missing one or more trains in the actual data compared
+            # to the pulse information, select pulses down.
             from extra_data import by_id
             train_sel = by_id[entry_counts.index.to_numpy()]
 
             pulses = self._pulses.select_trains(train_sel)
-            kd = kd.select_trains(train_sel)
         else:
             pulses = self._pulses
 

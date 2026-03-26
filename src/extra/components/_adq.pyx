@@ -4,7 +4,7 @@
 from cython cimport numeric
 from libc.limits cimport INT_MAX
 from libc.string cimport memcpy
-from numpy.math cimport NAN
+from libc.math cimport NAN
 
 
 def _reshape_flat_pulses(

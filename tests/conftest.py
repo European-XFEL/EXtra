@@ -17,8 +17,9 @@ from .mockdata.detector_motors import (DetectorMotorDataSelector,
 from .mockdata.dld import ReconstructedDld
 from .mockdata.timepix import Timepix3Receiver, Timepix3Centroids
 from .mockdata.timeserver import PulsePatternDecoder, Timeserver
-from .mockdata.xgm import XGM, XGMD, XGMReduced
-
+from .mockdata.xgm import XGM, XGMD, XGMReduced, XGMWithData
+from .mockdata.mono import MonoMdl
+from .mockdata.camera import CameraWithData, GotthardIIWithData
 
 @pytest.fixture(scope='session')
 def mock_spb_aux_directory():
@@ -44,16 +45,18 @@ def mock_spb_aux_directory():
         PulsePatternDecoder('TRAIN_LESS_DECODER', no_ctrl_data=True),
         Timeserver('TRAIN_LESS_TIMESERVER', no_ctrl_data=True, nsamples=0),
         Timeserver('PULSE_LESS_TIMESERVER', no_pulses=True),
-        XGM('SPB_XTD9_XGM/DOOCS/MAIN'),
+        XGM('SPB_XTD9_XGM/XGM/DOOCS'),
         Motor("MOTOR/MCMOTORYFACE"),
         DetectorMotorDataSelector("SPB_IRU_AGIPD1M/DS", "SPB_IRU_AGIPD1M"),
         DetectorMotorDataSelector("SPB_EXP_AGIPD1M2/DS", "SPB_EXP_AGIPD1M2"),
+        Motor('SPB_IRDA_JF4M/MOTOR/X1'),
+        Motor('SPB_IRDA_JF4M/MOTOR/X2'),
     ]
     sources += get_motor_sources("SPB_IRU_AGIPD1M")
 
     with TemporaryDirectory() as td:
         path = Path(td) / 'RAW-R0001-DA01-S00000.h5'
-        write_file(path, sources, 100)
+        write_file(path, sources, 100, format_version='1.2')
         with h5py.File(path, 'a') as f:
             motor_ds = f['CONTROL/MOTOR/MCMOTORYFACE/actualPosition/value']
             # Simulate a scan of 10 steps, with intermediate positions for
@@ -62,6 +65,12 @@ def mock_spb_aux_directory():
             motor_ds[10::10] = np.arange(9) + 0.5
             # write agipd quadrand motor positions
             write_motor_positions(f, "SPB_IRU_AGIPD1M")
+            # write jf4m halves motor positions
+            jfx1 = f['CONTROL/SPB_IRDA_JF4M/MOTOR/X1/actualPosition/value']
+            jfx1[:] = 10
+            jfx2 = f['CONTROL/SPB_IRDA_JF4M/MOTOR/X2/actualPosition/value']
+            jfx2[:10] = 5
+            jfx2[10:] = 6
 
         yield td
 
@@ -84,7 +93,8 @@ def multi_xgm_directory():
     with TemporaryDirectory() as td:
         # We need format version 1.1 for the XGM tests, because without the full
         # run metadata we can't get RUN values after a .union() or .select().
-        write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 100, format_version="1.1")
+        write_file(Path(td) / 'RAW-R0002-DA01-S00000.h5', sources, 100,
+                   format_version="1.1", firsttrain=20000)
         yield td
 
 
@@ -108,7 +118,8 @@ def mock_sqs_remi_directory():
                      data_channels={(0, 0), (2, 1)})]
 
     with TemporaryDirectory() as td:
-        write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 100)
+        write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 100,
+                   format_version='1.2')
         yield td
 
 
@@ -148,3 +159,115 @@ def mock_timepix_exceeded_buffer_run(mock_sqs_timepix_directory):
             size_dset[np.argmax(size_dset)] += tpx_root['data/x'].shape[1]
 
         yield RunDirectory(td).deselect('SQS_EXTRA*')
+
+
+@pytest.fixture(scope='session')
+def mock_etof_calibration_constants():
+    yield (623419.734, 946.026, 11.527)
+
+@pytest.fixture(scope='session')
+def mock_etof_mono_energies():
+    # 200 trains with 10 energies and 20 trains per energy
+    energy = list()
+    for e in np.linspace(970.0, 1060.0, 10):
+        energy += [e]*20
+    energy = np.array(energy)
+    yield energy
+
+@pytest.fixture(scope='session')
+def mock_sqs_etof_calibration_directory(mock_etof_mono_energies, mock_etof_calibration_constants):
+    energy = mock_etof_mono_energies
+
+    # convert energy to time of flight for etofs
+    # calibration constants
+    c, e0, t0 = mock_etof_calibration_constants
+    sigma = 2.0
+    A = 1000.0
+    Aa = 500.0
+    auger = 35.0
+    offset = 44.0
+    # e = e0+c/(ts-t0)**2
+    # ts = t0 + sqrt(c/(e - e0))
+    ts = t0 + np.sqrt(c/(energy - e0))
+    ts_axis = np.linspace(0.0, int(np.max(ts))+5*sigma+1, int(np.max(ts)+5*sigma)+1+1)
+    # create gaussians
+    samples = (A*np.exp(-0.5*(ts[:, None] - ts_axis[None, :])**2/(sigma**2))
+               + Aa*np.exp(-0.5*(auger - ts_axis[None, :])**2/(sigma**2))
+               )
+    samples += offset
+    # add some samples before data
+    samples = -1*np.concatenate((
+                                 np.zeros((samples.shape[0], 1000)),            # samples before trigger
+                                 samples,                                       # data
+                                 np.zeros((samples.shape[0], 3000)),            # samples after
+                                 ), axis=-1)
+    # Use a fixed seed to make the random data deterministic.
+    rng = np.random.default_rng(12345)
+    samples += rng.standard_normal(samples.shape)
+
+    sources = [
+        Timeserver('SQS_RR_UTC/TSYS/TIMESERVER'),
+        XGMWithData('SQS_DIAG1_XGMD/XGM/DOOCS', intensity=(
+                rng.standard_normal(energy.shape + (1,)) + 1000
+        )),
+        MonoMdl('SA3_XTD10_MONO/MDL/PHOTON_ENERGY', energy_data=energy),
+        AdqDigitizer('SQS_DIGITIZER_UTC4/ADC/1', channels_per_board=[4],
+                     data_channels={(0, 0)},
+                     samples=samples)
+              ]
+
+    # for tests
+    #td = Path("mytest")
+    #write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 200,
+    #           format_version='1.2')
+    with TemporaryDirectory() as td:
+        write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 200,
+                   format_version='1.2')
+        yield td
+
+@pytest.fixture(scope='session')
+def mock_sqs_grating_calibration_directory():
+    #energy = mock_grating_mono_energies()
+    energy = list()
+    for e in np.linspace(992.0, 1008.0, 10):
+        energy += [e]*20
+    energy = np.array(energy)
+
+    pix = np.linspace(0, 1000, 1000)
+
+    # convert energy to time of flight for etofs
+    # calibration constants
+    #offset, slope = mock_grating_calibration_constants()
+    offset, slope = 990, 20/1000.0
+    true_pix_to_e = lambda p: offset + p*slope
+    true_e_to_pix = lambda e: (e - offset)/slope
+    data = np.exp(-0.5*(pix[None, :] - true_e_to_pix(energy)[:,None])**2)
+    # make it 2D
+    data2d = np.stack([data]*10, axis=1)
+    # add dimension for pulses in Gotthard
+    data_gh = np.stack([np.zeros_like(data)]*2+[data]*10, axis=-2)
+
+    sources = [
+        Timeserver('SQS_RR_UTC/TSYS/TIMESERVER'),
+        MonoMdl('SA3_XTD10_MONO/MDL/PHOTON_ENERGY', energy_data=energy),
+        CameraWithData("SQS_DIAG3_BIU/CAM/CAM_6", data=data2d),
+        GotthardIIWithData("SQS_EXP_GH2-2/CORR/RECEIVER", data=data_gh),
+              ]
+
+    # for tests
+    #td = Path("mytest_gr")
+    #write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 200,
+    #           format_version='1.2')
+    with TemporaryDirectory() as td:
+        write_file(Path(td) / 'RAW-R0001-DA01-S00000.h5', sources, 200,
+                   format_version='1.2')
+        yield td
+
+
+@pytest.fixture(scope='function')
+def mock_sqs_etof_calibration_run(mock_sqs_etof_calibration_directory):
+    yield RunDirectory(mock_sqs_etof_calibration_directory)
+
+@pytest.fixture(scope='function')
+def mock_sqs_grating_calibration_run(mock_sqs_grating_calibration_directory):
+    yield RunDirectory(mock_sqs_grating_calibration_directory)
