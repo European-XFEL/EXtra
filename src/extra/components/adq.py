@@ -1108,14 +1108,16 @@ class AdqRawChannel:
             # See comment in AdqChannel.train_data().
             train_roi = (train_roi,)
 
-        # Obtain information about pulse layout and use it to determine
-        # required output shape.
-        pulse_ids, pulse_layout = self._prepare_pulses()
-        out_shape = (len(pulse_ids), pulse_layout['length'].max())
-        pulse_ids = pulse_ids.to_numpy()
-
         # Drop empty trains for efficient access to train IDs.
         raw_key = self._raw_key.drop_empty_trains()
+
+        # Obtain information about pulse layout and use it to determine
+        # required output shape.
+        pulses, pulse_layout = self._prepare_pulses(raw_key.train_ids)
+        pulse_ids = pulses.pulse_ids(labelled=False)
+
+        # Prepare output buffer.
+        out_shape = (len(pulse_ids), pulse_layout['length'].max())
 
         if parallel is not False:
             # Prepare parallelization.
@@ -1141,7 +1143,8 @@ class AdqRawChannel:
             out = self._validate_out(out, out_shape)
 
             # Temporary buffer for a single iteration.
-            tmp = np.zeros((200,) + self._raw_key.entry_shape, dtype=out.dtype)
+            tmp = np.zeros((200,) + roi_shape(
+                self._raw_key.entry_shape, train_roi), dtype=out.dtype)
 
             for kd in raw_key.split_trains(trains_per_part=200):
                 pulse_sel = np.s_[pulse_layout.loc[kd.train_ids[0]]['first']:
