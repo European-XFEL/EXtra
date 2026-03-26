@@ -17,7 +17,8 @@
     ```
 
 Added:
-- [Calibration][AGIPDConditions] now recognizes current source constant types
+
+- [AGIPDConditions][extra.calibration.AGIPDConditions] now recognizes current source constant types
 - [SpectrometerCalibration][extra.gui.jupyter.SpectrometerCalibration] to
   provide a Jupyter widget for energy calibration of 2D X-ray spectrum data
   (!363).
