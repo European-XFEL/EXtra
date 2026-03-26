@@ -2,7 +2,7 @@ cfel-fmt==2.2.0
 contourpy<=1.3.3
 cycler==0.12.1
 EXtra-data==1.24.0
-EXtra-geom==1.15.0
+EXtra-geom==1.16.0
 flexcache==0.3
 flexparser==0.4
 fonttools==4.62.1
