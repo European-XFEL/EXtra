@@ -38,6 +38,8 @@ Added:
 - Added support for plotting wrapped Julia arrays from PythonCall.jl to
   [imshow2()][extra.utils.imshow2].
 - [PulsePattern.info()][extra.components.pulses.PulsePattern.info] to give a brief
+- [TOFAnalogResponse][extra.applications.TOFAnalogResponse] can deconvolve the Auger-Meitner
+  and photon line if the flag `deconvolve` is set to True.
   summary about a pulse pattern (!435).
 
 Fixed:
@@ -62,6 +64,8 @@ Changed:
   Markdown in Jupyter notebooks (!381).
 - Increased maximal length of pulse masks returned by
   [pulse_mask()][extra.components.pulses.PulsePattern.pulse_mask] to 4096 (!461).
+- [CookieboxCalibration][extra.applications.CookieboxCalibration] calculates the transmission
+  using the sum of the trace instead of the fit amplitude for robustness.
 
 ## [2025.1]
 
