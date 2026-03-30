@@ -1,3 +1,4 @@
+
 from ..utils.misc import _isinstance_no_import
 
 # Source prefixes in use at each SASE.
@@ -75,3 +76,35 @@ def _select_subcomponent_trains(src, keys, dst=None):
             setattr(dst, key, prop.select_trains(trains))
 
     return dst
+
+
+from collections.abc import Sequence
+from typing import Protocol, Self, runtime_checkable
+import pandas as pd
+from extra_data import by_id
+
+
+@runtime_checkable
+class TrainData(Protocol):
+    train_ids: Sequence[int]
+
+    def select_trains(self, train_sel) -> Self:
+        raise NotImplementedError('select_trains')
+
+    def data_counts(self, labelled=True) -> pd.Series:
+        raise NotImplementedError('data_counts')
+
+
+def align(*unaligned):
+    counts = pd.concat([
+        obj.data_counts() for obj in unaligned
+        if isinstance(obj, TrainData)
+    ], axis=1, join='inner')
+
+    if len(counts.columns) != len(unaligned):
+        raise TypeError('one or more passed objects do not implement '
+                        'the TrainData protocol')
+
+    train_ids = counts.index[(counts > 0).all(axis=1)].to_numpy()
+
+    return [obj.select_trains(by_id[train_ids]) for obj in unaligned]
