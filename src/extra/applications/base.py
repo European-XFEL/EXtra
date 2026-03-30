@@ -37,7 +37,7 @@ def load_dict(h5grp):
             out[k] = obj[()]
     for k, obj in h5grp.attrs.items():
         out[k] = obj
-    return dict(sorted(out.items()))
+    return out
 
 class SerializableMixin(object):
     """

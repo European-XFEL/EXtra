@@ -114,8 +114,12 @@ def dump(filename):
             xgm = fid[f"calibration_mean_xgm/{tof_id}"]
             print(f"calibration_mean_xgm[{tof_id}] = np.array([{', '.join('%0.3f' % x for x in xgm)}])")
 
+        for tof_id in range(16):
+            correct = fid[f"model_params/{tof_id}"]
+            print(f"correct[{tof_id}] = np.array([{', '.join('%0.3f' % x for x in correct)}])")
+
 filename = "example_calibration_p900485_r348.h5"
-produce_calibration(filename)
+#produce_calibration(filename)
 dump(filename)
 
 
