@@ -1175,7 +1175,7 @@ class CookieboxCalibration(SerializableMixin):
 
         return outdata
 
-    def calibrate(self, trace: xr.DataArray, normalization: str="average", subtract_offset: bool=False) -> xr.DataArray:
+    def calibrate(self, trace: xr.DataArray, subtract_offset: bool=False) -> xr.DataArray:
         """
         Takes a trace separated with axes ('trainId', 'pulseIndex', 'sample', 'tof'),
         as given by `load_trace` and applies the calibration.
@@ -1187,7 +1187,6 @@ class CookieboxCalibration(SerializableMixin):
           trace: A pre-processed trace retrieved with the *same* `AdqRawChannel` settings as this calibration object.
                  Its axes are expected to be ('trainId', 'pulseIndex', 'sample', 'tof').
                  It is recommended to use always `load_trace` to obtain this.
-          normalization: If "shot", normalize by the Auger peak, if "average", use the average transmission.
           subtract_offset: Whether to subtract a offset.
 
         Returns: the calibrated data as an xarray DataArray.
@@ -1216,11 +1215,6 @@ class CookieboxCalibration(SerializableMixin):
             # get it in the right order
             pulses = tof_trace.transpose('trainId', 'pulseIndex', 'sample')
             coords = pulses.coords
-
-            # integrate Auger
-            mu_auger = self.tof_fit_result[tof_id].mu_auger.mean()
-            sigma = self.tof_fit_result[tof_id].sigma.max()
-            auger = pulses.sel(sample=slice(int(round(mu_auger-2*sigma)), int(round(mu_auger+2*sigma)))).sum("sample")
 
             pulses = pulses.to_numpy()
             # the sample axis to use for the calibration
@@ -1262,19 +1256,13 @@ class CookieboxCalibration(SerializableMixin):
                                          energy=self.energy_axis
                                         )
                             )
-            if normalization == "shot":
-                o = xr.where(auger > 1.0, o/auger, 0.0)
-                np.nan_to_num(o, copy=False)
             return o
 
         outdata = [apply_correction(tof_id, trace.sel(tof=tof_id))
                    for tof_id in tof_ids]
         outdata = xr.concat(outdata, pd.Index(tof_ids, name="tof"))
         outdata = outdata.transpose('trainId', 'pulseIndex', 'energy', 'tof')
-        if normalization == "average":
-            outdata_corr = outdata/norm.to_numpy()[None, None, :, :]
-        else:
-            outdata_corr= outdata
+        outdata_corr = outdata/norm.to_numpy()[None, None, :, :]
 
         return outdata_corr
 
