@@ -892,8 +892,17 @@ class CookieboxCalibration(SerializableMixin):
         mask = self.calibration_mask[tof_id]
         energy_ids = np.arange(len(mask))
         # fit calibration
-        c, e0, t0 = fit(self.tof_fit_result[tof_id].mu[mask],
-                        self.tof_fit_result[tof_id].energy[mask], t0_bounds=[-3000, 3000])
+        if len(np.unique(self.tof_fit_result[tof_id].mu[mask])) > 1:
+            c, e0, t0 = fit(self.tof_fit_result[tof_id].mu[mask],
+                            self.tof_fit_result[tof_id].energy[mask], t0_bounds=[-3000, 3000])
+        else:
+            # cannot make a fit, prevent an exception
+            # guess c
+            c = 1.0
+            # take the smallest
+            e0 = np.min(self.tof_fit_result[tof_id].energy[mask])
+            # take any, as they are the smae
+            t0 = self.tof_fit_result[tof_id].mu[mask][0]
         self.model_params[tof_id] = np.array([c, e0, t0], dtype=np.float64)
         self.jacobian[tof_id] = 0.5*c/(np.sqrt(c/(self.energy_axis - e0)))/(self.energy_axis - e0)**2
 
