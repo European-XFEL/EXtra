@@ -838,7 +838,7 @@ class CookieboxCalibration(SerializableMixin):
             energy += [energies[e]]
             # get Auger
             peak, peak_dict = find_peaks(data[e, auger_start_roi:start_roi],
-                                         prominence=0.25,
+                                         prominence=0.1,
                                          distance=10,
                                          width=0,
                                          height=0)
@@ -855,7 +855,7 @@ class CookieboxCalibration(SerializableMixin):
                 Aa += [np.sum(data[e, int(highest_peak_index-3*s):int(highest_peak_index+3*s)] - o)]
             # get photon line
             peak, peaks_dict = find_peaks(data[e, start_roi:stop_roi],
-                                          prominence=0.25,
+                                          prominence=0.1,
                                           distance=10,
                                           width=0,
                                           height=0)
