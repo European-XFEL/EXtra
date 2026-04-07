@@ -844,7 +844,7 @@ class CookieboxCalibration(SerializableMixin):
                                          height=0)
             if len(peak) == 0:
                 Aa += [0]
-                mu_auger += [0]
+                mu_auger += [auger_start_roi]
             else:
                 peak_heights = peak_dict['peak_heights']
                 peak_widths = peak_dict['widths']
@@ -861,7 +861,7 @@ class CookieboxCalibration(SerializableMixin):
                                           height=0)
             if len(peak) == 0:
                 A += [0]
-                mu += [0]
+                mu += [(start_roi+stop_roi)//2]
             else:
                 peak_heights = peaks_dict['peak_heights']
                 peak_widths = peaks_dict['widths']
