@@ -148,7 +148,7 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
     tof_id, energy_id = itr
     energy, train_ids = scan.steps[energy_id]
     # check if we are required to count peaks
-    if count_threshold is None:
+    if count_threshold is None or count_threshold >= 0:
         # don't count peaks and just average the data
         # the logic to clean the data is only to apply a cut on the XGM pulse energy
 
@@ -179,7 +179,7 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
         tof_data = tof_data.pulse_edges(pulse_dim='pulseIndex', threshold=count_threshold).reset_index()
 
         bins = np.arange(0, 500+1)
-        out_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.height)
+        out_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.amplitude)
 
         out_data = xr.DataArray(out_data, dims=('sample'), coords={'sample': bins[:-1]})
         out_xgm = xgm_data.mean('pulse')
@@ -346,7 +346,7 @@ class CookieboxCalibration(SerializableMixin):
             or np.pi/2 for vertical linear polarization, if eTOF 0 is aligned
             to the horizontal plane.
       P1: First Stokes parameter. Set to 1 for linear or circular polarization.
-      count_threshold: Threshold for counting photons.
+      count_threshold: Threshold for counting photons. Ignored if zero or positive: set to a negative value to use it.
     """
     def __init__(self,
                  xgm_threshold: Union[str, float]='median',
@@ -358,7 +358,7 @@ class CookieboxCalibration(SerializableMixin):
                  beta: float=2.0,
                  tilt: float=0.0,
                  P1: float=1.0,
-                 count_threshold: float=None
+                 count_threshold: float=0
                 ):
         self._init_auger_start_roi = auger_start_roi
         self._init_start_roi = start_roi

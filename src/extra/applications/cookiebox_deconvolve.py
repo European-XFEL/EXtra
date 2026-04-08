@@ -368,7 +368,7 @@ class TOFAnalogResponse(SerializableMixin):
                  n_samples: int=350,
                  n_filter: int=100,
                  deconvolve: bool=False,
-                 count_threshold: float=None,
+                 count_threshold: float=0,
                  ):
         self.roi = roi
         self.n_samples = n_samples
@@ -456,21 +456,21 @@ class TOFAnalogResponse(SerializableMixin):
         if scan is not None:
             for k, e in enumerate(scan.positions):
                 tof_data = tof.select_trains(by_id[scan.positions_train_ids[k]])
-                if self.count_threshold is None:
+                if self.count_threshold is None or self.count_threshold >= 0:
                     this_tof_data = -tof_data.pulse_data(pulse_dim="pulseIndex").mean('pulse')
                 else:
                     tof_data = tof_data.pulse_edges(pulse_dim='pulseIndex', threshold=self.count_threshold).reset_index()
-                    this_tof_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.height)
+                    this_tof_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.amplitude)
                     this_tof_data = xr.DataArray(this_tof_data, dims=('sample'), coords={'sample': bins[:-1]})
                 if self.roi is not None:
                     this_tof_data = this_tof_data.isel(sample=self.roi)
                 data += [this_tof_data.to_numpy()]
         else:
-            if self.count_threshold is None:
+            if self.count_threshold is None or self.count_threshold >= 0:
                 this_tof_data = -tof.pulse_data(pulse_dim="pulseIndex").mean('pulse')
             else:
                 tof_data = tof.pulse_edges(pulse_dim='pulseIndex', threshold=self.count_threshold).reset_index()
-                this_tof_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.height)
+                this_tof_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.amplitude)
                 this_tof_data = xr.DataArray(this_tof_data, dims=('sample'), coords={'sample': bins[:-1]})
             if self.roi is not None:
                 this_tof_data = this_tof_data.isel(sample=self.roi)
