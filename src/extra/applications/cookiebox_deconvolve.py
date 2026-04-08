@@ -359,25 +359,31 @@ class TOFAnalogResponse(SerializableMixin):
     Args:
       roi: Region of interest. Keep None to use the full trace.
       n_samples: Total number of samples use for impulse response.
+      n_filter: Number of samples before the peak to select.
+      deconvolve: Whether to deconvolve the effect of two added peaks (ie: Auger-Meitner and monochromated photoline).
+      count_threshold: If set, counts number of photo-electrons above this threshold. Should be negative.
     """
     def __init__(self,
                  roi: Optional[slice]=None,
                  n_samples: int=350,
                  n_filter: int=100,
                  deconvolve: bool=False,
+                 count_threshold: float=None,
                  ):
         self.roi = roi
         self.n_samples = n_samples
         self.n_filter = n_filter
         self.h = None
         self.deconvolve = deconvolve
-        self._version = 1
+        self.count_threshold = count_threshold
+        self._version = 2
         self._all_fields = [
                             "h",
                             "h_unc",
                             "n_samples",
                             "n_filter",
                             "deconvolve",
+                            "count_threshold",
                             "_version",
                            ]
 
@@ -446,17 +452,29 @@ class TOFAnalogResponse(SerializableMixin):
         h_axis = np.arange(self.n_samples)
         data = list()
         h = list()
+        bins = np.arange(0, self.n_samples+1)
         if scan is not None:
             for k, e in enumerate(scan.positions):
-                this_tof_data = -tof.select_trains(by_id[scan.positions_train_ids[k]]).pulse_data(pulse_dim="pulseIndex")
+                tof_data = tof.select_trains(by_id[scan.positions_train_ids[k]])
+                if self.count_threshold is None:
+                    this_tof_data = -tof_data.pulse_data(pulse_dim="pulseIndex").mean('pulse')
+                else:
+                    tof_data = tof_data.pulse_edges(pulse_dim='pulseIndex', threshold=self.count_threshold).reset_index()
+                    this_tof_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.height)
+                    this_tof_data = xr.DataArray(this_tof_data, dims=('sample'), coords={'sample': bins[:-1]})
                 if self.roi is not None:
                     this_tof_data = this_tof_data.isel(sample=self.roi)
-                data += [this_tof_data.mean('pulse').to_numpy()]
+                data += [this_tof_data.to_numpy()]
         else:
-            this_tof_data = -tof.pulse_data(pulse_dim="pulseIndex")
+            if self.count_threshold is None:
+                this_tof_data = -tof.pulse_data(pulse_dim="pulseIndex").mean('pulse')
+            else:
+                tof_data = tof.pulse_edges(pulse_dim='pulseIndex', threshold=self.count_threshold).reset_index()
+                this_tof_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.height)
+                this_tof_data = xr.DataArray(this_tof_data, dims=('sample'), coords={'sample': bins[:-1]})
             if self.roi is not None:
                 this_tof_data = this_tof_data.isel(sample=self.roi)
-            data += [this_tof_data.mean('pulse').to_numpy()]
+            data += [this_tof_data.to_numpy()]
 
         for d in data:
             this_h = self.shift_h(d, h_axis)

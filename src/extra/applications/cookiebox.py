@@ -130,7 +130,7 @@ def fit(peak_ids: np.ndarray, energies: np.ndarray, t0_bounds: Tuple[float, floa
         raise Exception('fit did not converge.')
 
 
-def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dict[int, AdqRawChannel], xgm_threshold: float, correction_fn=None) -> xr.DataArray:
+def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dict[int, AdqRawChannel], xgm_threshold: float, count_threshold: float=None, correction_fn=None) -> xr.DataArray:
     """
     Calculate the mean of the ToF data in the given tof and energy bin in `itr`.
 
@@ -140,29 +140,49 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
       xgm_data: All the pulse energy values.
       tof: The Extra component for reading each tof.
       xgm_threshold: The minimum pulse energy to consider.
+      count_threshold: Number of ADU counts used to trigger photon count.
       correction_fn: A correction function to apply in the raw spectra.
 
     Returns: DataArray with mean of data in the energy bin given.
     """
     tof_id, energy_id = itr
     energy, train_ids = scan.steps[energy_id]
-    # this does train ID matching, because:
-    # - the given run may not have both XGM and eTOF for every train;
-    # - and we cannot control the creation of the run object, since we want to receive the ready-made XGM object
-    good_ids = sorted(list(set(train_ids).intersection(set(xgm_data.coords["trainId"].to_numpy()))))
-    if len(good_ids) == 0:
-        x = tof[tof_id].select_trains(np._[0:1]).pulse_data(pulse_dim='pulseIndex').to_numpy().mean(0)
-        return np.zeros_like(x), 0
-    tof_data = tof[tof_id].select_trains(by_id[good_ids]).pulse_data(pulse_dim='pulseIndex')
-    good_ids = sorted(list(set(good_ids).intersection(set(tof_data.trainId.to_numpy()))))
-    mask = xgm_data.coords["trainId"].isin(good_ids)
-    sel_xgm_data = xgm_data[mask]
-    # select XGM
-    tof_data = tof_data.loc[sel_xgm_data > xgm_threshold, :]
-    tof_xgm_data = sel_xgm_data.loc[sel_xgm_data > xgm_threshold]
+    # check if we are required to count peaks
+    if count_threshold is None:
+        # don't count peaks and just average the data
+        # the logic to clean the data is only to apply a cut on the XGM pulse energy
 
-    out_data = -tof_data.mean('pulse')
-    out_xgm = tof_xgm_data.mean('pulse')
+        # this does train ID matching, because:
+        # - the given run may not have both XGM and eTOF for every train;
+        # - and we cannot control the creation of the run object, since we want to receive the ready-made XGM object
+        good_ids = sorted(list(set(train_ids).intersection(set(xgm_data.coords["trainId"].to_numpy()))))
+        if len(good_ids) == 0:
+            x = tof[tof_id].select_trains(np._[0:1]).pulse_data(pulse_dim='pulseIndex').to_numpy().mean(0)
+            return np.zeros_like(x), 0
+        tof_data = tof[tof_id].select_trains(by_id[good_ids])
+        tof_data = tof_data.pulse_data(pulse_dim='pulseIndex')
+
+        good_ids = sorted(list(set(good_ids).intersection(set(tof_data.trainId.to_numpy()))))
+        mask = xgm_data.coords["trainId"].isin(good_ids)
+        sel_xgm_data = xgm_data[mask]
+        # select XGM
+        tof_data = tof_data.loc[sel_xgm_data > xgm_threshold, :]
+        tof_xgm_data = sel_xgm_data.loc[sel_xgm_data > xgm_threshold]
+
+        out_data = -tof_data.mean('pulse')
+        out_xgm = tof_xgm_data.mean('pulse')
+    else:
+        # option 2: count photon peaks
+        # in this case, ignore the XGM, as it is only used for cleaning the data
+        # and here we rely on the threshold for that
+        tof_data = tof[tof_id].select_trains(by_id[train_ids])
+        tof_data = tof_data.pulse_edges(pulse_dim='pulseIndex', threshold=count_threshold).reset_index()
+
+        bins = np.arange(0, 500+1)
+        out_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.height)
+
+        out_data = xr.DataArray(out_data, dims=('sample'), coords={'sample': bins[:-1]})
+        out_xgm = xgm_data.mean('pulse')
 
     if correction_fn is not None:
         out_data = correction_fn[tof_id](out_data)
@@ -326,6 +346,7 @@ class CookieboxCalibration(SerializableMixin):
             or np.pi/2 for vertical linear polarization, if eTOF 0 is aligned
             to the horizontal plane.
       P1: First Stokes parameter. Set to 1 for linear or circular polarization.
+      count_threshold: Threshold for counting photons.
     """
     def __init__(self,
                  xgm_threshold: Union[str, float]='median',
@@ -336,7 +357,8 @@ class CookieboxCalibration(SerializableMixin):
                  parallel: bool=True,
                  beta: float=2.0,
                  tilt: float=0.0,
-                 P1: float=1.0
+                 P1: float=1.0,
+                 count_threshold: float=None
                 ):
         self._init_auger_start_roi = auger_start_roi
         self._init_start_roi = start_roi
@@ -346,6 +368,7 @@ class CookieboxCalibration(SerializableMixin):
         self.tilt = tilt
         self.P1 = P1
 
+        self._count_threshold = count_threshold
         self._xgm_threshold = xgm_threshold
 
         # empty outputs
@@ -356,7 +379,7 @@ class CookieboxCalibration(SerializableMixin):
         self.normalization = dict()
 
         # what we need to save it all
-        self._version = 1
+        self._version = 2
         self.all_kwargs_adq = ["first_pulse_offset",
                                "cm_period",
                                "interleaved",
@@ -384,6 +407,7 @@ class CookieboxCalibration(SerializableMixin):
                             "beta",
                             "tilt",
                             "P1",
+                            "_count_threshold",
                             "_version",
                            ]
     def _asdict(self):
@@ -693,6 +717,7 @@ class CookieboxCalibration(SerializableMixin):
                      xgm_data=self._xgm_data,
                      tof=self._tof,
                      xgm_threshold=self._xgm_threshold,
+                     count_threshold=self._count_threshold,
                      correction_fn=correction_fn,
                      )
         parallel = self.parallel
