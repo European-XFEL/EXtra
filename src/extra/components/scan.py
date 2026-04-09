@@ -125,6 +125,11 @@ class Scan:
 
     @classmethod
     def from_motor_targets(cls, motor: SourceData, tolerance, *, name=None):
+        """Make a Scan object based on the target positions of a motor
+
+        The steps are defined by the motor target positions. Points are only
+        included if the actual position is within *tolerance* of the target.
+        """
         target = motor['targetPosition'].xarray()
         actual = motor['actualPosition'].xarray()
 
