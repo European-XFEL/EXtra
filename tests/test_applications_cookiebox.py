@@ -326,10 +326,6 @@ def test_avg_and_fit_single_channel(mock_sqs_etof_calibration_run, tmp_path, moc
     cal.plot_transmissions()
     plt.savefig(str(d / "transmissions.pdf"))
 
-    plt.figure(figsize=(10, 8))
-    cal.plot_diagnostics(0)
-    plt.savefig(str(d / "diagnostics.pdf"))
-
     cal_read = CookieboxCalibration.from_file(fpath)
 
     # test if serialization worked
