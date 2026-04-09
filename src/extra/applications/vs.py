@@ -412,9 +412,10 @@ class VSLight(SerializableMixin):
                     self.model[i] = MultiOutputGenericWithStd(ARDRegression(tol=1e-8, verbose=True), n_jobs=8)
                     self.model[i].estimators_ = list()
                     for e in v[i].keys():
-                        self.model[i].estimators_ += [ARDRegression(tol=1e-8, verbose=True)]
+                        estimator = ARDRegression(tol=1e-8, verbose=True)
                         for par in self._all_model_fields:
-                            setattr(self.model[i].estimators_[-1], par, v[i][e][par])
+                            setattr(estimator, par, v[i][e][par])
+                        self.model[i].estimators_.append(estimator)
             else:
                 setattr(self, k, v)
         # fix some dicts
@@ -699,8 +700,8 @@ class VSLight(SerializableMixin):
                 hist, _ = np.histogram(edges.edge, bins=ts)
                 mu = 1.0/(self.energy_width*np.sqrt(2*np.pi))
                 this_y = mu*np.exp(-0.5*(self.energy_axis - energy)**2/((self.energy_width/2.355)**2))
-                tof_data += [-hist]
-                y += [this_y]
+                tof_data.append(-hist)
+                y.append(this_y)
             tof_data = np.stack(tof_data, axis=0)
             y = np.stack(y, axis=0)
         else:
