@@ -29,6 +29,7 @@ dependencies = [
     "h5py",
     "karabo_bridge",
     "lmfit",
+    "scikit-learn",
     "oauth2-xfel-client >=6.1",
     "pandas",
     "xarray",
