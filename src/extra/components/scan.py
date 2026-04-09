@@ -134,7 +134,7 @@ class Scan:
         # Steps defined by changes in target position
         change_ixs = list(np.nonzero(np.diff(target))[0] + 1)
         steps = [
-            (target[start].item(), target[start:stop].trainId.values.tolist())
+            (target[start].item(), target[start:stop].trainId.values)
             for start, stop in zip([0] + change_ixs, change_ixs + [len(target)])
         ]
 
