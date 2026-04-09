@@ -129,10 +129,9 @@ def fit(peak_ids: np.ndarray, energies: np.ndarray, t0_bounds: Tuple[float, floa
     res = minimize_scalar(f, method='golden', options=dict(bounds=t0_bounds))
     t0 = res.x
     c, e0, t0, mask = lin_fit(peak_ids, energies, t0)
-    if res.success:
-        return c, e0, t0, mask
-    else:
-        raise Exception('fit did not converge.')
+    if not res.success:
+        return np.nan, np.nan, np.nan, mask
+    return c, e0, t0, mask
 
 
 def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dict[int, AdqRawChannel], xgm_threshold: float, count_threshold: float=None, correction_fn=None) -> xr.DataArray:
@@ -1008,8 +1007,11 @@ class CookieboxCalibration(SerializableMixin):
                         c=c, marker='x')
             a.plot(ts, e, c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
         for a in ax:
+            emin = np.nanmin(self.calibration_energies)
+            emax = np.nanmax(self.calibration_energies)
             a.set(xlabel="Samples",
-                  ylabel="Energy [eV]",
+                  ylabel="Energy",
+                  ylim=(emin, emax),
                   )
             a.legend(frameon=False, ncols=2)
 
@@ -1084,12 +1086,12 @@ class CookieboxCalibration(SerializableMixin):
         for a in ax:
             if eV_per_sample:
                 a.set(xlabel="Energy [eV]",
-                      ylabel=r"$\left\vert\frac{dE}{dt}\right\vert$ [eV/samp.]",
+                      ylabel=r"$\left\vert\frac{dE}{dt}\right\vert$",
                       ylim=(0, None),
                       )
             else:
                 a.set(xlabel="Energy [eV]",
-                      ylabel=r"$\left\vert\frac{dt}{dE}\right\vert$ [samp./eV]",
+                      ylabel=r"$\left\vert\frac{dt}{dE}\right\vert$",
                       ylim=(0, 5),
                       )
             a.legend(frameon=False, ncols=2)
