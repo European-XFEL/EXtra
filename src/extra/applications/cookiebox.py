@@ -74,7 +74,7 @@ def model(ts: np.ndarray, c: float, e0: float, t0: float) -> np.ndarray:
     """
     return e0+c/(ts-t0)**2
 
-def lin_fit(ts: np.ndarray, energies: np.ndarray, t0: float) -> Tuple[float, float, float]:
+def lin_fit(ts: np.ndarray, energies: np.ndarray, t0: float) -> Tuple[float, float, float, np.ndarray]:
     """
     Fit model using linear regression for fixed t0.
 
@@ -83,13 +83,18 @@ def lin_fit(ts: np.ndarray, energies: np.ndarray, t0: float) -> Tuple[float, flo
       energies: Energy axis.
       t0: Fixed zero-time.
 
-    Returns: Tuple with c, e0 and t0 values after the fit.
+    Returns: Tuple with c, e0, t0, and mask values after the fit.
     """
-    from scipy.stats import linregress
-    res = linregress(1/np.asarray(ts-t0)**2,np.asarray(energies))
-    c = res.slope
-    e0 = res.intercept
-    return c, e0, t0
+    from sklearn.linear_model import RANSACRegressor, LinearRegression
+    # RANSAC is slow, but much more robust and derives a mask
+    x = 1/np.asarray(ts-t0)**2
+    y = np.asarray(energies)
+    model = RANSACRegressor(estimator=LinearRegression(), random_state=42)
+    model.fit(x[:,np.newaxis], y[:, np.newaxis])
+    c = model.estimator_.coef_[0,0]
+    e0 = model.estimator_.intercept_[0]
+    mask = model.inlier_mask_
+    return c, e0, t0, mask
 
 def norm_diff_t0(ts: np.ndarray, energies: np.ndarray, t0: float) -> float:
     """
@@ -102,10 +107,10 @@ def norm_diff_t0(ts: np.ndarray, energies: np.ndarray, t0: float) -> float:
 
     Returns: Norm of difference between observation and prediction.
     """
-    c,e0,_ = lin_fit(ts,energies,t0)
-    return np.linalg.norm(model(ts,c,e0,t0) - energies, ord=1)
+    c, e0, _, mask = lin_fit(ts, energies, t0)
+    return np.linalg.norm(model(ts[mask],c,e0,t0) - energies[mask], ord=1)
 
-def fit(peak_ids: np.ndarray, energies: np.ndarray, t0_bounds: Tuple[float, float]) -> Tuple[float, float, float]:
+def fit(peak_ids: np.ndarray, energies: np.ndarray, t0_bounds: Tuple[float, float]) -> Tuple[float, float, float, np.ndarray]:
     """
     Fit peak IDs to energies withn the zero-time bounds.
 
@@ -114,18 +119,18 @@ def fit(peak_ids: np.ndarray, energies: np.ndarray, t0_bounds: Tuple[float, floa
       energies: The energy values.
       t0_bounds: The minimum and maximum zero-time bounds.
 
-    Returns: Tuple with c, e0, t0.
+    Returns: Tuple with c, e0, t0, and a mask.
     """
     from scipy.optimize import minimize_scalar
     peak_ids = np.asarray(peak_ids)
     energies = np.asarray(energies)
 
     f = partial(norm_diff_t0,peak_ids,energies)
-    res=minimize_scalar(f,method='Bounded',bounds=t0_bounds)
+    res = minimize_scalar(f, method='golden', options=dict(bounds=t0_bounds))
     t0 = res.x
-    c,e0,t0=lin_fit(peak_ids,energies,t0)
+    c, e0, t0, mask = lin_fit(peak_ids, energies, t0)
     if res.success:
-        return c,e0,t0
+        return c, e0, t0, mask
     else:
         raise Exception('fit did not converge.')
 
@@ -863,7 +868,7 @@ class CookieboxCalibration(SerializableMixin):
             energy += [energies[e]]
             # get Auger
             peak, peak_dict = find_peaks(data[e, auger_start_roi:start_roi],
-                                         prominence=0.1,
+                                         prominence=0.25,
                                          distance=10,
                                          width=0,
                                          height=0)
@@ -880,13 +885,13 @@ class CookieboxCalibration(SerializableMixin):
                 Aa += [np.sum(data[e, int(highest_peak_index-3*s):int(highest_peak_index+3*s)] - o)]
             # get photon line
             peak, peaks_dict = find_peaks(data[e, start_roi:stop_roi],
-                                          prominence=0.1,
+                                          prominence=0.25,
                                           distance=10,
                                           width=0,
                                           height=0)
             if len(peak) == 0:
-                A += [0]
-                mu += [(start_roi+stop_roi)//2]
+                A += [np.nan]
+                mu += [np.nan]
             else:
                 peak_heights = peaks_dict['peak_heights']
                 peak_widths = peaks_dict['widths']
@@ -914,53 +919,62 @@ class CookieboxCalibration(SerializableMixin):
         """
         from scipy.interpolate import PchipInterpolator
 
+        mask_peaks = ~np.isnan(self.tof_fit_result[tof_id].mu)
+        self.calibration_mask[tof_id] &= mask_peaks
         mask = self.calibration_mask[tof_id]
         energy_ids = np.arange(len(mask))
         # fit calibration
-        if len(np.unique(self.tof_fit_result[tof_id].mu[mask])) > 1:
-            c, e0, t0 = fit(self.tof_fit_result[tof_id].mu[mask],
-                            self.tof_fit_result[tof_id].energy[mask], t0_bounds=[-3000, 3000])
+        if np.sum(mask) > 1:
+            c, e0, t0, new_mask = fit(self.tof_fit_result[tof_id].mu[mask],
+                                  self.tof_fit_result[tof_id].energy[mask], t0_bounds=[0, self.start_roi[tof_id]])
+            self.calibration_mask[tof_id][mask] &= new_mask
+            mask = self.calibration_mask[tof_id]
         else:
             # cannot make a fit, prevent an exception
             # guess c
             c = 1.0
             # take the smallest
-            e0 = np.min(self.tof_fit_result[tof_id].energy[mask])
+            e0 = self.calibration_energies[0]
             # take any, as they are the smae
-            t0 = self.tof_fit_result[tof_id].mu[mask][0]
+            t0 = self.start_roi[tof_id]
         self.model_params[tof_id] = np.array([c, e0, t0], dtype=np.float64)
         self.jacobian[tof_id] = 0.5*c/(np.sqrt(c/(self.energy_axis - e0)))/(self.energy_axis - e0)**2
 
-        # interpolate offset
-        eidx = np.argsort(self.tof_fit_result[tof_id].energy[mask])
-        ee = self.tof_fit_result[tof_id].energy[mask][eidx]
-        eo = self.tof_fit_result[tof_id].offset[mask][eidx]
+        if np.sum(mask) > 1:
+            # interpolate offset
+            eidx = np.argsort(self.tof_fit_result[tof_id].energy[mask])
+            ee = self.tof_fit_result[tof_id].energy[mask][eidx]
+            eo = self.tof_fit_result[tof_id].offset[mask][eidx]
 
-        self.offset[tof_id] = np.interp(self.energy_axis,
-                                        ee,
-                                        eo)
+            self.offset[tof_id] = np.interp(self.energy_axis,
+                                            ee,
+                                            eo)
 
-        # Transmission = (detected intensity in photoelectron)/(produced intensity)
-        # Transmission = (detected ADU in photoelectron)/((pulse energy) (Auger-Meitner ADU) (dsigma/dtheta))
-        # dsigma/dtheta = 1/2*(1.0 + beta*(3*cos(theta)^2 - 1.0)/2.0)
-        theta = (2*np.pi/16)*tof_id
-        beta = self.beta
-        tilt = self.tilt
-        P1 = self.P1
+            # Transmission = (detected intensity in photoelectron)/(produced intensity)
+            # Transmission = (detected ADU in photoelectron)/((pulse energy) (Auger-Meitner ADU) (dsigma/dtheta))
+            # dsigma/dtheta = 1/2*(1.0 + beta*(3*cos(theta)^2 - 1.0)/2.0)
+            theta = (2*np.pi/16)*tof_id
+            beta = self.beta
+            tilt = self.tilt
+            P1 = self.P1
 
-        dsig_dth = angular_dist(theta, beta, P1, tilt)
-        #0.5*(1 + beta*(3*np.cos(theta)**2 - 1)/2)
-        detected = self.tof_fit_result[tof_id].A
-        #produced = self.calibration_mean_xgm[tof_id] * self.tof_fit_result[tof_id].Aa * dsig_dth
-        #produced = self.tof_fit_result[tof_id].Aa * dsig_dth
-        produced = dsig_dth
-        if produced == 0:
-            produced += 1e-1
-        en = detected[mask][eidx]/produced
-        # interpolate normalization
-        self.normalization[tof_id] = np.interp(self.energy_axis,
-                                               ee,
-                                               en)
+            dsig_dth = angular_dist(theta, beta, P1, tilt)
+            #0.5*(1 + beta*(3*np.cos(theta)**2 - 1)/2)
+            detected = self.tof_fit_result[tof_id].A
+            #produced = self.calibration_mean_xgm[tof_id] * self.tof_fit_result[tof_id].Aa * dsig_dth
+            #produced = self.tof_fit_result[tof_id].Aa * dsig_dth
+            produced = dsig_dth
+            if produced == 0:
+                produced += 1e-1
+            en = detected[mask][eidx]/produced
+            # interpolate normalization
+            self.normalization[tof_id] = np.interp(self.energy_axis,
+                                                   ee,
+                                                   en)
+        else:
+            self.offset[tof_id] = np.zeros_like(self.energy_axis)
+            self.normalization[tof_id] = np.ones_like(self.energy_axis)
+
 
     def plot_calibrations(self):
         """
@@ -972,7 +986,7 @@ class CookieboxCalibration(SerializableMixin):
         lw = 3
         ls = '-'
 
-        fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
+        fig, ax = plt.subplots(ncols=2, figsize=(16, 8))
 
         tof_ids = list(self.model_params.keys())
         for i, tof_id in enumerate(tof_ids):
@@ -985,41 +999,19 @@ class CookieboxCalibration(SerializableMixin):
             stop_roi = self.stop_roi[tof_id]
             ts = np.arange(start_roi, stop_roi)
             e = model(ts, *self.model_params[tof_id])
-            a.scatter(self.tof_fit_result[tof_id].mu,
-                        self.tof_fit_result[tof_id].energy,
-                        c=c)
+            mask = self.calibration_mask[tof_id]
+            a.scatter(self.tof_fit_result[tof_id].mu[mask],
+                        self.tof_fit_result[tof_id].energy[mask],
+                        c=c, marker='o')
+            a.scatter(self.tof_fit_result[tof_id].mu[~mask],
+                        self.tof_fit_result[tof_id].energy[~mask],
+                        c=c, marker='x')
             a.plot(ts, e, c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
         for a in ax:
             a.set(xlabel="Samples",
                   ylabel="Energy [eV]",
-                  ylim=(self.energy_axis[0]-2, self.energy_axis[-1]+2),
                   )
             a.legend(frameon=False, ncols=2)
-
-    def plot_diagnostics(self, tof_id: int):
-        """
-        Diagnostics plots for finding the energy peaks in a scan.
-        """
-        import matplotlib.pyplot as plt
-        auger_start_roi = self.auger_start_roi[tof_id]
-        start_roi = self.start_roi[tof_id]
-        stop_roi = self.stop_roi[tof_id]
-        ts = np.arange(start_roi, stop_roi)
-        e = model(ts, *self.model_params[tof_id])
-        fig, ax = plt.subplots(nrows=3, ncols=2, figsize=(20,20))
-        ax = ax.flatten()
-        ax[0].scatter(self.tof_fit_result[tof_id].mu, self.tof_fit_result[tof_id].energy, label="Peak center")
-        ax[0].plot(ts, e, lw=2, label="Model fit")
-        ax[0].set(xlabel="Samples", ylabel="Energy [eV]")
-        ax[1].plot(self.energy_axis, self.normalization[tof_id], lw=2, label="Transmission")
-        ax[1].set(xlabel="Energy [eV]", ylabel="Transmission [a.u.]")
-        ax[2].scatter(self.tof_fit_result[tof_id].energy, self.tof_fit_result[tof_id].offset, label="Offset")
-        ax[2].plot(self.energy_axis, self.offset[tof_id], lw=2, label="Offset")
-        ax[2].set(xlabel="Samples", ylabel="Offset to subtract [a.u.]")
-        ax[3].plot(self.energy_axis, self.jacobian[tof_id], lw=2, label="Interpolated Jacobian")
-        ax[3].set(xlabel="Energy [eV]", ylabel="Jacobian [a.u.]")
-        for a in ax:
-            a.set_title(f"TOF {tof_id}")
 
     def plot_transmissions(self):
         """
@@ -1030,7 +1022,7 @@ class CookieboxCalibration(SerializableMixin):
         lw = 3
         ls = '-'
 
-        fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
+        fig, ax = plt.subplots(ncols=2, figsize=(16, 8))
 
         tof_ids = list(self.model_params.keys())
         for i, tof_id in enumerate(tof_ids):
@@ -1053,7 +1045,7 @@ class CookieboxCalibration(SerializableMixin):
         lw = 3
         ls = '-'
 
-        fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
+        fig, ax = plt.subplots(ncols=2, figsize=(16, 8))
 
         tof_ids = list(self.model_params.keys())
         for i, tof_id in enumerate(tof_ids):
@@ -1077,7 +1069,7 @@ class CookieboxCalibration(SerializableMixin):
         lw = 3
         ls = '-'
 
-        fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
+        fig, ax = plt.subplots(ncols=2, figsize=(16, 8))
 
         tof_ids = list(self.model_params.keys())
         for i, tof_id in enumerate(tof_ids):
@@ -1093,7 +1085,7 @@ class CookieboxCalibration(SerializableMixin):
             if eV_per_sample:
                 a.set(xlabel="Energy [eV]",
                       ylabel=r"$\left\vert\frac{dE}{dt}\right\vert$ [eV/samp.]",
-                      ylim=(0, 5),
+                      ylim=(0, None),
                       )
             else:
                 a.set(xlabel="Energy [eV]",
