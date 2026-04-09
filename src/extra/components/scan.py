@@ -211,7 +211,10 @@ class Scan:
                     line_x_max = max(left - 0.5 * width, min_tid)
                     line_x_min = max(left - 1.75 * width, min_tid)
                     ha = 'right'
-                ax.text(lbl_x, pos, str(i),
+
+                # clip_on ensures text is not drawn if outside the axis bounds
+                # https://discourse.matplotlib.org/t/axes-text-plotting-text-outside-of-axes-bounds/18419/3
+                ax.text(lbl_x, pos, str(i), clip_on=True,
                         verticalalignment='center_baseline', horizontalalignment=ha)
                 ax.plot([line_x_min, line_x_max], [pos, pos], color='k')
 
