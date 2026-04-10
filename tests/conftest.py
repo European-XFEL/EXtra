@@ -1,4 +1,5 @@
 
+from datetime import datetime, timezone
 from pathlib import Path
 from shutil import copytree
 from tempfile import TemporaryDirectory
@@ -7,6 +8,7 @@ import h5py
 import numpy as np
 import pytest
 from extra_data import RunDirectory
+from extra_data.tests import make_examples
 from extra_data.tests.mockdata import write_file
 
 from extra_data.tests.mockdata.motor import Motor
@@ -20,6 +22,7 @@ from .mockdata.timeserver import PulsePatternDecoder, Timeserver
 from .mockdata.xgm import XGM, XGMD, XGMReduced, XGMWithData
 from .mockdata.mono import MonoMdl
 from .mockdata.camera import CameraWithData, GotthardIIWithData
+
 
 @pytest.fixture(scope='session')
 def mock_spb_aux_directory():
@@ -75,9 +78,68 @@ def mock_spb_aux_directory():
         yield td
 
 
+def _patch_train_timestamps(run):
+    ts = datetime(year=2026, month=4, day=10, hour=11, minute=27) \
+        .replace(tzinfo=timezone.utc).timestamp() * 10**9
+
+    for fa in run.files:
+        fa.close()
+        with h5py.File(fa.filename, 'a') as h5f:
+            dset = h5f['INDEX/timestamp']
+            dset[:] = [ts + i * 10**8 for i in range(dset.shape[0])]
+
 @pytest.fixture(scope='function')
 def mock_spb_aux_run(mock_spb_aux_directory):
     yield RunDirectory(mock_spb_aux_directory)
+
+
+@pytest.fixture(scope='session')
+def mock_agipd1m_directory():
+    with TemporaryDirectory() as td:
+        make_examples.make_agipd1m_run(td)
+        yield td
+
+
+@pytest.fixture(scope='function')
+def mock_agipd1m_run(mock_agipd1m_directory):
+    run = RunDirectory(mock_agipd1m_directory)
+    _patch_train_timestamps(run)
+    yield run
+
+
+@pytest.fixture(scope='session')
+def mock_legacy_agipd1m_directory():
+    # No gain.value or bunchStructure.repetitionRate in /CONTROL/
+    with TemporaryDirectory() as td:
+        make_examples.make_agipd1m_run(
+            td, rep_rate=False,
+            gain_setting=False,
+            integration_time=False,
+            bias_voltage=True
+        )
+        yield td
+
+
+@pytest.fixture(scope='function')
+def mock_legacy_agipd1m_run(mock_legacy_agipd1m_directory):
+    run = RunDirectory(mock_legacy_agipd1m_directory)
+    _patch_train_timestamps(run)
+    yield run
+
+
+@pytest.fixture(scope='session')
+def mock_agipd500k_directory():
+    # No gain.value or bunchStructure.repetitionRate in /CONTROL/
+    with TemporaryDirectory() as td:
+        make_examples.make_agipd500k_run(td)
+        yield td
+
+
+@pytest.fixture(scope='function')
+def mock_agipd500k_run(mock_agipd500k_directory):
+    run = RunDirectory(mock_agipd500k_directory)
+    _patch_train_timestamps(run)
+    yield run
 
 
 @pytest.fixture(scope="session")
@@ -165,6 +227,7 @@ def mock_timepix_exceeded_buffer_run(mock_sqs_timepix_directory):
 def mock_etof_calibration_constants():
     yield (623419.734, 946.026, 11.527)
 
+
 @pytest.fixture(scope='session')
 def mock_etof_mono_energies():
     # 200 trains with 10 energies and 20 trains per energy
@@ -173,6 +236,7 @@ def mock_etof_mono_energies():
         energy += [e]*20
     energy = np.array(energy)
     yield energy
+
 
 @pytest.fixture(scope='session')
 def mock_sqs_etof_calibration_directory(mock_etof_mono_energies, mock_etof_calibration_constants):
@@ -225,6 +289,7 @@ def mock_sqs_etof_calibration_directory(mock_etof_mono_energies, mock_etof_calib
                    format_version='1.2')
         yield td
 
+
 @pytest.fixture(scope='session')
 def mock_sqs_grating_calibration_directory():
     #energy = mock_grating_mono_energies()
@@ -267,6 +332,7 @@ def mock_sqs_grating_calibration_directory():
 @pytest.fixture(scope='function')
 def mock_sqs_etof_calibration_run(mock_sqs_etof_calibration_directory):
     yield RunDirectory(mock_sqs_etof_calibration_directory)
+
 
 @pytest.fixture(scope='function')
 def mock_sqs_grating_calibration_run(mock_sqs_grating_calibration_directory):

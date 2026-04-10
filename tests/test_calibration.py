@@ -18,7 +18,9 @@ from extra.calibration import (
     LPDConditions,
     SingleConstant,
     DetectorData,
-    DetectorModule
+    DetectorModule,
+    SourceNameFormatter,
+    AutoConditionsError
 )
 
 # Most of these tests use saved HTTP responses by default (with pytest-recording).
@@ -399,12 +401,15 @@ def test_DetectorData_from_identifier():
     assert list(agipd)[0] == next(iter(agipd.keys())) == 'AGIPD00'
     assert isinstance(next(iter(agipd.values())), DetectorModule)
     assert agipd[0] == agipd['AGIPD00']
+    assert all([name == f'SPB_DET_AGIPD1M-1/DET/{i}CH0:xtdf' for i, name
+                in enumerate(agipd.source_names)])
 
     # PDU
     pdu = agipd[0]
     assert pdu.aggregator == 'AGIPD00'
     assert pdu.ccv_params == (
         'AGIPD_SIV1_AGIPDV11_M517', 101003000000, 'AGIPD-Type')
+    assert pdu.source_name == 'SPB_DET_AGIPD1M-1/DET/0CH0:xtdf'
 
     # FXE-JFHZ, single-module detector with partial CalCat entries
     jfhz = DetectorData.from_identifier('FXE_XAD_JFHZ', **pdu_date_kw)
@@ -416,6 +421,9 @@ def test_DetectorData_from_identifier():
 
     with pytest.raises(AssertionError):
         jfhz.first_module_index
+
+    with pytest.raises(AssertionError):
+        jfhz.source_names
 
     # SQS-DSSC, PDU-less detector
     dssc = DetectorData.from_identifier('SQS_DET_DSSC1M-1', **pdu_date_kw)
@@ -456,3 +464,67 @@ def test_DetectorData_list_by_instrument():
 def test_DetectorData_from_CalibrationData():
     agipd_cd = CalibrationData.from_report(3757)
     assert agipd_cd.detector.identifier == 'SPB_DET_AGIPD1M-1'
+
+
+def test_DetectorData_SourceNameFormatter():
+    fmt = SourceNameFormatter()
+
+    assert 'SPB_DET_AGIPD1M-1/DET/4CH0:xtdf' == \
+        fmt.format('SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf', modno=4)
+    assert 'SPB_IRDA_JF4M/DET/JNGFR03:daqOutput' == \
+        fmt.format('SPB_IRDA_JF4M/DET/JNGFR{modno:02d}:daqOutput', modno=3)
+    assert 'HED_TST_AGIPDHZ3/DET/84CH0:xtdf' == \
+        fmt.format('HED_TST_AGIPDHZ3/DET/{modno+83}CH0:xtdf', modno=1)
+
+
+@pytest.mark.vcr
+def test_AGIPDConditions_from_data(mock_agipd1m_run, mock_legacy_agipd1m_run,
+                                   mock_agipd500k_run):
+    run = mock_agipd1m_run
+    cond = AGIPDConditions.from_data(run, 'SPB_DET_AGIPD1M-1')
+    assert cond.sensor_bias_voltage == 300
+    assert cond.memory_cells == 0  # Zeroed in FPGA_COMP
+    assert cond.acquisition_rate == 4.5
+    assert cond.integration_time == 15
+    assert cond.gain_setting == 0
+    assert cond.gain_mode == 0
+
+    run = mock_agipd1m_run.select('*:xtdf')  # Select only XTDF data.
+
+    with pytest.raises(AutoConditionsError):
+        # Should fail without more arguments.
+        AGIPDConditions.from_data(run, 'SPB_DET_AGIPD1M-1')
+
+    cond = AGIPDConditions.from_data(run, 'SPB_DET_AGIPD1M-1', gain_mode=1,
+                                     gain_setting=1, sensor_bias_voltage=150)
+    assert cond.sensor_bias_voltage == 150  # Manually set
+    assert cond.memory_cells == 64  # Now from XTDF
+    assert cond.acquisition_rate == 4.5  # Now from XTDF
+    assert cond.integration_time == 12  # Default value
+    assert cond.gain_setting == 1  # Manually set
+    assert cond.gain_mode == 1  # Manually set
+
+    run = mock_legacy_agipd1m_run
+    cond = AGIPDConditions.from_data(run, 'SPB_DET_AGIPD1M-1')
+    assert cond.sensor_bias_voltage == 300
+    assert cond.memory_cells == 0  # Zeroed in FPGA_COMP
+    assert cond.acquisition_rate == 4.5
+    assert cond.gain_setting == 0
+    assert cond.gain_mode == 0
+    assert cond.integration_time == 12
+
+    run = mock_agipd500k_run
+    cond = AGIPDConditions.from_data(run, 'HED_DET_AGIPD500K2G')
+    assert cond.sensor_bias_voltage == 200
+    assert cond.memory_cells == 0  # Zeroed in FPGA_COMP
+    assert cond.acquisition_rate == 4.5
+    assert cond.gain_setting == 0
+    assert cond.gain_mode == 0
+    assert cond.integration_time == 15
+
+
+@pytest.mark.vcr
+def test_CalibrationData_from_data(mock_agipd1m_run):
+    caldata = CalibrationData.from_data(mock_agipd1m_run, 'SPB_DET_AGIPD1M-1')
+    assert caldata.detector_name == 'SPB_DET_AGIPD1M-1'
+    assert 'SlopesCS' in caldata
