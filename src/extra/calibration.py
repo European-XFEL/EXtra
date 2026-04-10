@@ -1,3 +1,5 @@
+
+import ast
 import json
 import re
 from collections.abc import Mapping
@@ -8,6 +10,7 @@ from fnmatch import fnmatch
 from functools import lru_cache
 from operator import index
 from pathlib import Path
+from string import Formatter
 from typing import Dict, List, Optional, Union
 from urllib.parse import urljoin
 from warnings import warn
@@ -1368,6 +1371,21 @@ class ShimadzuHPVX2Conditions(ConditionsBase):
     }
 
 
+class SourceExprChecker(ast.NodeVisitor):
+    def visit_Call(self, node):
+        raise ValueError("Function calls not allowed in source name patterns")
+
+
+class SourceNameFormatter(Formatter):
+    """String formatter that evaluates simple operations like {modno + 2}"""
+
+    def get_field(self, field_name, args, kwargs):
+        node = ast.parse(field_name, "<source pattern>", "eval")
+        SourceExprChecker().visit(node)
+        obj = eval(compile(node, "<source pattern>", "eval"), kwargs)
+        return obj, 0
+
+
 @dataclass
 class DetectorModule:
     """Detector module.
@@ -1402,11 +1420,16 @@ class DetectorModule:
     module_number: int | None
     detector_type: str
     legacy_uuid: int | None  # Deprecated, do not use
+    source_name: str
 
     def __post_init__(self):
         if self.module_number is None:
             # Try to fill in module number if missing.
             self.module_number = int(re.findall(r"\d+", self.aggregator)[-1])
+
+        if self.source_name is not None:
+            self.source_name = SourceNameFormatter().format(
+                self.source_name, modno=self.module_number)
 
     @property
     def ccv_params(self):
@@ -1465,7 +1488,7 @@ class DetectorData(Mapping):
                     item['id'], item['physical_name'], item['karabo_da'],
                     self.identifier, item['virtual_device_name'], i,
                     item['module_number'], item['detector_type']['name'],
-                    item['uuid'])
+                    item['uuid'], self._source_name_pattern)
             else:
                 item.module_index = i
 
@@ -1597,6 +1620,13 @@ class DetectorData(Mapping):
         assert self._source_name_pattern is not None, \
             'incomplete detector entry in CalCat'
         return self._source_name_pattern
+
+    @property
+    def source_names(self) -> str:
+        """Source names."""
+        assert self._source_name_pattern is not None, \
+            'incomplete detector entry in CalCat'
+        return [pdu.source_name for pdu in self.pdus]
 
     @property
     def first_module_index(self) -> int:
