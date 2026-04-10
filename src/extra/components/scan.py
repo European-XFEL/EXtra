@@ -31,7 +31,7 @@ class Scan:
     ```
     """
 
-    def __init__(self, motor, name=None, resolution=None, min_trains=None, intra_step_filtering=1):
+    def __init__(self, motor, name=None, resolution=None, min_trains=None, intra_step_filtering=1, *, _steps=None):
         """The class tries to detect the best parameters automatically, but it will
         still fail in some situations. If that happens either the `resolution`
         or `min_trains` parameters (unlikely to be both) will need to be set
@@ -78,8 +78,8 @@ class Scan:
                 around a step.
         """
         self._steps = []
-        self._resolution = None
-        self._min_trains = None
+        self._resolution = resolution
+        self._min_trains = min_trains
         self._intra_step_filtering = intra_step_filtering
 
         # Debugging variables
@@ -107,17 +107,43 @@ class Scan:
 
         self._name = name if name is not None else default_name
 
-        steps = self._get_motor_steps(self._input_pos, resolution,
-                                      min_trains, intra_step_filtering)
+        if _steps is None:
+            steps = self._get_motor_steps(self._input_pos, resolution,
+                                          min_trains, intra_step_filtering)
 
-        # Sometimes motors that have jitter are erroneously detected as a
-        # single-step scan, so we ignore those and only take scans with more
-        # than 1 step detected.
-        if len(steps) > 1:
-            self._steps = steps
+            # Sometimes motors that have jitter are erroneously detected as a
+            # single-step scan, so we ignore those and only take scans with more
+            # than 1 step detected.
+            if len(steps) > 1:
+                self._steps = steps
+        else:
+            # From an alternative constructor, e.g. from_motor_targets()
+            self._steps = _steps
 
         self._positions = np.array([pos for pos, _ in self.steps])
         self._positions_train_ids = [tids for _, tids in self.steps]
+
+    @classmethod
+    def from_motor_targets(cls, motor: SourceData, tolerance, *, name=None):
+        """Make a Scan object based on the target positions of a motor
+
+        The steps are defined by the motor target positions. Points are only
+        included if the actual position is within *tolerance* of the target.
+        """
+        target = motor['targetPosition'].xarray()
+        actual = motor['actualPosition'].xarray()
+
+        # Discard trains where actual is not close to target
+        target = target[np.absolute(target - actual) < tolerance]
+
+        # Steps defined by changes in target position
+        change_ixs = list(np.nonzero(np.diff(target))[0] + 1)
+        steps = [
+            (target[start].item(), target[start:stop].trainId.values)
+            for start, stop in zip([0] + change_ixs, change_ixs + [len(target)])
+        ]
+
+        return cls(actual, name=name, resolution=tolerance, _steps=steps)
 
     @property
     def name(self) -> str:
@@ -190,7 +216,10 @@ class Scan:
                     line_x_max = max(left - 0.5 * width, min_tid)
                     line_x_min = max(left - 1.75 * width, min_tid)
                     ha = 'right'
-                ax.text(lbl_x, pos, str(i),
+
+                # clip_on ensures text is not drawn if outside the axis bounds
+                # https://discourse.matplotlib.org/t/axes-text-plotting-text-outside-of-axes-bounds/18419/3
+                ax.text(lbl_x, pos, str(i), clip_on=True,
                         verticalalignment='center_baseline', horizontalalignment=ha)
                 ax.plot([line_x_min, line_x_max], [pos, pos], color='k')
 
