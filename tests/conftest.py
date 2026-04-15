@@ -201,11 +201,15 @@ def mock_sqs_etof_calibration_directory(mock_etof_mono_energies, mock_etof_calib
                                  samples,                                       # data
                                  np.zeros((samples.shape[0], 3000)),            # samples after
                                  ), axis=-1)
-    samples += np.random.randn(*samples.shape)
+    # Use a fixed seed to make the random data deterministic.
+    rng = np.random.default_rng(12345)
+    samples += rng.standard_normal(samples.shape)
 
     sources = [
         Timeserver('SQS_RR_UTC/TSYS/TIMESERVER'),
-        XGMWithData('SQS_DIAG1_XGMD/XGM/DOOCS', intensity=(np.random.randn(*energy.shape, 1)+1000)),
+        XGMWithData('SQS_DIAG1_XGMD/XGM/DOOCS', intensity=(
+                rng.standard_normal(energy.shape + (1,)) + 1000
+        )),
         MonoMdl('SA3_XTD10_MONO/MDL/PHOTON_ENERGY', energy_data=energy),
         AdqDigitizer('SQS_DIGITIZER_UTC4/ADC/1', channels_per_board=[4],
                      data_channels={(0, 0)},
@@ -267,4 +271,3 @@ def mock_sqs_etof_calibration_run(mock_sqs_etof_calibration_directory):
 @pytest.fixture(scope='function')
 def mock_sqs_grating_calibration_run(mock_sqs_grating_calibration_directory):
     yield RunDirectory(mock_sqs_grating_calibration_directory)
-

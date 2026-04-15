@@ -18,6 +18,9 @@
 
 Added:
 
+- [AGIPDConditions][extra.calibration.AGIPDConditions] now recognizes current source constant types
+- [DetectorData][extra.calibration.DetectorData] to obtain detector metadata and
+  module mapping from the Calibration Cataloge (!408).
 - [SpectrometerCalibration][extra.gui.jupyter.SpectrometerCalibration] to
   provide a Jupyter widget for energy calibration of 2D X-ray spectrum data
   (!363).
@@ -25,6 +28,9 @@ Added:
   supports `DataCollection` objects to reference a point in time
 - [CalibrationData.from_correction][extra.calibration.CalibrationData.from_correction]
   method to find the constants used to correct a particular run.
+- [CalibrationData.reports_info][extra.calibration.CalibrationData.reports_info]
+  method to show a summary of the reports associated with groups of calibration
+  constants.
 - Pre-built packages will be available on PyPI for Python 3.10 - 3.13 from the
   next release, rather than only Python 3.10 (!377).
 - [Scan.group_data()][extra.components.Scan.group_data] method to make an xarray
@@ -36,9 +42,10 @@ Added:
 - [AdqRawChannel][extra.components.AdqRawChannel.pulses] now has a public `.pulses` property. It is either a `PulsePattern` object or None if the class is instantiated with the `pulses=False` option. (!411)
 - Added support for plotting wrapped Julia arrays from PythonCall.jl to
   [imshow2()][extra.utils.imshow2].
-- [CalibrationData.reports_info][extra.calibration.CalibrationData.reports_info]
-  method to show a summary of the reports associated with groups of calibration
-  constants.
+- [PulsePattern.info()][extra.components.pulses.PulsePattern.info] to give a brief
+- [TOFAnalogResponse][extra.applications.TOFAnalogResponse] can deconvolve the Auger-Meitner
+  and photon line if the flag `deconvolve` is set to True.
+  summary about a pulse pattern (!435).
 
 Fixed:
 
@@ -48,6 +55,8 @@ Fixed:
   [DataArray][xarray.DataArray] inputs as well (!419).
 - Fix incorrect time units when using [OpticalLaserDelay][extra.components.OpticalLaserDelay]
   with pre-2022 BAM data (!425).
+- [CookieboxCalibration][extra.applications.CookieboxCalibration] takes polarization into account
+  when calculating transmission.
 
 Changed:
 
@@ -58,6 +67,10 @@ Changed:
 - [imshow2()][extra.utils.imshow2] will now add a colorbar automatically (!351).
 - [Calibration](calibration.md) conditions objects can now be displayed as
   Markdown in Jupyter notebooks (!381).
+- Increased maximal length of pulse masks returned by
+  [pulse_mask()][extra.components.pulses.PulsePattern.pulse_mask] to 4096 (!461).
+- [CookieboxCalibration][extra.applications.CookieboxCalibration] calculates the transmission
+  using the sum of the trace instead of the fit amplitude for robustness.
 
 ## [2025.1]
 

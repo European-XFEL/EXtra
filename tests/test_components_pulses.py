@@ -105,6 +105,15 @@ def test_no_trains(mock_spb_aux_run, source):
     assert pulses.pulse_counts().empty
 
 
+def test_info(mock_spb_aux_run):
+    pulses = XrayPulses(mock_spb_aux_run.select('SPB*'))
+
+    # A couple of smoke tests.
+    pulses.select_trains(np.s_[10:15]).info()  # Single pattern.
+    pulses.select_trains(np.s_[:5]).info()  # No pulses.
+    pulses.info()  # Variable pattern.
+
+
 def test_select_trains(mock_spb_aux_run):
     run = mock_spb_aux_run
     pulses = XrayPulses(run.select('SPB*'))
