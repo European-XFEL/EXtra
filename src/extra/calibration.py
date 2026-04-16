@@ -4,7 +4,7 @@ import json
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field, fields, replace
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from enum import IntFlag
 from fnmatch import fnmatch
 from functools import lru_cache
@@ -16,6 +16,7 @@ from urllib.parse import urljoin
 from warnings import warn
 
 import h5py
+import numpy as np
 import pasha as psh
 import requests
 from extra_data.read_machinery import find_proposal
@@ -1347,6 +1348,61 @@ class LPDConditions(ConditionsBase):
             del cond["Parallel gain"]
 
         return cond
+
+
+def lpd_dark_consts_with_fallback(
+    condition: "LPDConditions",
+    detector_name,
+    event_at=None,
+    preference_time=timedelta(days=5),
+    **kwargs
+):
+    """Look up LPD dark constants with fallback to constants for all memory cells
+
+    The parameters are mostly the same as for CalibrationData.from_condition().
+    Constants with the matching memory cell order will be used if they're closer
+    in time than the fallback, or up to *preference_time* (default 5 days)
+    further.
+    """
+    if event_at is None:
+        event_at = datetime.now(timezone.utc)
+    elif isinstance(event_at, str):
+        event_at = datetime.fromisoformat(event_at)
+
+    cd_preferred = CalibrationData.from_condition(
+        condition,
+        detector_name,
+        calibrations=["Offset", "Noise", "BadPixelsDark"],
+        **kwargs
+    )
+
+    fallback_mem_cell_order = ",".join([str(i) for i in range(510)]) + ","
+    if condition.memory_cell_order == fallback_mem_cell_order:
+        return cd_preferred  # Fallback would be the same
+
+    cd_fallback = CalibrationData.from_condition(
+        replace(condition, memory_cell_order=fallback_mem_cell_order),
+        detector_name,
+        calibrations=["Offset", "Noise", "BadPixelsDark"],
+        **kwargs
+    )
+    # If only one has succeeded, return that one
+    if 'Offset' not in cd_fallback:
+        return cd_preferred
+    if 'Offset' not in cd_preferred:
+        return cd_fallback
+
+    # How far is each set of constants in time? We'll look only at offsets,
+    # which are most significant, and take the median.
+    def time_distance(cd):
+        return np.median([
+            abs(datetime.fromisoformat(sc.metadata("begin_validity_at")) - event_at)
+            for sc in cd['Offset'].values()
+        ])
+
+    fallback_closer_by = time_distance(cd_preferred) - time_distance(cd_fallback)
+    #print("Fallback is closer (further if -ve) by", fallback_closer_by)
+    return cd_fallback if (fallback_closer_by > preference_time) else cd_preferred
 
 
 @dataclass
