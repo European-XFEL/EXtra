@@ -144,12 +144,15 @@ class Grating1DCalibration(SerializableMixin):
         """
         return {k: v for k, v in self.__dict__.items() if k in self._all_fields}
 
-    def _fromdict(self, all_data):
+    @classmethod
+    def _fromdict(cls, all_data):
         """
         Rebuild object from dict.
         """
+        self = cls()
         for k, v in all_data.items():
             setattr(self, k, v)
+        return self
 
     def guess_offset(self):
         """
@@ -403,12 +406,15 @@ class Grating2DCalibration(SerializableMixin):
         """
         return {k: v for k, v in self.__dict__.items() if k in self._all_fields}
 
-    def _fromdict(self, all_data):
+    @classmethod
+    def _fromdict(cls, all_data):
         """
         Rebuild object from dict.
         """
+        self = cls()
         for k, v in all_data.items():
             setattr(self, k, v)
+        return self
 
     def get_background_template(self):
         """Get the background template.
