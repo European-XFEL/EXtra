@@ -387,12 +387,16 @@ class TOFAnalogResponse(SerializableMixin):
         """
         d = {k: v for k, v in self.__dict__.items() if k in self._all_fields}
         return d
-    def _fromdict(self, all_data):
+
+    @classmethod
+    def _fromdict(cls, all_data):
         """
         Actions to do after loading from file.
         """
+        self = cls()
         for k, v in all_data.items():
             setattr(self, k, v)
+        return self
 
     def estimate_truth(self, data):
         """
