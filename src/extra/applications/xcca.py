@@ -1,11 +1,12 @@
 from .base import SerializableMixin
 import numpy as np
+from nunmpy.typing import NDarray
 
 class AngularCorrelator(SerializableMixin):
     '''
     Class to compute angular cross-correlation from data and masks given on a uniform polar grid.
     '''
-    def __init__(self,n_radial_samples=256,n_angular_samples=1024,use_cuda=False):
+    def __init__(self,n_radial_samples:int=256,n_angular_samples:int=1024,use_cuda:bool=False):
         self.n_radial_samples = n_radial_samples
         self.n_angular_samples = n_angular_samples
         self.use_cuda = use_cuda
@@ -31,14 +32,32 @@ class AngularCorrelator(SerializableMixin):
                 'use_cuda':self.use_cuda}
         return d
 
-    @staticmethod
-    def ccf_mask_correction(ccf_data, ccf_mask):
-        '''
-        Applies mask correction to ccf computed from data*mask (ccf_data) using ccf computed from only the mask (ccf_mask).
-        Correction is done according to :
+    @staticmethod 
+    def ccf_mask_correction(ccf_data:NDarray[np.float64], ccf_mask:NDarray[np.bool]) -> tuple(NDarray[np.float64],NDarray[np.bool]):
+        """Apply mask correction to cross-correlation
 
+        Applies mask correction to ccf computed from data*mask (ccf_data) using ccf computed from only the mask (ccf_mask).
+        Correction is done according to: J Appl Crystallogr, 2024, 57, 324 (Equation 16)
+        https://journals.iucr.org/j/issues/2024/02/00/yr5118/yr5118.pdf
+        
         Mask convention: masked values are 0 while unmasked values are 1.
-        '''
+        
+        Parameters
+        ----------
+        ccf_data : NDarray[np.float64]
+            Cross-corelation computed from data*mask
+        ccf_mask : NDarray[np.bool]
+            Cross-correlation computed form mask
+        
+        Returns
+        -------
+        list(NDarray[np.float64],NDarray[np.bool]
+            (Corrected cross-correlation, Mask of corrected cross-correlation)
+        
+        Examples
+        --------
+        FIXME: Add docs.
+        """
         ccf_data=ccf_data.real
         ccf_mask=ccf_mask.real
 
@@ -51,7 +70,26 @@ class AngularCorrelator(SerializableMixin):
         np.divide(ccf_data, ccf_mask, out=ccf_data, where=nonzero_mask)
         return ccf_data,nonzero_mask
 
-    def _ccn_from_ccf(self,ccf,max_order = None):
+    def _ccn_from_ccf(self,ccf:NDarray[np.float64],max_order: int|None = None) -> NDarray[np.float64]:
+        """Compute Fourier series coefficients of cross-correlation.
+
+        Parameters
+        ----------
+        ccf : NDarray[np.float64]
+            (n_q,n_q,n_phi): Cross-correlation function $C(q_1,q_2,\phi)$
+        max_order : int|None
+            Maximum computed Fouerier series order.
+
+        Returns
+        -------
+        NDarray[np.float64]
+            (n_q,n_q,n_orders): Fourier coefficients $C_n(q_1,q_2)$
+
+        Examples
+        --------
+        FIXME: Add docs.
+
+        """
         rfft = self.rfft
         if max_order is None:
             bw = ccf.shape[-1]//2 + 1
@@ -67,7 +105,26 @@ class AngularCorrelator(SerializableMixin):
             ccn[q1:,q1] = ccn[q1,q1:].conj()
         return ccn
     
-    def _ccf_from_ccn(self,ccn,max_order = None):
+    def _ccf_from_ccn(self,ccn:NDarray[np.complex128],max_order: int|None = None)->NDarray(np.float64):
+        """Compute cross-correlation function from its Fourier coefficients.
+
+        Parameters
+        ----------
+        ccn : NDarray[np.complex128]
+            (n_q,n_q,n_orders): Fourier coefficients $C_n(q_1,q_2)$
+        max_order : int|None
+            maximum considered Fourier coefficient order.
+
+        Returns
+        -------
+        NDarray[np.float64]
+            (n_q,n_q,n_phi): Cross-correlation function $C(q_1,q_2,\phi)$
+        
+        Examples
+        --------
+        FIXME: Add docs.
+
+        """
         irfft = self.irfft
         if max_order is None:
             N = (ccn.shape[-1]-1)*2
@@ -83,10 +140,29 @@ class AngularCorrelator(SerializableMixin):
             ccf[q1:,q1,1:] = ccf[q1,q1:,-1:0:-1]
         return ccf
     
-    def _compute_ccf(self, data):
-        '''
-        Uses the following symmetry relation C(q1,q2,phi) = C(q2,q1,-phi) which is always true.
-        '''
+    def _compute_ccf(self, data:NDarray(np.float64))->NDarray(np.float64):
+        """Compute cross-correlation function from polar image.
+
+        Widh data = $I(q,\phi)$ this function computes
+        $C(q_1,q_2,\phi)=\mathfrac{F}\left(I_n(q_1) I_n(q_2)^*\right)$.
+        
+        Using the symmetry $C(q1,q2,phi) = C(q2,q1,-phi)$
+        
+        Parameters
+        ----------
+        data : NDarray(np.float64)
+            (n_q,n_phi): image data on a uniform polar grid.
+
+        Returns
+        -------
+        NDarray(np.float64)
+            (n_q,n_q,n_phi): Cross-correlation function $C(q_1,q_2,\phi)$.
+
+        Examples
+        --------
+        FIXME: Add docs.
+
+        """
         n_q = self.n_radial_samples
         
         fn = self.rfft(data,axis=-1,norm='forward')
@@ -106,10 +182,24 @@ class AngularCorrelator(SerializableMixin):
             ccf[q1:,q1,1:] = ccf[q1,q1:,-1:0:-1]
         return  ccf
 
-    def _compute_ccn_masked(self,data,mask,max_order=None):
-        '''
-        Compute mask corrected harmonic coefficients of the cross-correlation function.
-        '''
+    def _compute_ccn_masked(self,data:NDarray(np.float64),mask:NDarray(np.bool),max_order:int|None = None) -> tuple(NDarray(np.complex12),NDarray(np.bool)):
+        """Compute mask corrected Fourier cofficients of the cross-correlation function.
+
+        Parameters
+        ----------
+        data : NDarray(np.float64)
+            (n_q,n_phi): Image data on uniform polar grid.
+        mask : NDarray(np.bool)
+            Image mask on uniform polar grid.
+        max_order : int|None
+            Maximum computed Fourier series coefficient.
+
+        Returns
+        -------
+        tuple(NDarray(np.complex12),NDarray(np.bool))
+            ((n_q,n_q,max_order+1) , (n_q,n_q)): (Fourier coefficients $C_n(q_1,q_2)$, Mask of Fourier coefficients.)
+
+        """
         n_q = self.n_radial_samples
         
         # Compute harmonic coefficients of image and mask
@@ -162,7 +252,25 @@ class AngularCorrelator(SerializableMixin):
             
         return ccn, ccn_mask
     
-    def _compute_ccf_masked(self,data,mask,max_order=None):
+    def _compute_ccf_masked(self,data:NDarray(np.float64),mask:NDarray(np.bool),max_order:int|None = None) -> tuple(NDarray(np.float64),NDarray(np.bool)):
+        """Compute the mask corrected cross-correlation function.
+
+        Parameters
+        ----------
+        data : NDarray(np.float64)
+            Image data on uniform polar grid.
+        mask : NDarray(np.bool)
+            (n_1,n_phi): Image mask on uniform polar grid.
+        max_order : int|None
+            Maximum considered Fourier series order.
+
+        Returns
+        -------
+        tuple(NDarray(np.float64),NDarray(np.bool))
+            ((n_q,n_q,2*max_order), (n_q,n_q,2*max_order)): (Cross-correlation function $C(q_1,q_2,\phi)$, Mask of cross-correlation function.)
+            If max_order == None the last dimension has size n_phi.
+        
+        """
         if max_order is None:
             ccf,ccf_mask = self._compute_ccf_masked_full(data,mask)
         else:
@@ -171,10 +279,22 @@ class AngularCorrelator(SerializableMixin):
             ccf_mask = ccn_mask
         return ccf,ccf_mask
 
-    def _compute_ccf_masked_full(self,data,mask):
-        '''
-        Compute mask corrected cross-correlation function.
-        '''
+    def _compute_ccf_masked_full(self,data:NDarray(np.float64),mask:NDarray(np.bool)) -> tuple(NDarray(np.float64),NDarray(np.bool)):
+        """Compute Cross-correlation function using all harmonic orders.
+
+        Parameters
+        ----------
+        data : NDarray(np.float64)
+            (n_q,n_phi): Image data on uniform polar grid.
+        mask : NDarray(np.bool)
+            (n_q,n_phi): Image mask on uniform polar grid.
+        
+        Returns
+        -------
+        tuple(NDarray(np.float64),NDarray(np.bool))
+            (n_q,n_q,n_phi),(n_q,n_q,n_phi): (Cross-correlation $C(q_1,q_2,\phi)$, Mask of cross-correlation).
+        
+        """
         # Compute harmonic coefficients of image and mask
         fmask = mask.astype(float)
         fn = self.rfft(data*fmask,axis = -1, norm='forward')
@@ -219,10 +339,42 @@ class AngularCorrelator(SerializableMixin):
             ccf_mask[q1:,q1,1:] = ccf_mask[q1,q1:,-1:0:-1]                                
         return ccf,ccf_mask
     
-    def ccn(self,polar_data, polar_mask = None, max_order:int = None):
-        '''
-        Computes the harmonic coefficients of the angular cross-correlation function
-        '''
+    def ccn(self,polar_data:NDarray(np.float64), polar_mask: NDarray(np.bool)|None  = None, max_order:int|None = None) -> NDarray(np.complex128)|list(NDarray(np.complex128),NDarray(np.bool)):
+        """Compute Fourier coefficients of the corss-correlation funcion.
+        Lowering max_order does not save computation time but simply cuts the output to the required maximum order therefore saving RAM.
+        
+        Parameters
+        ----------
+        polar_data : NDarray(np.float64)
+            (n_q,n_phi): Image data on uniform polar grid.
+        polar_mask : NDarray(np.bool)|None
+            If the (n_q,n_phi) Image mask array is provided this
+            routine automatically applies mask correction to the
+            computed Fourier coefficients..
+        max_order : int|None
+            Maximum computed Fourier coefficient order.
+
+        Returns
+        -------
+        NDarray(np.complex128)|list(NDarray(np.complex128),NDarray(np.bool))
+            If mask was provided it returns both the mask corrected
+            Fourier coefficients and their mask. Other wise it just
+            returns the Fourier coefficients.
+
+        Examples
+        --------
+        ```py
+        import numpy as np
+        from extra.applications.xcca import AngularCorrelator
+        n_q = 128
+        n_phi = 256
+        a = AngularCorrelator(n_q,n_phi)
+        
+        data = np.random.rand(n_q,n_phi)
+        mask = np.random.rand(n_q,n_phi)>0.7
+        ccn,ccn_mask = a.ccn(data,mask,max_order=31)
+        ```
+        """
         if polar_mask is None:
             ccf = self._compute_ccf(polar_data)
             ccn = self._ccn_from_ccf(ccf,max_order = max_order)
@@ -231,10 +383,42 @@ class AngularCorrelator(SerializableMixin):
             ccn,ccn_mask = self._compute_ccn_masked(polar_data,polar_mask,max_order = max_order)
             return ccn,ccn_mask
     
-    def ccf(self,polar_data, polar_mask = None, max_order:int = None):
-        '''
-        Computes the harmonic coefficients of the angular cross-correlation function
-        '''
+    def ccf(self,polar_data:NDarray(np.float64), polar_mask:NDarray(np.bool)|None = None, max_order:int|None = None) -> NDarray(np.float64)|tuple(NDarray(np.float64),NDarray(np.bool)):
+        """Compute the corss-correlation funcion.
+        Lowering max_order does not save computation time but simply cuts the output to the required maximum order therefore saving RAM.
+        
+        Parameters
+        ----------
+        polar_data : NDarray(np.float64)
+            (n_q,n_phi): Image data on uniform polar grid.
+        polar_mask : NDarray(np.bool)|None
+            If the (n_q,n_phi) Image mask array is provided this
+            routine automatically applies mask correction to the
+            computed Fourier coefficients..
+        max_order : int|None
+            Maximum computed Fourier coefficient order.
+
+        Returns
+        -------
+        NDarray(np.float64)|list(NDarray(np.float64),NDarray(np.bool))
+            If mask was provided it returns both the mask corrected
+            cross-correlation and its mask. Other wise it just
+            returns the cross-correlation.
+
+        Examples
+        --------
+        ```py
+        import numpy as np
+        from extra.applications.xcca import AngularCorrelator
+        n_q = 128
+        n_phi = 256
+        a = AngularCorrelator(n_q,n_phi)
+        
+        data = np.random.rand(n_q,n_phi)
+        mask = np.random.rand(n_q,n_phi)>0.7
+        ccf,ccf_mask = a.ccf(data,mask,max_order=31)
+        ```
+        """
         if polar_mask is None:
             ccf = self._compute_ccf(polar_data)
             return ccf
@@ -242,9 +426,56 @@ class AngularCorrelator(SerializableMixin):
             ccf,ccf_mask = self._compute_ccf_masked(polar_data,polar_mask,max_order = max_order)
             return ccf,ccf_mask
 
+class AveragedAngularCorrleation(SerializableMixin,CumulativeVarianceMasked):
+    """
+    Helper class to make computation of averages of angular cross-correlations or their coefficients easy.
 
-class AveragedAngularCorrleation(SerializableMixin):
-    pass
+    Examples
+    --------
+    
+    """
+    def __init__(self,*args,
+                 n_radial_samples=256,
+                 n_angular_samples=1024,
+                 max_order = None,
+                 compute_coefficients = True,
+                 use_cuda=False,
+                 **kwargs):
+        self._max_order = max_order
+        self._compute_coefficients = compute_cofficients
+        self.ac = AngularCorrelator(n_radial_samples,n_angular_samples,use_cuda=use_cuda)
+        if compute_coefficients:
+            self.process_data = self.ac.ccn
+        else:
+            self.process_data = self.ac.ccf
+            
+        super().__init__(*args,**kwargs)
+
+    @property
+    def max_order(self):
+        # Hiding max_order behind property since it should not be changed after instanciation.
+        return self._max_order
+
+    @property
+    def compute_coefficients(self):
+        # Hiding compute_coefficients behind property since it should not be changed after instanciation.
+        return self._compute_coefficients
+    
+    def _asdict(self):
+        out = {"n_radial_samples":self.ac.n_radial_samples,
+               "n_angular_samples":self.ac.n_angular_samples,
+               "use_cuda":self.ac.use_cuda,
+               "max_order":self.max_order,
+               "max_order":self.compute_coefficients,
+               "mean":self.mean,
+               "count":self.count,
+               "m2":self.m2,
+               "bessels_correction":self.bessels_correction}
+        return out
+    
+    def update(self,data,mask):
+        ccf,ccf_mask = self.process_data(data,mask,max_order = self.max_order)
+        super().update(ccf,ccf_mask)
 
 class CumulativeVarianceMasked:
     '''
