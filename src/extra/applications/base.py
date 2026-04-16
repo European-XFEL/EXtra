@@ -63,21 +63,19 @@ class SerializableMixin(object):
         """
         pass
 
-    def _fromdict(self, all_data):
+    @classmethod
+    def _fromdict(cls, all_data):
         """
         Rebuild it from dict.
         """
-        pass
+        return cls(**all_data)
 
     @classmethod
     def from_file(cls, filename: str):
         """
         Load setup saved with save previously.
         """
-        obj = cls()
         with h5py.File(filename, "r") as fid:
             all_data = load_dict(fid)
-            obj._fromdict(all_data)
-
+            obj = cls._fromdict(all_data)
         return obj
-
