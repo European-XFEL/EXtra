@@ -355,7 +355,7 @@ def _summarise_mod_names(l):
     E.g. ['LPD00', 'LPD01', 'LPD03'] -> ['LPD00', 'LPD01'], ['LPD03']
     """
     grp = []
-    num_re = re.compile('(\d+)')
+    num_re = re.compile(r'(\d+)')
 
     def extends_grp(split):
         if len(split) != len(grp[0]):
