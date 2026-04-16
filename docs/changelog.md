@@ -57,6 +57,7 @@ Fixed:
   with pre-2022 BAM data (!425).
 - [CookieboxCalibration][extra.applications.CookieboxCalibration] takes polarization into account
   when calculating transmission.
+- [CookieboxCalibration][extra.applications.CookieboxCalibration] avoids crashes if eTOF data is noisy.
 
 Changed:
 
