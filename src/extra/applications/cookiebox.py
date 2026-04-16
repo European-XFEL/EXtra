@@ -392,10 +392,12 @@ class CookieboxCalibration(SerializableMixin):
         """
         return {k: v for k, v in self.__dict__.items() if k in self._all_fields}
 
-    def _fromdict(self, all_data):
+    @classmethod
+    def _fromdict(cls, all_data):
         """
         Actions to do after loading from file.
         """
+        self = cls()
         for k, v in all_data.items():
             setattr(self, k, v)
         sort_dict = lambda x: dict(sorted(x.items(), key=lambda item: item[0]))
@@ -416,6 +418,7 @@ class CookieboxCalibration(SerializableMixin):
             for tof_id in sorted(all_data["_tof_response"].keys()):
                 self._tof_response[tof_id] = TOFAnalogResponse()
                 self._tof_response[tof_id]._fromdict(all_data["_tof_response"][tof_id])
+        return self
 
     def setup(self,
               run: DataCollection,
