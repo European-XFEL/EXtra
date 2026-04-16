@@ -241,3 +241,87 @@ class AngularCorrelator(SerializableMixin):
         else:
             ccf,ccf_mask = self._compute_ccf_masked(polar_data,polar_mask,max_order = max_order)
             return ccf,ccf_mask
+
+
+class AveragedAngularCorrleation(SerializableMixin):
+    pass
+
+class CumulativeVarianceMasked:
+    '''
+    Slightly modified version of
+    Welford's online algorithm:
+    Algorithm taken from wikipedia: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+    to allow for masked data.
+    '''
+    def __init__(self,mean=0,count=0,m2=0,bessels_correction=True):
+        self.count = count
+        self.mean = mean
+        self.m2 = m2
+        self.bessels_correction = bessels_correction
+        
+    @classmethod    
+    def from_dataset(cls,dataset,masks = True,axis=0):
+        '''
+        Creates object from an array(dataset) calculating var and mean along a specified axis.
+        '''
+        obj = cls()
+        tmp = np.moveaxis(dataset,axis,0)
+        if isinstance(masks,np.ndarray):
+            tmp_mask = np.moveaxis(masks,axis,0)
+            for d,m in zip(tmp,tmp_mask):
+                obj.update(d,mask = m)
+        else:
+            for d in tmp:
+                obj.update(d)
+        return obj
+    
+    def update(self,val:np.ndarray|int|float|complex,mask=True):
+        # updates the running mean and variance by a single new value
+        self.count += np.ones(val.shape,dtype=int)*mask
+        delta = mask*(val - self.mean)
+        nzero_mask = self.count>0
+        delta_tmp = delta.copy()
+        delta_tmp[nzero_mask] /= self.count[nzero_mask].astype(float)
+        self.mean += delta_tmp
+        delta2 = mask*val - self.mean
+        self.m2 += (delta * delta2.conj()).real
+        return self
+        
+    def merge(self,var):
+        # merges another CumulativeVariance instance to create the combined average and variance.
+        return self.merge_from_data(var.mean,var.count,var.m2)
+        
+    def merge_from_data(self,mean,count,m2):
+        # merges the data of another CummulativeVariance instance to create the combined average and variance.
+        count_a = np.array(self.count)
+        self.count += count
+        #delta = mean-self.mean
+        mean -= self.mean
+        nzero_mask = self.count>0
+        count = count.astype(float)
+        count[nzero_mask]/=self.count[nzero_mask] 
+        #temp = delta*count
+        temp = mean*count
+        #self.mean = self.mean + temp
+        #self.m2 = self.m2 + m2 + (delta*count_a*temp.conj()).real
+        self.mean +=  temp
+        self.m2 += m2 + (mean*count_a*temp.conj()).real
+        return self
+    
+    @property
+    def variance(self):
+        count = self.count
+        out = self.m2.copy()
+        out[count == 0] = np.nan
+        out[count == 1] = 0
+        mask = count>1
+        if self.bessels_correction:
+            out[mask] /= (count[mask]-1)
+        else:
+            out[mask] /= count[mask]
+        return out
+    @property
+    def data(self):
+        return (self.mean,self.count,self.m2)
+    def copy(self):
+        return CumulativeVariance(mean = np.array(self.mean),count = self.count ,m2=np.array(self.m2))
