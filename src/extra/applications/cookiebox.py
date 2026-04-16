@@ -134,7 +134,11 @@ def fit(peak_ids: np.ndarray, energies: np.ndarray, t0_bounds: Tuple[float, floa
     return c, e0, t0, mask
 
 
-def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dict[int, AdqRawChannel], xgm_threshold: float, count_threshold: float=None, correction_fn=None) -> xr.DataArray:
+def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dict[int, AdqRawChannel],
+              xgm_threshold: float,
+              count_threshold: float=None,
+              correction_fn=None,
+              n_samples: int=500) -> xr.DataArray:
     """
     Calculate the mean of the ToF data in the given tof and energy bin in `itr`.
 
@@ -146,6 +150,7 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
       xgm_threshold: The minimum pulse energy to consider.
       count_threshold: Number of ADU counts used to trigger photon count.
       correction_fn: A correction function to apply in the raw spectra.
+      n_samples: Number of samples to consider when counting.
 
     Returns: DataArray with mean of data in the energy bin given.
     """
@@ -182,7 +187,7 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
         tof_data = tof[tof_id].select_trains(by_id[train_ids])
         tof_data = tof_data.pulse_edges(pulse_dim='pulseIndex', threshold=count_threshold).reset_index()
 
-        bins = np.arange(0, 500+1)
+        bins = np.arange(0, n_samples+1)
         out_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.amplitude)
 
         out_data = xr.DataArray(out_data, dims=('sample'), coords={'sample': bins[:-1]})
