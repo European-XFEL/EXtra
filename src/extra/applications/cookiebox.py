@@ -159,7 +159,7 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
         # this does train ID matching, because:
         # - the given run may not have both XGM and eTOF for every train;
         # - and we cannot control the creation of the run object, since we want to receive the ready-made XGM object
-        good_ids = sorted(list(set(train_ids).intersection(set(xgm_data.coords["trainId"].to_numpy()))))
+        good_ids = sorted(list(set(train_ids).intersection(set(xgm_data.trainId.data))))
         if len(good_ids) == 0:
             x = tof[tof_id].select_trains(np._[0:1]).pulse_data(pulse_dim='pulseIndex').to_numpy().mean(0)
             return np.zeros_like(x), 0
