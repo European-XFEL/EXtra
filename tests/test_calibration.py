@@ -18,7 +18,8 @@ from extra.calibration import (
     LPDConditions,
     SingleConstant,
     DetectorData,
-    DetectorModule
+    DetectorModule,
+    SourceNameFormatter
 )
 
 # Most of these tests use saved HTTP responses by default (with pytest-recording).
@@ -405,12 +406,16 @@ def test_DetectorData_from_identifier():
     assert list(agipd)[0] == next(iter(agipd.keys())) == 'AGIPD00'
     assert isinstance(next(iter(agipd.values())), DetectorModule)
     assert agipd[0] == agipd['AGIPD00']
+    assert agipd.source_names == [
+        f'SPB_DET_AGIPD1M-1/DET/{i}CH0:xtdf'
+        for i in range(len(agipd.source_names))]
 
     # PDU
     pdu = agipd[0]
     assert pdu.aggregator == 'AGIPD00'
     assert pdu.ccv_params == (
         'AGIPD_SIV1_AGIPDV11_M517', 101003000000, 'AGIPD-Type')
+    assert pdu.source_name == 'SPB_DET_AGIPD1M-1/DET/0CH0:xtdf'
 
     # FXE-JFHZ, single-module detector with partial CalCat entries
     jfhz = DetectorData.from_identifier('FXE_XAD_JFHZ', **pdu_date_kw)
@@ -422,6 +427,9 @@ def test_DetectorData_from_identifier():
 
     with pytest.raises(AssertionError):
         jfhz.first_module_index
+
+    with pytest.raises(AssertionError):
+        jfhz.source_names
 
     # SQS-DSSC, PDU-less detector
     dssc = DetectorData.from_identifier('SQS_DET_DSSC1M-1', **pdu_date_kw)
@@ -462,3 +470,14 @@ def test_DetectorData_list_by_instrument():
 def test_DetectorData_from_CalibrationData():
     agipd_cd = CalibrationData.from_report(3757)
     assert agipd_cd.detector.identifier == 'SPB_DET_AGIPD1M-1'
+
+
+def test_DetectorData_SourceNameFormatter():
+    fmt = SourceNameFormatter()
+
+    assert 'SPB_DET_AGIPD1M-1/DET/4CH0:xtdf' == \
+        fmt.format('SPB_DET_AGIPD1M-1/DET/{modno}CH0:xtdf', modno=4)
+    assert 'SPB_IRDA_JF4M/DET/JNGFR03:daqOutput' == \
+        fmt.format('SPB_IRDA_JF4M/DET/JNGFR{modno:02d}:daqOutput', modno=3)
+    assert 'HED_TST_AGIPDHZ3/DET/84CH0:xtdf' == \
+        fmt.format('HED_TST_AGIPDHZ3/DET/{modno+83}CH0:xtdf', modno=1)
