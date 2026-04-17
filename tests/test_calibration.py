@@ -495,15 +495,27 @@ def test_lpd_fallback():
         "355,373,391,410,428,446,464,482,500,6,27,47,66,85,105,124,143,163,182,182,186,182,"
     )
     condition = LPDConditions(memory_cell_order=mem_cells)
+
+    def get_retrieved_params(cd):
+        cond_id = cd['Offset', 0].metadata('calibration_constant')['condition_id']
+        cond_info = get_client().get(f"conditions/{cond_id}")
+        return {d['parameter_name']: d for d in cond_info['parameters_conditions']}
+
+    # At this timestamp, the fallback is closer (2026-03-29 vs. 2026-03-12)
     cd_chosen = lpd_dark_consts_with_fallback(
         condition, "FXE_DET_LPD1M-1", event_at="2026-04-16 17:56:05+01:00",
         begin_at_strategy="prior",
     )
     assert cd_chosen['Offset'].aggregator_names == [f"LPD{m:02}" for m in range(16)]
-
-    # This should have used the fallback condition
-    cond_id = cd_chosen['Offset', 0].metadata('calibration_constant')['condition_id']
-    cond_info = get_client().get(f"conditions/{cond_id}")
-    params = {d['parameter_name']: d for d in cond_info['parameters_conditions']}
     fallback_cells = ",".join([str(i) for i in range(510)]) + ","
+    params = get_retrieved_params(cd_chosen)
     assert params['Memory cell order']['txt_value'] == fallback_cells
+
+    # At this timestamp, the fallback is older than the matching cell order
+    cd_chosen2 = lpd_dark_consts_with_fallback(
+        condition, "FXE_DET_LPD1M-1", event_at="2026-03-16 17:56:05+01:00",
+        begin_at_strategy="prior",
+    )
+    assert cd_chosen2['Offset'].aggregator_names == [f"LPD{m:02}" for m in range(16)]
+    params2 = get_retrieved_params(cd_chosen2)
+    assert params2['Memory cell order']['txt_value'] == mem_cells

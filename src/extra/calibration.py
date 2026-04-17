@@ -1386,23 +1386,30 @@ def lpd_dark_consts_with_fallback(
         calibrations=["Offset", "Noise", "BadPixelsDark"],
         **kwargs
     )
-    # If only one has succeeded, return that one
-    if 'Offset' not in cd_fallback:
-        return cd_preferred
-    if 'Offset' not in cd_preferred:
-        return cd_fallback
 
-    # How far is each set of constants in time? We'll look only at offsets,
-    # which are most significant, and take the median.
-    def time_distance(cd):
-        return np.median([
-            abs(datetime.fromisoformat(sc.metadata("begin_validity_at")) - event_at)
-            for sc in cd['Offset'].values()
-        ])
+    def time_distance(cd, aggregator):
+        bva = cd['Offset', aggregator].metadata("begin_validity_at")
+        return abs(datetime.fromisoformat(bva) - event_at)
 
-    fallback_closer_by = time_distance(cd_preferred) - time_distance(cd_fallback)
-    #print("Fallback is closer (further if -ve) by", fallback_closer_by)
-    return cd_fallback if (fallback_closer_by > preference_time) else cd_preferred
+    # Select which modules to use from the fallback. In most cases, this will
+    # be either none or all, as we'll have the same timestamps for all modules,
+    # but it may vary if a module is replaced. In theory the timestamps can also
+    # be different for each calibration type, but that's unlikely, so we just
+    # look at the offset timestamps.
+    aggrs_fallback = []
+    for da in (set(cd_preferred.aggregator_names) | set(cd_fallback.aggregator_names)):
+        if da not in cd_fallback.get('Offset', {}):
+            continue
+        elif da not in cd_preferred.get('Offset', {}):
+            aggrs_fallback.append(da)  # Only in fallback
+        else:
+            closer_by = time_distance(cd_preferred, da) - time_distance(cd_fallback, da)
+            if closer_by > preference_time:
+                aggrs_fallback.append(da)
+
+    return cd_preferred.merge(
+        cd_fallback.select_modules(aggregator_names=aggrs_fallback)
+    )
 
 
 @dataclass
