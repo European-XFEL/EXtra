@@ -3,7 +3,7 @@ import pytest
 import xarray as xr
 
 from extra.utils import (
-    imshow2, hyperslicer2, ridgeplot, fit_gaussian, gaussian, reorder_axes_to_shape,
+    imshow2, hyperslicer2, ridgeplot, fit_gaussian, gaussian, reorder_axes_to_shape,xcca
 )
 
 
@@ -103,3 +103,87 @@ def test_reorder_axes_to_shape():
     res = reorder_axes_to_shape(arr, (5, 3))
     assert res.shape == (5, 3)
     np.testing.assert_array_equal(res[0], [0, 5, 10])
+
+
+class TestCumulativeVariance:
+    'Tests for the CumulativeVariance classes.'
+    def get_test_data(self,dtype,n_samples,shape,seed=12345):
+        rng = np.random.default_rng(12345)
+        total_shape = (n_samples,)+ shape
+        if dtype == np.complex128:
+            data = rng.random(total_shape)+1.j*rng.random(total_shape)
+        else:
+            data = rng.random(total_shape).astype(dtype)
+        mask = rng.random(total_shape)>0.7
+        return data,mask        
+    def compute_variance_naively(self,data,mask=None,axis = 0):
+        if mask is None: 
+            with np.testing.suppress_warnings() as snp:
+                snp.filter(RuntimeWarning) # prevents divide by zero and empty slice warnings
+                mean = np.mean(data,axis=axis)
+                variance = np.var(data,axis=axis)
+            if data.shape[axis]==1:
+                variance[:]=0
+            elif data.shape[axis]<1:
+                variance[:]=np.nan
+        else:
+            counts = np.sum(mask.astype(int),axis = axis)
+            sum_ = np.sum(data*mask,axis=axis)
+            sum_square = np.sum((data*data.conj())*mask,axis=axis)
+            mean = np.zeros_like(sum_)
+            mean_square = mean.copy()
+            np.divide(sum_,counts,where = counts>0,out= mean)
+            np.divide(sum_square,counts,where = counts>0,out= mean_square)
+            variance = mean_square-mean*mean.conj()
+    
+            variance[counts==1]=0
+            variance[counts==0]=np.nan
+            mean[counts == 0] = np.nan
+        return mean,variance
+    
+    def test_variance_same_as_naive_computation(self):
+        '''Check if custom variance computation gives same result as naive computation via numpy'''
+        dtypes = [np.float64,np.complex128]
+        n_samples = [0,1,10,100]
+        shapes = np.array([(0,),(1,1),(1,2),(2,1),(42,13),(14,),(2,2,2)],dtype=object)
+        axes = [0,-1]
+        id_grid = np.mgrid[0:len(dtypes),0:len(n_samples),0:len(shapes),0:len(axes)].reshape(4,-1)
+        grid = tuple((dtypes[i],n_samples[j],shapes[k],axes[l]) for i,j,k,l in zip(*id_grid))
+        
+        for dtype,n,shape,ax in grid:
+            data,mask = self.get_test_data(dtype,n,shape)
+            #print(data.shape,n,shape,ax)
+            try:
+                cvm = xcca.CumulativeVarianceMasked.from_dataset(data,mask,axis = ax)
+                cv = xcca.CumulativeVariance.from_dataset(data,axis = ax)
+                
+                mean,variance = self.compute_variance_naively(data,axis=ax)
+                assert np.allclose(cv.mean,mean,equal_nan=True),"mean unequal"
+                assert np.allclose(cv.variance,variance,equal_nan=True), "variances are unequal"
+                
+                mean,variance = self.compute_variance_naively(data,mask,axis = ax)
+                assert np.allclose(cvm.mean,mean,equal_nan=True),"Masked mean unequal"
+                assert np.allclose(cvm.variance,variance,equal_nan=True), "Masked variances are unequal"
+            except Exception as e:
+                print(f"Parameters: f{(dtype,n,shape,ax)}")
+                raise e                
+    def test_merge(self):
+        '''Check that merging results from to data parts give same result as naive computation for entire dataset.'''
+        data,mask = self.get_test_data(np.float64,100,(12,4))
+        n=34
+        try:
+            mean,variance = self.compute_variance_naively(data)    
+            cv1 = xcca.CumulativeVariance.from_dataset(data[:n])
+            cv2 = xcca.CumulativeVariance.from_dataset(data[n:])
+            cv1.merge(cv2)
+            assert np.allclose(cv1.mean,mean),"Mean unequal after merge."
+            assert np.allclose(cv1.variance,variance),"Variance unequal after merge."
+            
+            mean,variance = self.compute_variance_naively(data,mask)    
+            cvm1 = xcca.CumulativeVarianceMasked.from_dataset(data[:n],mask[:n])
+            cvm2 = xcca.CumulativeVarianceMasked.from_dataset(data[n:],mask[n:])
+            cvm1.merge(cvm2)
+            assert np.allclose(cvm1.mean,mean),"Masked mean unequal after merge."
+            assert np.allclose(cvm1.variance,variance),"Masked variance unequal after merge."            
+        except Exception as e:
+            raise e   
