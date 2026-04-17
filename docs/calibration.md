@@ -100,3 +100,7 @@ which are intentionally larger than most, and thus capture more photons.
 ::: extra.calibration.BadPixels
     options:
       show_if_no_docstring: true
+
+## Miscellaneous
+
+::: extra.calibration.lpd_dark_consts_with_fallback

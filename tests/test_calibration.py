@@ -19,7 +19,9 @@ from extra.calibration import (
     SingleConstant,
     DetectorData,
     DetectorModule,
-    SourceNameFormatter
+    SourceNameFormatter,
+    get_client,
+    lpd_dark_consts_with_fallback,
 )
 
 # Most of these tests use saved HTTP responses by default (with pytest-recording).
@@ -481,3 +483,39 @@ def test_DetectorData_SourceNameFormatter():
         fmt.format('SPB_IRDA_JF4M/DET/JNGFR{modno:02d}:daqOutput', modno=3)
     assert 'HED_TST_AGIPDHZ3/DET/84CH0:xtdf' == \
         fmt.format('HED_TST_AGIPDHZ3/DET/{modno+83}CH0:xtdf', modno=1)
+
+
+@pytest.mark.vcr
+def test_lpd_fallback():
+    mem_cells = (
+        "8,24,40,56,72,88,104,120,136,152,168,184,200,216,232,248,264,280,296,312,328,"
+        "344,360,376,392,408,424,440,456,472,488,504,9,26,43,60,77,94,111,128,145,162,"
+        "179,196,213,230,247,265,282,299,316,333,350,367,384,401,418,435,452,469,486,"
+        "503,10,28,46,64,82,100,118,137,155,173,191,209,227,245,263,283,301,319,337,"
+        "355,373,391,410,428,446,464,482,500,6,27,47,66,85,105,124,143,163,182,182,186,182,"
+    )
+    condition = LPDConditions(memory_cell_order=mem_cells)
+
+    def get_retrieved_params(cd):
+        cond_id = cd['Offset', 0].metadata('calibration_constant')['condition_id']
+        cond_info = get_client().get(f"conditions/{cond_id}")
+        return {d['parameter_name']: d for d in cond_info['parameters_conditions']}
+
+    # At this timestamp, the fallback is closer (2026-03-29 vs. 2026-03-12)
+    cd_chosen = lpd_dark_consts_with_fallback(
+        condition, "FXE_DET_LPD1M-1", event_at="2026-04-16 17:56:05+01:00",
+        begin_at_strategy="prior",
+    )
+    assert cd_chosen['Offset'].aggregator_names == [f"LPD{m:02}" for m in range(16)]
+    fallback_cells = ",".join([str(i) for i in range(510)]) + ","
+    params = get_retrieved_params(cd_chosen)
+    assert params['Memory cell order']['txt_value'] == fallback_cells
+
+    # At this timestamp, the fallback is older than the matching cell order
+    cd_chosen2 = lpd_dark_consts_with_fallback(
+        condition, "FXE_DET_LPD1M-1", event_at="2026-03-16 17:56:05+01:00",
+        begin_at_strategy="prior",
+    )
+    assert cd_chosen2['Offset'].aggregator_names == [f"LPD{m:02}" for m in range(16)]
+    params2 = get_retrieved_params(cd_chosen2)
+    assert params2['Memory cell order']['txt_value'] == mem_cells
