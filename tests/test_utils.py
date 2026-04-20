@@ -187,3 +187,53 @@ class TestCumulativeVariance:
             assert np.allclose(cvm1.variance,variance),"Masked variance unequal after merge."            
         except Exception as e:
             raise e   
+
+class TestAngularCrossCorrelation:
+    def get_test_data(self,n,n_q,n_phi,return_mask=False):
+        rng = np.random.default_rng(12345)
+        data = rng.random((n,n_q,n_phi))
+        if return_mask:
+            mask = rng.random((n,n_q,n_phi))>0.7
+            return data,mask
+        else:
+            return data
+        
+    def test_from_dataset_same_as_update_unmasked(self):
+        rng = np.random.default_rng(12345)
+        N,n_q,n_phi = 25,32,64
+        max_order = 11
+        data = self.get_test_data(N,n_q,n_phi)
+        
+        ccn1 = xcca.AngularCorrelator.from_dataset(data,max_order=11)
+        ccf1 = xcca.AngularCorrelator.from_dataset(data,max_order=11,compute_coefficients=False)
+        
+        ccn2 = xcca.AngularCorrelator(n_q,n_phi,max_order=11)
+        ccf2 = xcca.AngularCorrelator(n_q,n_phi,max_order=11,compute_coefficients=False)
+        for I in data:
+            ccn2.update(I)
+            ccf2.update(I)
+            
+        ccn_close = np.allclose(ccn1._mean,ccn2._mean) & np.allclose(ccn1.count,ccn2.count) & np.allclose(ccn1.m2,ccn2.m2)
+        assert ccn_close, 'Unmasked: .from_dataset differs from manual updates for ccn computation.'
+        ccf_close = np.allclose(ccf1._mean,ccf2._mean) & np.allclose(ccf1.count,ccf2.count) & np.allclose(ccf1.m2,ccf2.m2)
+        assert ccf_close, 'Unmasked: .from_dataset differs from manual updates for ccf computation.'
+        
+    def test_from_dataset_same_as_update_unmasked(self):
+        rng = np.random.default_rng(12345)
+        N,n_q,n_phi = 25,32,64
+        max_order = 11
+        data,mask = self.get_test_data(N,n_q,n_phi,return_mask=True)
+        
+        ccn1 = xcca.AngularCorrelator.from_dataset(data,mask,max_order=11)
+        ccf1 = xcca.AngularCorrelator.from_dataset(data,mask,max_order=11,compute_coefficients=False)
+        
+        ccn2 = xcca.AngularCorrelator(n_q,n_phi,max_order=11)
+        ccf2 = xcca.AngularCorrelator(n_q,n_phi,max_order=11,compute_coefficients=False)
+        for I,m in zip((data,mask)):
+            ccn2.update(I,m)
+            ccf2.update(I,m)
+            
+        ccn_close = np.allclose(ccn1._mean,ccn2._mean) & np.allclose(ccn1.count,ccn2.count) & np.allclose(ccn1.m2,ccn2.m2)
+        assert ccn_close, 'Masked: .from_dataset differs from manual updates for ccn computation.'
+        ccf_close = np.allclose(ccf1._mean,ccf2._mean) & np.allclose(ccf1.count,ccf2.count) & np.allclose(ccf1.m2,ccf2.m2)
+        assert ccf_close, 'Masked: .from_dataset differs from manual updates for ccf computation.'
