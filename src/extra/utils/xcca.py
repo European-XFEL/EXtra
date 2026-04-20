@@ -460,7 +460,7 @@ class _CumulativeVarianceBase:
         pass
         
     def merge(self,var:Self) -> Self:
-        return self.merge_from_data(var.mean,var.count,var.m2)
+        return self.merge_from_data(var._mean,var.count,var.m2)
         
     def merge_from_data(self,mean:NDArray,count:NDArray,m2:NDArray)-> Self:
         pass
@@ -491,6 +491,7 @@ class _CumulativeVarianceBase:
 
 class CumulativeVarianceMasked(_CumulativeVarianceBase):
     '''
+    Allows to computes the variance incrementally. 
     Slightly modified version of Welford's online algorithm, to allow computation for masked data:
     Algorithm taken from wikipedia: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
     '''    
@@ -514,6 +515,12 @@ class CumulativeVarianceMasked(_CumulativeVarianceBase):
         ```py
         import numpy as np
         from EXtra.utils.xcca import CumulativeVarianceMasked
+
+        data = np.random.rand(2,100,100)
+        mask = np.random.rand(2,100,100)>0.7
+        cv = CumulativeVarianceMasked()
+        cv.update(data[0], mask = mask[0])
+        cv.update(data[1], mask = mask[1])
         ```
 
         """
@@ -532,6 +539,35 @@ class CumulativeVarianceMasked(_CumulativeVarianceBase):
         np.add(self.m2,(delta * delta2.conj()).real,out=self.m2)
         return self            
     def merge_from_data(self,mean:NDArray,count:NDArray,m2:NDArray)->Self:
+        """Merge with variance from other dataset
+
+        Parameters
+        ----------
+        mean : NDArray
+        count : NDArray
+        m2 : NDArray
+
+        Returns
+        -------
+        Self
+
+        Examples
+        --------
+        ```py
+        import numpy as np
+        from EXtra.utils.xcca import CumulativeVarianceMasked
+
+        data = np.random.rand(100,100,100)
+        mask = np.random.rand(100,100,100)>0.7
+        cv1 = CumulativeVarianceMasked.form_dataset(data[:50],mask = mask[:50])
+        cv2 = CumulativeVarianceMasked.form_dataset(data[50:],mask = mask[50:])
+        
+        #cv1.merge(cv2) # Same as the following line
+        cv1.merge_from_data(cv1._mean,cv1.count,cv1.m2)
+        ```
+
+
+        """
         # merges the data of another CummulativeVariance instance to create the combined average and variance.
         count_a = np.array(self.count)
         np.add(self.count,count,out=self.count)
@@ -546,10 +582,34 @@ class CumulativeVarianceMasked(_CumulativeVarianceBase):
     
 class CumulativeVariance(_CumulativeVarianceBase):
     '''
+    Allows to computes the variance incrementally. 
     Welford's online algorithm:
     Algorithm taken from wikipedia: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
     '''        
     def update(self,val:NDArray)->Self:
+        """Update variance by a single datapoint
+
+        Parameters
+        ----------
+        val : NDArray
+            New data point
+
+        Returns
+        -------
+        Self
+
+        Examples
+        --------
+        ```py
+        import numpy as np
+        from EXtra.utils.xcca import CumulativeVarianceMasked
+
+        data = np.random.rand(2,100,100)
+        cv = CumulativeVarianceMasked()
+        cv.update(data[0])
+        cv.update(data[1])
+        ```
+        """
         if self.workspace is None:
             self._create_workspace(val)
         # updates the running mean and variance by a single new value
@@ -560,6 +620,33 @@ class CumulativeVariance(_CumulativeVarianceBase):
         np.add(self.m2,(delta * delta2.conj()).real,out=self.m2)
         return self        
     def merge_from_data(self,mean:NDArray,count:NDArray,m2:NDArray)->Self:
+        """Merge with variance from other dataset
+
+        Parameters
+        ----------
+        mean : NDArray
+        count : NDArray
+        m2 : NDArray
+
+        Returns
+        -------
+        Self
+
+        Examples
+        --------
+        ```py
+        import numpy as np
+        from EXtra.utils.xcca import CumulativeVarianceMasked
+
+        data = np.random.rand(100,100,100)
+        cv1 = CumulativeVarianceMasked.form_dataset(data[:50])
+        cv2 = CumulativeVarianceMasked.form_dataset(data[50:])
+        
+        #cv1.merge(cv2) # Same as the following line
+        cv1.merge_from_data(cv1._mean,cv1.count,cv1.m2)
+        ```
+
+        """
         # merges the data of another CummulativeVariance instance to create the combined average and variance.
         count_a = np.array(self.count)
         np.add(self.count,count,out=self.count)
