@@ -29,3 +29,27 @@ else.
 ## Fitting functions
 
 ::: extra.utils.fit_gaussian
+
+## Incremental variance
+
+::: extra.utils.xcca._CumulativeVarianceBase
+
+::: extra.utils.xcca.CumulativeVariance
+	options:
+      inherited_members: false
+
+::: extra.utils.xcca.CumulativeVarianceMasked
+	options:
+      inherited_members: false
+
+## Angular cross-correlation (XCCA)
+
+::: extra.utils.xcca.AngularCorrelator
+
+::: extra.utils.xcca.AveragedAngularCorrelation
+	options:
+      inherited_members: false
+
+::: extra.utils.xcca.AveragedAngularCorrelationMasked
+	options:
+      inherited_members: false
