@@ -522,29 +522,25 @@ class CumulativeVariance(_CumulativeVarianceBase):
     Algorithm taken from wikipedia: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
     '''        
     def update(self,val:NDArray)->Self:
-        """Update variance by a single datapoint
+        """Update variance by a single datapoint.
 
-        Parameters
-        ----------
-        val : NDArray
-            New data point
+        Args:
+            val: New data point.
 
-        Returns
-        -------
-        Self
+        Returns:
+            updated instance
 
-        Examples
-        --------
-        ```py
-        import numpy as np
-        from EXtra.utils.xcca import CumulativeVarianceMasked
+        Examples:
+            ```py
+            import numpy as np
+            from EXtra.utils.xcca import CumulativeVarianceMasked
 
-        data = np.random.rand(2,100,100)
-        cv = CumulativeVarianceMasked()
-        cv.update(data[0])
-        cv.update(data[1])
-        ```
-        """ 
+            data = np.random.rand(2,100,100)
+            cv = CumulativeVarianceMasked()
+            cv.update(data[0])
+            cv.update(data[1])
+            ```
+        """
         if self.workspace is None:
             self._create_workspace(val)
         # updates the running mean and variance by a single new value
@@ -555,32 +551,27 @@ class CumulativeVariance(_CumulativeVarianceBase):
         np.add(self.m2,(delta * delta2.conj()).real,out=self.m2)
         return self        
     def merge_from_data(self,mean:NDArray,count:NDArray,m2:NDArray)->Self:
-        """Merge with variance from other dataset
+        """Merge with variance from other dataset.
 
-        Parameters
-        ----------
-        mean : NDArray
-        count : NDArray
-        m2 : NDArray
-
-        Returns
-        -------
-        Self
-
-        Examples
-        --------
-        ```py
-        import numpy as np
-        from EXtra.utils.xcca import CumulativeVarianceMasked
-
-        data = np.random.rand(100,100,100)
-        cv1 = CumulativeVarianceMasked.form_dataset(data[:50])
-        cv2 = CumulativeVarianceMasked.form_dataset(data[50:])
+        Args:
+            mean: Mean of the other dataset.
+            count: Count of observations in the other dataset.
+            m2: Sum of squared deviations from the mean for the other dataset.
+        Returns:
+            merged instance.
         
-        #cv1.merge(cv2) # Same as the following line
-        cv1.merge_from_data(cv1._mean,cv1.count,cv1.m2)
-        ```
+        Examples:
+            ```py
+            import numpy as np
+            from EXtra.utils.xcca import CumulativeVarianceMasked
 
+            data = np.random.rand(100,100,100)
+            cv1 = CumulativeVarianceMasked.form_dataset(data[:50])
+            cv2 = CumulativeVarianceMasked.form_dataset(data[50:])
+
+            #cv1.merge(cv2) # Same as the following line
+            cv1.merge_from_data(cv1._mean,cv1.count,cv1.m2)
+            ```
         """
         # merges the data of another CummulativeVariance instance to create the combined average and variance.
         count_a = np.array(self.count)
@@ -590,8 +581,7 @@ class CumulativeVariance(_CumulativeVarianceBase):
         np.add(self._mean,temp,out=self._mean)
         np.add(self.m2,m2 + (delta*count_a*temp.conj()).real,out = self.m2)
         return self
-    
-    
+
 class AveragedAngularCorrelationMasked(CumulativeVarianceMasked):
     """
     Helper class to make computation of averages of angular cross-correlations or their coefficients easy.
