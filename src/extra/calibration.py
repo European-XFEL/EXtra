@@ -1354,7 +1354,7 @@ def lpd_dark_consts_with_fallback(
     condition: "LPDConditions",
     detector_name,
     event_at=None,
-    preference_time=timedelta(days=5),
+    preference_time=timedelta(days=7),
     **kwargs
 ):
     """Look up LPD dark constants with fallback to constants for all memory cells
