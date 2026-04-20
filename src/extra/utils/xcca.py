@@ -5,7 +5,30 @@ from numpy.typing import NDArray,ArrayLike
 class AngularCorrelator:
     r'''
     Class to compute angular cross-correlation from data and masks given on a uniform polar grid.
-    '''
+
+    Attributes:
+        n_radial_samples (int): Number of radial sampling points.
+        n_angular_samples (int): Number of uniform angular sampling points.
+        use_cuda (bool): Whether or not to use cuda for fft computations.
+
+    Examples:
+        ```py
+        import numpy as np
+        from extra.utils.xcca import AngularCorrelator
+
+        n_q,n_phi = 32,64
+        data = np.random.rand(n_q,n_phi)
+        mask = np.random.rand(n_q,n_phi)>0.7
+    
+        a = AngularCorrelator(n_q,n_phi)
+    
+        # Compute mask corrected angular cross-correlation function.
+        ccf, ccf_mask = a.ccf(data,mask = mask)
+    
+        # Compute first 11 Fourier coefficients of mask corrected angular cross-correlation function.
+        ccn, ccn_mask = a.ccn(data,mask = mask,max_order=11)
+        ```
+    '''    
     def __init__(self,n_radial_samples:int=256,n_angular_samples:int=1024,use_cuda:bool=False):
         self.n_radial_samples = n_radial_samples
         self.n_angular_samples = n_angular_samples
@@ -293,14 +316,14 @@ class AngularCorrelator:
             ccf_mask[q1:,q1,1:] = ccf_mask[q1,q1:,-1:0:-1]                                
         return ccf,ccf_mask
     
-    def ccn(self,polar_data:NDArray[np.float64], polar_mask: NDArray[np.bool]|None  = None, max_order:int|None = None) -> NDArray[np.complex128]|tuple[NDArray[np.complex128],NDArray[np.bool]]:
+    def ccn(self,data:NDArray[np.float64], mask: NDArray[np.bool]|None  = None, max_order:int|None = None) -> NDArray[np.complex128]|tuple[NDArray[np.complex128],NDArray[np.bool]]:
         r"""Compute Fourier coefficients of the corss-correlation funcion.
 
         Lowering max_order does not save computation time but simply cuts the output to the required maximum order therefore saving RAM.
 
         Args:
-            polar_data: (n_q,n_phi): Image data on uniform polar grid.
-            polar_mask: If the (n_q,n_phi) Image mask array is provided this
+            data: (n_q,n_phi): Image data on uniform polar grid.
+            mask: If the (n_q,n_phi) Image mask array is provided this
                 routine automatically applies mask correction to the
                 computed Fourier coefficients.. Defaults to None.
             max_order: Maximum computed Fourier coefficient order. Defaults to None.
@@ -323,22 +346,22 @@ class AngularCorrelator:
             ccn,ccn_mask = a.ccn(data,mask,max_order=31)
             ```
         """
-        if polar_mask is None:
-            ccf = self._compute_ccf(polar_data)
+        if mask is None:
+            ccf = self._compute_ccf(data)
             ccn = self.ccn_from_ccf(ccf,max_order = max_order)
             return ccn
         else:
-            ccn,ccn_mask = self._compute_ccn_masked(polar_data,polar_mask,max_order = max_order)
+            ccn,ccn_mask = self._compute_ccn_masked(data,mask,max_order = max_order)
             return ccn,ccn_mask
     
-    def ccf(self,polar_data:NDArray[np.float64], polar_mask:NDArray[np.bool]|None = None, max_order:int|None = None) -> NDArray[np.float64]|tuple[NDArray[np.float64],NDArray[np.bool]]:
+    def ccf(self,data:NDArray[np.float64], mask:NDArray[np.bool]|None = None, max_order:int|None = None) -> NDArray[np.float64]|tuple[NDArray[np.float64],NDArray[np.bool]]:
         r"""Compute the corss-correlation funcion.
 
         Lowering max_order does not save computation time but simply cuts the output to the required maximum order therefore saving RAM.
 
         Args:
-            polar_data: (n_q,n_phi): Image data on uniform polar grid.
-            polar_mask: If the (n_q,n_phi) Image mask array is provided this
+            data: (n_q,n_phi): Image data on uniform polar grid.
+            mask: If the (n_q,n_phi) Image mask array is provided this
                 routine automatically applies mask correction to the
                 computed Fourier coefficients.. Defaults to None.
             max_order: Maximum computed Fourier coefficient order. Defaults to None.
@@ -361,11 +384,11 @@ class AngularCorrelator:
             ccf,ccf_mask = a.ccf(data,mask,max_order=31)
             ```
         """
-        if polar_mask is None:
-            ccf = self._compute_ccf(polar_data)
+        if mask is None:
+            ccf = self._compute_ccf(data)
             return ccf
         else:
-            ccf,ccf_mask = self._compute_ccf_masked(polar_data,polar_mask,max_order = max_order)
+            ccf,ccf_mask = self._compute_ccf_masked(data,mask,max_order = max_order)
             return ccf,ccf_mask
 
 
