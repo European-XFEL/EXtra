@@ -204,11 +204,11 @@ class TestAngularCrossCorrelation:
         max_order = 11
         data = self.get_test_data(N,n_q,n_phi)
         
-        ccn1 = xcca.AngularCorrelator.from_dataset(data,max_order=11)
-        ccf1 = xcca.AngularCorrelator.from_dataset(data,max_order=11,compute_coefficients=False)
+        ccn1 = xcca.AveragedAngularCorrelation.from_dataset(data,max_order=11)
+        ccf1 = xcca.AveragedAngularCorrelation.from_dataset(data,max_order=11,compute_coefficients=False)#bug here
         
-        ccn2 = xcca.AngularCorrelator(n_q,n_phi,max_order=11)
-        ccf2 = xcca.AngularCorrelator(n_q,n_phi,max_order=11,compute_coefficients=False)
+        ccn2 = xcca.AveragedAngularCorrelation(n_q,n_phi,max_order=11)
+        ccf2 = xcca.AveragedAngularCorrelation(n_q,n_phi,max_order=11,compute_coefficients=False)
         for I in data:
             ccn2.update(I)
             ccf2.update(I)
@@ -224,11 +224,11 @@ class TestAngularCrossCorrelation:
         max_order = 11
         data,mask = self.get_test_data(N,n_q,n_phi,return_mask=True)
         
-        ccn1 = xcca.AngularCorrelator.from_dataset(data,mask,max_order=11)
-        ccf1 = xcca.AngularCorrelator.from_dataset(data,mask,max_order=11,compute_coefficients=False)
+        ccn1 = xcca.AveragedAngularCorrelationMasked.from_dataset(data,mask,max_order=11)
+        ccf1 = xcca.AveragedAngularCorrelationMasked.from_dataset(data,mask,max_order=11,compute_coefficients=False)
         
-        ccn2 = xcca.AngularCorrelator(n_q,n_phi,max_order=11)
-        ccf2 = xcca.AngularCorrelator(n_q,n_phi,max_order=11,compute_coefficients=False)
+        ccn2 = xcca.AveragedAngularCorrelationMasked(n_q,n_phi,max_order=11)
+        ccf2 = xcca.AveragedAngularCorrelationMasked(n_q,n_phi,max_order=11,compute_coefficients=False)
         for I,m in zip((data,mask)):
             ccn2.update(I,m)
             ccf2.update(I,m)
