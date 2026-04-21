@@ -138,7 +138,7 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
               xgm_threshold: float,
               count_threshold: float=None,
               correction_fn=None,
-              n_samples: int=500) -> xr.DataArray:
+              count_samples: int=500) -> xr.DataArray:
     """
     Calculate the mean of the ToF data in the given tof and energy bin in `itr`.
 
@@ -150,7 +150,7 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
       xgm_threshold: The minimum pulse energy to consider.
       count_threshold: Number of ADU counts used to trigger photon count.
       correction_fn: A correction function to apply in the raw spectra.
-      n_samples: Number of samples to consider when counting.
+      count_samples: Number of samples to consider when counting.
 
     Returns: DataArray with mean of data in the energy bin given.
     """
@@ -356,6 +356,7 @@ class CookieboxCalibration(SerializableMixin):
             to the horizontal plane.
       P1: First Stokes parameter. Set to 1 for linear or circular polarization.
       count_threshold: Threshold for counting photons. Ignored if zero or positive: set to a negative value to use it.
+      count_samples: If using photon counting (`count_threshold < 0`), use this many samples to obtain the spectrum.
     """
     def __init__(self,
                  xgm_threshold: Union[str, float]='median',
@@ -367,7 +368,8 @@ class CookieboxCalibration(SerializableMixin):
                  beta: float=2.0,
                  tilt: float=0.0,
                  P1: float=1.0,
-                 count_threshold: float=0
+                 count_threshold: float=0,
+                 count_samples: int=500
                 ):
         self._init_auger_start_roi = auger_start_roi
         self._init_start_roi = start_roi
@@ -378,6 +380,7 @@ class CookieboxCalibration(SerializableMixin):
         self.P1 = P1
 
         self._count_threshold = count_threshold
+        self._count_samples = count_samples
         self._xgm_threshold = xgm_threshold
 
         # empty outputs
@@ -417,6 +420,7 @@ class CookieboxCalibration(SerializableMixin):
                             "tilt",
                             "P1",
                             "_count_threshold",
+                            "_count_samples",
                             "_version",
                            ]
     def _asdict(self):
@@ -727,6 +731,7 @@ class CookieboxCalibration(SerializableMixin):
                      tof=self._tof,
                      xgm_threshold=self._xgm_threshold,
                      count_threshold=self._count_threshold,
+                     count_samples=self._count_samples,
                      correction_fn=correction_fn,
                      )
         parallel = self.parallel
