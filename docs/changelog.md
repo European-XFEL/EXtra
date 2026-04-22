@@ -55,7 +55,7 @@ Fixed:
 - [CookieboxCalibration][extra.applications.CookieboxCalibration] avoids crashes if eTOF data is noisy
   by using RANSAC for the fit, using the Golden method for the t0 search, and added an option for
   using photo-electron counting for increased robustness. Peaks are also masked if not found to avoid
-  contaminating the fit.
+  contaminating the fit (!476).
 
 Changed:
 
