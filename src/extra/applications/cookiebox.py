@@ -74,7 +74,7 @@ def model(ts: np.ndarray, c: float, e0: float, t0: float) -> np.ndarray:
     """
     return e0+c/(ts-t0)**2
 
-def lin_fit(ts: np.ndarray, energies: np.ndarray, t0: float) -> Tuple[float, float, float]:
+def lin_fit(ts: np.ndarray, energies: np.ndarray, t0: float) -> Tuple[float, float, float, np.ndarray]:
     """
     Fit model using linear regression for fixed t0.
 
@@ -83,13 +83,18 @@ def lin_fit(ts: np.ndarray, energies: np.ndarray, t0: float) -> Tuple[float, flo
       energies: Energy axis.
       t0: Fixed zero-time.
 
-    Returns: Tuple with c, e0 and t0 values after the fit.
+    Returns: Tuple with c, e0, t0, and mask values after the fit.
     """
-    from scipy.stats import linregress
-    res = linregress(1/np.asarray(ts-t0)**2,np.asarray(energies))
-    c = res.slope
-    e0 = res.intercept
-    return c, e0, t0
+    from sklearn.linear_model import RANSACRegressor, LinearRegression
+    # RANSAC is slow, but much more robust and derives a mask
+    x = 1/np.asarray(ts-t0)**2
+    y = np.asarray(energies)
+    model = RANSACRegressor(estimator=LinearRegression(), random_state=42)
+    model.fit(x[:,np.newaxis], y[:, np.newaxis])
+    c = model.estimator_.coef_[0,0]
+    e0 = model.estimator_.intercept_[0]
+    mask = model.inlier_mask_
+    return c, e0, t0, mask
 
 def norm_diff_t0(ts: np.ndarray, energies: np.ndarray, t0: float) -> float:
     """
@@ -102,10 +107,10 @@ def norm_diff_t0(ts: np.ndarray, energies: np.ndarray, t0: float) -> float:
 
     Returns: Norm of difference between observation and prediction.
     """
-    c,e0,_ = lin_fit(ts,energies,t0)
-    return np.linalg.norm(model(ts,c,e0,t0) - energies, ord=1)
+    c, e0, _, mask = lin_fit(ts, energies, t0)
+    return np.linalg.norm(model(ts[mask],c,e0,t0) - energies[mask], ord=1)
 
-def fit(peak_ids: np.ndarray, energies: np.ndarray, t0_bounds: Tuple[float, float]) -> Tuple[float, float, float]:
+def fit(peak_ids: np.ndarray, energies: np.ndarray, t0_bounds: Tuple[float, float]) -> Tuple[float, float, float, np.ndarray]:
     """
     Fit peak IDs to energies withn the zero-time bounds.
 
@@ -114,23 +119,26 @@ def fit(peak_ids: np.ndarray, energies: np.ndarray, t0_bounds: Tuple[float, floa
       energies: The energy values.
       t0_bounds: The minimum and maximum zero-time bounds.
 
-    Returns: Tuple with c, e0, t0.
+    Returns: Tuple with c, e0, t0, and a mask.
     """
     from scipy.optimize import minimize_scalar
     peak_ids = np.asarray(peak_ids)
     energies = np.asarray(energies)
 
     f = partial(norm_diff_t0,peak_ids,energies)
-    res=minimize_scalar(f,method='Bounded',bounds=t0_bounds)
+    res = minimize_scalar(f, method='golden', options=dict(bounds=t0_bounds))
     t0 = res.x
-    c,e0,t0=lin_fit(peak_ids,energies,t0)
-    if res.success:
-        return c,e0,t0
-    else:
-        raise Exception('fit did not converge.')
+    c, e0, t0, mask = lin_fit(peak_ids, energies, t0)
+    if not res.success:
+        return np.nan, np.nan, np.nan, mask
+    return c, e0, t0, mask
 
 
-def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dict[int, AdqRawChannel], xgm_threshold: float, correction_fn=None) -> xr.DataArray:
+def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dict[int, AdqRawChannel],
+              xgm_threshold: float,
+              count_threshold: float=None,
+              correction_fn=None,
+              count_samples: int=500) -> xr.DataArray:
     """
     Calculate the mean of the ToF data in the given tof and energy bin in `itr`.
 
@@ -140,29 +148,50 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
       xgm_data: All the pulse energy values.
       tof: The Extra component for reading each tof.
       xgm_threshold: The minimum pulse energy to consider.
+      count_threshold: Number of ADU counts used to trigger photon count.
       correction_fn: A correction function to apply in the raw spectra.
+      count_samples: Number of samples to consider when counting.
 
     Returns: DataArray with mean of data in the energy bin given.
     """
     tof_id, energy_id = itr
     energy, train_ids = scan.steps[energy_id]
-    # this does train ID matching, because:
-    # - the given run may not have both XGM and eTOF for every train;
-    # - and we cannot control the creation of the run object, since we want to receive the ready-made XGM object
-    good_ids = sorted(list(set(train_ids).intersection(set(xgm_data.coords["trainId"].to_numpy()))))
-    if len(good_ids) == 0:
-        x = tof[tof_id].select_trains(np._[0:1]).pulse_data(pulse_dim='pulseIndex').to_numpy().mean(0)
-        return np.zeros_like(x), 0
-    tof_data = tof[tof_id].select_trains(by_id[good_ids]).pulse_data(pulse_dim='pulseIndex')
-    good_ids = sorted(list(set(good_ids).intersection(set(tof_data.trainId.to_numpy()))))
-    mask = xgm_data.coords["trainId"].isin(good_ids)
-    sel_xgm_data = xgm_data[mask]
-    # select XGM
-    tof_data = tof_data.loc[sel_xgm_data > xgm_threshold, :]
-    tof_xgm_data = sel_xgm_data.loc[sel_xgm_data > xgm_threshold]
+    # check if we are required to count peaks
+    if count_threshold is None or count_threshold >= 0:
+        # don't count peaks and just average the data
+        # the logic to clean the data is only to apply a cut on the XGM pulse energy
 
-    out_data = -tof_data.mean('pulse')
-    out_xgm = tof_xgm_data.mean('pulse')
+        # this does train ID matching, because:
+        # - the given run may not have both XGM and eTOF for every train;
+        # - and we cannot control the creation of the run object, since we want to receive the ready-made XGM object
+        good_ids = sorted(list(set(train_ids).intersection(set(xgm_data.trainId.data))))
+        if len(good_ids) == 0:
+            x = tof[tof_id].select_trains(np._[0:1]).pulse_data(pulse_dim='pulseIndex').to_numpy().mean(0)
+            return np.zeros_like(x), 0
+        tof_data = tof[tof_id].select_trains(by_id[good_ids])
+        tof_data = tof_data.pulse_data(pulse_dim='pulseIndex')
+
+        good_ids = sorted(list(set(good_ids).intersection(set(tof_data.trainId.to_numpy()))))
+        mask = xgm_data.coords["trainId"].isin(good_ids)
+        sel_xgm_data = xgm_data[mask]
+        # select XGM
+        tof_data = tof_data.loc[sel_xgm_data > xgm_threshold, :]
+        tof_xgm_data = sel_xgm_data.loc[sel_xgm_data > xgm_threshold]
+
+        out_data = -tof_data.mean('pulse')
+        out_xgm = tof_xgm_data.mean('pulse')
+    else:
+        # option 2: count photon peaks
+        # in this case, ignore the XGM, as it is only used for cleaning the data
+        # and here we rely on the threshold for that
+        tof_data = tof[tof_id].select_trains(by_id[train_ids])
+        tof_data = tof_data.pulse_edges(pulse_dim='pulseIndex', threshold=count_threshold).reset_index()
+
+        bins = np.arange(0, n_samples+1)
+        out_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.amplitude)
+
+        out_data = xr.DataArray(out_data, dims=('sample'), coords={'sample': bins[:-1]})
+        out_xgm = xgm_data.mean('pulse')
 
     if correction_fn is not None:
         out_data = correction_fn[tof_id](out_data)
@@ -326,6 +355,8 @@ class CookieboxCalibration(SerializableMixin):
             or np.pi/2 for vertical linear polarization, if eTOF 0 is aligned
             to the horizontal plane.
       P1: First Stokes parameter. Set to 1 for linear or circular polarization.
+      count_threshold: Threshold for counting photons. Ignored if zero or positive: set to a negative value to use it.
+      count_samples: If using photon counting (`count_threshold < 0`), use this many samples to obtain the spectrum.
     """
     def __init__(self,
                  xgm_threshold: Union[str, float]='median',
@@ -336,7 +367,9 @@ class CookieboxCalibration(SerializableMixin):
                  parallel: bool=True,
                  beta: float=2.0,
                  tilt: float=0.0,
-                 P1: float=1.0
+                 P1: float=1.0,
+                 count_threshold: float=0,
+                 count_samples: int=500
                 ):
         self._init_auger_start_roi = auger_start_roi
         self._init_start_roi = start_roi
@@ -346,6 +379,8 @@ class CookieboxCalibration(SerializableMixin):
         self.tilt = tilt
         self.P1 = P1
 
+        self._count_threshold = count_threshold
+        self._count_samples = count_samples
         self._xgm_threshold = xgm_threshold
 
         # empty outputs
@@ -356,7 +391,7 @@ class CookieboxCalibration(SerializableMixin):
         self.normalization = dict()
 
         # what we need to save it all
-        self._version = 1
+        self._version = 2
         self.all_kwargs_adq = ["first_pulse_offset",
                                "cm_period",
                                "interleaved",
@@ -384,6 +419,8 @@ class CookieboxCalibration(SerializableMixin):
                             "beta",
                             "tilt",
                             "P1",
+                            "_count_threshold",
+                            "_count_samples",
                             "_version",
                            ]
     def _asdict(self):
@@ -693,6 +730,8 @@ class CookieboxCalibration(SerializableMixin):
                      xgm_data=self._xgm_data,
                      tof=self._tof,
                      xgm_threshold=self._xgm_threshold,
+                     count_threshold=self._count_threshold,
+                     count_samples=self._count_samples,
                      correction_fn=correction_fn,
                      )
         parallel = self.parallel
@@ -844,7 +883,7 @@ class CookieboxCalibration(SerializableMixin):
                                          height=0)
             if len(peak) == 0:
                 Aa += [0]
-                mu_auger += [0]
+                mu_auger += [auger_start_roi]
             else:
                 peak_heights = peak_dict['peak_heights']
                 peak_widths = peak_dict['widths']
@@ -860,8 +899,8 @@ class CookieboxCalibration(SerializableMixin):
                                           width=0,
                                           height=0)
             if len(peak) == 0:
-                A += [0]
-                mu += [0]
+                A += [np.nan]
+                mu += [np.nan]
             else:
                 peak_heights = peaks_dict['peak_heights']
                 peak_widths = peaks_dict['widths']
@@ -889,44 +928,62 @@ class CookieboxCalibration(SerializableMixin):
         """
         from scipy.interpolate import PchipInterpolator
 
+        mask_peaks = ~np.isnan(self.tof_fit_result[tof_id].mu)
+        self.calibration_mask[tof_id] &= mask_peaks
         mask = self.calibration_mask[tof_id]
         energy_ids = np.arange(len(mask))
         # fit calibration
-        c, e0, t0 = fit(self.tof_fit_result[tof_id].mu[mask],
-                        self.tof_fit_result[tof_id].energy[mask], t0_bounds=[-3000, 3000])
+        if np.sum(mask) > 1:
+            c, e0, t0, new_mask = fit(self.tof_fit_result[tof_id].mu[mask],
+                                  self.tof_fit_result[tof_id].energy[mask], t0_bounds=[0, self.start_roi[tof_id]])
+            self.calibration_mask[tof_id][mask] &= new_mask
+            mask = self.calibration_mask[tof_id]
+        else:
+            # cannot make a fit, prevent an exception
+            # guess c
+            c = 1.0
+            # take the smallest
+            e0 = self.calibration_energies[0]
+            # take any, as they are the smae
+            t0 = self.start_roi[tof_id]
         self.model_params[tof_id] = np.array([c, e0, t0], dtype=np.float64)
         self.jacobian[tof_id] = 0.5*c/(np.sqrt(c/(self.energy_axis - e0)))/(self.energy_axis - e0)**2
 
-        # interpolate offset
-        eidx = np.argsort(self.tof_fit_result[tof_id].energy[mask])
-        ee = self.tof_fit_result[tof_id].energy[mask][eidx]
-        eo = self.tof_fit_result[tof_id].offset[mask][eidx]
+        if np.sum(mask) > 1:
+            # interpolate offset
+            eidx = np.argsort(self.tof_fit_result[tof_id].energy[mask])
+            ee = self.tof_fit_result[tof_id].energy[mask][eidx]
+            eo = self.tof_fit_result[tof_id].offset[mask][eidx]
 
-        self.offset[tof_id] = np.interp(self.energy_axis,
-                                        ee,
-                                        eo)
+            self.offset[tof_id] = np.interp(self.energy_axis,
+                                            ee,
+                                            eo)
 
-        # Transmission = (detected intensity in photoelectron)/(produced intensity)
-        # Transmission = (detected ADU in photoelectron)/((pulse energy) (Auger-Meitner ADU) (dsigma/dtheta))
-        # dsigma/dtheta = 1/2*(1.0 + beta*(3*cos(theta)^2 - 1.0)/2.0)
-        theta = (2*np.pi/16)*tof_id
-        beta = self.beta
-        tilt = self.tilt
-        P1 = self.P1
+            # Transmission = (detected intensity in photoelectron)/(produced intensity)
+            # Transmission = (detected ADU in photoelectron)/((pulse energy) (Auger-Meitner ADU) (dsigma/dtheta))
+            # dsigma/dtheta = 1/2*(1.0 + beta*(3*cos(theta)^2 - 1.0)/2.0)
+            theta = (2*np.pi/16)*tof_id
+            beta = self.beta
+            tilt = self.tilt
+            P1 = self.P1
 
-        dsig_dth = angular_dist(theta, beta, P1, tilt)
-        #0.5*(1 + beta*(3*np.cos(theta)**2 - 1)/2)
-        detected = self.tof_fit_result[tof_id].A
-        #produced = self.calibration_mean_xgm[tof_id] * self.tof_fit_result[tof_id].Aa * dsig_dth
-        #produced = self.tof_fit_result[tof_id].Aa * dsig_dth
-        produced = dsig_dth
-        if produced == 0:
-            produced += 1e-1
-        en = detected[mask][eidx]/produced
-        # interpolate normalization
-        self.normalization[tof_id] = np.interp(self.energy_axis,
-                                               ee,
-                                               en)
+            dsig_dth = angular_dist(theta, beta, P1, tilt)
+            #0.5*(1 + beta*(3*np.cos(theta)**2 - 1)/2)
+            detected = self.tof_fit_result[tof_id].A
+            #produced = self.calibration_mean_xgm[tof_id] * self.tof_fit_result[tof_id].Aa * dsig_dth
+            #produced = self.tof_fit_result[tof_id].Aa * dsig_dth
+            produced = dsig_dth
+            if produced == 0:
+                produced += 1e-1
+            en = detected[mask][eidx]/produced
+            # interpolate normalization
+            self.normalization[tof_id] = np.interp(self.energy_axis,
+                                                   ee,
+                                                   en)
+        else:
+            self.offset[tof_id] = np.zeros_like(self.energy_axis)
+            self.normalization[tof_id] = np.ones_like(self.energy_axis)
+
 
     def plot_calibrations(self):
         """
@@ -938,7 +995,7 @@ class CookieboxCalibration(SerializableMixin):
         lw = 3
         ls = '-'
 
-        fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
+        fig, ax = plt.subplots(ncols=2, figsize=(16, 8))
 
         tof_ids = list(self.model_params.keys())
         for i, tof_id in enumerate(tof_ids):
@@ -951,41 +1008,22 @@ class CookieboxCalibration(SerializableMixin):
             stop_roi = self.stop_roi[tof_id]
             ts = np.arange(start_roi, stop_roi)
             e = model(ts, *self.model_params[tof_id])
-            a.scatter(self.tof_fit_result[tof_id].mu,
-                        self.tof_fit_result[tof_id].energy,
-                        c=c)
+            mask = self.calibration_mask[tof_id]
+            a.scatter(self.tof_fit_result[tof_id].mu[mask],
+                        self.tof_fit_result[tof_id].energy[mask],
+                        c=c, marker='o')
+            a.scatter(self.tof_fit_result[tof_id].mu[~mask],
+                        self.tof_fit_result[tof_id].energy[~mask],
+                        c=c, marker='x')
             a.plot(ts, e, c=c, lw=lw, ls=ls, label=f"eTOF {tof_id}")
         for a in ax:
+            emin = np.nanmin(self.calibration_energies)
+            emax = np.nanmax(self.calibration_energies)
             a.set(xlabel="Samples",
-                  ylabel="Energy [eV]",
-                  ylim=(self.energy_axis[0]-2, self.energy_axis[-1]+2),
+                  ylabel="Energy",
+                  ylim=(emin, emax),
                   )
             a.legend(frameon=False, ncols=2)
-
-    def plot_diagnostics(self, tof_id: int):
-        """
-        Diagnostics plots for finding the energy peaks in a scan.
-        """
-        import matplotlib.pyplot as plt
-        auger_start_roi = self.auger_start_roi[tof_id]
-        start_roi = self.start_roi[tof_id]
-        stop_roi = self.stop_roi[tof_id]
-        ts = np.arange(start_roi, stop_roi)
-        e = model(ts, *self.model_params[tof_id])
-        fig, ax = plt.subplots(nrows=3, ncols=2, figsize=(20,20))
-        ax = ax.flatten()
-        ax[0].scatter(self.tof_fit_result[tof_id].mu, self.tof_fit_result[tof_id].energy, label="Peak center")
-        ax[0].plot(ts, e, lw=2, label="Model fit")
-        ax[0].set(xlabel="Samples", ylabel="Energy [eV]")
-        ax[1].plot(self.energy_axis, self.normalization[tof_id], lw=2, label="Transmission")
-        ax[1].set(xlabel="Energy [eV]", ylabel="Transmission [a.u.]")
-        ax[2].scatter(self.tof_fit_result[tof_id].energy, self.tof_fit_result[tof_id].offset, label="Offset")
-        ax[2].plot(self.energy_axis, self.offset[tof_id], lw=2, label="Offset")
-        ax[2].set(xlabel="Samples", ylabel="Offset to subtract [a.u.]")
-        ax[3].plot(self.energy_axis, self.jacobian[tof_id], lw=2, label="Interpolated Jacobian")
-        ax[3].set(xlabel="Energy [eV]", ylabel="Jacobian [a.u.]")
-        for a in ax:
-            a.set_title(f"TOF {tof_id}")
 
     def plot_transmissions(self):
         """
@@ -996,7 +1034,7 @@ class CookieboxCalibration(SerializableMixin):
         lw = 3
         ls = '-'
 
-        fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
+        fig, ax = plt.subplots(ncols=2, figsize=(16, 8))
 
         tof_ids = list(self.model_params.keys())
         for i, tof_id in enumerate(tof_ids):
@@ -1019,7 +1057,7 @@ class CookieboxCalibration(SerializableMixin):
         lw = 3
         ls = '-'
 
-        fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
+        fig, ax = plt.subplots(ncols=2, figsize=(16, 8))
 
         tof_ids = list(self.model_params.keys())
         for i, tof_id in enumerate(tof_ids):
@@ -1043,7 +1081,7 @@ class CookieboxCalibration(SerializableMixin):
         lw = 3
         ls = '-'
 
-        fig, ax = plt.subplots(nrows=2, figsize=(12, 20))
+        fig, ax = plt.subplots(ncols=2, figsize=(16, 8))
 
         tof_ids = list(self.model_params.keys())
         for i, tof_id in enumerate(tof_ids):
@@ -1058,12 +1096,12 @@ class CookieboxCalibration(SerializableMixin):
         for a in ax:
             if eV_per_sample:
                 a.set(xlabel="Energy [eV]",
-                      ylabel=r"$\left\vert\frac{dE}{dt}\right\vert$ [eV/samp.]",
-                      ylim=(0, 5),
+                      ylabel=r"$\left\vert\frac{dE}{dt}\right\vert$",
+                      ylim=(0, None),
                       )
             else:
                 a.set(xlabel="Energy [eV]",
-                      ylabel=r"$\left\vert\frac{dt}{dE}\right\vert$ [samp./eV]",
+                      ylabel=r"$\left\vert\frac{dt}{dE}\right\vert$",
                       ylim=(0, 5),
                       )
             a.legend(frameon=False, ncols=2)
@@ -1166,7 +1204,7 @@ class CookieboxCalibration(SerializableMixin):
 
         return outdata
 
-    def calibrate(self, trace: xr.DataArray, normalization: str="average", subtract_offset: bool=False) -> xr.DataArray:
+    def calibrate(self, trace: xr.DataArray, subtract_offset: bool=False) -> xr.DataArray:
         """
         Takes a trace separated with axes ('trainId', 'pulseIndex', 'sample', 'tof'),
         as given by `load_trace` and applies the calibration.
@@ -1178,7 +1216,6 @@ class CookieboxCalibration(SerializableMixin):
           trace: A pre-processed trace retrieved with the *same* `AdqRawChannel` settings as this calibration object.
                  Its axes are expected to be ('trainId', 'pulseIndex', 'sample', 'tof').
                  It is recommended to use always `load_trace` to obtain this.
-          normalization: If "shot", normalize by the Auger peak, if "average", use the average transmission.
           subtract_offset: Whether to subtract a offset.
 
         Returns: the calibrated data as an xarray DataArray.
@@ -1207,11 +1244,6 @@ class CookieboxCalibration(SerializableMixin):
             # get it in the right order
             pulses = tof_trace.transpose('trainId', 'pulseIndex', 'sample')
             coords = pulses.coords
-
-            # integrate Auger
-            mu_auger = self.tof_fit_result[tof_id].mu_auger.mean()
-            sigma = self.tof_fit_result[tof_id].sigma.max()
-            auger = pulses.sel(sample=slice(int(round(mu_auger-2*sigma)), int(round(mu_auger+2*sigma)))).sum("sample")
 
             pulses = pulses.to_numpy()
             # the sample axis to use for the calibration
@@ -1253,19 +1285,13 @@ class CookieboxCalibration(SerializableMixin):
                                          energy=self.energy_axis
                                         )
                             )
-            if normalization == "shot":
-                o = xr.where(auger > 1.0, o/auger, 0.0)
-                np.nan_to_num(o, copy=False)
             return o
 
         outdata = [apply_correction(tof_id, trace.sel(tof=tof_id))
                    for tof_id in tof_ids]
         outdata = xr.concat(outdata, pd.Index(tof_ids, name="tof"))
         outdata = outdata.transpose('trainId', 'pulseIndex', 'energy', 'tof')
-        if normalization == "average":
-            outdata_corr = outdata/norm.to_numpy()[None, None, :, :]
-        else:
-            outdata_corr= outdata
+        outdata_corr = outdata/norm.to_numpy()[None, None, :, :]
 
         return outdata_corr
 
