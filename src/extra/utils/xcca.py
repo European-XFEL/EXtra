@@ -121,7 +121,7 @@ class AngularCorrelator:
             ccn = ccn[...,:max_order+1]
             N = max_order*2
             
-        ccf = np.empty(ccn.shape[:2]+(N,),dtype = complex)
+        ccf = np.empty(ccn.shape[:2]+(N,),dtype = float)
         for q1 in range(self.n_radial_samples):
             irfft(ccn[q1,q1:],n=N,axis = -1,norm='forward',out=ccf[q1,q1:])
             # Fill rest by symmetry
@@ -223,7 +223,6 @@ class AngularCorrelator:
             ccn_mask[q1+1:,q1] = ccn_mask[q1,q1+1:]
             
         return ccn, ccn_mask
-    
     def _compute_ccf_masked(self,data:NDArray[np.float64],mask:NDArray[np.bool],max_order:int|None = None) -> tuple[NDArray[np.float64],NDArray[np.bool]]:
         r"""Compute the mask corrected cross-correlation function.
 
@@ -260,7 +259,8 @@ class AngularCorrelator:
         else:
             ccn,ccn_mask = self._compute_ccn_masked(data,mask,max_order=max_order)
             ccf = self.ccf_from_ccn(ccn,max_order=max_order)
-            ccf_mask = ccn_mask
+            ccf_mask = np.zeros(ccf.shape,bool)
+            ccf_mask[...] = ccn_mask[...,0,None]
         return ccf,ccf_mask
     def _compute_ccf_masked_full(self,data:NDArray[np.float64],mask:NDArray[np.bool]) -> tuple[NDArray[np.float64],NDArray[np.bool]]:
         r"""Compute Cross-correlation function using all harmonic orders.
@@ -287,7 +287,7 @@ class AngularCorrelator:
         ccn_workspace = self.ccn_workspace
         ccf_workspace = self.ccf_workspace
         mask_workspace = self.mask_workspace
-        ccf = np.zeros((n_q,n_q,N),dtype=complex)
+        ccf = np.zeros((n_q,n_q,N),dtype=float)
         ccf_mask = np.zeros((n_q,n_q,N),dtype=bool)
         
         #map numpy methods

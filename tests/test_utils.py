@@ -197,6 +197,84 @@ class TestAngularCrossCorrelation:
             return data,mask
         else:
             return data
+    def get_test_data2(self,n,n_q,n_phi,snr=10,return_mask=True):
+        rng = np.random.default_rng(12345)
+        sample = np.ones((n_q,n_phi),float)#*np.abs(np.cos(np.linspace(0,2*np.pi,n_q)))[:,None]
+        angl_dep = np.linspace(0,np.sqrt(16*np.pi),n_q)
+        angl_dep *= angl_dep[::-1]
+        for i,spart in enumerate(sample):
+            sample[i,:n_phi//2] *= np.sin(np.linspace(0,angl_dep[i],n_phi//2))
+        sample += sample[:,::-1]
+    
+        data = np.zeros((n,n_q,n_phi),float)
+        noise = np.zeros_like(data) 
+        for i in range(n):
+            rot = int(rng.uniform()*n_phi)
+            mean = np.roll(sample,rot,axis=-1)
+            noise[i] = rng.normal(0,mean/np.sqrt(snr))
+            #noise[i] = rng.normal(0,np.ones_like(mean)/np.sqrt(snr))
+            data[i] = mean + noise[i]
+    
+        if return_mask:
+            mask = rng.random(data.shape)>0.4
+            mask[...,:max(1,n_phi//10)]=False
+            return data,mask
+        else:
+            return data
+        
+    def direct_correlation(self,data,mask=None):
+        n_q,n_phi = data.shape
+        corr = np.zeros((n_q,n_q,n_phi),float)
+        corr_counts = np.zeros((n_q,n_q,n_phi),int)
+        if isinstance(mask,np.ndarray):
+            counts = np.zeros((n_q,n_q,n_phi),int)
+            for i in range(n_phi):
+                tmp_corr = data[:,None,:] * np.roll(data,i,axis=-1)[None,:,:]
+                tmp_mask = mask[:,None,:] & np.roll(mask,i,axis=-1)[None,:,:]
+                tmp_corr[~tmp_mask]=0
+                counts = np.sum(tmp_mask.astype(int),axis = -1)
+                nonzero = counts!=0
+                corr[nonzero,i] = np.sum(tmp_corr,axis = -1)[nonzero]/counts[nonzero]
+                corr_counts[...,i] = counts
+            return corr,corr_counts
+        else:
+            for i in range(n_phi):
+                corr[...,i] = np.sum(data[:,None,:]*np.roll(data,i,axis=-1)[None,:,:],axis = -1)/n_phi
+            return corr            
+
+    def test_ccf_same_as_direct_computation(self):
+        n = 1
+        n_q=33
+        n_phi=64
+        data,mask = self.get_test_data2(n,n_q,n_phi)
+        ac = xcca.AngularCorrelator(n_q,n_phi)
+    
+        ccf,ccf_counts = self.direct_correlation(data[0],mask[0])
+        ccf2,ccf_mask2 = ac.ccf(data[0],mask = mask[0])
+        assert np.allclose(ccf,ccf2),'direct computation differs from fft based computation'
+        assert np.allclose(ccf_counts.astype(bool),ccf_mask2), 'mask of direct computation differs from fft based mask'
+    
+    def test_ccf_direct_to_ccn_same_as_ccn(self):
+        n = 1
+        n_q=33
+        n_phi=64
+        data,mask = self.get_test_data2(n,n_q,n_phi)
+        ac = xcca.AngularCorrelator(n_q,n_phi)
+        ccf,ccf_mask = self.direct_correlation(data[0],mask[0])
+        ccn = ac.ccn_from_ccf(ccf)
+        ccn2,_ = ac.ccn(data[0],mask[0])
+        assert np.allclose(ccn,ccn2),'direct computation of ccf + Fourier transform differs from ccn computation via FFTs.'
+    
+    def test_order_limit_does_not_change_ccn(self):
+        n = 1
+        n_q=33
+        n_phi=64
+        data,mask = self.get_test_data2(n,n_q,n_phi)
+        ac = xcca.AngularCorrelator(n_q,n_phi)
+        ccn_full,ccn_mask = ac.ccn(data[0],mask[0])
+        for i in range(2,30):
+            ccn_partial, ccn_partial_mask = ac.ccn(data[0],mask[0],max_order=i)
+            assert np.allclose(ccn_full[...,:i+1],ccn_partial), f'max_order={i} differs from full computation.'
         
     def test_from_dataset_same_as_update_unmasked(self):
         rng = np.random.default_rng(12345)
@@ -218,7 +296,7 @@ class TestAngularCrossCorrelation:
         ccf_close = np.allclose(ccf1._mean,ccf2._mean) & np.allclose(ccf1.count,ccf2.count) & np.allclose(ccf1.m2,ccf2.m2)
         assert ccf_close, 'Unmasked: .from_dataset differs from manual updates for ccf computation.'
         
-    def test_from_dataset_same_as_update_unmasked(self):
+    def test_from_dataset_same_as_update_masked(self):
         rng = np.random.default_rng(12345)
         N,n_q,n_phi = 25,32,64
         max_order = 11
@@ -229,7 +307,7 @@ class TestAngularCrossCorrelation:
         
         ccn2 = xcca.AveragedAngularCorrelationMasked(n_q,n_phi,max_order=11)
         ccf2 = xcca.AveragedAngularCorrelationMasked(n_q,n_phi,max_order=11,compute_coefficients=False)
-        for I,m in zip((data,mask)):
+        for I,m in zip(data,mask):
             ccn2.update(I,m)
             ccf2.update(I,m)
             
