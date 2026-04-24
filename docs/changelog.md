@@ -38,6 +38,9 @@ Added:
   next release, rather than only Python 3.10 (!377).
 - [Scan.group_data()][extra.components.Scan.group_data] method to make an xarray
   or pandas GroupBy object based on scan steps (!379).
+- [Scan.from_motor_targets()][extra.components.Scan.from_motor_targets] method
+  to make a scan object based on the target positions of the motor, excluding
+  points where the actual position is too far from the target.
 - [fit_gaussian()][extra.utils.fit_gaussian] has a new `nans_on_failure`
   argument to allow returning NaN arrays when fitting fails (!385).
 - [fit_gaussian()][extra.utils.fit_gaussian] now supports

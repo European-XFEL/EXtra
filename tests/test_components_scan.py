@@ -1,12 +1,10 @@
-from extra.components import Scan
-
 import pytest
 import numpy as np
 import pandas as pd
 import xarray as xr
 
 import extra_data
-
+from extra.components import Scan
 
 def test_scan(mock_spb_aux_run):
     motor = mock_spb_aux_run["MOTOR/MCMOTORYFACE"]
@@ -146,3 +144,13 @@ def test_scan_group_data(mock_spb_aux_run):
     data_pd = pd.Series(np.zeros(len(pulse_midx)), index=pulse_midx)
     gb2 = s.group_data(data_pd)
     assert len(gb2) == len(s.positions)
+
+
+def test_scan_by_targets(mock_spb_aux_run):
+    scan = Scan.from_motor_targets(mock_spb_aux_run["MOTOR/MCMOTORYFACE"])
+    assert len(scan.positions) == 10
+    assert 0.01 < scan._resolution < 0.5
+    assert [len(tids) for tids in scan.positions_train_ids] == [10] + [9] * 9
+
+    # Smoke test
+    scan.plot()

@@ -63,6 +63,9 @@ def mock_spb_aux_directory():
             # 1 train at each transition between steps.
             motor_ds[:] = np.repeat(np.arange(10), 10)
             motor_ds[10::10] = np.arange(9) + 0.5
+            motor_target_ds = f['CONTROL/MOTOR/MCMOTORYFACE/targetPosition/value']
+            motor_target_ds[:] = np.repeat(np.arange(10), 10)
+
             # write agipd quadrand motor positions
             write_motor_positions(f, "SPB_IRU_AGIPD1M")
             # write jf4m halves motor positions
