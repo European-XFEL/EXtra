@@ -31,6 +31,9 @@ Added:
 - [CalibrationData.reports_info][extra.calibration.CalibrationData.reports_info]
   method to show a summary of the reports associated with groups of calibration
   constants.
+- [lpd_dark_consts_with_fallback][extra.calibration.lpd_dark_consts_with_fallback]
+  function to find LPD dark constants with a fallback to constants recorded with
+  all memory cells.
 - Pre-built packages will be available on PyPI for Python 3.10 - 3.13 from the
   next release, rather than only Python 3.10 (!377).
 - [Scan.group_data()][extra.components.Scan.group_data] method to make an xarray
