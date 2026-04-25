@@ -3,7 +3,7 @@ import pytest
 import xarray as xr
 
 from extra.utils import (
-    imshow2, hyperslicer2, ridgeplot, fit_gaussian, gaussian, reorder_axes_to_shape,
+    imshow2, hyperslicer2, ridgeplot, fit_gaussian, gaussian, reorder_axes_to_shape,xcca
 )
 
 
@@ -103,3 +103,215 @@ def test_reorder_axes_to_shape():
     res = reorder_axes_to_shape(arr, (5, 3))
     assert res.shape == (5, 3)
     np.testing.assert_array_equal(res[0], [0, 5, 10])
+
+
+class TestCumulativeVariance:
+    'Tests for the CumulativeVariance classes.'
+    def get_test_data(self,dtype,n_samples,shape,seed=12345):
+        rng = np.random.default_rng(12345)
+        total_shape = (n_samples,)+ shape
+        if dtype == np.complex128:
+            data = rng.random(total_shape)+1.j*rng.random(total_shape)
+        else:
+            data = rng.random(total_shape).astype(dtype)
+        mask = rng.random(total_shape)>0.7
+        return data,mask        
+    def compute_variance_naively(self,data,mask=None,axis = 0):
+        if mask is None: 
+            with np.testing.suppress_warnings() as snp:
+                snp.filter(RuntimeWarning) # prevents divide by zero and empty slice warnings
+                mean = np.mean(data,axis=axis)
+                variance = np.var(data,axis=axis)
+            if data.shape[axis]==1:
+                variance[:]=0
+            elif data.shape[axis]<1:
+                variance[:]=np.nan
+        else:
+            counts = np.sum(mask.astype(int),axis = axis)
+            sum_ = np.sum(data*mask,axis=axis)
+            sum_square = np.sum((data*data.conj())*mask,axis=axis)
+            mean = np.zeros_like(sum_)
+            mean_square = mean.copy()
+            np.divide(sum_,counts,where = counts>0,out= mean)
+            np.divide(sum_square,counts,where = counts>0,out= mean_square)
+            variance = mean_square-mean*mean.conj()
+    
+            variance[counts==1]=0
+            variance[counts==0]=np.nan
+            mean[counts == 0] = np.nan
+        return mean,variance
+    
+    def test_variance_same_as_naive_computation(self):
+        '''Check if custom variance computation gives same result as naive computation via numpy'''
+        dtypes = [np.float64,np.complex128]
+        n_samples = [0,1,10,100]
+        shapes = np.array([(0,),(1,1),(1,2),(2,1),(42,13),(14,),(2,2,2)],dtype=object)
+        axes = [0,-1]
+        id_grid = np.mgrid[0:len(dtypes),0:len(n_samples),0:len(shapes),0:len(axes)].reshape(4,-1)
+        grid = tuple((dtypes[i],n_samples[j],shapes[k],axes[l]) for i,j,k,l in zip(*id_grid))
+        
+        for dtype,n,shape,ax in grid:
+            data,mask = self.get_test_data(dtype,n,shape)
+            #print(data.shape,n,shape,ax)
+            try:
+                cvm = xcca.CumulativeVarianceMasked.from_dataset(data,mask,axis = ax)
+                cv = xcca.CumulativeVariance.from_dataset(data,axis = ax)
+                
+                mean,variance = self.compute_variance_naively(data,axis=ax)
+                assert np.allclose(cv.mean,mean,equal_nan=True),"mean unequal"
+                assert np.allclose(cv.variance,variance,equal_nan=True), "variances are unequal"
+                
+                mean,variance = self.compute_variance_naively(data,mask,axis = ax)
+                assert np.allclose(cvm.mean,mean,equal_nan=True),"Masked mean unequal"
+                assert np.allclose(cvm.variance,variance,equal_nan=True), "Masked variances are unequal"
+            except Exception as e:
+                print(f"Parameters: f{(dtype,n,shape,ax)}")
+                raise e                
+    def test_merge(self):
+        '''Check that merging results from to data parts give same result as naive computation for entire dataset.'''
+        data,mask = self.get_test_data(np.float64,100,(12,4))
+        n=34
+        try:
+            mean,variance = self.compute_variance_naively(data)    
+            cv1 = xcca.CumulativeVariance.from_dataset(data[:n])
+            cv2 = xcca.CumulativeVariance.from_dataset(data[n:])
+            cv1.merge(cv2)
+            assert np.allclose(cv1.mean,mean),"Mean unequal after merge."
+            assert np.allclose(cv1.variance,variance),"Variance unequal after merge."
+            
+            mean,variance = self.compute_variance_naively(data,mask)    
+            cvm1 = xcca.CumulativeVarianceMasked.from_dataset(data[:n],mask[:n])
+            cvm2 = xcca.CumulativeVarianceMasked.from_dataset(data[n:],mask[n:])
+            cvm1.merge(cvm2)
+            assert np.allclose(cvm1.mean,mean),"Masked mean unequal after merge."
+            assert np.allclose(cvm1.variance,variance),"Masked variance unequal after merge."            
+        except Exception as e:
+            raise e   
+
+class TestAngularCrossCorrelation:
+    def get_test_data(self,n,n_q,n_phi,return_mask=False):
+        rng = np.random.default_rng(12345)
+        data = rng.random((n,n_q,n_phi))
+        if return_mask:
+            mask = rng.random((n,n_q,n_phi))>0.7
+            return data,mask
+        else:
+            return data
+    def get_test_data2(self,n,n_q,n_phi,snr=10,return_mask=True):
+        rng = np.random.default_rng(12345)
+        sample = np.ones((n_q,n_phi),float)#*np.abs(np.cos(np.linspace(0,2*np.pi,n_q)))[:,None]
+        angl_dep = np.linspace(0,np.sqrt(16*np.pi),n_q)
+        angl_dep *= angl_dep[::-1]
+        for i,spart in enumerate(sample):
+            sample[i,:n_phi//2] *= np.sin(np.linspace(0,angl_dep[i],n_phi//2))
+        sample += sample[:,::-1]
+    
+        data = np.zeros((n,n_q,n_phi),float)
+        noise = np.zeros_like(data) 
+        for i in range(n):
+            rot = int(rng.uniform()*n_phi)
+            mean = np.roll(sample,rot,axis=-1)
+            noise[i] = rng.normal(0,mean/np.sqrt(snr))
+            #noise[i] = rng.normal(0,np.ones_like(mean)/np.sqrt(snr))
+            data[i] = mean + noise[i]
+    
+        if return_mask:
+            mask = rng.random(data.shape)>0.4
+            mask[...,:max(1,n_phi//10)]=False
+            return data,mask
+        else:
+            return data
+        
+    def direct_correlation(self,data,mask=None):
+        n_q,n_phi = data.shape
+        corr = np.zeros((n_q,n_q,n_phi),float)
+        corr_counts = np.zeros((n_q,n_q,n_phi),int)
+        if isinstance(mask,np.ndarray):
+            counts = np.zeros((n_q,n_q,n_phi),int)
+            for i in range(n_phi):
+                tmp_corr = data[:,None,:] * np.roll(data,i,axis=-1)[None,:,:]
+                tmp_mask = mask[:,None,:] & np.roll(mask,i,axis=-1)[None,:,:]
+                tmp_corr[~tmp_mask]=0
+                counts = np.sum(tmp_mask.astype(int),axis = -1)
+                nonzero = counts!=0
+                corr[nonzero,i] = np.sum(tmp_corr,axis = -1)[nonzero]/counts[nonzero]
+                corr_counts[...,i] = counts
+            return corr,corr_counts
+        else:
+            for i in range(n_phi):
+                corr[...,i] = np.sum(data[:,None,:]*np.roll(data,i,axis=-1)[None,:,:],axis = -1)/n_phi
+            return corr            
+
+    def test_ccf_same_as_direct_computation(self):
+        n = 1
+        n_q=33
+        n_phi=64
+        data,mask = self.get_test_data2(n,n_q,n_phi)
+        ac = xcca.AngularCorrelator(n_q,n_phi)
+    
+        ccf,ccf_counts = self.direct_correlation(data[0],mask[0])
+        ccf2,ccf_mask2 = ac.ccf(data[0],mask = mask[0])
+        assert np.allclose(ccf,ccf2),'direct computation differs from fft based computation'
+        assert np.allclose(ccf_counts.astype(bool),ccf_mask2), 'mask of direct computation differs from fft based mask'
+    
+    def test_ccf_direct_to_ccn_same_as_ccn(self):
+        n = 1
+        n_q=33
+        n_phi=64
+        data,mask = self.get_test_data2(n,n_q,n_phi)
+        ac = xcca.AngularCorrelator(n_q,n_phi)
+        ccf,ccf_mask = self.direct_correlation(data[0],mask[0])
+        ccn = ac.ccn_from_ccf(ccf)
+        ccn2,_ = ac.ccn(data[0],mask[0])
+        assert np.allclose(ccn,ccn2),'direct computation of ccf + Fourier transform differs from ccn computation via FFTs.'
+    
+    def test_order_limit_does_not_change_ccn(self):
+        n = 1
+        n_q=33
+        n_phi=64
+        data,mask = self.get_test_data2(n,n_q,n_phi)
+        ac = xcca.AngularCorrelator(n_q,n_phi)
+        ccn_full,ccn_mask = ac.ccn(data[0],mask[0])
+        for i in range(2,30):
+            ccn_partial, ccn_partial_mask = ac.ccn(data[0],mask[0],max_order=i)
+            assert np.allclose(ccn_full[...,:i+1],ccn_partial), f'max_order={i} differs from full computation.'
+        
+    def test_from_dataset_same_as_update_unmasked(self):
+        rng = np.random.default_rng(12345)
+        N,n_q,n_phi = 25,32,64
+        max_order = 11
+        data = self.get_test_data(N,n_q,n_phi)
+        
+        ccn1 = xcca.AveragedAngularCorrelation.from_dataset(data,max_order=11)
+        ccf1 = xcca.AveragedAngularCorrelation.from_dataset(data,max_order=11,compute_coefficients=False)#bug here
+        
+        ccn2 = xcca.AveragedAngularCorrelation(n_q,n_phi,max_order=11)
+        ccf2 = xcca.AveragedAngularCorrelation(n_q,n_phi,max_order=11,compute_coefficients=False)
+        for I in data:
+            ccn2.update(I)
+            ccf2.update(I)
+            
+        ccn_close = np.allclose(ccn1._mean,ccn2._mean) & np.allclose(ccn1.count,ccn2.count) & np.allclose(ccn1.m2,ccn2.m2)
+        assert ccn_close, 'Unmasked: .from_dataset differs from manual updates for ccn computation.'
+        ccf_close = np.allclose(ccf1._mean,ccf2._mean) & np.allclose(ccf1.count,ccf2.count) & np.allclose(ccf1.m2,ccf2.m2)
+        assert ccf_close, 'Unmasked: .from_dataset differs from manual updates for ccf computation.'
+        
+    def test_from_dataset_same_as_update_masked(self):
+        rng = np.random.default_rng(12345)
+        N,n_q,n_phi = 25,32,64
+        max_order = 11
+        data,mask = self.get_test_data(N,n_q,n_phi,return_mask=True)
+        
+        ccn1 = xcca.AveragedAngularCorrelationMasked.from_dataset(data,mask,max_order=11)
+        ccf1 = xcca.AveragedAngularCorrelationMasked.from_dataset(data,mask,max_order=11,compute_coefficients=False)
+        
+        ccn2 = xcca.AveragedAngularCorrelationMasked(n_q,n_phi,max_order=11)
+        ccf2 = xcca.AveragedAngularCorrelationMasked(n_q,n_phi,max_order=11,compute_coefficients=False)
+        for I,m in zip(data,mask):
+            ccn2.update(I,m)
+            ccf2.update(I,m)
+            
+        ccn_close = np.allclose(ccn1._mean,ccn2._mean) & np.allclose(ccn1.count,ccn2.count) & np.allclose(ccn1.m2,ccn2.m2)
+        assert ccn_close, 'Masked: .from_dataset differs from manual updates for ccn computation.'
+        ccf_close = np.allclose(ccf1._mean,ccf2._mean) & np.allclose(ccf1.count,ccf2.count) & np.allclose(ccf1.m2,ccf2.m2)
+        assert ccf_close, 'Masked: .from_dataset differs from manual updates for ccf computation.'
