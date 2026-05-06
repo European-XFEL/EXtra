@@ -322,7 +322,7 @@ class Scan:
             import matplotlib.pyplot as plt
             _, ax = plt.subplots(figsize=figsize)
 
-        binned_data = self.bin_by_steps(data)
+        binned_data = self.bin_by_steps(data, uncertainty_method=uncertainty_method)
 
         if binned_data.ndim == 1:
             uncertainty_label = "standard deviation" if uncertainty_method == "std" else "standard error"
