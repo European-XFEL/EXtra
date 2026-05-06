@@ -67,6 +67,8 @@ Fixed:
   by using RANSAC for the fit, using the Golden method for the t0 search, and added an option for
   using photo-electron counting for increased robustness. Peaks are also masked if not found to avoid
   contaminating the fit (!476).
+- [Scan.plot_bin_by_steps()][extra.components.Scan.plot_bin_by_steps] correctly uses the
+  `uncertainty_method` parameter.
 
 Changed:
 
