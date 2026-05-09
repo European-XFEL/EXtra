@@ -69,6 +69,8 @@ Fixed:
   contaminating the fit (!476).
 - [Scan.plot_bin_by_steps()][extra.components.Scan.plot_bin_by_steps] correctly uses the
   `uncertainty_method` parameter.
+- Fixed support for plotting images with zeros/negative numbers with
+  [imshow2()][extra.utils.imshow2] and `lognorm=True` (!491).
 
 Changed:
 

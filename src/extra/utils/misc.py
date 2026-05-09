@@ -104,7 +104,11 @@ def imshow2(image, *args, colorbar=True, lognorm=False, ax=None, **kwargs):
     # Enable log color scale if requested and `norm` is not already set
     if lognorm and "norm" not in kwargs:
         from matplotlib.colors import LogNorm
-        kwargs["norm"] = LogNorm()
+        # Pick the smallest valid value as vmin instead of 0, which can cause
+        # errors with LogNorm
+        image_data = image.data if is_dataarray else image
+        vmin = np.nanmin(image_data[image_data > 0])
+        kwargs["norm"] = LogNorm(vmin=vmin)
 
     # Set the vmin/vmax if we're not using `norm`
     if "norm" not in kwargs and np.issubdtype(image.dtype, np.number):
