@@ -1,8 +1,13 @@
 import sys
+from dataclasses import dataclass
+from time import perf_counter
+from typing import ClassVar, Self
 
 import numpy as np
 
 from typing import Any
+
+from pandas._libs.tslibs import timestamps
 
 
 def find_nearest_index(array, value: Any) -> np.int64:
@@ -56,6 +61,66 @@ def reorder_axes_to_shape(a, target_shape):
 
     order = tuple([a.shape.index(l) for l in t])
     return a.transpose(order)
+
+
+@dataclass
+class TimingResult:
+    name: str
+    timestamps: list[tuple[str, float]]
+    finish: float | None = None
+
+    @property
+    def step_times(self):
+        d = {}
+        prev_ts = self.timestamps[0][1]
+        for label, ts in self.timestamps[1:]:
+            d.setdefault(label, []).append(ts - prev_ts)
+            prev_ts = ts
+
+        return d
+
+    def _repr_markdown_(self):
+        lines = [f"**{self.name}** step timings:", ""]
+        for i, (label, dts) in enumerate(self.step_times.items(), start=1):
+            dt = np.mean(dts)
+            rpt = f"({len(dts)}×)" if len(dts) > 1 else ""
+            lines.append(f"{i}. {label}: {dt:.3g} s {rpt}")
+        if self.finish:
+            start = self.timestamps[0][1]
+            lines.extend(["", f"Total: {self.finish - start:.3g} s"])
+        return "\n".join(lines)
+
+
+class StepTimer:
+    latest: ClassVar[TimingResult | None] = None  # Store the latest timings
+    show = False  # Set True to show timings as they're recorded
+
+    def __init__(self, name: str):
+        ts = perf_counter()
+        self.results = TimingResult(name, [("start", ts)])
+        self.on_start(name, ts)
+
+    def __call__(self, label: str):
+        ts = perf_counter()
+
+        self.results.timestamps.append((label, ts))
+        self.on_step(label, ts - self.results.timestamps[-2][1])
+
+    def __del__(self):
+        self.results.finish = perf_counter()
+        StepTimer.latest = self.results
+        self.on_finish(self.results)
+
+    # The on_ methods are meant to be
+    def on_start(self, name, timestamp):
+        pass
+
+    def on_step(self, label, dt):
+        if self.show:
+            print(f"{label}: {dt:.3g} s")
+
+    def on_finish(self, results):
+        pass
 
 
 def _isinstance_no_import(obj, mod: str, cls: str):
