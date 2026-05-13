@@ -8,6 +8,7 @@ import pandas as pd
 
 from extra_data import by_id
 from extra_data.read_machinery import roi_shape, split_trains
+from ..utils.misc import StepTimer
 from .pulses import XrayPulses, PulsePattern
 from .utils import _isinstance_no_import
 from ._adq import _reshape_flat_pulses
@@ -1122,6 +1123,7 @@ class AdqRawChannel:
         Returns:
             data (xarray.DataArray or numpy.ndarray): Digitizer traces.
         """
+        timer = StepTimer("AdqRawChannel.pulse_data")
 
         if isinstance(train_roi, slice):
             # See comment in AdqChannel.train_data().
@@ -1146,6 +1148,7 @@ class AdqRawChannel:
             if isinstance(psh, pasha.ProcessContext) and out is not None:
                 raise TypeError("Cannot use out= with parallel processing")
             out = self._validate_out(out, out_shape, psh.alloc, dtype=dtype)
+            timer("setup")
 
             def read_pulses(wid, index, train_id, data):
                 layout_row = pulse_layout.loc[train_id]
@@ -1158,6 +1161,7 @@ class AdqRawChannel:
                     layout_row['length'])
 
             psh.map(read_pulses, raw_key)
+            timer("parallel read")
 
         else:
             # Prepare output buffers.
@@ -1166,6 +1170,7 @@ class AdqRawChannel:
             # Temporary buffer for a single iteration.
             tmp = np.zeros((200,) + roi_shape(
                 self._raw_key.entry_shape, train_roi), dtype=out.dtype)
+            timer("setup")
 
             for kd in raw_key.split_trains(trains_per_part=200):
                 pulse_sel = np.s_[pulse_layout.loc[kd.train_ids[0]]['first']:
@@ -1173,11 +1178,14 @@ class AdqRawChannel:
 
                 tmp_sel = tmp[:len(kd.train_ids)]
                 kd.ndarray(roi=train_roi, out=tmp_sel)
+                timer("load chunk")
 
                 self._preprocess(tmp_sel, tmp_sel)
+                timer("preprocess chunk")
                 self._reshape_flat_pulses(
                     tmp_sel, out[pulse_sel], pulse_ids[pulse_sel],
                     pulse_layout['length'].max())
+                timer("reshape chunk")
 
         if not labelled:
             return out
