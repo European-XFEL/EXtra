@@ -1,13 +1,11 @@
 import sys
 from dataclasses import dataclass
 from time import perf_counter
-from typing import ClassVar, Self
+from typing import ClassVar
 
 import numpy as np
 
 from typing import Any
-
-from pandas._libs.tslibs import timestamps
 
 
 def find_nearest_index(array, value: Any) -> np.int64:
@@ -126,6 +124,12 @@ class StepTimer:
 
         self.results.timestamps.append((label, ts))
         self.on_step(label, ts - self.results.timestamps[-2][1])
+
+    def __enter__(self):
+        return self  # No timestamp, we assume this is immediately after init
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self("with block finish")
 
     def __del__(self):
         self.results.finish = perf_counter()

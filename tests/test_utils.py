@@ -4,6 +4,7 @@ import xarray as xr
 
 from extra.utils import (
     imshow2, hyperslicer2, ridgeplot, fit_gaussian, gaussian, reorder_axes_to_shape,
+    StepTimer,
 )
 
 
@@ -103,3 +104,16 @@ def test_reorder_axes_to_shape():
     res = reorder_axes_to_shape(arr, (5, 3))
     assert res.shape == (5, 3)
     np.testing.assert_array_equal(res[0], [0, 5, 10])
+
+
+def test_steptimer():
+    with StepTimer("testing") as timer:
+        timer("label")
+
+    tr = timer.results
+    assert [l for l, _ in tr.timestamps] == ["start", "label", "with block finish"]
+    assert len(tr.step_times) == 2
+
+    # Smoke test
+    repr(tr)
+    tr._repr_markdown_()
