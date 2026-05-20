@@ -65,6 +65,7 @@ def reorder_axes_to_shape(a, target_shape):
 
 @dataclass
 class TimingResult:
+    """Results collected by StepTimer. Should display itself nicely."""
     name: str
     timestamps: list[tuple[str, float]]
     finish: float | None = None
@@ -90,8 +91,28 @@ class TimingResult:
             lines.extend(["", f"Total: {self.finish - start:.3g} s"])
         return "\n".join(lines)
 
+    def __repr__(self):
+        lines = [f"{self.name} step timings:", ""]
+        for i, (label, dts) in enumerate(self.step_times.items(), start=1):
+            dt = np.mean(dts)
+            rpt = f"({len(dts)}×)" if len(dts) > 1 else ""
+            lines.append(f"{i:3d}. {label}: \t{dt:.3g} s {rpt}")
+        if self.finish:
+            start = self.timestamps[0][1]
+            lines.extend(["", f"Total: {self.finish - start:.3g} s"])
+        return "\n".join(lines)
+
 
 class StepTimer:
+    """Measure step timings within a function or method.
+
+    Instantiate StepTimer() with the name of the thing being timed, then call
+    it at the end of each step with a label for that step.
+
+    Timings aren't shown by default, but StepTimer.latest gives the last
+    finished measurements, or set StepTimer.show=True to print timings as they
+    are measured. Override on_start, on_step & on_finish to do more.
+    """
     latest: ClassVar[TimingResult | None] = None  # Store the latest timings
     show = False  # Set True to show timings as they're recorded
 
@@ -113,13 +134,16 @@ class StepTimer:
 
     # The on_ methods are meant to be
     def on_start(self, name, timestamp):
+        """Overridable: called with timer name & start timestamp"""
         pass
 
     def on_step(self, label, dt):
+        """Overridable: called with step label and time since last call"""
         if self.show:
             print(f"{label}: {dt:.3g} s")
 
     def on_finish(self, results):
+        """Overridable: called with TimingResults object"""
         pass
 
 
