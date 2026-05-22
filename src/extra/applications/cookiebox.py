@@ -187,7 +187,7 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
         tof_data = tof[tof_id].select_trains(by_id[train_ids])
         tof_data = tof_data.pulse_edges(pulse_dim='pulseIndex', threshold=count_threshold).reset_index()
 
-        bins = np.arange(0, n_samples+1)
+        bins = np.arange(0, count_samples+1)
         out_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.amplitude)
 
         out_data = xr.DataArray(out_data, dims=('sample'), coords={'sample': bins[:-1]})
