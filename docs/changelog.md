@@ -74,6 +74,7 @@ Fixed:
   `uncertainty_method` parameter.
 - Fixed support for plotting images with zeros/negative numbers with
   [imshow2()][extra.utils.imshow2] and `lognorm=True` (!491).
+- Fixed counting threshold for `CookieboxCalibration` (!498).
 
 Changed:
 
