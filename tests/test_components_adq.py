@@ -178,16 +178,19 @@ def test_pull_baseline(mock_sqs_remi_run, in_dtype):
         np.testing.assert_allclose(out[i, j], single_trace - 24.5)
 
 
-def test_train_data(mock_sqs_remi_run):
+@pytest.mark.parametrize('parallel', [False, 1, 4, None])
+def test_train_data(mock_sqs_remi_run, parallel):
+    kw = dict(parallel=parallel)
+
     ch = AdqRawChannel(mock_sqs_remi_run, '3B', digitizer='SQS_DIGITIZER_UTC2')
     assert ch.raw_samples_key[0].ndarray()[0, 0] == -100
 
-    xr_data = ch.train_data(roi=(np.s_[:30000],))
+    xr_data = ch.train_data(roi=(np.s_[:30000],), **kw)
     assert isinstance(xr_data, xr.DataArray)
     assert xr_data.dims == ('trainId', 'sample')
 
     # Test unlabelled and non-tuple roi.
-    np_data = ch.train_data(labelled=False, roi=np.s_[:30000])
+    np_data = ch.train_data(labelled=False, roi=np.s_[:30000], **kw)
     assert isinstance(np_data, np.ndarray)
 
     for data in [xr_data.data, np_data]:
@@ -200,17 +203,20 @@ def test_train_data(mock_sqs_remi_run):
         np.testing.assert_array_equal(data.argmax(axis=1), 8974)
 
 
-def test_pulse_data(mock_sqs_remi_run):
+@pytest.mark.parametrize('parallel', [False, 1, 4, None])
+def test_pulse_data(mock_sqs_remi_run, parallel):
+    kw = dict(parallel=parallel)
+
     pulses = XrayPulses(mock_sqs_remi_run, sase=1)
     ch = AdqRawChannel(mock_sqs_remi_run, '3B', digitizer='SQS_DIGITIZER_UTC2',
                        pulses=pulses, first_pulse_offset=2000,
                        baseline=np.s_[-10000:])
 
-    xr_data = ch.pulse_data(train_roi=(np.s_[:-100],))
+    xr_data = ch.pulse_data(train_roi=(np.s_[:-100],), **kw)
     assert isinstance(xr_data, xr.DataArray)
     assert xr_data.dims == ('pulse', 'sample')
 
-    np_data = ch.pulse_data(labelled=False, train_roi=np.s_[:-100])
+    np_data = ch.pulse_data(labelled=False, train_roi=np.s_[:-100], **kw)
     assert isinstance(np_data, np.ndarray)
 
     for data in [xr_data.data, np_data]:
@@ -235,13 +241,13 @@ def test_pulse_data(mock_sqs_remi_run):
         pulses=XrayPulses(mock_sqs_remi_run.select_trains(np.s_[:-10])))
 
     with pytest.raises(ValueError):
-        ch.pulse_data()
+        ch.pulse_data(**kw)
 
     # Use pulse information with more trains available.
     ch = AdqRawChannel(
         mock_sqs_remi_run.select_trains(np.s_[:-10]), '3B',
         digitizer='SQS_DIGITIZER_UTC2', pulses=pulses)
-    data = ch.pulse_data()
+    data = ch.pulse_data(**kw)
 
     assert data.shape[0] < pulses.pulse_counts().sum()
 
