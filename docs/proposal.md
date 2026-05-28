@@ -17,11 +17,11 @@ proposal.info()
 # Get a table of samples and the runs they have
 proposal.samples_table()
 
-# Get DAQ data from extra-data
-proposal.data()
+# Get DAQ data from extra-data for run 10
+proposal[10].data()
 
 # Get DAMNIT data through the DAMNIT API
-proposal.damnit()
+proposal[10].damnit()
 ```
 
 ::: extra.proposal.Proposal
