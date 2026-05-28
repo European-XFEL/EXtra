@@ -931,6 +931,14 @@ class TimeserverPulses(PulsePattern):
         """Get nodes in pulse pattern decoder device."""
         raise NotImplementedError('_get_ppdecoder_nodes')
 
+    def _get_xray_pulses(self, sase):
+        """XrayPulses object for given SASE using the same data."""
+
+        if isinstance(self, XrayPulses) and self._sase == sase:
+            return self
+
+        return XrayPulses(None, self._source, sase=sase)
+
     @property
     def timeserver(self) -> SourceData:
         """Used timeserver source."""
@@ -998,12 +1006,162 @@ class TimeserverPulses(PulsePattern):
                 if the pulse patterns do not allow the determination.
         """
 
-        sa1_pulses = XrayPulses(None, self._source, sase=1) \
-            if self._sase != 1 else self
-        sa3_pulses = XrayPulses(None, self._source, sase=3) \
-            if self._sase != 3 else self
+        return self._get_xray_pulses(1).is_interleaved_with(
+            self._get_xray_pulses(3))
 
-        return sa1_pulses.is_interleaved_with(sa3_pulses)
+    def plot_xray_patterns(self, sase=[2, 1, 3], figsize=(9, 4), ax=None):
+        """Visualize X-ray pulse patterns.
+
+        Plots the X-ray pulse pattterns in this data on a common time
+        scale. Variable patterns are represented by levels of
+        transparency weighted by their rate of occurence. The right Y
+        axis includes statistics about pulse count (Σ) and period (Δ).
+
+        Args:
+            sase (Sequence of int, optional): SASE beamlines to include
+                and in which order, [2, 1, 3] by default.
+            figsize (2-tuple of float, optional): Figure size in inches
+                passed to matplotlib, ignored if ax is passed.
+            ax (matplotlib.axes.Axes, optional): Axes object to plot
+                into, created automatically if omitted.
+
+        Returns:
+            ax (matplotlib.axes.Axes): Axes object the plot was
+                generated in.
+        """
+
+        if ax is None:
+            import matplotlib.pyplot as plt
+            fig, ax = plt.subplots(figsize=figsize)
+
+        # Height of vertical lines for a single SASE.
+        b = 0.6
+
+        # Additional spacing between the center line of a SASE and the lower
+        # edge of the next SASE's vertical line.
+        d = 0.2
+
+        min_pids = np.full(len(sase), self._bunch_pattern_table_len, dtype=int)
+        max_pids = np.zeros(len(sase), dtype=int)
+
+        # Construct XrayPulses for every SASE to visualize.
+        pulses = [self._get_xray_pulses(x) for i, x in enumerate(sase)]
+
+        # First pass to plot vertical pattern lines and determine min/max
+        # pulse ID per SASE.
+        for i in range(len(sase)):
+            unique_masks, counts = np.unique(
+                pulses[i].pulse_mask(), axis=0, return_counts=True)
+            total = counts.sum()
+
+            for mask, count in zip(unique_masks, counts):
+                if (pids := np.flatnonzero(mask)).size == 0:
+                    continue
+
+                ax.vlines(pids,
+                        i * (b/2) + i * d,
+                        i * (b/2) + i * d + b,
+                        color=f'C{i}', lw=1.0, alpha=count/total)
+
+                min_pids[i] = min(min_pids[i], pids.min())
+                max_pids[i] = max(max_pids[i], pids.max())
+
+        min_pid = min_pids.min()
+        max_pid = max_pids.max()
+        pid_range = max_pid - min_pid
+        text_spacing = max(pid_range // 400, 0.02)
+
+        # Second pass to add min/max pulse ID for each SASE.
+        for i in range(len(sase)):
+            if (max_pids[i] - min_pids[i]) < 0:
+                continue  # No pulses
+
+            ax.text(min_pids[i] - text_spacing,
+                    (i + 1) * (b/2) + i * d, str(min_pids[i]),
+                    rotation=90, fontsize='x-small',
+                    c=f'C{i}', ha='right', va='center')
+
+            if max_pids[i] > min_pids[i]:
+                ax.text(max_pids[i] + 3 * text_spacing,
+                        (i + 1) * (b/2) + i * d, str(max_pids[i]),
+                        rotation=90, fontsize='x-small',
+                        c=f'C{i}', ha='left', va='center')
+
+        from matplotlib.ticker import AutoLocator, AutoMinorLocator
+
+        # Lower X axis in pulse IDs.
+        ax.set_xlim(min_pid - max(pid_range * 0.05, 2),
+                    max_pid + max(pid_range * 0.05, 2))
+        ax.xaxis.set_major_locator(AutoLocator())
+        ax.xaxis.set_minor_locator(AutoMinorLocator())
+        ax.set_xlabel('Pulse ID / 4.5 MHz')
+
+        # Upper X axis in (micro)seconds with its own suitable ticks.
+        t_ax = ax.twiny()
+        t_ax.set_xlim(ax.get_xlim())
+
+        us_rate = 1e6/self.bunch_repetition_rate
+        time_ticks = AutoLocator().tick_values(*[
+            us_rate * x for x in ax.get_xlim()])
+        time_ticks = time_ticks[(time_ticks > (min_pid * us_rate)) &
+                                (time_ticks < (max_pid * us_rate))]
+        t_ax.set_xticks(time_ticks / us_rate)
+        t_ax.set_xticklabels(time_ticks.astype(int))
+        t_ax.xaxis.set_minor_locator(AutoMinorLocator())
+        t_ax.set_xlabel('Time / μs')
+
+        # Left Y axis with SASE labels.
+        ax.set_ylim(-d, (len(sase) - 1) * (b/2) + (len(sase) - 1) * d + b + d)
+        ax.set_yticks([(i + 1) * (b/2) + i * d for i in range(len(sase))])
+        ax.set_yticklabels(
+            [f'SA{s}' for s in sase],
+            rotation=90, va='center', fontsize='large')
+
+        # Right Y axis with statistics.
+        s_ax = ax.twinx()
+        s_ax.set_ylim(ax.get_ylim())
+        s_ax.set_yticks(ax.get_yticks())
+
+        y_labels = []
+        for i in range(len(sase)):
+            counts = pulses[i].pulse_counts()
+            min_count = counts.min()
+            max_count = counts.max()
+
+            if max_count > min_count:
+                count_str = f'{min_count}-{max_count}'
+            else:
+                count_str = str(min_count)
+
+            if max_count < 2:
+                period_str = 'n/a'
+            else:
+                # Omit trains without pulses for period.
+                periods = pulses[i].pulse_periods(no_pulse_value=-1)
+                min_period = periods[periods >= 0].min()
+                max_period = periods[periods >= 0].max()
+
+                if max_period > min_period:
+                    period_str = f'{min_period}-{max_period}'
+                else:
+                    period_str = str(min_period)
+
+            y_labels.append(f'Σ {count_str}\nΔ {period_str}')
+
+        s_ax.set_yticklabels(y_labels, va='center', fontsize='small')
+
+        # Set color for Y tick labels.
+        for labels in [ax.get_yticklabels(), s_ax.get_yticklabels()]:
+            for i, label in enumerate(labels):
+                label.set_color(f'C{i}')
+
+        # General plot setup.
+        ax.set_title(f'X-ray pulses in {self._source.source}')
+        ax.tick_params(left=False, right=False)
+        s_ax.tick_params(right=False)
+        ax.grid(which='major', axis='x', alpha=0.15, linewidth=0.5)
+
+        return ax
 
 
 class XrayPulses(TimeserverPulses):
