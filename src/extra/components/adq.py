@@ -337,7 +337,8 @@ class AdqRawChannel:
             out = alloc(shape, dtype=dtype)
         elif any([a < b for a, b in zip(out.shape, shape)]):
             raise ValueError(f'requires at least output array shape {shape}')
-        elif is_corrected and not np.issubdtype(out.dtype, np.floating):
+
+        if is_corrected and not np.issubdtype(out.dtype, np.floating):
             from warnings import warn
             warn('Common mode correction or baselevel pull may yield '
                  'incorrect results with non-floating data types',
