@@ -385,10 +385,13 @@ class VSLight(SerializableMixin):
                 d["model"][tof_id][e] = {name: getattr(self.model[tof_id].estimators_[e], name)
                                          for name in self._all_model_fields}
         return d
-    def _fromdict(self, all_data):
+
+    @classmethod
+    def _fromdict(cls, all_data):
         """
         Actions to do after loading from file.
         """
+        self = cls()
         from sklearn.decomposition import IncrementalPCA
         from sklearn.linear_model import ARDRegression
         from .vs_utils import MultiOutputGenericWithStd
@@ -423,6 +426,7 @@ class VSLight(SerializableMixin):
         # for tof_id in self._kwargs_adq.keys():
         #     self.kwargs_adq[tof_id]["source"] = self.kwargs_adq[tof_id]["source"].decode("utf-8")
         #     self.kwargs_adq[tof_id]["name"] = self.kwargs_adq[tof_id]["name"].decode("utf-8")
+        return self
 
     def setup(self,
               run: DataCollection,
