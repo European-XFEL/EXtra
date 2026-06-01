@@ -1711,6 +1711,7 @@ def lpd_dark_consts_with_fallback(
         condition,
         detector_name,
         calibrations=["Offset", "Noise", "BadPixelsDark"],
+        event_at=event_at,
         **kwargs
     )
 
@@ -1722,6 +1723,7 @@ def lpd_dark_consts_with_fallback(
         replace(condition, memory_cell_order=fallback_mem_cell_order),
         detector_name,
         calibrations=["Offset", "Noise", "BadPixelsDark"],
+        event_at=event_at,
         **kwargs
     )
 
