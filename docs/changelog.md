@@ -57,6 +57,7 @@ Added:
 - [TOFAnalogResponse][extra.applications.TOFAnalogResponse] can deconvolve the Auger-Meitner
   and photon line if the flag `deconvolve` is set to True.
   summary about a pulse pattern (!435).
+- [XCCA](applications/xcca.md) Toolbox for the computation of X-ray cross-correlation analysis related quantities.
 
 Fixed:
 
