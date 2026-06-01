@@ -91,6 +91,7 @@ Changed:
   [pulse_mask()][extra.components.pulses.PulsePattern.pulse_mask] to 4096 (!461).
 - [CookieboxCalibration][extra.applications.CookieboxCalibration] calculates the transmission
   using the sum of the trace instead of the fit amplitude for robustness.
+- [SerializableMixin][extra.applications.base.SerializableMixin] _fromdict becomes a classmethod.
 
 ## [2025.1]
 
