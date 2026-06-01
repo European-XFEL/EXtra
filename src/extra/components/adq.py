@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from extra_data import by_id
-from extra_data.read_machinery import roi_shape
+from extra_data.read_machinery import roi_shape, split_trains
 from .pulses import XrayPulses, PulsePattern
 from .utils import _isinstance_no_import
 from ._adq import _reshape_flat_pulses
@@ -638,6 +638,11 @@ class AdqRawChannel:
             res._pulses = self._pulses.select_trains(trains)
 
         return res
+
+    def split_trains(self, parts=None, trains_per_part=None):
+        n_trains = len(self._instrument_src.train_ids)
+        for sl in split_trains(n_trains, parts=parts, trains_per_part=trains_per_part):
+            yield self.select_trains(sl)
 
     def samples_per_pulse(self, pulse_period=None, pulse_duration=None,
                           repetition_rate=None, pulse_ids=None,

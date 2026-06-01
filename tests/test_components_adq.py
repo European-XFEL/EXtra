@@ -343,3 +343,9 @@ def test_pulse_edges(mock_sqs_remi_run):
     edges = ch.pulse_edges(threshold=0.5)
 
     assert edges.shape[0] < pulses.pulse_counts().sum()
+
+
+def test_split_trains(mock_sqs_remi_run):
+    ch = AdqRawChannel(mock_sqs_remi_run, "1C", digitizer='SQS_DIGITIZER_UTC2')
+    chunks = list(ch.split_trains(trains_per_part=30))
+    assert [len(c.instrument_source.train_ids) for c in chunks] == [25] * 4
