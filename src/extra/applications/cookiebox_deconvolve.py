@@ -458,7 +458,7 @@ class TOFAnalogResponse(SerializableMixin):
             if self.count_threshold is None or self.count_threshold >= 0:
                 this_tof_data = -tof.pulse_data(pulse_dim="pulseIndex").unstack("pulse")
                 for k, e in enumerate(scan.positions):
-                    data += [this_tof_data.sel(trainId=scan.positions_train_ids[k]).mean("trainId").mean("pulseIndex")]
+                    data += [this_tof_data.sel(trainId=scan.positions_train_ids[k]).mean("trainId").mean("pulseIndex").to_numpy()]
             else:
                 # count photo-electrons by histogramming peak positions
                 for k, e in enumerate(scan.positions):
