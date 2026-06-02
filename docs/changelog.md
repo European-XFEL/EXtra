@@ -22,11 +22,15 @@ Added:
   [AdqRawChannel.train_data][extra.components.AdqRawChannel.pulse_data] are now
   reading data in parallel by default (!497).
 - [AGIPDConditions][extra.calibration.AGIPDConditions] now recognizes current source constant types
+- [CalibrationData.from_data][extra.calibration.CalibrationData.from_data] method to
+  find the constants suitable for a given `DataCollection`
 - [DetectorData][extra.calibration.DetectorData] to obtain detector metadata and
   module mapping from the Calibration Cataloge (!408).
 - [SpectrometerCalibration][extra.gui.jupyter.SpectrometerCalibration] to
   provide a Jupyter widget for energy calibration of 2D X-ray spectrum data
   (!363).
+- Pre-built packages will be available on PyPI for Python 3.10 - 3.13 from the
+  next release, rather than only Python 3.10 (!377).
 - [CalibrationData.from_condition][extra.calibration.CalibrationData.from_condition]
   supports `DataCollection` objects to reference a point in time
 - [CalibrationData.from_correction][extra.calibration.CalibrationData.from_correction]
@@ -37,8 +41,6 @@ Added:
 - [lpd_dark_consts_with_fallback][extra.calibration.lpd_dark_consts_with_fallback]
   function to find LPD dark constants with a fallback to constants recorded with
   all memory cells.
-- Pre-built packages will be available on PyPI for Python 3.10 - 3.13 from the
-  next release, rather than only Python 3.10 (!377).
 - [Scan.group_data()][extra.components.Scan.group_data] method to make an xarray
   or pandas GroupBy object based on scan steps (!379).
 - [Scan.from_motor_targets()][extra.components.Scan.from_motor_targets] method
@@ -89,6 +91,7 @@ Changed:
   [pulse_mask()][extra.components.pulses.PulsePattern.pulse_mask] to 4096 (!461).
 - [CookieboxCalibration][extra.applications.CookieboxCalibration] calculates the transmission
   using the sum of the trace instead of the fit amplitude for robustness.
+- `extra.applications.base.SerializableMixin._fromdict` becomes a classmethod.
 
 ## [2025.1]
 

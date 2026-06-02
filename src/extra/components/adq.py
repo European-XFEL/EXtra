@@ -1056,7 +1056,7 @@ class AdqRawChannel:
                 out[index] = data[roi]
                 self._preprocess(out[index], out[index])
 
-            psh.map(read_train, self._raw_key)
+            psh.map(read_train, self._raw_key.drop_empty_trains())
         else:
             out = self._validate_out(out, shape)
 
@@ -1143,7 +1143,7 @@ class AdqRawChannel:
                     tmp_sel.reshape(1, -1), out[pulse_sel], pulse_ids[pulse_sel],
                     layout_row['length'])
 
-            psh.map(read_pulses, self._raw_key)
+            psh.map(read_pulses, raw_key)
 
         else:
             # Prepare output buffers.

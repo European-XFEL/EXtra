@@ -63,21 +63,35 @@ class SerializableMixin(object):
         """
         pass
 
-    def _fromdict(self, all_data):
+    @classmethod
+    def _fromdict(cls, all_data:dict):
+        """Rebuild it fom dict.
+
+        Takes a dictionary representation of the class instance + the calling
+        class and returns a class instance.
+        
+        By default it just tries to call the class constructor with the provided dictionary as kwargs.
+        If you require custom behaviour in instance creation, feel free to override _fromdict in your
+        custom class, that inherits from SerializableMixin. Note, it has to return a class instance.
+        
+        Parameters
+        ----------
+        all_data : dict
+            dictionary representation of a class instance
+
+        Returns
+        -------
+        Instance of calling class cls.
+        
         """
-        Rebuild it from dict.
-        """
-        pass
+        return cls(**all_data)
 
     @classmethod
     def from_file(cls, filename: str):
         """
         Load setup saved with save previously.
         """
-        obj = cls()
         with h5py.File(filename, "r") as fid:
             all_data = load_dict(fid)
-            obj._fromdict(all_data)
-
+            obj = cls._fromdict(all_data)
         return obj
-
