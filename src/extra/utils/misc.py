@@ -79,11 +79,16 @@ class TimingResult:
         return d
 
     def _repr_markdown_(self):
-        lines = [f"**{self.name}** step timings:", ""]
+        lines = [
+            f"**{self.name}** step timings:",
+            "",
+            "n  | step | total step time | repeats | average time",
+            "--|--|--|--|--"
+        ]
         for i, (label, dts) in enumerate(self.step_times.items(), start=1):
-            dt = np.mean(dts)
-            rpt = f"({len(dts)}×)" if len(dts) > 1 else ""
-            lines.append(f"{i}. {label}: {dt:.3g} s {rpt}")
+            dts = np.array(dts)
+            avg = f"{dts.mean():.3g} ± {dts.std():.3g} s" if len(dts) > 1 else ""
+            lines.append(f"{i} | {label} | {dts.sum():.3g} s | {len(dts)}× | {avg}")
         if self.finish:
             start = self.timestamps[0][1]
             lines.extend(["", f"Total: {self.finish - start:.3g} s"])
