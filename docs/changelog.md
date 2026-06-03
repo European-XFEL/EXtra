@@ -18,6 +18,8 @@
 
 Added:
 
+- [TimeserverPulses.plot_xray_patterns][extra.components.pulses.TimeserverPulses.plot_xray_patterns]
+  to visualize the X-ray pulse patterns present in timeserver data (!499).
 - [AdqRawChannel.train_data][extra.components.AdqRawChannel.pulse_data] and
   [AdqRawChannel.train_data][extra.components.AdqRawChannel.pulse_data] are now
   reading data in parallel by default (!497).
