@@ -330,6 +330,97 @@ class PulsePattern:
         else:
             print(' Variable pattern')
 
+    def plot(self, num_cols=None, figsize=(9, 9), ax=None):
+        """Visualize pulse pattern.
+
+        Plots the pulse pattern this object describes for this data.
+
+        Args:
+            num_cols (int, optional): Number of pulse columns to use,
+                picked automatically based on data by default.
+            figsize (2-tuple of float, optional): Figure size in inches
+                passed to matplotlib, ignored if ax is passed. This only
+                describes the outer boundaries depending on the plot's
+                aspect ratio.
+            ax (matplotlib.axes.Axes, optional): Axes object to plot
+                into, created automatically if omitted.
+
+        Returns:
+            ax (matplotlib.axes.Axes): Axes object the plot was
+                generated in.
+        """
+
+        if ax is None:
+            import matplotlib.pyplot as plt
+            fig, ax = plt.subplots(figsize=figsize)
+
+        # Determine pulse ID boundaries and plot limits based on it.
+        min_pid = self.pulse_ids(copy=False).min()
+        max_pid = self.pulse_ids(copy=False).max()
+        pid_range = max_pid - min_pid
+
+        if np.isfinite(pid_range):
+            num_cols = num_cols or np.clip(pid_range // 16, 32, 56)
+            start_row = max(min_pid // num_cols - 1, 0)
+            stop_row = int(np.ceil(max_pid // num_cols)) + 2
+        else:
+            # In case there are no pulses at all.
+            num_cols = num_cols or 32
+            start_row = 0
+            stop_row = 3
+
+        start_pid = start_row * num_cols
+        stop_pid = stop_row * num_cols
+
+        # Build the grid in X, Y and Z.
+        Y, X = np.mgrid[start_row:(stop_row+1), :(num_cols+1)]
+        Z = np.zeros(stop_pid - start_pid, dtype=np.float32)
+
+        # Add all unique patterns weighted by their occurence to Z.
+        unique_masks, counts = np.unique(
+            self.pulse_mask(), axis=0, return_counts=True)
+        total = counts.sum()
+
+        for mask, count in zip(unique_masks, counts):
+            if (pids := np.flatnonzero(mask)).size == 0:
+                continue
+
+            Z[pids - start_pid] += count/total
+
+        from matplotlib.cm import Blues
+        from matplotlib.colors import ListedColormap
+        from matplotlib.ticker import MaxNLocator, AutoMinorLocator, \
+            StrMethodFormatter, FuncFormatter
+
+        # Project colormap onto 256 values and replace
+        # the first with white.
+        colors = Blues(np.linspace(0, 1, 256))
+        colors[0] = [1.0, 1.0, 1.0, 1.0]
+        cmap = ListedColormap(colors)
+
+        ax.pcolor(X - 0.5, Y - 0.5,
+                Z.reshape(stop_row - start_row, num_cols),
+                cmap=cmap, vmin=0, vmax=1.5*Z.max(),
+                edgecolors='k', lw=0.1)
+
+        # Build X axis as offset to Y axis in terms of pulse ID.
+        ax.set_xlim(-0.5, num_cols - 0.5)
+        ax.xaxis.set_major_locator(MaxNLocator(nbins='auto', integer=True))
+        ax.xaxis.set_major_formatter(StrMethodFormatter('+{x:.0f}'))
+        ax.xaxis.set_minor_locator(AutoMinorLocator())
+
+        ax.yaxis.set_major_locator(MaxNLocator(nbins='auto', integer=True))
+        ax.yaxis.set_major_formatter(FuncFormatter(
+            lambda x, pos: f'{x*num_cols:.0f}'))
+        ax.set_yticks(np.arange(start_row, stop_row), minor=True)
+
+        # General plot setup.
+        ax.set_title(f'{repr(self)}', fontsize='medium')
+        ax.set_aspect(1)
+        ax.tick_params(axis='both', labelsize=8)
+
+        return ax
+
     def select_trains(self, trains):
         """Select a subset of trains.
 

@@ -18,6 +18,7 @@
 
 Added:
 
+- [PulsePattern.plot][extra.components.pulses.PulsePattern.plot] to visualize any pulse patterns (!504).
 - [TimeserverPulses.plot_xray_patterns][extra.components.pulses.TimeserverPulses.plot_xray_patterns]
   to visualize the X-ray pulse patterns present in timeserver data (!499).
 - [AdqRawChannel.train_data][extra.components.AdqRawChannel.train_data] and
