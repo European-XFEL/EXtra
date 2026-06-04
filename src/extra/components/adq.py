@@ -1054,8 +1054,11 @@ class AdqRawChannel:
 
         if parallel is not False:
             # Prepare parallelization.
+            import pasha
             psh = self._prepare_pasha(parallel)
 
+            if isinstance(psh, pasha.ProcessContext) and out is not None:
+                raise TypeError("Cannot use out= with parallel processing")
             out = self._validate_out(out, shape, psh.alloc)
 
             def read_train(wid, index, train_id, data):
@@ -1136,12 +1139,13 @@ class AdqRawChannel:
 
         if parallel is not False:
             # Prepare parallelization.
+            import pasha
             psh = self._prepare_pasha(parallel)
 
             # Prepare output buffers.
-            if out is not None:
-                raise ValueError("Cannot use output array with parallel processing")
-            out = self._validate_out(None, out_shape, psh.alloc, dtype=dtype)
+            if isinstance(psh, pasha.ProcessContext) and out is not None:
+                raise TypeError("Cannot use out= with parallel processing")
+            out = self._validate_out(out, out_shape, psh.alloc, dtype=dtype)
 
             def read_pulses(wid, index, train_id, data):
                 layout_row = pulse_layout.loc[train_id]
