@@ -330,10 +330,12 @@ class PulsePattern:
         else:
             print(' Variable pattern')
 
-    def plot(self, num_cols=None, figsize=(9, 9), ax=None):
-        """Visualize pulse pattern.
+    def plot_grid(self, num_cols=None, figsize=(9, 9), ax=None):
+        """Visualize pulse pattern in a grid.
 
-        Plots the pulse pattern this object describes for this data.
+        Plots the pulse pattern this object describes for this data in
+        a grid, with each grid point representing a possible pulse
+        location at 4.5 MHz.
 
         Args:
             num_cols (int, optional): Number of pulse columns to use,
