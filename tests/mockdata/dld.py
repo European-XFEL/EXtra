@@ -11,6 +11,7 @@ trigger_dt = np.dtype([('start', np.int32), ('stop', np.int32),
                        ('fel', bool), ('ppl', bool)])
 
 edge_dt = np.dtype('f8')
+amplitude_dt = np.dtype('f8')
 
 hit_dt = np.dtype([('x', np.float64), ('y', np.float64),
                    ('t', np.float64), ('m', np.int32)], align=True)
@@ -33,7 +34,8 @@ class ReconstructedDld(DeviceBase):
 
     instrument_keys = {
         'raw': [('triggers', trigger_dt, ()),
-                ('edges', edge_dt, (7, max_rows))],
+                ('edges', edge_dt, (7, max_rows)),
+                ('amplitudes', amplitude_dt, (7, max_rows))],
         'rec': [('signals', signal_dt, (max_rows,)),
                 ('hits', hit_dt, (max_rows,))],
     }
@@ -87,13 +89,16 @@ class ReconstructedDld(DeviceBase):
 
         data_root['raw/triggers'][:num_entries] = triggers
         data_root['raw/edges'][:num_entries] = np.nan
+        data_root['raw/amplitudes'][:num_entries] = np.nan
         data_root['rec/signals'][:num_entries] = np.nan
         data_root['rec/hits'][:num_entries] = (np.nan, np.nan, np.nan, -1)
 
         for i, ch in product(range(5), range(7)):
             # Alternate between 1-channel edges per pulse with random
             # values in [0, 1] + (7-channel).
-            data_root['raw/edges'][i:num_entries:7, ch, :ch+1] = (7 - ch)  \
+            data_root['raw/edges'][i:num_entries:7, ch, :ch+1] = (7 - ch) \
+                + 0.5 + np.random.rand(1 + (num_entries - i - 1) // 7, ch+1)
+            data_root['raw/amplitudes'][i:num_entries:7, ch, :ch+1] = (7 - ch) \
                 + 0.5 + np.random.rand(1 + (num_entries - i - 1) // 7, ch+1)
 
         for i in range(5):
