@@ -77,6 +77,8 @@ Fixed:
 - Fixed support for plotting images with zeros/negative numbers with
   [imshow2()][extra.utils.imshow2] and `lognorm=True` (!491).
 - Fixed counting threshold for `CookieboxCalibration` (!498).
+- [CookieboxCalibration][extra.applications.CookieboxCalibration] bug fix for
+  new `extra.applications.base.SerializableMixin` interface (!506).
 
 Changed:
 
