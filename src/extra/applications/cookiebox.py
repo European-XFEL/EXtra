@@ -453,8 +453,7 @@ class CookieboxCalibration(SerializableMixin):
         if "_tof_response" in all_data.keys():
             self._tof_response = dict()
             for tof_id in sorted(all_data["_tof_response"].keys()):
-                self._tof_response[tof_id] = TOFAnalogResponse()
-                self._tof_response[tof_id]._fromdict(all_data["_tof_response"][tof_id])
+                self._tof_response[tof_id] = TOFAnalogResponse._fromdict(all_data["_tof_response"][tof_id])
         return self
 
     def setup(self,
