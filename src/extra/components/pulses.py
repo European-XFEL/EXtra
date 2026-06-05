@@ -10,17 +10,20 @@ from warnings import warn
 import re
 
 import numpy as np
+import pandas as pd
 
 from euxfel_bunch_pattern import is_sase, is_laser, \
     PPL_BITS, DESTINATION_TLD, DESTINATION_T4D, DESTINATION_T5D, \
     PHOTON_LINE_DEFLECTION
-from extra_data import SourceData, KeyData, by_id
+from extra_data import DataCollection, SourceData, KeyData, by_index, by_id
 
 from .utils import identify_sase, _instrument_to_sase
 
 
 __all__ = ['XrayPulses', 'OpticalLaserPulses', 'MachinePulses',
-           'PumpProbePulses', 'DldPulses']
+           'PumpProbePulses', 'ManualPulses', 'DldPulses']
+
+TrainData = DataCollection | SourceData | KeyData
 
 
 def _drop_first_level(pd_val):
@@ -28,20 +31,119 @@ def _drop_first_level(pd_val):
     return pd_val.loc[pd_val.head(1).index.values[0][0]]
 
 
+def _reset_pulse_index(pulse_ids):
+    """Re-enumerate pulse index index level."""
+
+    pulse_ids.index = pulse_ids.index.set_codes(
+        np.concatenate([np.arange(num) for num
+                        in pulse_ids.groupby('trainId').count()]),
+        level='pulseIndex')
+
+    return pulse_ids
+
+
+def _is_positive_slice(s):
+    """Check whether a slice only uses positive attributes."""
+    return (
+        (s.start is None or s.start >= 0) and
+        (s.stop is None or s.stop >= 0) and
+        (s.step is None or s.step >= 0)
+    )
+
+
+def _select_pulse_ids(pulse_ids, pulse_sel, train_sel):
+    """Select pulses by train."""
+
+    if train_sel is not None:
+        from extra_data.read_machinery import select_train_ids
+        train_sel = select_train_ids(
+            # Select on actual train IDs with pulses.
+            list(pulse_ids.index.to_frame()['trainId'].unique()),
+            train_sel)
+
+    else:
+        train_sel = np.s_[:]
+
+    if isinstance(pulse_sel, by_index):
+        # Convert by_index to a regular slice.
+        pulse_sel = pulse_sel.value
+
+    if isinstance(pulse_sel, by_id):
+        # Could be a slice or a list/ndarray
+        if isinstance(pulse_sel.value, slice):
+            start = pulse_sel.value.start or 0
+            stop = pulse_sel.value.stop or 9999
+            step = pulse_sel.value.step or 1
+
+            def slice_pulses(pulse_ids):
+                return pulse_ids[(pulse_ids > start) &
+                                    (pulse_ids < stop) &
+                                    (pulse_ids % step == start % step)]
+
+        elif isinstance(pulse_sel.value, (list, np.ndarray)):
+            new_pulse_ids = pulse_sel.value
+
+            def slice_pulses(pulse_ids):
+                return pulse_ids[pulse_ids.isin(new_pulse_ids)]
+
+        else:
+            raise TypeError(type(pulse_sel.value))
+
+    elif isinstance(pulse_sel, np.ndarray) and pulse_sel.dtype == np.bool_:
+        def slice_pulses(pulse_ids):
+            if len(pulse_sel) < len(pulse_ids):
+                raise ValueError(
+                    f'pulse selection too short for number of pulses '
+                    f'({len(pulse_ids)}) in train {pulse_ids.name}')
+
+            return pulse_ids[pulse_sel[:len(pulse_ids)]]
+
+    elif isinstance(pulse_sel, slice):
+        if _is_positive_slice(pulse_sel):
+            # Fast-path for non-negative slice values.
+
+            if pulse_sel.stop is not None:
+                # Pandas label-based indexing is inclusive of the slice
+                # upper boundary, which is unintuitive for
+                # location-based indexing. Since the labels are an index
+                # here, modify the slice accordingly.
+                pulse_sel = slice(
+                    pulse_sel.start, pulse_sel.stop - 1, pulse_sel.step)
+
+            return pulse_ids.loc[train_sel, pulse_sel]
+
+        def slice_pulses(pulse_ids):
+            return pulse_ids.iloc[pulse_sel]
+
+    elif isinstance(pulse_sel, (list, np.ndarray)):
+        return pulse_ids.loc[train_sel, pulse_sel]
+
+    else:
+        raise TypeError(type(pulse_sel))
+
+    return pulse_ids.loc[train_sel].groupby(
+        'trainId', group_keys=False).apply(slice_pulses)
+
+
 class PulsePattern:
     """Abstract interface to pulse patterns.
 
     This class should not be instantiated directly, but one of its
-    implementationsd `XrayPulses` or `OpticalLaserPulses`. It provides
-    the shared interface to access any pulse pattern.
-
-    Instances of this class are assumed to be immutable, which is
-    exploited in various methods for caching purposes. An implementation
-    should not allow altering its internal object state in a way that
-    causes return values of public APIs to change.
-
-    Requires to implement _get_pulse_ids().
+    implementations such as `XrayPulses` or `OpticalLaserPulses`. It
+    provides the shared interface accessible from all oher pulse pattern
+    implementations, however.
     """
+
+    # Instances of this class are assumed to be immutable, which is
+    # exploited in various methods for caching purposes. An implementation
+    # should not allow altering its internal object state in a way that
+    # causes return values of public APIs to change.
+
+    # The minimum requirement for a custom pulse pattern type is to
+    # implement the abstract method `_get_pulse_ids()`.
+    # If the underlying pattern may also describe pulse-less trains,
+    # `_get_train_ids()` should be overwritten as well. Its default
+    # implementation will return only the train IDs with pulses.
 
     # Number of elements in bunch pattern table according to XFEL Timing
     # System Specification, Version 2.2 (2013). The original table may
@@ -129,7 +231,6 @@ class PulsePattern:
             # thus are equal if length matches.
             return act_entries
 
-        import pandas as pd
         ext_entries = pd.Series(
             np.zeros_like(train_ids, dtype=act_entries.dtype),
             index=pd.Index(train_ids, name='trainId'))
@@ -259,6 +360,163 @@ class PulsePattern:
 
         return res
 
+    def select_pulses(self, pulse_sel, train_sel=None,
+                      reset_index=True) -> ManualPulses:
+        """Select a subset of pulses.
+
+        The possible options for pulse selection are:
+
+        - By pulse index using `extra_data.by_index` with a slice, list or ndarray:
+            ```
+            by_index[5:]  # All pulses after the first five.
+            by_index[[0, 1, 2]]  # Explicitly the first three pulses.
+            ```
+            Slices with negative indices are supported, but may be
+            significantly slower than non-negative indices. `by_index`
+            may be omitted and a regular slice, list or ndarray used
+            directly instead.
+
+        - By pulse ID using `extra_data.by_id` with a slice, list or ndarray:
+            ```
+            by_id[:1500]  # All pulse IDs up to 1500.
+            by_id[[1146, 1154]]  # Explicitly pulse IDs 1146 and 1154.
+            ```
+
+        - By a boolean ndarray acting as a mask, must contain at least as
+          many elements as the highest number of pulses per train,
+            ```
+            # Selects every other pulse.
+            np.array([True, False, True, False, True])
+            ```
+
+        The train selection may be any object accepted by
+        [DataCollection.select_trains()][extra_data.DataCollection.select_trains].
+        If specified, the pulse selection is only applied for the
+        selected trains. This will not change the trains described by
+        the resulting pulse pattern, but only which trains actually
+        contain any pulses.
+
+        Args:
+            pulse_sel (by_index or by_id or slice or list or numpy.ndarray):
+                Pulse selection, may be a slice by pulse index or pulse
+                ID or boolean mask.
+            train_sel (by_index or by_id or slice or list or numpy.ndarray, optional):
+                Train selection to which the pulse selection is applied.
+            reset_index (bool, optional): Whether to re-enumerate the
+                pulseIndex index level, True by default.
+
+        Returns:
+            pulses (ManualPulses): New manual pulse patterns containing
+                only the selected pulses.
+        """
+
+        pulse_ids = _select_pulse_ids(self.pulse_ids(copy=False),
+                                      pulse_sel, train_sel)
+
+        if reset_index:
+            pulse_ids = _reset_pulse_index(pulse_ids)
+
+        return ManualPulses(self._get_train_ids(), pulse_ids)
+
+    def deselect_pulses(self, pulse_sel, train_sel=None,
+                        reset_index=True) -> ManualPulses:
+        """Deselect a subset of pulses.
+
+        This method accepts the same option as
+        [PulsePattern.select_pulses()][extra.components.pulses.PulsePattern.select_pulses]
+        for its arguments, but removes the selected pulses and removes
+        a pattern that remains.
+
+        Args:
+            pulse_sel (by_index or by_id or slice or list or numpy.ndarray):
+                Pulse selection, may be a slice by pulse index or pulse
+                ID or boolean mask.
+            train_sel (by_index or by_id or slice or list or numpy.ndarray, optional):
+                Train selection to which the pulse selection is applied.
+            reset_index (bool, optional): Whether to re-enumerate the
+                pulseIndex index level, True by default.
+
+        Returns:
+            pulses (ManualPulses): New manual pulse patterns not
+                containing the deselected pulses.
+        """
+
+        orig_pulse_ids = self.pulse_ids(copy=False)
+        sel_pulse_ids = _select_pulse_ids(orig_pulse_ids, pulse_sel, train_sel)
+
+        mask = pd.Series(np.ones_like(orig_pulse_ids, dtype=bool),
+                         index=orig_pulse_ids.index)
+        mask[sel_pulse_ids.index] = False
+
+        new_pulse_ids = orig_pulse_ids[mask]
+
+        if reset_index:
+            new_pulse_ids = _reset_pulse_index(new_pulse_ids)
+
+        return ManualPulses(self._get_train_ids(), new_pulse_ids)
+
+    def union(self, *others) -> ManualPulses:
+        """Join the pulses in this pattern with one or more others.
+
+        Any additional pulse index columns, e.g. flags for FEL/PPL
+        pulses as used by [`PumpProbePulses`][extra.components.PumpProbePulses]
+        are currently removed.
+
+        Args:
+            *others (PulsePattern): Pulse patterns to join with.
+
+        Returns:
+            pulses (ManualPulses): New manual pulse pattern containing
+                the union of all pulses.
+        """
+
+        self_pulse_ids = self.pulse_ids(copy=False)
+        if len(self_pulse_ids.index.names) > 2:
+            self_pulse_ids.index = self_pulse_ids.index.droplevel(
+                level=self_pulse_ids.index.names[2:])
+
+        if not others:
+            return ManualPulses(self._get_train_ids(), self_pulse_ids)
+
+        new_train_ids = self._get_train_ids()
+        pulse_ids_series = [self_pulse_ids]
+
+        for other in others:
+            other_pulse_ids = other.pulse_ids(copy=False)
+            if len(other_pulse_ids.index.names) > 2:
+                other_pulse_ids.index = other_pulse_ids.index.droplevel(
+                    level=other_pulse_ids.index.names[2:])
+
+            pulse_ids_series.append(other_pulse_ids)
+            new_train_ids = np.union1d(new_train_ids, other._get_train_ids())
+
+        act_train_ids = []  # May be less than new_train_ids!
+        new_pulse_ids = []
+        pulse_counts = []
+
+        merged_pulse_ids = pd.concat(pulse_ids_series)
+        for train_id, train_pulses in merged_pulse_ids.groupby('trainId'):
+            new_train_pulses = np.unique(train_pulses.sort_values().to_numpy())
+
+            act_train_ids.append(train_id)
+            new_pulse_ids.append(new_train_pulses)
+            pulse_counts.append(len(new_train_pulses))
+
+        index = pd.MultiIndex.from_arrays(
+            [np.repeat(act_train_ids, pulse_counts),
+            np.concatenate([np.arange(num) for num in pulse_counts])],
+            names=['trainId', 'pulseIndex'])
+
+        new_pulse_ids = pd.Series(np.concatenate(new_pulse_ids), index=index)
+
+        return ManualPulses(new_train_ids, new_pulse_ids)
+
+    def __or__(self, other) -> ManualPulses:
+        return self.union(other)
+
+    def __ior__(self, other) -> ManualPulses:
+        return self.union(other)
+
     def pulse_ids(self, labelled=True, copy=True):
         """Get pulse IDs.
 
@@ -320,7 +578,6 @@ class PulsePattern:
             # Drop train ID dimensions.
             pulse_ids = _drop_first_level(pulse_ids)
         else:
-            import pandas as pd
             pulse_ids = pd.Series([], dtype=np.int32)
 
         return (pulse_ids if labelled else pulse_ids.to_numpy()).copy()
@@ -626,7 +883,6 @@ class PulsePattern:
         if pulse_dtype is not None:
             index_levels[pulse_dim] = index_levels[pulse_dim].astype(pulse_dtype)
 
-        import pandas as pd
         return pd.MultiIndex.from_arrays(
             list(index_levels.values()), names=list(index_levels.keys()))
 
@@ -674,7 +930,6 @@ class PulsePattern:
         pulse_ids = self.pulse_ids(copy=False)
 
         if labelled:
-            import pandas as pd
             def gen_pulse_ids(train_idx):
                 try:
                     return pulse_ids.loc[tids[train_idx]].copy()
@@ -714,12 +969,14 @@ class TimeserverPulses(PulsePattern):
     """Abstract interface to timeserver-based based pulse patterns.
 
     This class should not be instantiated directly, but one of its
-    implementations `XrayPulses` or `OpticalLaserPulses`. It provides
-    the shared interface to access pulse patterns encoded in the bunch
-    pattern table.
-
-    Requires _mask_table() and _get_ppdecoder_nodes() to be implemented.
+    implementations such as [`XrayPulses`][extra.components.XrayPulses]
+    or [`OpticalLaserPulses`][extra.components.OpticalLaserPulses]. It
+    provides the shared interface to access pulse patterns encoded in
+    the timeserver or pulse pattern decoder data.
     """
+
+    # An implementation os required to implement _mask_table() and
+    # _get_ppdecoder_nodes().
 
     # Timeserver class ID and regular expressions.
     _timeserver_class = 'TimeServer'
@@ -886,8 +1143,6 @@ class TimeserverPulses(PulsePattern):
 
         counts = [len(pids) for pids in pids_by_train]
 
-        import pandas as pd
-
         if not counts:
             # Immediately return an empty series if there is no data.
             return pd.Series([], dtype=np.int32)
@@ -930,6 +1185,14 @@ class TimeserverPulses(PulsePattern):
     def _get_ppdecoder_nodes(self):
         """Get nodes in pulse pattern decoder device."""
         raise NotImplementedError('_get_ppdecoder_nodes')
+
+    def _get_xray_pulses(self, sase):
+        """XrayPulses object for given SASE using the same data."""
+
+        if isinstance(self, XrayPulses) and self._sase == sase:
+            return self
+
+        return XrayPulses(None, self._source, sase=sase)
 
     @property
     def timeserver(self) -> SourceData:
@@ -978,7 +1241,7 @@ class TimeserverPulses(PulsePattern):
         return self.machine_pulses().pulse_repetition_rates().min()
 
     @lru_cache
-    def is_sa1_interleaved_with_sa3(self) -> Optional[bool]:
+    def is_sa1_interleaved_with_sa3(self) -> bool | None:
         """Check whether SASE1 and SASE3 pulses are interleaved.
 
         Due to their unique geometry, the pulses of the SASE1 and SASE3
@@ -994,16 +1257,167 @@ class TimeserverPulses(PulsePattern):
         returned.
 
         Returns:
-            (bool or None) Whether SA1 and SA3 are interleaved or None
-                if the pulse patterns do not allow the determination.
+            is_interleaved (bool or None): Whether SA1 and SA3 are
+                interleaved or None if the pulse patterns do not allow
+                the determination.
         """
 
-        sa1_pulses = XrayPulses(None, self._source, sase=1) \
-            if self._sase != 1 else self
-        sa3_pulses = XrayPulses(None, self._source, sase=3) \
-            if self._sase != 3 else self
+        return self._get_xray_pulses(1).is_interleaved_with(
+            self._get_xray_pulses(3))
 
-        return sa1_pulses.is_interleaved_with(sa3_pulses)
+    def plot_xray_patterns(self, sase=[2, 1, 3], figsize=(9, 4), ax=None):
+        """Visualize X-ray pulse patterns.
+
+        Plots the X-ray pulse pattterns in this data on a common time
+        scale. Variable patterns are represented by levels of
+        transparency weighted by their rate of occurence. The right Y
+        axis includes statistics about pulse count (Σ) and period (Δ).
+
+        Args:
+            sase (Sequence of int, optional): SASE beamlines to include
+                and in which order, [2, 1, 3] by default.
+            figsize (2-tuple of float, optional): Figure size in inches
+                passed to matplotlib, ignored if ax is passed.
+            ax (matplotlib.axes.Axes, optional): Axes object to plot
+                into, created automatically if omitted.
+
+        Returns:
+            ax (matplotlib.axes.Axes): Axes object the plot was
+                generated in.
+        """
+
+        if ax is None:
+            import matplotlib.pyplot as plt
+            fig, ax = plt.subplots(figsize=figsize)
+
+        # Height of vertical lines for a single SASE.
+        b = 0.6
+
+        # Additional spacing between the center line of a SASE and the lower
+        # edge of the next SASE's vertical line.
+        d = 0.2
+
+        min_pids = np.full(len(sase), self._bunch_pattern_table_len, dtype=int)
+        max_pids = np.zeros(len(sase), dtype=int)
+
+        # Construct XrayPulses for every SASE to visualize.
+        pulses = [self._get_xray_pulses(x) for i, x in enumerate(sase)]
+
+        # First pass to plot vertical pattern lines and determine min/max
+        # pulse ID per SASE.
+        for i in range(len(sase)):
+            unique_masks, counts = np.unique(
+                pulses[i].pulse_mask(), axis=0, return_counts=True)
+            total = counts.sum()
+
+            for mask, count in zip(unique_masks, counts):
+                if (pids := np.flatnonzero(mask)).size == 0:
+                    continue
+
+                ax.vlines(pids,
+                        i * (b/2) + i * d,
+                        i * (b/2) + i * d + b,
+                        color=f'C{i}', lw=1.0, alpha=count/total)
+
+                min_pids[i] = min(min_pids[i], pids.min())
+                max_pids[i] = max(max_pids[i], pids.max())
+
+        min_pid = min_pids.min()
+        max_pid = max_pids.max()
+        pid_range = max_pid - min_pid
+        text_spacing = max(pid_range // 400, 0.02)
+
+        # Second pass to add min/max pulse ID for each SASE.
+        for i in range(len(sase)):
+            if (max_pids[i] - min_pids[i]) < 0:
+                continue  # No pulses
+
+            ax.text(min_pids[i] - text_spacing,
+                    (i + 1) * (b/2) + i * d, str(min_pids[i]),
+                    rotation=90, fontsize='x-small',
+                    c=f'C{i}', ha='right', va='center')
+
+            if max_pids[i] > min_pids[i]:
+                ax.text(max_pids[i] + 3 * text_spacing,
+                        (i + 1) * (b/2) + i * d, str(max_pids[i]),
+                        rotation=90, fontsize='x-small',
+                        c=f'C{i}', ha='left', va='center')
+
+        from matplotlib.ticker import AutoLocator, AutoMinorLocator
+
+        # Lower X axis in pulse IDs.
+        ax.set_xlim(min_pid - max(pid_range * 0.05, 2),
+                    max_pid + max(pid_range * 0.05, 2))
+        ax.xaxis.set_major_locator(AutoLocator())
+        ax.xaxis.set_minor_locator(AutoMinorLocator())
+        ax.set_xlabel('Pulse ID / 4.5 MHz')
+
+        # Upper X axis in (micro)seconds with its own suitable ticks.
+        t_ax = ax.twiny()
+        t_ax.set_xlim(ax.get_xlim())
+
+        us_rate = 1e6/self.bunch_repetition_rate
+        time_ticks = AutoLocator().tick_values(*[
+            us_rate * x for x in ax.get_xlim()])
+        time_ticks = time_ticks[(time_ticks > (min_pid * us_rate)) &
+                                (time_ticks < (max_pid * us_rate))]
+        t_ax.set_xticks(time_ticks / us_rate)
+        t_ax.set_xticklabels(time_ticks.astype(int))
+        t_ax.xaxis.set_minor_locator(AutoMinorLocator())
+        t_ax.set_xlabel('Time / μs')
+
+        # Left Y axis with SASE labels.
+        ax.set_ylim(-d, (len(sase) - 1) * (b/2) + (len(sase) - 1) * d + b + d)
+        ax.set_yticks([(i + 1) * (b/2) + i * d for i in range(len(sase))])
+        ax.set_yticklabels(
+            [f'SA{s}' for s in sase],
+            rotation=90, va='center', fontsize='large')
+
+        # Right Y axis with statistics.
+        s_ax = ax.twinx()
+        s_ax.set_ylim(ax.get_ylim())
+        s_ax.set_yticks(ax.get_yticks())
+
+        y_labels = []
+        for i in range(len(sase)):
+            counts = pulses[i].pulse_counts()
+            min_count = counts.min()
+            max_count = counts.max()
+
+            if max_count > min_count:
+                count_str = f'{min_count}-{max_count}'
+            else:
+                count_str = str(min_count)
+
+            if max_count < 2:
+                period_str = 'n/a'
+            else:
+                # Omit trains without pulses for period.
+                periods = pulses[i].pulse_periods(no_pulse_value=-1)
+                min_period = periods[periods >= 0].min()
+                max_period = periods[periods >= 0].max()
+
+                if max_period > min_period:
+                    period_str = f'{min_period}-{max_period}'
+                else:
+                    period_str = str(min_period)
+
+            y_labels.append(f'Σ {count_str}\nΔ {period_str}')
+
+        s_ax.set_yticklabels(y_labels, va='center', fontsize='small')
+
+        # Set color for Y tick labels.
+        for labels in [ax.get_yticklabels(), s_ax.get_yticklabels()]:
+            for i, label in enumerate(labels):
+                label.set_color(f'C{i}')
+
+        # General plot setup.
+        ax.set_title(f'X-ray pulses in {self._source.source}')
+        ax.tick_params(left=False, right=False)
+        s_ax.tick_params(right=False)
+        ax.grid(which='major', axis='x', alpha=0.15, linewidth=0.5)
+
+        return ax
 
 
 class XrayPulses(TimeserverPulses):
@@ -1485,7 +1899,6 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
             fel_by_train.append(np.isin(pids, fel_pids))
             ppl_by_train.append(np.isin(pids, ppl_pids))
 
-        import pandas as pd
         index = pd.MultiIndex.from_arrays([
             np.repeat(train_ids, counts),
             np.concatenate([np.arange(count) for count in counts]),
@@ -1573,6 +1986,96 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
             raise ValueError(f"{field=!r} parameter was not 'fel'/'ppl'/None")
 
 
+class ManualPulses(PulsePattern):
+    """Manual pulse patterns.
+
+    The pattern described by this component is directly loaded from data,
+    but either generated manually or modified from another
+    [`PulsePattern`][extra.components.pulses.PulsePattern]-based
+    component through
+    [`select_pulses()`][extra.components.pulses.PulsePattern.select_pulses],
+    [`deselect_pulses()`][extra.components.pulses.PulsePattern.select_pulses]
+    or [`union()`][extra.components.pulses.PulsePattern.union].
+    """
+
+    def __init__(self, train_ids, pulse_ids):
+        super().__init__()
+
+        self._train_ids = train_ids
+        self._pulse_ids = pulse_ids
+
+    def _get_train_ids(self):
+        return self._train_ids
+
+    def _get_pulse_ids(self):
+        return self._pulse_ids
+
+    def __repr__(self):
+        return "<{} for {} pulses in {} trains>".format(
+            type(self).__name__, len(self._pulse_ids), len(self._train_ids))
+
+    @classmethod
+    def from_constant_pulses(cls, train_ids, pulse_ids):
+        """Generate a pulse pattern from constant pulse IDs.
+
+        Args:
+            train_ids (numpy.typing.ArrayLike or extra_data.DataCollection or extra_data.SourceData or extra_data.KeyData):
+                Train IDs or data to take train IDs from.
+            pulse_ids (numpy.typing.ArrayLike): Pulse IDs of a single
+                train to be repeated in every train.
+
+        Returns:
+            pulses (ManualPulses): Manual pulse pattern with specified
+                pulse IDs in every train.
+        """
+
+        if isinstance(train_ids, TrainData):
+            train_ids = train_ids.train_ids
+
+        pulse_ids_ser = pd.Series(
+            np.tile(pulse_ids, len(train_ids)), dtype=np.int32,
+            index=pd.MultiIndex.from_product([
+                train_ids, np.arange(len(pulse_ids))],
+                names=['trainId', 'pulseIndex']))
+
+        return cls(train_ids, pulse_ids_ser)
+
+    @classmethod
+    def from_constant_pattern(cls, train_ids, pulses_per_train,
+                              repetition_rate=None, pulse_period=None,
+                              pulse_id_offset=0):
+        """Generate a uniform pulse pattern.
+
+        Requires either `repetition_rate` or `pulse_period` to be passed.
+
+        Args:
+            train_ids (numpy.typing.ArrayLike or extra_data.DataCollection or extra_data.SourceData or extra_data.KeyData):
+                Train IDs or data to take train IDs from.
+            pulses_per_train (int): Number of pulses per train.
+            repetition_rate (float, optional): Repetition rate in Hz,
+                mutually exclusive with pulse_period.
+            pulse_period (int, optional): Period between pulses in units
+                of 4.5 MHz, mutually exclusive with repetition_rate.
+            pulse_id_offset (int, optional): Pulse ID for the first
+                generated pulse in each train, 0 by default.
+
+        Returns:
+            pulses (ManualPulses): Manual pulse pattern with uniform
+                pulses in every train.
+        """
+
+        if repetition_rate is not None:
+            pulse_period = int(round(1.3e9 / 288 / repetition_rate , 0))
+        elif pulse_period is None:
+            raise ValueError('must specify either repetition_rate or '
+                             'pulse_period')
+
+        pulse_ids = np.arange(pulses_per_train) * pulse_period \
+            + pulse_id_offset
+
+        return cls.from_constant_pulses(train_ids, pulse_ids)
+
+
 class DldPulses(PulsePattern):
     """An interface to pulses from DLD reconstruction.
 
@@ -1655,7 +2158,6 @@ class DldPulses(PulsePattern):
             index_levels['fel'] = triggers['fel'].copy()
             index_levels['ppl'] = triggers['ppl'].copy()
 
-        import pandas as pd
         index = pd.MultiIndex.from_arrays(
             list(index_levels.values()), names=list(index_levels.keys()))
 
@@ -1685,7 +2187,6 @@ class DldPulses(PulsePattern):
         triggers = drop_fields(self._key.ndarray(), ['pulse', 'fel', 'ppl'])
 
         if labelled:
-            import pandas as pd
             return pd.DataFrame(data=triggers, index=self.build_pulse_index())
         else:
             return triggers
