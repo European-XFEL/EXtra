@@ -457,12 +457,15 @@ class TOFAnalogResponse(SerializableMixin):
         data = list()
         h = list()
         bins = np.arange(0, self.n_samples+1)
-        if scan is not None:
-            for k, e in enumerate(scan.positions):
-                tof_data = tof.select_trains(by_id[scan.positions_train_ids[k]])
-                if self.count_threshold is None or self.count_threshold >= 0:
-                    this_tof_data = -tof_data.pulse_data(pulse_dim="pulseIndex").mean('pulse')
-                else:
+        if scan is not None: # use the scan
+            # if not counting photo-electrons -- ie: analog mode
+            if self.count_threshold is None or self.count_threshold >= 0:
+                this_tof_data = -tof.pulse_data(pulse_dim="pulseIndex").unstack("pulse")
+                for k, e in enumerate(scan.positions):
+                    data += [this_tof_data.sel(trainId=scan.positions_train_ids[k]).mean("trainId").mean("pulseIndex").to_numpy()]
+            else:
+                # count photo-electrons by histogramming peak positions
+                for k, e in enumerate(scan.positions):
                     tof_data = tof_data.pulse_edges(pulse_dim='pulseIndex', threshold=self.count_threshold).reset_index()
                     this_tof_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.amplitude)
                     this_tof_data = xr.DataArray(this_tof_data, dims=('sample'), coords={'sample': bins[:-1]})
