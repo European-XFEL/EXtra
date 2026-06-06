@@ -404,6 +404,7 @@ class PulsePattern:
                 Z.reshape(stop_row - start_row, num_cols),
                 cmap=cmap, vmin=0, vmax=1.5*Z.max(),
                 edgecolors='k', lw=0.1)
+        ax.invert_yaxis()  # Invert the plot by default.
 
         # Build X axis as offset to Y axis in terms of pulse ID.
         ax.set_xlim(-0.5, num_cols - 0.5)
