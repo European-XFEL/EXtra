@@ -330,7 +330,8 @@ class PulsePattern:
         else:
             print(' Variable pattern')
 
-    def plot_grid(self, num_cols=None, figsize=(9, 9), ax=None):
+    def plot_grid(self, start=None, stop=None, num_cols=None,
+                  figsize=(9, 9), ax=None):
         """Visualize pulse pattern in a grid.
 
         Plots the pulse pattern this object describes for this data in
@@ -338,6 +339,10 @@ class PulsePattern:
         location at 4.5 MHz.
 
         Args:
+            start (int, optional): Lowest pulse ID to include, picked
+                automatically based on data by default.
+            stop (int, optional): Highest pulse ID to include, picked
+                automatically based on data by default.
             num_cols (int, optional): Number of pulse columns to use,
                 picked automatically based on data by default.
             figsize (2-tuple of float, optional): Figure size in inches
@@ -359,15 +364,24 @@ class PulsePattern:
         # Get primary pulse IDs.
         pids = self.pulse_ids(copy=False)
 
-        # Determine pulse ID boundaries and plot limits based on it.
-        min_pid = pids.min()
-        max_pid = pids.max()
+        # Determine pulse ID boundaries and plot limits based on it, if
+        # not given explicitly.
+        min_pid = start if start is not None else pids.min()
+        max_pid = stop if stop is not None else pids.max()
         pid_range = max_pid - min_pid
 
         if np.isfinite(pid_range):
-            num_cols = num_cols or np.clip(pid_range // 16, 32, 56)
-            start_row = max(min_pid // num_cols - 1, 0)
-            stop_row = int(np.ceil(max_pid // num_cols)) + 2
+            # If not given explicitly, find a column number that is a
+            # multiple of 10 between 20 and 50.
+            num_cols = num_cols or (np.clip(pid_range // 10, 20, 50) // 10) * 10
+
+            start_row = max(min_pid // num_cols, 0)
+            if start is None:
+                start_row -= 1  # Add one more row if autoscaling.
+
+            stop_row = int(np.ceil(max_pid // num_cols)) + 1
+            if stop is None:
+                stop_row += 1  # Add one row if autoscaling.
         else:
             # In case there are no pulses at all.
             num_cols = num_cols or 32
