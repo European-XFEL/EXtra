@@ -356,9 +356,12 @@ class PulsePattern:
             import matplotlib.pyplot as plt
             fig, ax = plt.subplots(figsize=figsize)
 
+        # Get primary pulse IDs.
+        pids = self.pulse_ids(copy=False)
+
         # Determine pulse ID boundaries and plot limits based on it.
-        min_pid = self.pulse_ids(copy=False).min()
-        max_pid = self.pulse_ids(copy=False).max()
+        min_pid = pids.min()
+        max_pid = pids.max()
         pid_range = max_pid - min_pid
 
         if np.isfinite(pid_range):
@@ -379,15 +382,12 @@ class PulsePattern:
         Z = np.zeros(stop_pid - start_pid, dtype=np.float32)
 
         # Add all unique patterns weighted by their occurence to Z.
-        unique_masks, counts = np.unique(
-            self.pulse_mask(), axis=0, return_counts=True)
+        unique_pids, counts = np.unique(pids.groupby('trainId').apply(tuple),
+                                        return_counts=True)
         total = counts.sum()
 
-        for mask, count in zip(unique_masks, counts):
-            if (pids := np.flatnonzero(mask)).size == 0:
-                continue
-
-            Z[pids - start_pid] += count/total
+        for pids_set, count in zip(unique_pids, counts):
+            Z[np.array(pids_set) - start_pid] += count/total
 
         from matplotlib.cm import Blues
         from matplotlib.colors import ListedColormap
