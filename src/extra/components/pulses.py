@@ -417,6 +417,14 @@ class PulsePattern:
             lambda x, pos: f'{x*num_cols:.0f}'))
         ax.set_yticks(np.arange(start_row, stop_row), minor=True)
 
+        # Add a custom grid in X and Y.
+        for x in ax.get_xticks()[1:-1]:
+            ax.plot([x - 0.5, x - 0.5], [start_row - 0.5, stop_row - 0.5],
+                    'k', lw=0.25)
+
+        for y in ax.get_yticks()[1:-1]:
+            ax.plot([-0.5, num_cols + 0.5], [y - 0.5, y - 0.5], 'k', lw=0.25)
+
         # General plot setup.
         ax.set_title(f'{repr(self)}', fontsize='medium')
         ax.set_aspect(1)
