@@ -8,3 +8,4 @@ Applications index:
     - [CookieboxCalibration][extra.applications.CookieboxCalibration]
 - [Grating](grating.md)
     - [Grating2DCalibration][extra.applications.Grating2DCalibration]
+- [XCCA](xcca.md)
