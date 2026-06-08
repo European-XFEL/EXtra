@@ -93,3 +93,5 @@ for a single SASE, instrument or device is called *pulse index*. If desired, the
 ::: extra.components.DldPulses
     options:
 		inherited_members: false
+
+::: extra.components.plot_pulse_grid

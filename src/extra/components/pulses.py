@@ -255,6 +255,7 @@ def plot_pulse_grid(main_pulses=None, marker_pulses=None, border_pulses=None,
         start_row = 0
         stop_row = 3
 
+    # Pulse ID shown in the top-left and bottom-right corners.
     start_pid = start_row * num_cols
     stop_pid = stop_row * num_cols
 
@@ -270,15 +271,14 @@ def plot_pulse_grid(main_pulses=None, marker_pulses=None, border_pulses=None,
 
     # Build the grid in X, Y and Z.
     Y, X = np.mgrid[start_row:(stop_row+1), :(num_cols+1)]
-    Z = np.zeros(stop_pid - start_pid, dtype=np.float32)
+    Z = np.zeros(stop_pid - start_pid, dtype=np.float64)
 
-    # Project colormap onto 256 values and replace
-    # the first with white.
+    # Project colormap onto 256 values and replace the first with white.
     colors = Blues(np.linspace(0, 1, 256))
     colors[0] = [1.0, 1.0, 1.0, 1.0]
     cmap = ListedColormap(colors)
 
-    # Generate custom legend handles for each plotted pulse pattern.
+    # Collect custom legend handles for each plotted pulse pattern.
     legend_handles = []
 
     if main_pulses is not None and not main_pids.empty:
@@ -286,9 +286,10 @@ def plot_pulse_grid(main_pulses=None, marker_pulses=None, border_pulses=None,
         weights, act_pids = _get_pulse_weights(main_pids)
         Z[act_pids - start_pid] = weights[act_pids]
 
-        if main_label is not None:
-            legend_handles.append(Patch(fc=cmap(0.6), ec='k', lw=0.1,
-                                        label=main_label))
+    if main_label is not None:
+        # If specified, generate a custom legend handle for main pulses.
+        legend_handles.append(Patch(fc=cmap(0.6), ec='k', lw=0.1,
+                                    label=main_label))
 
     ax.pcolor(X - 0.5, Y - 0.5,
               Z.reshape(stop_row - start_row, num_cols),
@@ -300,10 +301,11 @@ def plot_pulse_grid(main_pulses=None, marker_pulses=None, border_pulses=None,
         # the grid.
         weights, act_pids = _get_pulse_weights(marker_pids)
         ax.scatter(act_pids % num_cols, act_pids // num_cols,
-                   c=Greys(0.1 + weights[act_pids]*0.9))
+                   c=Greys(0.1 + weights[act_pids] * 0.9), marker='.')
 
     if marker_label is not None:
-        legend_handles.append(Line2D([0], [0], ls='none', marker='.', ms=12,
+        # If specified, generate a custom legend handle for markers.
+        legend_handles.append(Line2D([0], [0], ls='none', marker='.', ms=10,
                                      color=Greys(0.8), label=marker_label))
 
     if border_pulses is not None and not border_pids.empty:
@@ -316,9 +318,10 @@ def plot_pulse_grid(main_pulses=None, marker_pulses=None, border_pulses=None,
         XY = np.stack([X, Y], axis=2)
 
         ax.add_collection(LineCollection(
-            XY, colors=Greys(0.1 + weights[act_pids]*0.9), lw=2))
+            XY, colors=Greys(0.1 + weights[act_pids] * 0.9), lw=2))
 
     if border_label is not None:
+        # If specified, generate a custom legend handle for borders.
         legend_handles.append(Patch(fc='none', ec=Greys(0.8), lw=2,
                                     label=border_label))
 
@@ -567,7 +570,7 @@ class PulsePattern:
         else:
             print(' Variable pattern')
 
-    def plot_grid(self, **plot_kwargs):
+    def inspect(self, **plot_kwargs):
         """Visualize pulse pattern in a grid.
 
         Plots the pulse pattern this object describes for this data in
@@ -575,18 +578,8 @@ class PulsePattern:
         location at 4.5 MHz.
 
         Args:
-            start (int, optional): Lowest pulse ID to include, picked
-                automatically based on data by default.
-            stop (int, optional): Highest pulse ID to include, picked
-                automatically based on data by default.
-            num_cols (int, optional): Number of pulse columns to use,
-                picked automatically based on data by default.
-            figsize (2-tuple of float, optional): Figure size in inches
-                passed to matplotlib, ignored if ax is passed. This only
-                describes the outer boundaries depending on the plot's
-                aspect ratio.
-            ax (matplotlib.axes.Axes, optional): Axes object to plot
-                into, created automatically if omitted.
+            **edge_kw (Any): Any further keyword arguments are passed to
+                [plot_pulse_grid()][extra.components.pulses.plot_pulse_grid].
 
         Returns:
             ax (matplotlib.axes.Axes): Axes object the plot was
@@ -2215,7 +2208,24 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
 
         return flags
 
-    def plot_grid(self, **plot_kwargs):
+    def inspect(self, **plot_kwargs):
+        """Visualize pulse pattern in a grid.
+
+        Plots the pulse pattern this object describes for this data in
+        a grid, with each grid point representing a possible pulse
+        location at 4.5 MHz. FEL pulses are represented by each cell's
+        background color, while PPL pulses are denoted by each cell's
+        border.
+
+        Args:
+            **edge_kw (Any): Any further keyword arguments are passed to
+                [plot_pulse_grid()][extra.components.pulses.plot_pulse_grid].
+
+        Returns:
+            ax (matplotlib.axes.Axes): Axes object the plot was
+                generated in.
+        """
+
         pids = self.pulse_ids(copy=False)
 
         plot_kwargs = dict(main_label='FEL', border_label='PPL') | plot_kwargs
@@ -2455,7 +2465,24 @@ class DldPulses(PulsePattern):
 
         return pd.Series(data=pulse_ids, index=index, dtype=np.int32)
 
-    def plot_grid(self, **plot_kwargs):
+    def inspect(self, **plot_kwargs):
+        """Visualize pulse pattern in a grid.
+
+        Plots the pulse pattern this object describes for this data in
+        a grid, with each grid point representing a possible pulse
+        location at 4.5 MHz. FEL pulses are represented by each cell's
+        background color, while PPL pulses are denoted by each cell's
+        border.
+
+        Args:
+            **edge_kw (Any): Any further keyword arguments are passed to
+                [plot_pulse_grid()][extra.components.pulses.plot_pulse_grid].
+
+        Returns:
+            ax (matplotlib.axes.Axes): Axes object the plot was
+                generated in.
+        """
+
         pids = self.pulse_ids(copy=False)
 
         if 'fel' not in pids.index.names:
