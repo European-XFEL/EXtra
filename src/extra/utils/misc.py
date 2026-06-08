@@ -1,4 +1,7 @@
 import sys
+from dataclasses import dataclass
+from time import perf_counter
+from typing import ClassVar
 
 import numpy as np
 
@@ -56,6 +59,101 @@ def reorder_axes_to_shape(a, target_shape):
 
     order = tuple([a.shape.index(l) for l in t])
     return a.transpose(order)
+
+
+@dataclass
+class TimingResult:
+    """Results collected by StepTimer. Should display itself nicely."""
+    name: str
+    timestamps: list[tuple[str, float]]
+    finish: float | None = None
+
+    @property
+    def step_times(self):
+        d = {}
+        prev_ts = self.timestamps[0][1]
+        for label, ts in self.timestamps[1:]:
+            d.setdefault(label, []).append(ts - prev_ts)
+            prev_ts = ts
+
+        return d
+
+    def _repr_markdown_(self):
+        lines = [
+            f"**{self.name}** step timings:",
+            "",
+            "n  | step | total step time | repeats | average time",
+            "--|--|--|--|--"
+        ]
+        for i, (label, dts) in enumerate(self.step_times.items(), start=1):
+            dts = np.array(dts)
+            avg = f"{dts.mean():.3g} ± {dts.std():.3g} s" if len(dts) > 1 else ""
+            lines.append(f"{i} | {label} | {dts.sum():.3g} s | {len(dts)}× | {avg}")
+        if self.finish:
+            start = self.timestamps[0][1]
+            lines.extend(["", f"Total: {self.finish - start:.3g} s"])
+        return "\n".join(lines)
+
+    def __repr__(self):
+        lines = [f"{self.name} step timings:", ""]
+        for i, (label, dts) in enumerate(self.step_times.items(), start=1):
+            dt = np.mean(dts)
+            rpt = f"({len(dts)}×)" if len(dts) > 1 else ""
+            lines.append(f"{i:3d}. {label}: \t{dt:.3g} s {rpt}")
+        if self.finish:
+            start = self.timestamps[0][1]
+            lines.extend(["", f"Total: {self.finish - start:.3g} s"])
+        return "\n".join(lines)
+
+
+class StepTimer:
+    """Measure step timings within a function or method.
+
+    Instantiate StepTimer() with the name of the thing being timed, then call
+    it at the end of each step with a label for that step.
+
+    Timings aren't shown by default, but StepTimer.latest gives the last
+    finished measurements, or set StepTimer.show=True to print timings as they
+    are measured. Override on_start, on_step & on_finish to do more.
+    """
+    latest: ClassVar[TimingResult | None] = None  # Store the latest timings
+    show = False  # Set True to show timings as they're recorded
+
+    def __init__(self, name: str):
+        ts = perf_counter()
+        self.results = TimingResult(name, [("start", ts)])
+        self.on_start(name, ts)
+
+    def __call__(self, label: str):
+        ts = perf_counter()
+
+        self.results.timestamps.append((label, ts))
+        self.on_step(label, ts - self.results.timestamps[-2][1])
+
+    def __enter__(self):
+        return self  # No timestamp, we assume this is immediately after init
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self("with block finish")
+
+    def __del__(self):
+        self.results.finish = perf_counter()
+        StepTimer.latest = self.results
+        self.on_finish(self.results)
+
+    # The on_ methods are meant to be
+    def on_start(self, name, timestamp):
+        """Overridable: called with timer name & start timestamp"""
+        pass
+
+    def on_step(self, label, dt):
+        """Overridable: called with step label and time since last call"""
+        if self.show:
+            print(f"{label}: {dt:.3g} s")
+
+    def on_finish(self, results):
+        """Overridable: called with TimingResults object"""
+        pass
 
 
 def _isinstance_no_import(obj, mod: str, cls: str):
