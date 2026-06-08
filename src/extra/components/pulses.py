@@ -16,6 +16,7 @@ from euxfel_bunch_pattern import is_sase, is_laser, \
     PPL_BITS, DESTINATION_TLD, DESTINATION_T4D, DESTINATION_T5D, \
     PHOTON_LINE_DEFLECTION
 from extra_data import DataCollection, SourceData, KeyData, by_index, by_id
+from extra_data.read_machinery import split_trains
 
 from .utils import identify_sase, _instrument_to_sase
 
@@ -359,6 +360,18 @@ class PulsePattern:
             res._pulse_ids = None
 
         return res
+
+    def split_trains(self, parts=None, trains_per_part=None):
+        # Get train IDs from an EXtra-data object if possible, so it will split
+        # the same way as other things from the same data.
+        if self._source is not None:
+            tids = self._source.train_ids
+        elif self._key is not None:
+            tids = self._key.train_ids
+        else:
+            tids = self._get_train_ids()  # Used for ManualPulses
+        for sl in split_trains(len(tids), parts=parts, trains_per_part=trains_per_part):
+            yield self.select_trains(sl)
 
     def select_pulses(self, pulse_sel, train_sel=None,
                       reset_index=True) -> ManualPulses:
