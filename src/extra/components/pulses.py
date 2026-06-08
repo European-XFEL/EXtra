@@ -281,7 +281,7 @@ def plot_pulse_grid(main_pulses=None, marker_pulses=None, border_pulses=None,
     # Generate custom legend handles for each plotted pulse pattern.
     legend_handles = []
 
-    if main_pulses is not None:
+    if main_pulses is not None and not main_pids.empty:
         # If specified, render main pulses into Z values.
         weights, act_pids = _get_pulse_weights(main_pids)
         Z[act_pids - start_pid] = weights[act_pids]
@@ -295,19 +295,18 @@ def plot_pulse_grid(main_pulses=None, marker_pulses=None, border_pulses=None,
               cmap=cmap, vmin=0, vmax=1.5*Z.max(),
               edgecolors='k', lw=0.1)
 
-    if marker_pulses is not None:
+    if marker_pulses is not None and not marker_pids.empty:
         # If specified, render marker pulses as a scatter plot on top of
         # the grid.
         weights, act_pids = _get_pulse_weights(marker_pids)
         ax.scatter(act_pids % num_cols, act_pids // num_cols,
                    c=Greys(0.1 + weights[act_pids]*0.9))
 
-        if marker_label is not None:
-            legend_handles.append(Line2D(
-                [0], [0], ls='none', marker='.', ms=12, color=Greys(0.8),
-                label=marker_label))
+    if marker_label is not None:
+        legend_handles.append(Line2D([0], [0], ls='none', marker='.', ms=12,
+                                     color=Greys(0.8), label=marker_label))
 
-    if border_pulses is not None:
+    if border_pulses is not None and not border_pids.empty:
         # If specified, render border pulses as a line collection of
         # rectangles enclosing grid points.
 
@@ -319,9 +318,9 @@ def plot_pulse_grid(main_pulses=None, marker_pulses=None, border_pulses=None,
         ax.add_collection(LineCollection(
             XY, colors=Greys(0.1 + weights[act_pids]*0.9), lw=2))
 
-        if border_label is not None:
-            legend_handles.append(Patch(fc='none', ec=Greys(0.8), lw=2,
-                                        label=border_label))
+    if border_label is not None:
+        legend_handles.append(Patch(fc='none', ec=Greys(0.8), lw=2,
+                                    label=border_label))
 
     # Invert the plot by default.
     ax.invert_yaxis()
