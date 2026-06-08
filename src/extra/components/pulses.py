@@ -2216,6 +2216,17 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
 
         return flags
 
+    def plot_grid(self, **plot_kwargs):
+        pids = self.pulse_ids(copy=False)
+
+        plot_kwargs = dict(main_label='FEL', border_label='PPL') | plot_kwargs
+        ax = plot_pulse_grid(main_pulses=pids.xs(True, level='fel'),
+                             border_pulses=pids.xs(True, level='ppl'),
+                             **plot_kwargs)
+        ax.set_title(f'{repr(self)}', fontsize='small', pad=30)
+
+        return ax
+
     def pulse_mask(self, labelled=True, field=None):
         """Get boolean pulse mask.
 
@@ -2444,6 +2455,20 @@ class DldPulses(PulsePattern):
                 // (self._clock_ratio or 196) + (self._first_pulse_id or 0)
 
         return pd.Series(data=pulse_ids, index=index, dtype=np.int32)
+
+    def plot_grid(self, **plot_kwargs):
+        pids = self.pulse_ids(copy=False)
+
+        if 'fel' not in pids.index.names:
+            return super().plot_grid()
+
+        plot_kwargs = dict(main_label='FEL', border_label='PPL') | plot_kwargs
+        ax = plot_pulse_grid(main_pulses=pids.xs(True, level='fel'),
+                             border_pulses=pids.xs(True, level='ppl'),
+                             **plot_kwargs)
+        ax.set_title(f'{repr(self)}', fontsize='small', pad=30)
+
+        return ax
 
     def triggers(self, labelled=True):
         """Get trigger information.
