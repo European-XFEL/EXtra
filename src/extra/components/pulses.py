@@ -125,6 +125,244 @@ def _select_pulse_ids(pulse_ids, pulse_sel, train_sel):
         'trainId', group_keys=False).apply(slice_pulses)
 
 
+def _get_pulse_weights(pids):
+    """Return relative weights and occuring pulse IDs."""
+
+    unique_pids, counts = np.unique(pids.groupby('trainId').apply(tuple),
+                                    return_counts=True)
+    total = counts.sum()
+
+    weights = np.zeros(pids.max()+1, dtype=np.float64)
+    for pids_set, count in zip(unique_pids, counts):
+        weights[np.array(pids_set)] += count/total
+
+    act_pids = np.flatnonzero(weights)
+
+    return weights, act_pids
+
+
+def plot_pulse_grid(main_pulses=None, marker_pulses=None, border_pulses=None,
+                    main_label=None, marker_label=None, border_label=None,
+                    start=None, stop=None, num_cols=None,
+                    figsize=(9, 9), ax=None):
+    """Visualize pulse pattern in a grid.
+
+    Plots up to three pulse pattern in a grid, with each grid cell
+    representing a possible pulse location at 4.5 MHz. The available
+    visualizations are the cell's background color, a marker within each
+    cell and the border around cells. In all cases, variable patterns
+    are represented by levels of transparency weighted by their rate of
+    occurence in the data.
+
+    Args:
+        main_pulses (PulsePattern or pd.Series, optional): Pulses to
+            visualize as colored cells in the grid.
+        maarker_pulses (PulsePattern or pd.Series, optional): Pulses
+            to visualize as markers inside the grid's cells.
+        border_pulses (PulsePattern or pd.Series, optional): Pulses
+            to visualize as borders of the grid's cells.
+        main_label (str, optional): Legend label for main pulses,
+            none if omitted.
+        marker_label (str, optional): Legend label for marker pulses,
+            none if omitted.
+        border_label (str, optional): Legend label for border pulses,
+            none if omitted.
+        start (int, optional): Lowest pulse ID to include, picked
+            automatically based on data by default.
+        stop (int, optional): Highest pulse ID to include, picked
+            automatically based on data by default.
+        num_cols (int, optional): Number of pulse columns to use, picked
+            automatically based on data by default.
+        figsize (2-tuple of float, optional): Figure size in inches
+            passed to matplotlib, ignored if ax is passed. This only
+            describes the outer boundaries depending on the plot's
+            aspect ratio.
+        ax (matplotlib.axes.Axes, optional): Axes object to plot into,
+            created automatically if omitted.
+
+    Returns:
+        ax (matplotlib.axes.Axes): Axes object the plot was
+            generated in.
+    """
+
+    if ax is None:
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots(figsize=figsize)
+
+    import pandas as pd
+
+    if isinstance(main_pulses, PulsePattern):
+        main_pids = main_pulses.pulse_ids(copy=False)
+    elif isinstance(main_pulses, pd.Series):
+        main_pids = main_pulses
+    elif main_pulses is not None:
+        raise TypeError(f'main_pulses must be PulsePattern or labeled '
+                        f'series not `{type(main_pulses).__name__}`')
+
+    if isinstance(marker_pulses, PulsePattern):
+        marker_pids = marker_pulses.pulse_ids(copy=False)
+    elif isinstance(marker_pulses, pd.Series):
+        marker_pids = marker_pulses
+    elif marker_pulses is not None:
+        raise TypeError(f'marker_pulses must be PulsePattern or labeled '
+                        f'series, not `{type(marker_pulses).__name__}`')
+
+    if isinstance(border_pulses, PulsePattern):
+        border_pids = border_pulses.pulse_ids(copy=False)
+    elif isinstance(border_pulses, pd.Series):
+        border_pids = border_pulses
+    elif border_pulses is not None:
+        raise TypeError(f'border_pulses must be PulsePattern or labeled '
+                        f'series, not `{type(border_pulses).__name__}`')
+
+    pids = []
+
+    if main_pulses is not None:
+        pids.append(main_pids)
+
+    if marker_pulses is not None:
+        pids.append(marker_pids)
+
+    if border_pulses is not None:
+        pids.append(border_pids)
+
+    if not pids:
+        raise ValueError('must specify at least one pulse pattern')
+
+    # Determine pulse ID boundaries and plot limits based on it, if
+    # not given explicitly.
+    min_pid = start if start is not None else \
+        min([x.min() for x in pids])
+    max_pid = stop if stop is not None else \
+        max([x.max() for x in pids])
+    pid_range = max_pid - min_pid
+
+    if np.isfinite(pid_range):
+        # If not given explicitly, find a column number that is a
+        # multiple of 10 between 20 and 50.
+        num_cols = num_cols or (np.clip(pid_range // 10, 20, 50) // 10) * 10
+
+        start_row = max(min_pid // num_cols, 0)
+        if start is None:
+            start_row -= 1  # Add one more row if autoscaling.
+
+        stop_row = int(np.ceil(max_pid // num_cols)) + 1
+        if stop is None:
+            stop_row += 1  # Add one row if autoscaling.
+    else:
+        # In case there are no pulses at all.
+        num_cols = num_cols or 32
+        start_row = 0
+        stop_row = 3
+
+    start_pid = start_row * num_cols
+    stop_pid = stop_row * num_cols
+
+    from matplotlib import colormaps
+    from matplotlib.cm import Blues, Greys
+    from matplotlib.collections import LineCollection
+    from matplotlib.colors import ListedColormap
+    from matplotlib.lines import Line2D
+    from matplotlib.patches import Patch
+    from matplotlib.ticker import MaxNLocator, AutoMinorLocator, \
+        StrMethodFormatter, FuncFormatter
+    from matplotlib.transforms import offset_copy
+
+    # Build the grid in X, Y and Z.
+    Y, X = np.mgrid[start_row:(stop_row+1), :(num_cols+1)]
+    Z = np.zeros(stop_pid - start_pid, dtype=np.float32)
+
+    # Project colormap onto 256 values and replace
+    # the first with white.
+    colors = Blues(np.linspace(0, 1, 256))
+    colors[0] = [1.0, 1.0, 1.0, 1.0]
+    cmap = ListedColormap(colors)
+
+    # Generate custom legend handles for each plotted pulse pattern.
+    legend_handles = []
+
+    if main_pulses is not None:
+        # If specified, render main pulses into Z values.
+        weights, act_pids = _get_pulse_weights(main_pids)
+        Z[act_pids - start_pid] = weights[act_pids]
+
+        if main_label is not None:
+            legend_handles.append(Patch(fc=cmap(0.6), ec='k', lw=0.1,
+                                        label=main_label))
+
+    ax.pcolor(X - 0.5, Y - 0.5,
+              Z.reshape(stop_row - start_row, num_cols),
+              cmap=cmap, vmin=0, vmax=1.5*Z.max(),
+              edgecolors='k', lw=0.1)
+
+    if marker_pulses is not None:
+        # If specified, render marker pulses as a scatter plot on top of
+        # the grid.
+        weights, act_pids = _get_pulse_weights(marker_pids)
+        ax.scatter(act_pids % num_cols, act_pids // num_cols,
+                   c=Greys(0.1 + weights[act_pids]*0.9))
+
+        if marker_label is not None:
+            legend_handles.append(Line2D(
+                [0], [0], ls='none', marker='.', ms=12, color=Greys(0.8),
+                label=marker_label))
+
+    if border_pulses is not None:
+        # If specified, render border pulses as a line collection of
+        # rectangles enclosing grid points.
+
+        weights, act_pids = _get_pulse_weights(border_pids)
+        X = np.add.outer(act_pids % num_cols, [-0.5, +0.5, +0.5, -0.5, -0.5])
+        Y = np.add.outer(act_pids // num_cols, [-0.5, -0.5, +0.5, +0.5, -0.5])
+        XY = np.stack([X, Y], axis=2)
+
+        ax.add_collection(LineCollection(
+            XY, colors=Greys(0.1 + weights[act_pids]*0.9), lw=2))
+
+        if border_label is not None:
+            legend_handles.append(Patch(fc='none', ec=Greys(0.8), lw=2,
+                                        label=border_label))
+
+    # Invert the plot by default.
+    ax.invert_yaxis()
+
+    # Build X axis as offset to Y axis in terms of pulse ID.
+    ax.set_xlim(-0.5, num_cols - 0.5)
+    ax.xaxis.set_major_locator(MaxNLocator(nbins='auto', integer=True))
+    ax.xaxis.set_major_formatter(StrMethodFormatter('+{x:.0f}'))
+    ax.xaxis.set_minor_locator(AutoMinorLocator())
+
+    ax.yaxis.set_major_locator(MaxNLocator(nbins='auto', integer=True))
+    ax.yaxis.set_major_formatter(FuncFormatter(
+        lambda x, pos: f'{x*num_cols:.0f}'))
+    ax.set_yticks(np.arange(start_row, stop_row), minor=True)
+
+    # Add a custom grid in X and Y.
+    for x in ax.get_xticks()[1:-1]:
+        ax.plot([x - 0.5, x - 0.5], [start_row - 0.5, stop_row - 0.5],
+                'k', lw=0.25)
+
+    for y in ax.get_yticks()[1:-1]:
+        ax.plot([-0.5, num_cols + 0.5], [y - 0.5, y - 0.5], 'k', lw=0.25)
+
+    # General plot setup.
+    ax.set_aspect(1)
+    ax.tick_params(axis='both', labelsize=8)
+
+    # Add legend if there are any labels.
+    if legend_handles:
+        # Offet axes transform in absolute units to position legend
+        # indepedently of plot height.
+        legend_transform = offset_copy(ax.transAxes, fig=ax.get_figure(),
+                                       y=22, units='points')
+
+        ax.legend(handles=legend_handles, ncols=len(legend_handles),
+                  loc='upper left', bbox_transform=legend_transform,
+                  bbox_to_anchor=(0.0, 1.0), borderaxespad=0.0)
+
+    return ax
+
+
 class PulsePattern:
     """Abstract interface to pulse patterns.
 
@@ -330,8 +568,7 @@ class PulsePattern:
         else:
             print(' Variable pattern')
 
-    def plot_grid(self, start=None, stop=None, num_cols=None,
-                  figsize=(9, 9), ax=None):
+    def plot_grid(self, **plot_kwargs):
         """Visualize pulse pattern in a grid.
 
         Plots the pulse pattern this object describes for this data in
@@ -357,94 +594,10 @@ class PulsePattern:
                 generated in.
         """
 
-        if ax is None:
-            import matplotlib.pyplot as plt
-            fig, ax = plt.subplots(figsize=figsize)
-
-        # Get primary pulse IDs.
-        pids = self.pulse_ids(copy=False)
-
-        # Determine pulse ID boundaries and plot limits based on it, if
-        # not given explicitly.
-        min_pid = start if start is not None else pids.min()
-        max_pid = stop if stop is not None else pids.max()
-        pid_range = max_pid - min_pid
-
-        if np.isfinite(pid_range):
-            # If not given explicitly, find a column number that is a
-            # multiple of 10 between 20 and 50.
-            num_cols = num_cols or (np.clip(pid_range // 10, 20, 50) // 10) * 10
-
-            start_row = max(min_pid // num_cols, 0)
-            if start is None:
-                start_row -= 1  # Add one more row if autoscaling.
-
-            stop_row = int(np.ceil(max_pid // num_cols)) + 1
-            if stop is None:
-                stop_row += 1  # Add one row if autoscaling.
-        else:
-            # In case there are no pulses at all.
-            num_cols = num_cols or 32
-            start_row = 0
-            stop_row = 3
-
-        start_pid = start_row * num_cols
-        stop_pid = stop_row * num_cols
-
-        # Build the grid in X, Y and Z.
-        Y, X = np.mgrid[start_row:(stop_row+1), :(num_cols+1)]
-        Z = np.zeros(stop_pid - start_pid, dtype=np.float32)
-
-        # Add all unique patterns weighted by their occurence to Z.
-        unique_pids, counts = np.unique(pids.groupby('trainId').apply(tuple),
-                                        return_counts=True)
-        total = counts.sum()
-
-        for pids_set, count in zip(unique_pids, counts):
-            Z[np.array(pids_set) - start_pid] += count/total
-
-        from matplotlib.cm import Blues
-        from matplotlib.colors import ListedColormap
-        from matplotlib.ticker import MaxNLocator, AutoMinorLocator, \
-            StrMethodFormatter, FuncFormatter
-
-        # Project colormap onto 256 values and replace
-        # the first with white.
-        colors = Blues(np.linspace(0, 1, 256))
-        colors[0] = [1.0, 1.0, 1.0, 1.0]
-        cmap = ListedColormap(colors)
-
-        ax.pcolor(X - 0.5, Y - 0.5,
-                Z.reshape(stop_row - start_row, num_cols),
-                cmap=cmap, vmin=0, vmax=1.5*Z.max(),
-                edgecolors='k', lw=0.1)
-        ax.invert_yaxis()  # Invert the plot by default.
-
-        # Build X axis as offset to Y axis in terms of pulse ID.
-        ax.set_xlim(-0.5, num_cols - 0.5)
-        ax.xaxis.set_major_locator(MaxNLocator(nbins='auto', integer=True))
-        ax.xaxis.set_major_formatter(StrMethodFormatter('+{x:.0f}'))
-        ax.xaxis.set_minor_locator(AutoMinorLocator())
-
-        ax.yaxis.set_major_locator(MaxNLocator(nbins='auto', integer=True))
-        ax.yaxis.set_major_formatter(FuncFormatter(
-            lambda x, pos: f'{x*num_cols:.0f}'))
-        ax.set_yticks(np.arange(start_row, stop_row), minor=True)
-
-        # Add a custom grid in X and Y.
-        for x in ax.get_xticks()[1:-1]:
-            ax.plot([x - 0.5, x - 0.5], [start_row - 0.5, stop_row - 0.5],
-                    'k', lw=0.25)
-
-        for y in ax.get_yticks()[1:-1]:
-            ax.plot([-0.5, num_cols + 0.5], [y - 0.5, y - 0.5], 'k', lw=0.25)
-
-        # General plot setup.
+        ax = plot_pulse_grid(self, **plot_kwargs)
         ax.set_title(f'{repr(self)}', fontsize='medium')
-        ax.set_aspect(1)
-        ax.tick_params(axis='both', labelsize=8)
 
-        return ax
+        return self
 
     def select_trains(self, trains):
         """Select a subset of trains.
