@@ -39,12 +39,15 @@ def test_dld_init(mock_sqs_remi_run):
     assert 'digitizer.baseline_region' in dld.rec_params
 
 
-@pytest.mark.parametrize('pulse_dim', ['pulseId', 'pulseIndex', 'time'])
+@pytest.mark.parametrize('pulse_dim', ['pulseId', 'pulseIndex', 'pulseTime'])
 @pytest.mark.parametrize('channel_index', [True, False],
                          ids=['channelIndex', 'channelColumn'])
-def test_dld_edges(mock_sqs_remi_run, pulse_dim, channel_index):
+@pytest.mark.parametrize('amplitudes', [False, True],
+                         ids=['withoutAmplitudes', 'withAmplitudes'])
+def test_dld_edges(mock_sqs_remi_run, pulse_dim, channel_index, amplitudes):
     dld = DelayLineDetector(mock_sqs_remi_run, 'SQS_REMI_DLD6/DET/TOP')
-    edges = dld.edges(channel_index=channel_index, pulse_dim=pulse_dim)
+    edges = dld.edges(channel_index=channel_index, amplitudes=amplitudes,
+                      pulse_dim=pulse_dim)
 
     # There should be 28 edges per pulse.
     assert np.all(edges.groupby(['trainId', pulse_dim]).count() == 28)
@@ -60,7 +63,17 @@ def test_dld_edges(mock_sqs_remi_run, pulse_dim, channel_index):
     np.testing.assert_equal(actual_channels[:28], expected_channels)
 
 
-@pytest.mark.parametrize('pulse_dim', ['pulseId', 'pulseIndex', 'time'])
+def test_dld_no_amplitudes(mock_sqs_remi_run):
+    # Exclude raw.amplitudes from data.
+    subrun = mock_sqs_remi_run.select(
+        'SQS_REMI_DLD6/DET/TOP:output', '*.[eths]*')
+    dld = DelayLineDetector(subrun, 'SQS_REMI_DLD6/DET/TOP')
+
+    with pytest.raises(ValueError):
+        dld.edges(amplitudes=True)
+
+
+@pytest.mark.parametrize('pulse_dim', ['pulseId', 'pulseIndex', 'pulseTime'])
 @pytest.mark.parametrize('key', ['signal', 'hit'])
 def test_dld_df(mock_sqs_remi_run, key, pulse_dim):
     from .mockdata import dld as dld_mockdata

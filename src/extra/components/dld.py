@@ -5,7 +5,7 @@ import re
 import numpy as np
 import pandas as pd
 
-from extra.data import KeyData
+from extra.data import KeyData, PropertyNameError
 from .utils import _isinstance_no_import
 
 
@@ -312,44 +312,61 @@ class DelayLineDetector:
 
         return self.pulses().triggers()
 
-    def edges(self, channel_index=True, pulse_dim='pulseId'):
+    def edges(self, channel_index=True, amplitudes=False, pulse_dim='pulseId'):
         """Get raw edges as series or dataframe.
 
         Args:
             channel_index (bool, optional): Whether to insert the edge
-                channel as index level and return Series object
-                (default), or as column and return DataFrame object.
+                channel as index level (default), or as column. The
+                latter will cause the method to return a DataFrame
+                rather a Series.
+            amplitudes (bool, optional): Whether to insert amplitudes as
+                a column. This will cause the method to return a
+                DataFrame rather than a Series.
             pulse_dim ('pulseId' or 'pulseIndex' or 'pulseTime', optional):
                 Label for pulse dimension, pulse ID by default.
 
         Returns:
             edges (pd.Series or pd.DataFrame): Raw edge positions as
-                series (indexed by channel) or dataframe (with channel
-                as column) object.
+                a dataframe when channel is added as column and/or
+                amplitudes ar eincluded, otherwise a series.
         """
 
         kd = self._instrument_src['raw.edges']
-        index = self._align_pulse_index(kd, pulse_dim)
+        pulse_index = self._align_pulse_index(kd, pulse_dim)
         data = kd.ndarray()
-        raw_edges = [self._build_reduced_pd(data[:, i, :], index)
-                     for i in range(data.shape[1])]
+        raw_edges = [self._build_reduced_pd(data[:, i, :], pulse_index)
+                    for i in range(data.shape[1])]
 
-        index = pd.MultiIndex.from_frame(
+        edge_index = pd.MultiIndex.from_frame(
             pd.concat([e.index.to_frame() for e in raw_edges]))
         positions = np.concatenate([e.to_numpy() for e in raw_edges])
         channels = np.arange(len(raw_edges)).repeat(
             [len(e) for e in raw_edges])
 
-        edges = pd.DataFrame(dict(position=positions, channel=channels),
-                             index=index)
+        columns = dict(channel=channels, position=positions)
+
+        if amplitudes:
+            try:
+                data = self._instrument_src['raw.amplitudes'].ndarray()
+            except PropertyNameError:
+                raise ValueError('amplitudes not available in data') from None
+
+            columns['amplitude'] = np.concatenate([
+                self._build_reduced_pd(data[:, i, :], pulse_index).to_numpy()
+                for i in range(data.shape[1])])
+
+        edges = pd.DataFrame(columns, index=edge_index)
         edges.sort_values(by='position', inplace=True)
         edges.sort_index(inplace=True)
 
         if channel_index:
             edges.set_index('channel', drop=True, append=True, inplace=True)
-            return edges['position']
-        else:
-            return edges
+
+            if not amplitudes:
+                return edges['position']
+
+        return edges
 
     def signals(self, pulse_dim='pulseId', extra_columns={}, max_method=None):
         """Get reconstructed signals as dataframe.

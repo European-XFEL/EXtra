@@ -20,6 +20,8 @@ Added:
 
 - [TimeserverPulses.plot_xray_patterns][extra.components.pulses.TimeserverPulses.plot_xray_patterns]
   to visualize the X-ray pulse patterns present in timeserver data (!499).
+- [DelayLineDetector.edges][extra.components.DelayLineDetector.edges] can include the edge amplitudes
+  in its result if requested (!505).
 - [AdqRawChannel.train_data][extra.components.AdqRawChannel.train_data] and
   [AdqRawChannel.pulse_data][extra.components.AdqRawChannel.pulse_data] are now
   reading data in parallel by default (!497).
