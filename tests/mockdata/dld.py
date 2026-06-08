@@ -73,7 +73,9 @@ class ReconstructedDld(DeviceBase):
             for key, dtype, entry_shape in keys:
                 f.create_dataset(f'INSTRUMENT/{source}/{index_group}/{key}',
                                  maxshape=(None,) + entry_shape, dtype=dtype,
-                                 shape=(num_entries,) + entry_shape)
+                                 shape=(num_entries,) + entry_shape,
+                                 chunks=(min(num_entries, 50),) + entry_shape,
+                )
 
         data_root = f[f'INSTRUMENT/{source}']
 
@@ -88,10 +90,21 @@ class ReconstructedDld(DeviceBase):
         triggers['ppl'][:num_entries] = (pulse_ids % 2) == 0
 
         data_root['raw/triggers'][:num_entries] = triggers
-        data_root['raw/edges'][:num_entries] = np.nan
-        data_root['raw/amplitudes'][:num_entries] = np.nan
-        data_root['rec/signals'][:num_entries] = np.nan
-        data_root['rec/hits'][:num_entries] = (np.nan, np.nan, np.nan, -1)
+        # Workaround: h5py's guess for how to broadcast a single value is
+        # abysmally slow for these dataset shapes. Make an array the same shape
+        # first to bypass it.
+        data_root['raw/edges'][:num_entries] = np.full(
+            (num_entries, 7, self.max_rows), np.nan
+        )
+        data_root['raw/amplitudes'][:num_entries] = np.full(
+            (num_entries, 7, self.max_rows), np.nan
+        )
+        data_root['rec/signals'][:num_entries] = np.full(
+            (num_entries, self.max_rows), np.nan, dtype=signal_dt
+        )
+        data_root['rec/hits'][:num_entries] = np.full(
+            (num_entries, self.max_rows), np.array((np.nan,)*3 + (-1,), dtype=hit_dt)
+        )
 
         for i, ch in product(range(5), range(7)):
             # Alternate between 1-channel edges per pulse with random
