@@ -20,9 +20,12 @@ Added:
 
 - [TimeserverPulses.plot_xray_patterns][extra.components.pulses.TimeserverPulses.plot_xray_patterns]
   to visualize the X-ray pulse patterns present in timeserver data (!499).
-- [AdqRawChannel.train_data][extra.components.AdqRawChannel.pulse_data] and
-  [AdqRawChannel.train_data][extra.components.AdqRawChannel.pulse_data] are now
+- [AdqRawChannel.train_data][extra.components.AdqRawChannel.train_data] and
+  [AdqRawChannel.pulse_data][extra.components.AdqRawChannel.pulse_data] are now
   reading data in parallel by default (!497).
+- [AdqRawChannel.pulse_data][extra.components.AdqRawChannel.pulse_data] accepts
+  a dtype parameter for the output array.
+- [AdqRawChannel.split_trains][extra.components.AdqRawChannel.split_trains]
 - [AGIPDConditions][extra.calibration.AGIPDConditions] now recognizes current source constant types
 - [CalibrationData.from_data][extra.calibration.CalibrationData.from_data] method to
   find the constants suitable for a given `DataCollection`

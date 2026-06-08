@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from extra_data import by_id
-from extra_data.read_machinery import roi_shape
+from extra_data.read_machinery import roi_shape, split_trains
 from .pulses import XrayPulses, PulsePattern
 from .utils import _isinstance_no_import
 from ._adq import _reshape_flat_pulses
@@ -328,16 +328,17 @@ class AdqRawChannel:
 
         return edge_func
 
-    def _validate_out(self, out, shape, alloc=np.zeros):
+    def _validate_out(self, out, shape, alloc=np.zeros, dtype=np.float32):
         """Validate output arguments."""
 
         is_corrected = self._cm_period > 0 or self._baselevel is not None
 
         if out is None:
-            out = alloc(shape, dtype=np.float32)
+            out = alloc(shape, dtype=dtype)
         elif any([a < b for a, b in zip(out.shape, shape)]):
             raise ValueError(f'requires at least output array shape {shape}')
-        elif is_corrected and not np.issubdtype(out.dtype, np.floating):
+
+        if is_corrected and not np.issubdtype(out.dtype, np.floating):
             from warnings import warn
             warn('Common mode correction or baselevel pull may yield '
                  'incorrect results with non-floating data types',
@@ -638,6 +639,11 @@ class AdqRawChannel:
             res._pulses = self._pulses.select_trains(trains)
 
         return res
+
+    def split_trains(self, parts=None, trains_per_part=None):
+        n_trains = len(self._instrument_src.train_ids)
+        for sl in split_trains(n_trains, parts=parts, trains_per_part=trains_per_part):
+            yield self.select_trains(sl)
 
     def samples_per_pulse(self, pulse_period=None, pulse_duration=None,
                           repetition_rate=None, pulse_ids=None,
@@ -1048,8 +1054,11 @@ class AdqRawChannel:
 
         if parallel is not False:
             # Prepare parallelization.
+            import pasha
             psh = self._prepare_pasha(parallel)
 
+            if isinstance(psh, pasha.ProcessContext) and out is not None:
+                raise TypeError("Cannot use out= with parallel processing")
             out = self._validate_out(out, shape, psh.alloc)
 
             def read_train(wid, index, train_id, data):
@@ -1079,7 +1088,7 @@ class AdqRawChannel:
         return xr.DataArray(out, coords=coords)
 
     def pulse_data(self, labelled=True, pulse_dim='pulseId', train_roi=(),
-                   out=None, parallel=None):
+                   out=None, *, dtype=np.float32, parallel=None):
         """Load this channel's raw data by pulse.
 
         In addition to [AdqRawChannel.train_data], this method also
@@ -1103,6 +1112,8 @@ class AdqRawChannel:
                 performed. The entire train trace is read if omitted.
             out (numpy.typing.ArrayLike, optional): Array to read into,
                 a new one is allocated if omitted.
+            dtype: (numpy dtype specifier, optional): dtype to use for the
+                output array. Ignored if out is passed.
             parallel (int or None, optional): Number of parallel
                 processes to use, by default 10 or a quarter of all cores
                 whichever is lower. Any non-positive value or 1 disable
@@ -1128,10 +1139,13 @@ class AdqRawChannel:
 
         if parallel is not False:
             # Prepare parallelization.
+            import pasha
             psh = self._prepare_pasha(parallel)
 
             # Prepare output buffers.
-            out = self._validate_out(None, out_shape, psh.alloc)
+            if isinstance(psh, pasha.ProcessContext) and out is not None:
+                raise TypeError("Cannot use out= with parallel processing")
+            out = self._validate_out(out, out_shape, psh.alloc, dtype=dtype)
 
             def read_pulses(wid, index, train_id, data):
                 layout_row = pulse_layout.loc[train_id]
@@ -1147,7 +1161,7 @@ class AdqRawChannel:
 
         else:
             # Prepare output buffers.
-            out = self._validate_out(out, out_shape)
+            out = self._validate_out(out, out_shape, dtype=dtype)
 
             # Temporary buffer for a single iteration.
             tmp = np.zeros((200,) + roi_shape(
