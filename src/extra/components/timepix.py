@@ -1,5 +1,6 @@
 
 from collections import defaultdict
+from copy import copy
 from io import IOBase
 from os import PathLike
 import re
@@ -8,6 +9,7 @@ import numpy as np
 import pandas as pd
 
 from extra_data import by_id
+from extra_data.read_machinery import split_trains
 
 
 # Pulse indices used internally for virtual leading and trailing pulses.
@@ -56,6 +58,7 @@ class Timepix3:
 
         self._raw_control_src = None
         self._raw_instrument_src = None
+        self._raw_instrument_dc = None
         self._centroids_control_src = None
         self._centroids_instrument_src = None
 
@@ -107,6 +110,36 @@ class Timepix3:
 
         return "<{} {}: {}>".format(type(self).__name__, self._detector_name,
                                     ', '.join(data_labels))
+
+    def select_trains(self, trains):
+        """Select a subset of trains in this data.
+
+        This method accepts the same type of arguments as
+        [DataCollection.select_trains][extra_data.DataCollection.select_trains].
+        """
+        res = copy(self)
+
+        if self._raw_control_src is not None:
+            res._raw_control_src = self._raw_control_src.select_trains(trains)
+        if self._raw_instrument_src is not None:
+            res._raw_instrument_src = self._raw_instrument_src.select_trains(trains)
+        if self._raw_instrument_dc is not None:
+            raw_train_ids = res.raw_size_key.drop_empty_trains().train_ids
+            res._raw_instrument_dc = self._raw_instrument_dc.select_trains(
+                by_id[raw_train_ids]
+            )
+        if self._centroids_control_src is not None:
+            res._centroids_control_src = self._centroids_control_src.select_trains(trains)
+        if self._centroids_instrument_src is not None:
+            res._centroids_instrument_src = self._centroids_instrument_src.select_trains(trains)
+        res._pulses = self._pulses.select_trains(trains)
+
+        return res
+
+    def split_trains(self, parts=None, trains_per_part=None):
+        n_trains = len(self.train_ids)
+        for sl in split_trains(n_trains, parts=parts, trains_per_part=trains_per_part):
+            yield self.select_trains(sl)
 
     def _has_centroid_labels(self):
         """Whether centroid labels are available."""
@@ -401,6 +434,13 @@ class Timepix3:
                              'initialized with data not containing it')
 
         return self._centroids_instrument_src
+
+    @property
+    def train_ids(self):
+        # One or other of the instrument sources must be present
+        if self._raw_instrument_src is not None:
+            return self._raw_instrument_src.train_ids
+        return self._centroids_instrument_src.train_ids
 
     @property
     def centroids_key(self):

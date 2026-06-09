@@ -154,3 +154,9 @@ def test_dld_max_method(mock_sqs_remi_run):
             all_hits[mask], dld.hits(max_method=m))
         pd.testing.assert_frame_equal(
             all_signals[mask], dld.signals(max_method=m))
+
+
+def test_split_trains(mock_sqs_remi_run):
+    dld = DelayLineDetector(mock_sqs_remi_run, 'SQS_REMI_DLD6/DET/TOP')
+    chunks = list(dld.split_trains(trains_per_part=30))
+    assert [len(c.instrument_source.train_ids) for c in chunks] == [25] * 4

@@ -133,6 +133,12 @@ def test_select_trains(mock_spb_aux_run):
     pulses.select_trains(np.s_[:20])
 
 
+def test_split_trains(mock_spb_aux_run):
+    pulses = XrayPulses(mock_spb_aux_run.select('SPB*'))
+    chunks = list(pulses.split_trains(trains_per_part=30))
+    assert [len(c.source.train_ids) for c in chunks] == [25] * 4
+
+
 @pytest.mark.parametrize('source', **pattern_sources)
 def test_pulse_mask(mock_spb_aux_run, source):
     run = mock_spb_aux_run

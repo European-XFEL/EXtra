@@ -247,3 +247,9 @@ def test_timepix3_centroid_events(mock_sqs_timepix_run):
         np.testing.assert_array_equal(
             d['centroid_size'], np.linspace(1, 10, N, dtype=np.int16))
         np.testing.assert_array_equal(d['label'], np.arange(N))
+
+
+def test_split_trains(mock_sqs_timepix_run):
+    tpx = Timepix3(mock_sqs_timepix_run.deselect('SQS_EXTRA*'))
+    chunks = list(tpx.split_trains(trains_per_part=30))
+    assert [len(c.raw_control_src.train_ids) for c in chunks] == [25] * 4
