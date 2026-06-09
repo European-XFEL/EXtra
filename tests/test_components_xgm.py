@@ -178,3 +178,9 @@ def test_wrong_pulse_counts(mock_spb_aux_run):
             # Otherwise it should return the slow data counts which should have
             # a name.
             assert xgm.pulse_counts(force_slow_data=True).name == mock_pulse_counts.name
+
+
+def test_split_trains(mock_spb_aux_run):
+    xgm = XGM(mock_spb_aux_run)
+    chunks = list(xgm.split_trains(trains_per_part=30))
+    assert [len(c.instrument_source.train_ids) for c in chunks] == [25] * 4

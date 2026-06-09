@@ -1,3 +1,4 @@
+from copy import copy
 from enum import Enum
 from warnings import warn
 from textwrap import dedent
@@ -5,6 +6,7 @@ from textwrap import dedent
 import numpy as np
 
 from extra_data import SourceData, KeyData, MultiRunError
+from extra_data.read_machinery import split_trains
 
 from .. import ureg
 from .utils import SASE_TOPICS, identify_sase
@@ -215,6 +217,34 @@ class XGM:
         """The `SourceData` object for the instrument source of the XGM
         (e.g. `SA2_XTD1_XGM/XGM/DOOCS:output`)."""
         return self._instrument_source
+
+    def select_trains(self, trains):
+        """Select a subset of trains in this data.
+
+        This method accepts the same type of arguments as
+        [DataCollection.select_trains][extra_data.DataCollection.select_trains].
+        """
+        res = copy(self)
+        res._control_source = self._control_source.select_trains(trains)
+        res._instrument_source = self._instrument_source.select_trains(trains)
+
+        # Clear all cached data except single values which would be the same in
+        # the subset.
+        res._wavelength_by_train = None
+        res._photon_energy_by_train = None
+        res._photon_flux = None
+        res._pulse_energy = {}
+        res._slow_train_energy = {}
+        res._pulse_counts = {}
+        res._slow_pulse_counts = {}
+        res._max_pulses = {}
+
+        return res
+
+    def split_trains(self, parts=None, trains_per_part=None):
+        n_trains = len(self._control_source.train_ids)
+        for sl in split_trains(n_trains, parts=parts, trains_per_part=trains_per_part):
+            yield self.select_trains(sl)
 
     def wavelength(self, with_units=True):
         """The nominal wavelength of the X-rays in nanometers.
