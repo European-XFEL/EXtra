@@ -138,7 +138,9 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
               xgm_threshold: float,
               count_threshold: float=None,
               correction_fn=None,
-              count_samples: int=500) -> xr.DataArray:
+              count_samples: int=500,
+              parallel: int=10,
+              ) -> xr.DataArray:
     """
     Calculate the mean of the ToF data in the given tof and energy bin in `itr`.
 
@@ -151,6 +153,7 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
       count_threshold: Number of ADU counts used to trigger photon count.
       correction_fn: A correction function to apply in the raw spectra.
       count_samples: Number of samples to consider when counting.
+      parallel: Number of threads to use when reading data in parallel.
 
     Returns: DataArray with mean of data in the energy bin given.
     """
@@ -169,7 +172,7 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
             x = tof[tof_id].select_trains(np._[0:1]).pulse_data(pulse_dim='pulseIndex').to_numpy().mean(0)
             return np.zeros_like(x), 0
         tof_data = tof[tof_id].select_trains(by_id[good_ids])
-        tof_data = tof_data.pulse_data(pulse_dim='pulseIndex')
+        tof_data = tof_data.pulse_data(pulse_dim='pulseIndex', parallel=parallel)
 
         good_ids = sorted(list(set(good_ids).intersection(set(tof_data.trainId.to_numpy()))))
         mask = xgm_data.coords["trainId"].isin(good_ids)
@@ -185,7 +188,7 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
         # in this case, ignore the XGM, as it is only used for cleaning the data
         # and here we rely on the threshold for that
         tof_data = tof[tof_id].select_trains(by_id[train_ids])
-        tof_data = tof_data.pulse_edges(pulse_dim='pulseIndex', threshold=count_threshold).reset_index()
+        tof_data = tof_data.pulse_edges(pulse_dim='pulseIndex', threshold=count_threshold, parallel=parallel).reset_index()
 
         bins = np.arange(0, count_samples+1)
         out_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.amplitude)
@@ -727,6 +730,7 @@ class CookieboxCalibration(SerializableMixin):
             correction_fn = {tof_id:
                              partial(self.fast_response_correction, tof_id=tof_id)
                              for tof_id in tof_ids}
+        parallel = self.parallel
         fn = partial(calc_mean,
                      scan=self._scan,
                      xgm_data=self._xgm_data,
@@ -735,34 +739,17 @@ class CookieboxCalibration(SerializableMixin):
                      count_threshold=self._count_threshold,
                      count_samples=self._count_samples,
                      correction_fn=correction_fn,
+                     parallel=parallel,
                      )
-        parallel = self.parallel
-        if correction_fn is not None:
-            parallel = False # correction function has in-build parallelism
-
-
-        if parallel:
-            with ProcessPoolExecutor(max_workers=10) as p:
-                itr_gen = list(itertools.product(tof_ids, energy_ids))
-                #data_gen = map(fn, itr_gen)
-                data_gen = p.map(fn, itr_gen)
-                # organize it all in a numpy array
-                for (d, x), (tof_id, energy_id) in zip(data_gen, itr_gen):
-                    data[tof_id] += [d]
-                    mean_xgm[tof_id] += [x]
-                for tof_id in tof_ids:
-                    data[tof_id] = np.stack(data[tof_id], axis=0)
-                    mean_xgm[tof_id] = np.stack(mean_xgm[tof_id], axis=0)
-        else:
-            itr_gen = list(itertools.product(tof_ids, energy_ids))
-            data_gen = map(fn, itr_gen)
-            # organize it all in a numpy array
-            for (d, x), (tof_id, energy_id) in zip(data_gen, itr_gen):
-                data[tof_id] += [d]
-                mean_xgm[tof_id] += [x]
-            for tof_id in tof_ids:
-                data[tof_id] = np.stack(data[tof_id], axis=0)
-                mean_xgm[tof_id] = np.stack(mean_xgm[tof_id], axis=0)
+        itr_gen = list(itertools.product(tof_ids, energy_ids))
+        data_gen = map(fn, itr_gen)
+        # organize it all in a numpy array
+        for (d, x), (tof_id, energy_id) in zip(data_gen, itr_gen):
+            data[tof_id] += [d]
+            mean_xgm[tof_id] += [x]
+        for tof_id in tof_ids:
+            data[tof_id] = np.stack(data[tof_id], axis=0)
+            mean_xgm[tof_id] = np.stack(mean_xgm[tof_id], axis=0)
 
         self.calibration_data = data
         self.calibration_mean_xgm = mean_xgm
