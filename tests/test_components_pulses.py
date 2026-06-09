@@ -193,6 +193,18 @@ def test_is_interleaved(mock_spb_aux_run, source):
 
 
 @pytest.mark.parametrize('source', **pattern_sources)
+def test_inspect(mock_spb_aux_run, source):
+    pulses = XrayPulses(mock_spb_aux_run, source=source)
+
+    import matplotlib.pyplot as plt
+
+    # Smoke tests
+    pulses.inspect()
+    pulses.inspect(figsize=(5, 3))
+    pulses.inspect(ax=plt.subplots()[1])
+
+
+@pytest.mark.parametrize('source', **pattern_sources)
 def test_plot_xray_patterns(mock_spb_aux_run, source):
     pulses = XrayPulses(mock_spb_aux_run, source=source)
 
