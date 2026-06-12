@@ -362,6 +362,7 @@ class TOFAnalogResponse(SerializableMixin):
       n_filter: Number of samples before the peak to select.
       deconvolve: Whether to deconvolve the effect of two added peaks (ie: Auger-Meitner and monochromated photoline).
       count_threshold: If set, counts number of photo-electrons above this threshold. Should be negative.
+      parallel: How many threads to use for reading data in parallel.
     """
     def __init__(self,
                  roi: Optional[slice]=None,
@@ -369,6 +370,7 @@ class TOFAnalogResponse(SerializableMixin):
                  n_filter: int=100,
                  deconvolve: bool=False,
                  count_threshold: float=0,
+                 parallel=10,
                  ):
         self.roi = roi
         self.n_samples = n_samples
@@ -376,6 +378,7 @@ class TOFAnalogResponse(SerializableMixin):
         self.h = None
         self.deconvolve = deconvolve
         self.count_threshold = count_threshold
+        self.parallel = parallel
         self._version = 2
         self._all_fields = [
                             "h",
@@ -384,6 +387,7 @@ class TOFAnalogResponse(SerializableMixin):
                             "n_filter",
                             "deconvolve",
                             "count_threshold",
+                            "parallel",
                             "_version",
                            ]
 
@@ -460,13 +464,13 @@ class TOFAnalogResponse(SerializableMixin):
         if scan is not None: # use the scan
             # if not counting photo-electrons -- ie: analog mode
             if self.count_threshold is None or self.count_threshold >= 0:
-                this_tof_data = -tof.pulse_data(pulse_dim="pulseIndex").unstack("pulse")
+                this_tof_data = -tof.pulse_data(pulse_dim="pulseIndex", parallel=self.parallel).unstack("pulse")
                 for k, e in enumerate(scan.positions):
                     data += [this_tof_data.sel(trainId=scan.positions_train_ids[k]).mean("trainId").mean("pulseIndex").to_numpy()]
             else:
                 # count photo-electrons by histogramming peak positions
                 for k, e in enumerate(scan.positions):
-                    tof_data = tof.pulse_edges(pulse_dim='pulseIndex', threshold=self.count_threshold).reset_index()
+                    tof_data = tof.select_trains(by_id[scan.positions_train_ids[k]]).pulse_edges(pulse_dim='pulseIndex', threshold=self.count_threshold, parallel=self.parallel).reset_index()
                     this_tof_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.amplitude)
                     this_tof_data = xr.DataArray(this_tof_data, dims=('sample'), coords={'sample': bins[:-1]})
                 if self.roi is not None:
@@ -474,9 +478,9 @@ class TOFAnalogResponse(SerializableMixin):
                 data += [this_tof_data.to_numpy()]
         else:
             if self.count_threshold is None or self.count_threshold >= 0:
-                this_tof_data = -tof.pulse_data(pulse_dim="pulseIndex").mean('pulse')
+                this_tof_data = -tof.pulse_data(pulse_dim="pulseIndex", parallel=self.parallel).mean('pulse')
             else:
-                tof_data = tof.pulse_edges(pulse_dim='pulseIndex', threshold=self.count_threshold).reset_index()
+                tof_data = tof.pulse_edges(pulse_dim='pulseIndex', threshold=self.count_threshold, parallel=self.parallel).reset_index()
                 this_tof_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.amplitude)
                 this_tof_data = xr.DataArray(this_tof_data, dims=('sample'), coords={'sample': bins[:-1]})
             if self.roi is not None:
