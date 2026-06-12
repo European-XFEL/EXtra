@@ -110,6 +110,9 @@ Changed:
 - [CookieboxCalibration][extra.applications.CookieboxCalibration] calculates the transmission
   using the sum of the trace instead of the fit amplitude for robustness.
 - `extra.applications.base.SerializableMixin._fromdict` becomes a classmethod.
+- [CookieboxCalibration][extra.applications.CookieboxCalibration] and
+  [TOFAnalogResponse][extra.applications.TOFAnalogResponse] delegate
+  parallelization to the `AdqRawChannel` class (!509).
 
 ## [2025.1]
 
