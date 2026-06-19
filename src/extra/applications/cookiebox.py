@@ -167,22 +167,26 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
         # this does train ID matching, because:
         # - the given run may not have both XGM and eTOF for every train;
         # - and we cannot control the creation of the run object, since we want to receive the ready-made XGM object
-        good_ids = sorted(list(set(train_ids).intersection(set(xgm_data.trainId.data))))
+        good_ids = train_ids
+        if xgm_threshold > 0:
+            good_ids = np.intersect1d(train_ids, xgm_data.trainId.data)
         if len(good_ids) == 0:
             x = tof[tof_id].select_trains(np._[0:1]).pulse_data(pulse_dim='pulseIndex').to_numpy().mean(0)
             return np.zeros_like(x), 0
         tof_data = tof[tof_id].select_trains(by_id[good_ids])
         tof_data = tof_data.pulse_data(pulse_dim='pulseIndex', parallel=parallel)
 
-        good_ids = sorted(list(set(good_ids).intersection(set(tof_data.trainId.to_numpy()))))
-        mask = xgm_data.coords["trainId"].isin(good_ids)
-        sel_xgm_data = xgm_data[mask]
         # select XGM
-        tof_data = tof_data.loc[sel_xgm_data > xgm_threshold, :]
-        tof_xgm_data = sel_xgm_data.loc[sel_xgm_data > xgm_threshold]
+        if xgm_threshold > 0:
+            mask = xgm_data.coords["trainId"].isin(good_ids)
+            sel_xgm_data = xgm_data[mask]
+            tof_data = tof_data.loc[sel_xgm_data > xgm_threshold, :]
+            tof_xgm_data = sel_xgm_data.loc[sel_xgm_data > xgm_threshold]
 
         out_data = -tof_data.mean('pulse')
-        out_xgm = tof_xgm_data.mean('pulse')
+        out_xgm = 0.0
+        if xgm_threshold > 0:
+            out_xgm = tof_xgm_data.mean('pulse').to_numpy()
     else:
         # option 2: count photon peaks
         # in this case, ignore the XGM, as it is only used for cleaning the data
@@ -194,13 +198,14 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
         out_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.amplitude)
 
         out_data = xr.DataArray(out_data, dims=('sample'), coords={'sample': bins[:-1]})
-        out_xgm = xgm_data.mean('pulse')
+        out_xgm = 0.0
+        if xgm_threshold > 0:
+            out_xgm = xgm_data.mean('pulse').to_numpy()
 
     if correction_fn is not None:
         out_data = correction_fn[tof_id](out_data)
 
     out_data = out_data.to_numpy()
-    out_xgm = out_xgm.to_numpy()
 
     return out_data, out_xgm
 
@@ -362,7 +367,7 @@ class CookieboxCalibration(SerializableMixin):
       count_samples: If using photon counting (`count_threshold < 0`), use this many samples to obtain the spectrum.
     """
     def __init__(self,
-                 xgm_threshold: Union[str, float]='median',
+                 xgm_threshold: Union[str, float]=0.0,
                  auger_start_roi: Optional[int]=None,
                  start_roi: Optional[int]=None,
                  stop_roi: Optional[int]=None,
