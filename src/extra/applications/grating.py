@@ -8,8 +8,10 @@ import numpy as np
 import xarray as xr
 import h5py
 
+from sklearn.linear_model import RANSACRegressor, LinearRegression
 from extra_data import open_run, by_id, DataCollection, KeyData
 from extra.components import Scan, XrayPulses
+from scipy.ndimage import gaussian_filter
 
 from .base import SerializableMixin
 
@@ -35,6 +37,10 @@ class Grating1DCalibration(SerializableMixin):
 
     Args:
       offset: Offset of the first pulse.
+      data_mask_threshold: Differences in the spectrum above this value are masked.
+                           Set to 'auto' for automation.
+      max_diff: If `data_mask_threshold` has been set to 'auto',
+                mask pixels with neighbour pixel differences above this value.
 
     Example:
     ```
@@ -52,12 +58,15 @@ class Grating1DCalibration(SerializableMixin):
     grating_calib.apply(new_run)
     ```
     """
-    def __init__(self, offset: Optional[int]=None, min_pixel: int=500, max_pixel: int=1000):
+    def __init__(self, offset: Optional[int]=None, min_pixel: int=0, max_pixel: int=1200, data_mask_threshold="auto", max_diff:float=0.5):
         self._version = 1
         self.offset = offset
         self.min_pixel = min_pixel
         self.max_pixel = max_pixel
         self.calibration_mask = None
+        self.data_mask_threshold = data_mask_threshold
+        self.data_mask = None
+        self.max_diff = max_diff
         self._all_fields = [
                             "pulse_period",
                             "offset",
@@ -75,6 +84,9 @@ class Grating1DCalibration(SerializableMixin):
                             "grating_source",
                             "grating_key",
                             "sources",
+                            "data_mask_threshold",
+                            "data_mask",
+                            "max_diff",
                             "_version",
                            ]
 
@@ -215,7 +227,18 @@ class Grating1DCalibration(SerializableMixin):
         self.calibration_data = data[:, self.offset::self.pulse_period, self.min_pixel:self.max_pixel]
         self.calibration_unc = self.calibration_unc[self.offset::self.pulse_period, self.min_pixel:self.max_pixel]
         # average over pulses
-        self.calibration_data = np.mean(self.calibration_data, axis=1)
+        if self.data_mask_threshold == 'auto':
+            #diff_mask = np.abs(np.diff(np.mean(self.calibration_data, 0), axis=1))
+            #diff_mask = np.concatenate([diff_mask,
+            #                            np.zeros((self.calibration_data.shape[1], 1))], axis=1) > self.max_diff
+            d = np.mean(self.calibration_data, 0)
+            smooth = gaussian_filter(d, sigma=10)
+            self.data_mask = np.abs(d - smooth) > self.max_diff
+            #self.data_mask_threshold = 20*np.nanmedian(d)
+        else:
+            self.data_mask = np.mean(self.calibration_data, 0) > self.data_mask_threshold
+        self.calibration_data[:, self.data_mask] = np.nan
+        self.calibration_data = np.nanmean(self.calibration_data, axis=1)
         self.calibration_unc = np.mean(self.calibration_unc, axis=0)
         self.calibration_mask = np.ones(self.calibration_data.shape[0], dtype=bool)
 
@@ -234,14 +257,20 @@ class Grating1DCalibration(SerializableMixin):
 
     def fit(self):
         """Fit line."""
-        from scipy.stats import linregress
+        #from scipy.stats import linregress
         mask = self.calibration_mask
         sample = np.arange(self.calibration_data.shape[-1])
-        sample_mode = np.argmax(self.calibration_data, axis=-1)
+        sample_mode = np.nanargmax(self.calibration_data, axis=-1)
         #sample_mode = snp.sum(self.calibration_data*sample, axis=-1)/np.sum(self.calibration_data, axis=-1)
-        res = linregress(sample_mode[mask], self.calibration_energies[mask])
-        self.slope = res.slope
-        self.e0 = res.intercept
+        #res = linregress(sample_mode[mask], self.calibration_energies[mask])
+        #self.slope = res.slope
+        #self.e0 = res.intercept
+        x = sample_mode[mask]
+        y = self.calibration_energies[mask]
+        model = RANSACRegressor(estimator=LinearRegression(), random_state=42)
+        model.fit(x[:,np.newaxis], y[:, np.newaxis])
+        self.slope = model.estimator_.coef_[0,0]
+        self.e0 = model.estimator_.intercept_[0]
         self.energy_axis = self.e0 + self.slope*sample
 
     def plot(self):
@@ -251,7 +280,7 @@ class Grating1DCalibration(SerializableMixin):
         import matplotlib.pyplot as plt
         plt.figure(figsize=(10, 8))
         sample = np.arange(self.calibration_data.shape[-1])
-        sample_mode = np.argmax(self.calibration_data, axis=-1)
+        sample_mode = np.nanargmax(self.calibration_data, axis=-1)
         plt.plot(sample, self.energy_axis, lw=2, label="Fit")
         plt.xlabel("Pixel")
         plt.ylabel("Energy [eV]")
@@ -277,6 +306,16 @@ class Grating1DCalibration(SerializableMixin):
             trainId = out_data.trainId.to_numpy()
             out_data = out_data.to_numpy() - self.bkg
             out_data = out_data[:, self.offset::pulse_period, self.min_pixel:self.max_pixel]
+            # apply mask
+            axis_full = np.arange(out_data.shape[2])
+            sel = ~np.any(self.data_mask, 0)
+            axis_masked = axis_full[sel]
+            shape = out_data.shape
+            out_data = np.reshape(out_data, (shape[0]*shape[1], shape[2]))
+            out_data = np.apply_along_axis(lambda arr: np.interp(axis_full, axis_masked, arr,
+                                                                 left=0, right=0),
+                                           arr=out_data[:, sel], axis=1)
+            out_data = np.reshape(out_data, shape)
         else:
             trainId = list()
             out_data = list()
@@ -285,8 +324,19 @@ class Grating1DCalibration(SerializableMixin):
                 d = data[self.grating_source][self.grating_key]
                 if self.bkg is not None:
                     d = d - self.bkg
+                d[self.data_mask] = np.nan
+
                 # skip offset and collect pulse data each pulse_period samples only
                 d = d[self.offset::pulse_period, self.min_pixel:self.max_pixel]
+
+                # apply mask
+                axis_full = np.arange(d.shape[1])
+                sel = ~np.any(self.data_mask, 0)
+                axis_masked = axis_full[sel]
+                d = np.apply_along_axis(lambda arr: np.interp(axis_full, axis_masked, arr,
+                                                              left=0, right=0),
+                                        arr=d[:, sel], axis=1)
+
                 trainId += [tid]
                 out_data += [d]
             out_data = np.stack(out_data, axis=0)
