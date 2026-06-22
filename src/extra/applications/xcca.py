@@ -286,7 +286,6 @@ class AngularCorrelator:
         
         ccn_workspace = self.ccn_workspace
         ccf_workspace = self.ccf_workspace
-        mask_workspace = self.mask_workspace
         ccf = np.zeros((n_q,n_q,N),dtype=float)
         ccf_mask = np.zeros((n_q,n_q,N),dtype=bool)
         
@@ -294,7 +293,6 @@ class AngularCorrelator:
         mult = np.multiply
         divide = np.divide
         irfft = self.irfft
-        rfft = self.rfft
         
         # start loop over q1 of C(q1,q2,phi)
         for q1 in range(n_q):
@@ -390,7 +388,6 @@ class AngularCorrelator:
         else:
             ccf,ccf_mask = self._compute_ccf_masked(data,mask,max_order = max_order)
             return ccf,ccf_mask
-
 
 class _CumulativeVarianceBase:
     '''
@@ -795,3 +792,4 @@ class AveragedAngularCorrelation(CumulativeVariance):
         '''
         ccf = self.process_data(data,max_order = self.max_order)
         super().update(ccf)
+
