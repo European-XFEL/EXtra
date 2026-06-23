@@ -308,25 +308,25 @@ class Grating1DCalibration(SerializableMixin):
             out_data = run[self.grating_source, self.grating_key].xarray()
             trainId = out_data.trainId.to_numpy()
             out_data = out_data.to_numpy()
-            out_mask = run[self.grating_source, self.grating_mask_key].ndarray() > 0
             out_data = out_data[:, self.offset::pulse_period, self.min_pixel:self.max_pixel]
-            out_mask = out_mask[:, self.offset::pulse_period, self.min_pixel:self.max_pixel]
-            out_data[out_mask] = np.nan
-            out_data = self.apply_mask(out_data)
+            if len(self.grating_mask_key) > 0:
+                out_mask = run[self.grating_source, self.grating_mask_key].ndarray() > 0
+                out_mask = out_mask[:, self.offset::pulse_period, self.min_pixel:self.max_pixel]
+                out_data[out_mask] = np.nan
+                out_data = self.apply_mask(out_data)
         else:
             trainId = list()
             out_data = list()
             for i, (tid, data) in enumerate(run.trains()):
                 d = data[self.grating_source][self.grating_key]
-                m = data[self.grating_source][self.grating_mask_key] > 0
-                d[m] = 0
-
                 # skip offset and collect pulse data each pulse_period samples only
                 d = d[self.offset::pulse_period, self.min_pixel:self.max_pixel]
 
-                d[m] = np.nan
-
-                d = self.apply_mask(d)
+                if len(self.grating_mask_key) > 0:
+                    m = data[self.grating_source][self.grating_mask_key] > 0
+                    m = m[self.offset::pulse_period, self.min_pixel:self.max_pixel]
+                    d[m] = np.nan
+                    d = self.apply_mask(d)
 
                 trainId += [tid]
                 out_data += [d]
