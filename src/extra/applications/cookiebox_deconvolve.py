@@ -439,7 +439,8 @@ class TOFAnalogResponse(SerializableMixin):
 
     def setup(self,
               tof: AdqRawChannel,
-              scan: Scan=None
+              scan: Scan=None,
+              parallel: int=None
               ):
         """
         Given a [AdqRawChannel][extra.components.AdqRawChannel] object, and an energy scan object
@@ -449,6 +450,7 @@ class TOFAnalogResponse(SerializableMixin):
         Args:
           tof: `AdqRawChannel` used to access data for a given eTOF.
           scan: `Scan` used to detect which regions cotain which energies.
+          parallel: How many threads to use for reading data in parallel.
         """
 
         # get pulse data
@@ -460,13 +462,13 @@ class TOFAnalogResponse(SerializableMixin):
         if scan is not None: # use the scan
             # if not counting photo-electrons -- ie: analog mode
             if self.count_threshold is None or self.count_threshold >= 0:
-                this_tof_data = -tof.pulse_data(pulse_dim="pulseIndex").unstack("pulse")
+                this_tof_data = -tof.pulse_data(pulse_dim="pulseIndex", parallel=parallel).unstack("pulse")
                 for k, e in enumerate(scan.positions):
                     data += [this_tof_data.sel(trainId=scan.positions_train_ids[k]).mean("trainId").mean("pulseIndex").to_numpy()]
             else:
                 # count photo-electrons by histogramming peak positions
                 for k, e in enumerate(scan.positions):
-                    tof_data = tof.pulse_edges(pulse_dim='pulseIndex', threshold=self.count_threshold).reset_index()
+                    tof_data = tof.select_trains(by_id[scan.positions_train_ids[k]]).pulse_edges(pulse_dim='pulseIndex', threshold=self.count_threshold, parallel=parallel).reset_index()
                     this_tof_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.amplitude)
                     this_tof_data = xr.DataArray(this_tof_data, dims=('sample'), coords={'sample': bins[:-1]})
                 if self.roi is not None:
@@ -474,9 +476,9 @@ class TOFAnalogResponse(SerializableMixin):
                 data += [this_tof_data.to_numpy()]
         else:
             if self.count_threshold is None or self.count_threshold >= 0:
-                this_tof_data = -tof.pulse_data(pulse_dim="pulseIndex").mean('pulse')
+                this_tof_data = -tof.pulse_data(pulse_dim="pulseIndex", parallel=parallel).mean('pulse')
             else:
-                tof_data = tof.pulse_edges(pulse_dim='pulseIndex', threshold=self.count_threshold).reset_index()
+                tof_data = tof.pulse_edges(pulse_dim='pulseIndex', threshold=self.count_threshold, parallel=parallel).reset_index()
                 this_tof_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.amplitude)
                 this_tof_data = xr.DataArray(this_tof_data, dims=('sample'), coords={'sample': bins[:-1]})
             if self.roi is not None:

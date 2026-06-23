@@ -138,7 +138,9 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
               xgm_threshold: float,
               count_threshold: float=None,
               correction_fn=None,
-              count_samples: int=500) -> xr.DataArray:
+              count_samples: int=500,
+              parallel: Optional[int]=None,
+              ) -> xr.DataArray:
     """
     Calculate the mean of the ToF data in the given tof and energy bin in `itr`.
 
@@ -151,6 +153,7 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
       count_threshold: Number of ADU counts used to trigger photon count.
       correction_fn: A correction function to apply in the raw spectra.
       count_samples: Number of samples to consider when counting.
+      parallel: Number of threads to use when reading data in parallel.
 
     Returns: DataArray with mean of data in the energy bin given.
     """
@@ -164,40 +167,45 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
         # this does train ID matching, because:
         # - the given run may not have both XGM and eTOF for every train;
         # - and we cannot control the creation of the run object, since we want to receive the ready-made XGM object
-        good_ids = sorted(list(set(train_ids).intersection(set(xgm_data.trainId.data))))
+        good_ids = train_ids
+        if xgm_threshold > 0:
+            good_ids = np.intersect1d(train_ids, xgm_data.trainId.data)
         if len(good_ids) == 0:
             x = tof[tof_id].select_trains(np._[0:1]).pulse_data(pulse_dim='pulseIndex').to_numpy().mean(0)
             return np.zeros_like(x), 0
         tof_data = tof[tof_id].select_trains(by_id[good_ids])
-        tof_data = tof_data.pulse_data(pulse_dim='pulseIndex')
+        tof_data = tof_data.pulse_data(pulse_dim='pulseIndex', parallel=parallel)
 
-        good_ids = sorted(list(set(good_ids).intersection(set(tof_data.trainId.to_numpy()))))
-        mask = xgm_data.coords["trainId"].isin(good_ids)
-        sel_xgm_data = xgm_data[mask]
         # select XGM
-        tof_data = tof_data.loc[sel_xgm_data > xgm_threshold, :]
-        tof_xgm_data = sel_xgm_data.loc[sel_xgm_data > xgm_threshold]
+        if xgm_threshold > 0:
+            mask = xgm_data.coords["trainId"].isin(good_ids)
+            sel_xgm_data = xgm_data[mask]
+            tof_data = tof_data.loc[sel_xgm_data > xgm_threshold, :]
+            tof_xgm_data = sel_xgm_data.loc[sel_xgm_data > xgm_threshold]
 
         out_data = -tof_data.mean('pulse')
-        out_xgm = tof_xgm_data.mean('pulse')
+        out_xgm = 0.0
+        if xgm_threshold > 0:
+            out_xgm = tof_xgm_data.mean('pulse').to_numpy()
     else:
         # option 2: count photon peaks
         # in this case, ignore the XGM, as it is only used for cleaning the data
         # and here we rely on the threshold for that
         tof_data = tof[tof_id].select_trains(by_id[train_ids])
-        tof_data = tof_data.pulse_edges(pulse_dim='pulseIndex', threshold=count_threshold).reset_index()
+        tof_data = tof_data.pulse_edges(pulse_dim='pulseIndex', threshold=count_threshold, parallel=parallel).reset_index()
 
         bins = np.arange(0, count_samples+1)
         out_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.amplitude)
 
         out_data = xr.DataArray(out_data, dims=('sample'), coords={'sample': bins[:-1]})
-        out_xgm = xgm_data.mean('pulse')
+        out_xgm = 0.0
+        if xgm_threshold > 0:
+            out_xgm = xgm_data.mean('pulse').to_numpy()
 
     if correction_fn is not None:
         out_data = correction_fn[tof_id](out_data)
 
     out_data = out_data.to_numpy()
-    out_xgm = out_xgm.to_numpy()
 
     return out_data, out_xgm
 
@@ -346,7 +354,6 @@ class CookieboxCalibration(SerializableMixin):
       start_roi: Start of the RoI in a pulse, relative to the `first_pulse_offset`.
                  Use `None` to guess it.
       stop_roi: End of the RoI, relative to the `first_pulse_offset`. Use `None` to guess it.
-      parallel: Whether to average the input data in parallel.
       beta: Beta parameter.
             For l=0 electrons, set to 2 for linear polarization, 0 to circular polarization.
       tilt: Tilt angle for linear or elliptical polarization.
@@ -359,12 +366,11 @@ class CookieboxCalibration(SerializableMixin):
       count_samples: If using photon counting (`count_threshold < 0`), use this many samples to obtain the spectrum.
     """
     def __init__(self,
-                 xgm_threshold: Union[str, float]='median',
+                 xgm_threshold: Union[str, float]=0.0,
                  auger_start_roi: Optional[int]=None,
                  start_roi: Optional[int]=None,
                  stop_roi: Optional[int]=None,
                  interleaved: Optional[bool]=None,
-                 parallel: bool=True,
                  beta: float=2.0,
                  tilt: float=0.0,
                  P1: float=1.0,
@@ -374,7 +380,6 @@ class CookieboxCalibration(SerializableMixin):
         self._init_auger_start_roi = auger_start_roi
         self._init_start_roi = start_roi
         self._init_stop_roi = stop_roi
-        self.parallel = parallel
         self.beta = beta
         self.tilt = tilt
         self.P1 = P1
@@ -415,7 +420,6 @@ class CookieboxCalibration(SerializableMixin):
                             #"sources",
                             "calibration_energies",
                             "_tof_response",
-                            "parallel",
                             "beta",
                             "tilt",
                             "P1",
@@ -463,6 +467,7 @@ class CookieboxCalibration(SerializableMixin):
               scan: Scan,
               xgm: XGM,
               tof_response: Dict[int, TOFAnalogResponse]=None,
+              parallel=None
               ):
         """
         Derive calibrations.
@@ -479,6 +484,7 @@ class CookieboxCalibration(SerializableMixin):
           xgm: The XGM object used to apply a pulse energy selection.
                For example: `XGM(run, "SQS_DIAG1_XGMD/XGM/DOOCS")`
           tof_response: The response function object for deconvolution if that is desired.
+          parallel: Whether to paralellize data reading.
         """
         # base properties
         self._run = run
@@ -510,7 +516,7 @@ class CookieboxCalibration(SerializableMixin):
         self.update_metadata()
 
         # find RoI if needed
-        self.update_roi()
+        self.update_roi(parallel)
 
         # find where the peaks are per energy in each Tof
         self.update_fit_result()
@@ -674,13 +680,16 @@ class CookieboxCalibration(SerializableMixin):
             self.kwargs_adq[tof_id]["name"] = self._tof[tof_id].name
         self.mask = {tof_id: True for tof_id in self.kwargs_adq.keys()}
 
-    def update_roi(self):
+    def update_roi(self, parallel=None):
         """
         Given calibrated data, apply a selection and find RoI if needed.
+
+        Args:
+          parallel: Number of threads to use if parallelizing data reading.
         """
         # average data for each energy slice
         logging.info("Reading calibration data ... (this takes a while)")
-        self.select_calibration_data()
+        self.select_calibration_data(parallel)
         # find RoI if needed
         if (self.auger_start_roi is None
             or self.start_roi is None
@@ -714,7 +723,7 @@ class CookieboxCalibration(SerializableMixin):
     def fast_response_correction(self, x, tof_id):
         return self._tof_response[tof_id].apply(x.fillna(0.0), method="nn_matrix", n_iter=100, nonneg=True)
 
-    def select_calibration_data(self):
+    def select_calibration_data(self, parallel=None):
         """
         Select data for calibration.
         """
@@ -735,34 +744,17 @@ class CookieboxCalibration(SerializableMixin):
                      count_threshold=self._count_threshold,
                      count_samples=self._count_samples,
                      correction_fn=correction_fn,
+                     parallel=parallel,
                      )
-        parallel = self.parallel
-        if correction_fn is not None:
-            parallel = False # correction function has in-build parallelism
-
-
-        if parallel:
-            with ProcessPoolExecutor(max_workers=10) as p:
-                itr_gen = list(itertools.product(tof_ids, energy_ids))
-                #data_gen = map(fn, itr_gen)
-                data_gen = p.map(fn, itr_gen)
-                # organize it all in a numpy array
-                for (d, x), (tof_id, energy_id) in zip(data_gen, itr_gen):
-                    data[tof_id] += [d]
-                    mean_xgm[tof_id] += [x]
-                for tof_id in tof_ids:
-                    data[tof_id] = np.stack(data[tof_id], axis=0)
-                    mean_xgm[tof_id] = np.stack(mean_xgm[tof_id], axis=0)
-        else:
-            itr_gen = list(itertools.product(tof_ids, energy_ids))
-            data_gen = map(fn, itr_gen)
-            # organize it all in a numpy array
-            for (d, x), (tof_id, energy_id) in zip(data_gen, itr_gen):
-                data[tof_id] += [d]
-                mean_xgm[tof_id] += [x]
-            for tof_id in tof_ids:
-                data[tof_id] = np.stack(data[tof_id], axis=0)
-                mean_xgm[tof_id] = np.stack(mean_xgm[tof_id], axis=0)
+        itr_gen = list(itertools.product(tof_ids, energy_ids))
+        data_gen = map(fn, itr_gen)
+        # organize it all in a numpy array
+        for (d, x), (tof_id, energy_id) in zip(data_gen, itr_gen):
+            data[tof_id] += [d]
+            mean_xgm[tof_id] += [x]
+        for tof_id in tof_ids:
+            data[tof_id] = np.stack(data[tof_id], axis=0)
+            mean_xgm[tof_id] = np.stack(mean_xgm[tof_id], axis=0)
 
         self.calibration_data = data
         self.calibration_mean_xgm = mean_xgm
