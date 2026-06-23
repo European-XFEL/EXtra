@@ -139,7 +139,7 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
               count_threshold: float=None,
               correction_fn=None,
               count_samples: int=500,
-              parallel: int=10,
+              parallel: Optional[int]=None,
               ) -> xr.DataArray:
     """
     Calculate the mean of the ToF data in the given tof and energy bin in `itr`.
@@ -354,7 +354,6 @@ class CookieboxCalibration(SerializableMixin):
       start_roi: Start of the RoI in a pulse, relative to the `first_pulse_offset`.
                  Use `None` to guess it.
       stop_roi: End of the RoI, relative to the `first_pulse_offset`. Use `None` to guess it.
-      parallel: Whether to average the input data in parallel.
       beta: Beta parameter.
             For l=0 electrons, set to 2 for linear polarization, 0 to circular polarization.
       tilt: Tilt angle for linear or elliptical polarization.
@@ -372,7 +371,6 @@ class CookieboxCalibration(SerializableMixin):
                  start_roi: Optional[int]=None,
                  stop_roi: Optional[int]=None,
                  interleaved: Optional[bool]=None,
-                 parallel: bool=True,
                  beta: float=2.0,
                  tilt: float=0.0,
                  P1: float=1.0,
@@ -382,7 +380,6 @@ class CookieboxCalibration(SerializableMixin):
         self._init_auger_start_roi = auger_start_roi
         self._init_start_roi = start_roi
         self._init_stop_roi = stop_roi
-        self.parallel = parallel
         self.beta = beta
         self.tilt = tilt
         self.P1 = P1
@@ -423,7 +420,6 @@ class CookieboxCalibration(SerializableMixin):
                             #"sources",
                             "calibration_energies",
                             "_tof_response",
-                            "parallel",
                             "beta",
                             "tilt",
                             "P1",
@@ -471,6 +467,7 @@ class CookieboxCalibration(SerializableMixin):
               scan: Scan,
               xgm: XGM,
               tof_response: Dict[int, TOFAnalogResponse]=None,
+              parallel=None
               ):
         """
         Derive calibrations.
@@ -487,6 +484,7 @@ class CookieboxCalibration(SerializableMixin):
           xgm: The XGM object used to apply a pulse energy selection.
                For example: `XGM(run, "SQS_DIAG1_XGMD/XGM/DOOCS")`
           tof_response: The response function object for deconvolution if that is desired.
+          parallel: Whether to paralellize data reading.
         """
         # base properties
         self._run = run
@@ -682,13 +680,16 @@ class CookieboxCalibration(SerializableMixin):
             self.kwargs_adq[tof_id]["name"] = self._tof[tof_id].name
         self.mask = {tof_id: True for tof_id in self.kwargs_adq.keys()}
 
-    def update_roi(self):
+    def update_roi(self, parallel=None):
         """
         Given calibrated data, apply a selection and find RoI if needed.
+
+        Args:
+          parallel: Number of threads to use if parallelizing data reading.
         """
         # average data for each energy slice
         logging.info("Reading calibration data ... (this takes a while)")
-        self.select_calibration_data()
+        self.select_calibration_data(parallel)
         # find RoI if needed
         if (self.auger_start_roi is None
             or self.start_roi is None
@@ -722,7 +723,7 @@ class CookieboxCalibration(SerializableMixin):
     def fast_response_correction(self, x, tof_id):
         return self._tof_response[tof_id].apply(x.fillna(0.0), method="nn_matrix", n_iter=100, nonneg=True)
 
-    def select_calibration_data(self):
+    def select_calibration_data(self, parallel=None):
         """
         Select data for calibration.
         """
@@ -735,7 +736,6 @@ class CookieboxCalibration(SerializableMixin):
             correction_fn = {tof_id:
                              partial(self.fast_response_correction, tof_id=tof_id)
                              for tof_id in tof_ids}
-        parallel = self.parallel
         fn = partial(calc_mean,
                      scan=self._scan,
                      xgm_data=self._xgm_data,
