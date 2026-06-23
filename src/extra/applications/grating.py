@@ -33,8 +33,8 @@ def calc_mean(energy_id: int, scan: Scan,
     data = grating.select_trains(by_id[list(train_ids)]).ndarray()
     if mask is not None:
         mask = mask.select_trains(by_id[list(train_ids)]).ndarray()
-        data[mask > 0] = 0
-    return np.mean(data, 0)
+        data[mask > 0] = np.nan
+    return np.nanmean(data, 0)
 
 class Grating1DCalibration(SerializableMixin):
     """
@@ -42,10 +42,7 @@ class Grating1DCalibration(SerializableMixin):
 
     Args:
       offset: Offset of the first pulse.
-      data_mask_threshold: Differences in the spectrum above this value are masked.
-                           Set to 'auto' for automation.
-      max_diff: If `data_mask_threshold` has been set to 'auto',
-                mask pixels with neighbour pixel differences above this value.
+      sigma: Smoothing factor to apply to data to reduce noise in pixels.
 
     Example:
     ```
@@ -62,15 +59,13 @@ class Grating1DCalibration(SerializableMixin):
     grating_calib.apply(new_run)
     ```
     """
-    def __init__(self, offset: Optional[int]=None, min_pixel: int=0, max_pixel: int=1200, data_mask_threshold="auto", max_diff:float=10):
+    def __init__(self, offset: Optional[int]=None, min_pixel: int=0, max_pixel: int=1200, sigma: float=2.0):
         self._version = 1
         self.offset = offset
         self.min_pixel = min_pixel
         self.max_pixel = max_pixel
         self.calibration_mask = None
-        self.data_mask_threshold = data_mask_threshold
-        self.data_mask = None
-        self.max_diff = max_diff
+        self.sigma = sigma
         self._all_fields = [
                             "pulse_period",
                             "offset",
@@ -85,10 +80,8 @@ class Grating1DCalibration(SerializableMixin):
                             "grating_source",
                             "grating_key",
                             "sources",
-                            "data_mask_threshold",
-                            "data_mask",
                             "grating_mask_key",
-                            "max_diff",
+                            "sigma",
                             "_version",
                            ]
 
@@ -140,10 +133,6 @@ class Grating1DCalibration(SerializableMixin):
         logging.info("Extract bunch pattern table")
         self.pulse_period = self.get_pulse_period(pulses)
 
-        # background
-        logging.info("Load background ...")
-        self.get_background_template()
-
         # load data
         logging.info("Load data ...")
         self.load_data()
@@ -175,9 +164,25 @@ class Grating1DCalibration(SerializableMixin):
         """
         Guess offset.
         """
-        I = self._grating_signal.xarray().sel(dim_1=np.s_[self.min_pixel:self.max_pixel]).median('dim_1').mean('trainId')
-        threshold = np.median(I)
-        self.offset = np.where(I >= threshold)[0][0]
+        I = self._grating_signal.xarray().sel(dim_1=np.s_[self.min_pixel:self.max_pixel]).to_numpy()
+        if self._grating_mask is not None:
+            Im = self._grating_mask.xarray().sel(dim_1=np.s_[self.min_pixel:self.max_pixel]).to_numpy()
+            Im = (Im > 0)
+            I[Im] = 0
+        # smooth over energy-pixels
+        if self.sigma > 0:
+            I = gaussian_filter(np.nan_to_num(I), axes=-1, sigma=self.sigma)
+        # maximum over energy-pixels
+        I = np.max(I, axis=-1)
+        # mean over trains
+        I = np.mean(I, 0)
+        # at this point I contains only the time dimension
+        # look for peaks over background
+        offset = [None, None]
+        for s in [0, 1]:
+            threshold = np.median(I[s::2])
+            offset[s] = np.where(I[s::2] >= threshold)[0][0]*2 + s
+        self.offset = max(offset)
         logging.info(f"Offset estimated at {self.offset}")
 
     def get_pulse_period(self, pulses: XrayPulses):
@@ -198,6 +203,21 @@ class Grating1DCalibration(SerializableMixin):
         logging.info(f"Pulse period estimated at {pulse_period}")
         return pulse_period
 
+    def apply_mask(self, arr):
+        """
+        Interpolate nans.
+        """
+        axis_full = np.arange(arr.shape[-1])
+        shape = arr.shape
+        arr = np.reshape(arr, (-1, shape[-1]))
+        arr = np.apply_along_axis(lambda a: np.interp(axis_full,
+                                                      axis_full[~np.isnan(a)],
+                                                      a[~np.isnan(a)],
+                                                      left=0, right=0),
+                                  arr=arr)
+        arr = np.reshape(arr, shape)
+        return arr
+
     def load_data(self):
         """Load calibration data."""
         from scipy.ndimage import rotate
@@ -212,20 +232,12 @@ class Grating1DCalibration(SerializableMixin):
             data = np.stack(list(p.map(fn, energy_ids)), axis=0)
         # skip offset and collect pulse data each pulse_period samples only
         self.calibration_data = data[:, self.offset::self.pulse_period, self.min_pixel:self.max_pixel]
+        # apply mask
+        self.calibration_data = self.apply_mask(self.calibration_data)
         # average over pulses
-        if self.data_mask_threshold == 'auto':
-            shape = self.calibration_data.shape
-            reference = np.reshape(self.calibration_data, (shape[0]*shape[1], shape[2]))
-            ratio = np.abs(np.std(reference, 0)/gaussian_filter(np.mean(reference, 0), sigma=2))
-            self.data_mask = ratio > self.max_diff
-
-            #d = np.mean(self.calibration_data, 0)
-            #smooth = gaussian_filter(d, sigma=10)
-            #self.data_mask = np.abs(d - smooth) > self.max_diff
-        else:
-            self.data_mask = np.mean(np.mean(self.calibration_data, 0), 0) > self.data_mask_threshold
-        self.calibration_data[:, :, self.data_mask] = np.nan
         self.calibration_data = np.nanmean(self.calibration_data, axis=1)
+        if self.sigma > 0:
+            self.calibration_data = gaussian_filter(np.nan_to_num(self.calibration_data), axes=-1, sigma=self.sigma)
         self.calibration_mask = np.ones(self.calibration_data.shape[0], dtype=bool)
 
     def mask_calibration_point(self, energy: float, mask: bool=False, tol: float=1.0):
@@ -292,38 +304,24 @@ class Grating1DCalibration(SerializableMixin):
             trainId = out_data.trainId.to_numpy()
             out_data = out_data.to_numpy()
             out_mask = run[self.grating_source, self.grating_mask_key].ndarray() > 0
-            out_data[out_mask] = 0
             out_data = out_data[:, self.offset::pulse_period, self.min_pixel:self.max_pixel]
-            # apply mask
-            axis_full = np.arange(out_data.shape[2])
-            sel = ~self.data_mask #~np.any(self.data_mask, 0)
-            axis_masked = axis_full[sel]
-            shape = out_data.shape
-            out_data = np.reshape(out_data, (shape[0]*shape[1], shape[2]))
-            out_data = np.apply_along_axis(lambda arr: np.interp(axis_full, axis_masked, arr,
-                                                                 left=0, right=0),
-                                           arr=out_data[:, sel], axis=1)
-            out_data = np.reshape(out_data, shape)
+            out_mask = out_mask[:, self.offset::pulse_period, self.min_pixel:self.max_pixel]
+            out_data[out_mask] = np.nan
+            out_data = self.apply_mask(out_data)
         else:
             trainId = list()
             out_data = list()
             for i, (tid, data) in enumerate(run.trains()):
-                #print(f"Train {tid}, idx {i}")
                 d = data[self.grating_source][self.grating_key]
                 m = data[self.grating_source][self.grating_mask_key] > 0
                 d[m] = 0
-                d[self.data_mask] = np.nan
 
                 # skip offset and collect pulse data each pulse_period samples only
                 d = d[self.offset::pulse_period, self.min_pixel:self.max_pixel]
 
-                # apply mask
-                axis_full = np.arange(d.shape[1])
-                sel = ~self.data_mask #~np.any(self.data_mask, 0)
-                axis_masked = axis_full[sel]
-                d = np.apply_along_axis(lambda arr: np.interp(axis_full, axis_masked, arr,
-                                                              left=0, right=0),
-                                        arr=d[:, sel], axis=1)
+                d[m] = np.nan
+
+                d = self.apply_mask(d)
 
                 trainId += [tid]
                 out_data += [d]
