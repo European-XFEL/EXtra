@@ -371,11 +371,12 @@ def test_no_parallel(mock_sqs_etof_calibration_run, tmp_path, mock_etof_mono_ene
                     auger_start_roi=1,
                     start_roi=75,
                     stop_roi=320,
-                    parallel=False,
     )
     cal.setup(run=mock_sqs_etof_calibration_run, energy_axis=energy_axis, tof_settings=tof_channel,
               xgm=xgm,
-              scan=scan)
+              scan=scan,
+              parallel=False,
+              )
 
     correct_energies = np.unique(mock_etof_mono_energies)
     correct_constants = np.array(mock_etof_calibration_constants)
