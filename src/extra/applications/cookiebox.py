@@ -516,7 +516,7 @@ class CookieboxCalibration(SerializableMixin):
         self.update_metadata()
 
         # find RoI if needed
-        self.update_roi()
+        self.update_roi(parallel)
 
         # find where the peaks are per energy in each Tof
         self.update_fit_result()
