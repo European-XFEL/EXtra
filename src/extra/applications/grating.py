@@ -210,11 +210,16 @@ class Grating1DCalibration(SerializableMixin):
         axis_full = np.arange(arr.shape[-1])
         shape = arr.shape
         arr = np.reshape(arr, (-1, shape[-1]))
+        # if all points are bad, set it to zero
+        # nothing else can be done there ...
+        all_bad = np.all(np.isnan(arr), axis=1)
+        arr[all_bad, :] = 0
+        # otherwise interpolate
         arr = np.apply_along_axis(lambda a: np.interp(axis_full,
                                                       axis_full[~np.isnan(a)],
                                                       a[~np.isnan(a)],
                                                       left=0, right=0),
-                                  arr=arr)
+                                  arr=arr, axis=1)
         arr = np.reshape(arr, shape)
         return arr
 
