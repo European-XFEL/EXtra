@@ -470,9 +470,13 @@ class TOFAnalogResponse(SerializableMixin):
             else:
                 # count photo-electrons by histogramming peak positions
                 for k, e in enumerate(scan.positions):
+                    logging.info("Calling pulse_edges for selected trains ...")
                     tof_data = tof.select_trains(by_id[scan.positions_train_ids[k]]).pulse_edges(pulse_dim='pulseIndex', threshold=self.count_threshold, parallel=parallel).reset_index()
-                    this_tof_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.amplitude)
-                    this_tof_data = xr.DataArray(this_tof_data, dims=('sample'), coords={'sample': bins[:-1]})
+                    good_trains = np.unique(tof_data.loc[:,'trainId'].to_numpy())
+                    idx = tof_data.loc[:, ['trainId', 'pulseIndex']].set_index(['trainId', 'pulseIndex']).idx
+                    logging.info("Summing good trains ...")
+                    analog_data = -tof.select_trains(by_id[good_trains]).pulse_data(pulse_dim="pulseIndex", parallel=parallel)
+                    this_tof_data = analog_data.sel(pulse=idx)
                 if self.roi is not None:
                     this_tof_data = this_tof_data.isel(sample=self.roi)
                 data += [this_tof_data.to_numpy()]
@@ -480,9 +484,13 @@ class TOFAnalogResponse(SerializableMixin):
             if self.count_threshold is None or self.count_threshold >= 0:
                 this_tof_data = -tof.pulse_data(pulse_dim="pulseIndex", parallel=parallel).mean('pulse')
             else:
+                logging.info("Calling pulse_edges ...")
                 tof_data = tof.pulse_edges(pulse_dim='pulseIndex', threshold=self.count_threshold, parallel=parallel).reset_index()
-                this_tof_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.amplitude)
-                this_tof_data = xr.DataArray(this_tof_data, dims=('sample'), coords={'sample': bins[:-1]})
+                good_trains = np.unique(tof_data.loc[:,'trainId'].to_numpy())
+                idx = tof_data.loc[:, ['trainId', 'pulseIndex']].set_index(['trainId', 'pulseIndex']).idx
+                logging.info("Summing good trains ...")
+                analog_data = -tof.select_trains(by_id[good_trains]).pulse_data(pulse_dim="pulseIndex", parallel=parallel)
+                this_tof_data = analog_data.sel(pulse=idx)
             if self.roi is not None:
                 this_tof_data = this_tof_data.isel(sample=self.roi)
             data += [this_tof_data.to_numpy()]
