@@ -690,12 +690,11 @@ class CookieboxCalibration(SerializableMixin):
         logging.info("Reading calibration data ... (this takes a while)")
         self.select_calibration_data(parallel)
         # find RoI if needed
-        if (self.auger_start_roi is None
-            or self.start_roi is None
-            or self.stop_roi is None):
-            logging.info("Finding RoI ...")
-            logging.info("(This may fail. If it does, please provide a `auger_start_roi`, `start_roi` and `stop_roi`.)")
-            for tof_id in self.kwargs_adq.keys():
+        for tof_id in self.kwargs_adq.keys():
+            if (self.auger_start_roi[tof_id] is None
+                or self.start_roi[tof_id] is None
+                or self.stop_roi[tof_id] is None):
+                logging.info(f"Finding RoI for TOF {tof_id}...")
                 self.find_roi(tof_id)
             logging.info(f"Auger start RoIs found: {self.auger_start_roi}")
             logging.info(f"Start RoIs found: {self.start_roi}")
@@ -792,7 +791,7 @@ class CookieboxCalibration(SerializableMixin):
                 continue
             p += [peaks[-1]]
             w += [widths[-1]]
-        if len(p_last) == 0:
+        if len(p) == 0:
             logging.info(f"No peaks found in eTOF {tof_id}. "
                          f"Check the data quality. "
                          f"I will set the RoI to collect non-sense,"
@@ -806,7 +805,7 @@ class CookieboxCalibration(SerializableMixin):
         idx = np.argmin(p)
         pos = p[idx] - w[idx]
         self.auger_start_roi[tof_id] = 0
-        self.start_roi[tof_id] = pos
+        self.start_roi[tof_id] = int(pos)
         self.stop_roi[tof_id] = N
 
     def plot_calibration_data(self):
