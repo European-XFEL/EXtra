@@ -728,7 +728,7 @@ class CookieboxCalibration(SerializableMixin):
     def fast_response_correction(self, x, tof_id):
         return self._tof_response[tof_id].apply(x.fillna(0.0), method="nn_matrix", n_iter=100, nonneg=True)
 
-    def select_calibration_data(self, parallel=None):
+    def select_calibration_data(self, parallel=None, parallel_over_tofs=None):
         """
         Select data for calibration.
         """
@@ -751,9 +751,20 @@ class CookieboxCalibration(SerializableMixin):
                      correction_fn=correction_fn,
                      parallel=parallel,
                      )
-        with ProcessPoolExecutor(max_workers=16) as p:
+        if parallel_over_tofs is not None:
+            with ProcessPoolExecutor(max_workers=parallel_over_tofs) as p:
+                itr_gen = list(itertools.product(tof_ids, energy_ids))
+                data_gen = p.map(fn, itr_gen)
+                # organize it all in a numpy array
+                for (d, x), (tof_id, energy_id) in zip(data_gen, itr_gen):
+                    data[tof_id] += [d]
+                    mean_xgm[tof_id] += [x]
+                for tof_id in tof_ids:
+                    data[tof_id] = np.stack(data[tof_id], axis=0)
+                    mean_xgm[tof_id] = np.stack(mean_xgm[tof_id], axis=0)
+        else:
             itr_gen = list(itertools.product(tof_ids, energy_ids))
-            data_gen = p.map(fn, itr_gen)
+            data_gen = map(fn, itr_gen)
             # organize it all in a numpy array
             for (d, x), (tof_id, energy_id) in zip(data_gen, itr_gen):
                 data[tof_id] += [d]
@@ -761,15 +772,6 @@ class CookieboxCalibration(SerializableMixin):
             for tof_id in tof_ids:
                 data[tof_id] = np.stack(data[tof_id], axis=0)
                 mean_xgm[tof_id] = np.stack(mean_xgm[tof_id], axis=0)
-        #itr_gen = list(itertools.product(tof_ids, energy_ids))
-        #data_gen = map(fn, itr_gen)
-        ## organize it all in a numpy array
-        #for (d, x), (tof_id, energy_id) in zip(data_gen, itr_gen):
-        #    data[tof_id] += [d]
-        #    mean_xgm[tof_id] += [x]
-        #for tof_id in tof_ids:
-        #    data[tof_id] = np.stack(data[tof_id], axis=0)
-        #    mean_xgm[tof_id] = np.stack(mean_xgm[tof_id], axis=0)
 
         self.calibration_data = data
         self.calibration_mean_xgm = mean_xgm
