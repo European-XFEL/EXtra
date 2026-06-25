@@ -58,11 +58,20 @@ def search_roi(roi: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     Returns: Peak position.
     """
     roi_smooth = gaussian_filter(roi, sigma=5)
-    p, prop = find_peaks(roi_smooth, prominence=0.25*np.max(roi), width=1)
-    idx = np.argsort(p)[::-1]
+    p, prop = find_peaks(roi_smooth, prominence=0.25*np.max(roi_smooth), width=1, height=0)
+    idx = np.argsort(prop["peak_heights"])[::-1]
     p = p[idx]
     w = prop["widths"][idx]
-    return p, w
+    if len(p) == 0:
+        logging.info(f"Failed to find peaks.")
+        return -1, 0
+    if len(p) == 1:
+        logging.info(f"Failed to find two peaks. If there is no Auger peak, set start_roi=0")
+        return -1, 0
+    idx = np.argsort(p[:2])
+    p = p[:2][idx]
+    w = w[:2][idx]
+    return p[-1], w[-1]
 
 def model(ts: np.ndarray, c: float, e0: float, t0: float) -> np.ndarray:
     """
@@ -696,9 +705,7 @@ class CookieboxCalibration(SerializableMixin):
                 or self.stop_roi[tof_id] is None):
                 logging.info(f"Finding RoI for TOF {tof_id}...")
                 self.find_roi(tof_id)
-            logging.info(f"Auger start RoIs found: {self.auger_start_roi}")
-            logging.info(f"Start RoIs found: {self.start_roi}")
-            logging.info(f"Stop RoIs found: {self.stop_roi}")
+                logging.info(f"Start RoIs found: {self.start_roi[tof_id]}")
 
     def update_fit_result(self):
         """
@@ -784,13 +791,11 @@ class CookieboxCalibration(SerializableMixin):
         N = self.calibration_data[tof_id].shape[-1]
         for e in range(self.calibration_data[tof_id].shape[0]):
             d = self.calibration_data[tof_id][e, :]
-            peaks, widths = search_roi(d)
-            if len(peaks) < 1:
-                logging.info(f"Failed to find peaks for eTOF {tof_id}, energy index {e}. "
-                             f"Check the data quality.")
+            peak, width = search_roi(d)
+            if peak < 0:
                 continue
-            p += [peaks[-1]]
-            w += [widths[-1]]
+            p += [peak]
+            w += [width]
         if len(p) == 0:
             logging.info(f"No peaks found in eTOF {tof_id}. "
                          f"Check the data quality. "
@@ -803,7 +808,7 @@ class CookieboxCalibration(SerializableMixin):
             self.mask[tof_id] = False
             return
         idx = np.argmin(p)
-        pos = p[idx] - w[idx]
+        pos = p[idx] - 2*w[idx]
         self.auger_start_roi[tof_id] = 0
         self.start_roi[tof_id] = int(pos)
         self.stop_roi[tof_id] = N
