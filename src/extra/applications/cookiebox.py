@@ -177,16 +177,13 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
         tof_data = tof_data.pulse_data(pulse_dim='pulseIndex', parallel=parallel)
 
         # select XGM
-        if xgm_threshold > 0:
-            mask = xgm_data.coords["trainId"].isin(good_ids)
-            sel_xgm_data = xgm_data[mask]
-            tof_data = tof_data.loc[sel_xgm_data > xgm_threshold, :]
-            tof_xgm_data = sel_xgm_data.loc[sel_xgm_data > xgm_threshold]
+        mask = xgm_data.coords["trainId"].isin(good_ids)
+        sel_xgm_data = xgm_data[mask]
+        tof_data = tof_data.loc[sel_xgm_data > xgm_threshold, :]
+        tof_xgm_data = sel_xgm_data.loc[sel_xgm_data > xgm_threshold].to_numpy()
 
-        out_data = -tof_data.mean('pulse')
-        out_xgm = 0.0
-        if xgm_threshold > 0:
-            out_xgm = tof_xgm_data.mean('pulse').to_numpy()
+        out_data = -tof_data.mean("pulse")
+        out_xgm = np.mean(tof_xgm_data)
     else:
         # option 2: count photon peaks
         # in this case, ignore the XGM, as it is only used for cleaning the data
@@ -198,9 +195,7 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
         out_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.amplitude)
 
         out_data = xr.DataArray(out_data, dims=('sample'), coords={'sample': bins[:-1]})
-        out_xgm = 0.0
-        if xgm_threshold > 0:
-            out_xgm = xgm_data.mean('pulse').to_numpy()
+        out_xgm = np.mean(xgm_data.to_numpy())
 
     if correction_fn is not None:
         out_data = correction_fn[tof_id](out_data)
@@ -966,7 +961,7 @@ class CookieboxCalibration(SerializableMixin):
             detected = self.tof_fit_result[tof_id].A
             #produced = self.calibration_mean_xgm[tof_id] * self.tof_fit_result[tof_id].Aa * dsig_dth
             #produced = self.tof_fit_result[tof_id].Aa * dsig_dth
-            produced = dsig_dth
+            produced = dsig_dth*self.calibration_mean_xgm[tof_id]
             if produced == 0:
                 produced += 1e-1
             en = detected[mask][eidx]/produced
