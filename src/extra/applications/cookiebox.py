@@ -466,7 +466,8 @@ class CookieboxCalibration(SerializableMixin):
               scan: Scan,
               xgm: XGM,
               tof_response: Dict[int, TOFAnalogResponse]=None,
-              parallel=None
+              parallel=None,
+              parallel_over_tofs=None,
               ):
         """
         Derive calibrations.
@@ -483,7 +484,8 @@ class CookieboxCalibration(SerializableMixin):
           xgm: The XGM object used to apply a pulse energy selection.
                For example: `XGM(run, "SQS_DIAG1_XGMD/XGM/DOOCS")`
           tof_response: The response function object for deconvolution if that is desired.
-          parallel: Whether to paralellize data reading.
+          parallel: Whether to paralellize data reading. If set, establishes how many threads to use.
+          parallel_over_tofs: Whether to parallelize data reading over the tofs. If set, established how many processes to use.
         """
         # base properties
         self._run = run
@@ -515,7 +517,7 @@ class CookieboxCalibration(SerializableMixin):
         self.update_metadata()
 
         # find RoI if needed
-        self.update_roi(parallel)
+        self.update_roi(parallel, parallel_over_tofs=parallel_over_tofs)
 
         # find where the peaks are per energy in each Tof
         self.update_fit_result()
@@ -679,27 +681,28 @@ class CookieboxCalibration(SerializableMixin):
             self.kwargs_adq[tof_id]["name"] = self._tof[tof_id].name
         self.mask = {tof_id: True for tof_id in self.kwargs_adq.keys()}
 
-    def update_roi(self, parallel=None):
+    def update_roi(self, parallel=None, parallel_over_tofs=None):
         """
         Given calibrated data, apply a selection and find RoI if needed.
 
         Args:
           parallel: Number of threads to use if parallelizing data reading.
+          parallel_over_tofs: Number of process to use if parallelizing over tofs.
         """
         # average data for each energy slice
         logging.info("Reading calibration data ... (this takes a while)")
-        self.select_calibration_data(parallel)
+        self.select_calibration_data(parallel, parallel_over_tofs=parallel_over_tofs)
         # find RoI if needed
-        if (self.auger_start_roi is None
-            or self.start_roi is None
-            or self.stop_roi is None):
-            logging.info("Finding RoI ...")
-            logging.info("(This may fail. If it does, please provide a `auger_start_roi`, `start_roi` and `stop_roi`.)")
-            for tof_id in self.kwargs_adq.keys():
+        for tof_id in self.kwargs_adq.keys():
+            if (self.auger_start_roi[tof_id] is None
+                or self.start_roi[tof_id] is None
+                or self.stop_roi[tof_id] is None):
+                logging.info(f"Finding RoI for TOF {tof_id}...")
+                logging.info("(This may fail. If it does, please provide a `auger_start_roi`, `start_roi` and `stop_roi`.)")
                 self.find_roi(tof_id)
-            logging.info(f"Auger start RoIs found: {self.auger_start_roi}")
-            logging.info(f"Start RoIs found: {self.start_roi}")
-            logging.info(f"Stop RoIs found: {self.stop_roi}")
+                logging.info(f"Auger start RoIs found: {self.auger_start_roi[tof_id]}")
+                logging.info(f"Start RoIs found: {self.start_roi[tof_id]}")
+                logging.info(f"Stop RoIs found: {self.stop_roi[tof_id]}")
 
     def update_fit_result(self):
         """
@@ -746,6 +749,7 @@ class CookieboxCalibration(SerializableMixin):
                      parallel=parallel,
                      )
         if parallel_over_tofs is not None:
+            logging.info(f"Loading data in parallel over {parallel_over_tofs} processes.")
             with ProcessPoolExecutor(max_workers=parallel_over_tofs) as p:
                 itr_gen = list(itertools.product(tof_ids, energy_ids))
                 data_gen = p.map(fn, itr_gen)
@@ -757,6 +761,7 @@ class CookieboxCalibration(SerializableMixin):
                     data[tof_id] = np.stack(data[tof_id], axis=0)
                     mean_xgm[tof_id] = np.stack(mean_xgm[tof_id], axis=0)
         else:
+            logging.info("Loading data seuentially for every tof.")
             itr_gen = list(itertools.product(tof_ids, energy_ids))
             data_gen = map(fn, itr_gen)
             # organize it all in a numpy array
