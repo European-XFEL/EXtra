@@ -13,6 +13,7 @@ import h5py
 import xarray as xr
 import pandas as pd
 from scipy.signal import find_peaks
+from scipy.ndimage import gaussian_filter
 
 from .base import SerializableMixin
 from .cookiebox_deconvolve import TOFAnalogResponse
@@ -47,7 +48,7 @@ def search_offset(trace: np.ndarray, sigma: float=20) -> int:
     peak_idx = np.argmax(smoothened)
     return peak_idx - 200
 
-def search_roi(roi: np.ndarray) -> np.ndarray:
+def search_roi(roi: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """
     Find highest peaks in the 1D trace.
 
@@ -56,9 +57,12 @@ def search_roi(roi: np.ndarray) -> np.ndarray:
 
     Returns: Peak position.
     """
-    import scipy
-    p, _ = scipy.signal.find_peaks(roi, prominence=(0.25*np.max(roi), None))
-    return p
+    roi_smooth = gaussian_filter(roi, sigma=5)
+    p, prop = scipy.signal.find_peaks(roi_smooth, prominence=0.25*np.max(roi), width=1)
+    idx = np.argsort(p)[::-1]
+    p = p[idx]
+    w = prop["widths"][idx]
+    return p, w
 
 def model(ts: np.ndarray, c: float, e0: float, t0: float) -> np.ndarray:
     """
@@ -776,19 +780,19 @@ class CookieboxCalibration(SerializableMixin):
         Args:
           tof_id: The eTOF ID.
         """
-        auger = list()
-        roi = list()
+        p = list()
+        w = list()
+        N = self.calibration_data[tof_id].shape[-1]
         for e in range(self.calibration_data[tof_id].shape[0]):
             d = self.calibration_data[tof_id][e, :]
-            peaks = search_roi(d)
-            peaks = sorted(peaks)
-            if len(peaks) < 2:
+            peaks, widths = search_roi(d)
+            if len(peaks) < 1:
                 logging.info(f"Failed to find peaks for eTOF {tof_id}, energy index {e}. "
                              f"Check the data quality.")
                 continue
-            auger += [peaks[0]]
-            roi += [peaks[1]]
-        if len(auger) == 0 or len(roi) == 0:
+            p += [peaks[-1]]
+            w += [widths[-1]]
+        if len(p_last) == 0:
             logging.info(f"No peaks found in eTOF {tof_id}. "
                          f"Check the data quality. "
                          f"I will set the RoI to collect non-sense,"
@@ -796,18 +800,14 @@ class CookieboxCalibration(SerializableMixin):
                          f"It will also be masked.")
             self.auger_start_roi[tof_id] = 0
             self.start_roi[tof_id] = 100
-            self.stop_roi[tof_id] = 200
+            self.stop_roi[tof_id] = N
             self.mask[tof_id] = False
             return
-        a = min(auger)
-        b = min(roi)
-        dab = abs(b - a)
-        stop_roi = max(roi) + int(dab/2)
-        auger_start_roi = int(a - dab/2)
-        start_roi = int(b - dab/2)
-        self.auger_start_roi[tof_id] = auger_start_roi
-        self.start_roi[tof_id] = start_roi
-        self.stop_roi[tof_id] = stop_roi
+        idx = np.argmin(p)
+        pos = p[idx] - w[idx]
+        self.auger_start_roi[tof_id] = 0
+        self.start_roi[tof_id] = pos
+        self.stop_roi[tof_id] = N
 
     def plot_calibration_data(self):
         """Plot data for checks.
@@ -961,7 +961,7 @@ class CookieboxCalibration(SerializableMixin):
             detected = self.tof_fit_result[tof_id].A
             #produced = self.calibration_mean_xgm[tof_id] * self.tof_fit_result[tof_id].Aa * dsig_dth
             #produced = self.tof_fit_result[tof_id].Aa * dsig_dth
-            produced = dsig_dth*self.calibration_mean_xgm[tof_id]
+            produced = dsig_dth*self.calibration_mean_xgm[tof_id][mask][eidx]
             produced[produced == 0] = 0.1 # avoid division by zero
             en = detected[mask][eidx]/produced
             # interpolate normalization
