@@ -58,7 +58,7 @@ def search_roi(roi: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     Returns: Peak position.
     """
     roi_smooth = gaussian_filter(roi, sigma=5)
-    p, prop = scipy.signal.find_peaks(roi_smooth, prominence=0.25*np.max(roi), width=1)
+    p, prop = find_peaks(roi_smooth, prominence=0.25*np.max(roi), width=1)
     idx = np.argsort(p)[::-1]
     p = p[idx]
     w = prop["widths"][idx]
