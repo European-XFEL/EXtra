@@ -751,15 +751,25 @@ class CookieboxCalibration(SerializableMixin):
                      correction_fn=correction_fn,
                      parallel=parallel,
                      )
-        itr_gen = list(itertools.product(tof_ids, energy_ids))
-        data_gen = map(fn, itr_gen)
-        # organize it all in a numpy array
-        for (d, x), (tof_id, energy_id) in zip(data_gen, itr_gen):
-            data[tof_id] += [d]
-            mean_xgm[tof_id] += [x]
-        for tof_id in tof_ids:
-            data[tof_id] = np.stack(data[tof_id], axis=0)
-            mean_xgm[tof_id] = np.stack(mean_xgm[tof_id], axis=0)
+        with ProcessPoolExecutor(max_workers=16) as p:
+            itr_gen = list(itertools.product(tof_ids, energy_ids))
+            data_gen = p.map(fn, itr_gen)
+            # organize it all in a numpy array
+            for (d, x), (tof_id, energy_id) in zip(data_gen, itr_gen):
+                data[tof_id] += [d]
+                mean_xgm[tof_id] += [x]
+            for tof_id in tof_ids:
+                data[tof_id] = np.stack(data[tof_id], axis=0)
+                mean_xgm[tof_id] = np.stack(mean_xgm[tof_id], axis=0)
+        #itr_gen = list(itertools.product(tof_ids, energy_ids))
+        #data_gen = map(fn, itr_gen)
+        ## organize it all in a numpy array
+        #for (d, x), (tof_id, energy_id) in zip(data_gen, itr_gen):
+        #    data[tof_id] += [d]
+        #    mean_xgm[tof_id] += [x]
+        #for tof_id in tof_ids:
+        #    data[tof_id] = np.stack(data[tof_id], axis=0)
+        #    mean_xgm[tof_id] = np.stack(mean_xgm[tof_id], axis=0)
 
         self.calibration_data = data
         self.calibration_mean_xgm = mean_xgm
