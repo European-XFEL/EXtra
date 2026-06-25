@@ -741,7 +741,7 @@ class CookieboxCalibration(SerializableMixin):
                      correction_fn=correction_fn,
                      parallel=parallel,
                      )
-        with ProcessPoolExecutor(max_workers=16) as p:
+        with ProcessPoolExecutor(max_workers=len(tof_ids)) as p:
             itr_gen = list(itertools.product(tof_ids, energy_ids))
             data_gen = p.map(fn, itr_gen)
             # organize it all in a numpy array
@@ -972,8 +972,7 @@ class CookieboxCalibration(SerializableMixin):
             #produced = self.calibration_mean_xgm[tof_id] * self.tof_fit_result[tof_id].Aa * dsig_dth
             #produced = self.tof_fit_result[tof_id].Aa * dsig_dth
             produced = dsig_dth*self.calibration_mean_xgm[tof_id]
-            if produced == 0:
-                produced += 1e-1
+            produced[produced == 0] = 0.1 # avoid division by zero
             en = detected[mask][eidx]/produced
             # interpolate normalization
             self.normalization[tof_id] = np.interp(self.energy_axis,
