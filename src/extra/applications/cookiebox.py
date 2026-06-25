@@ -466,8 +466,8 @@ class CookieboxCalibration(SerializableMixin):
               scan: Scan,
               xgm: XGM,
               tof_response: Dict[int, TOFAnalogResponse]=None,
-              parallel=None,
-              parallel_over_tofs=None,
+              parallel=False,
+              parallel_over_tofs=16,
               ):
         """
         Derive calibrations.
