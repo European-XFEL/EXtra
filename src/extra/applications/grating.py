@@ -324,7 +324,7 @@ class Grating1DCalibration(SerializableMixin):
         plt.grid()
         plt.show()
 
-    def apply(self, run: DataCollection, load_all: bool=True) -> xr.Dataset:
+    def apply(self, run: DataCollection, load_all: bool=True, assume_motor=None) -> xr.Dataset:
         """
         Apply calibration to a new analysis run.
         It is assumed it contains the same settings.
@@ -333,13 +333,18 @@ class Grating1DCalibration(SerializableMixin):
           run: Input run.
           load_all: If True, load all data in memory at once. This is faste, but uses more memory.
                     Disable if not enough memory is available.
+          assume_motor: Assume the grating motor is fixed at this position.
         """
         if self.grating_motor_source != "":
-            out_data_motor = run[self.grating_motor_source, self.grating_motor_key].xarray()
-            logging.info(f"Motor position being assumed fixed at {out_data_motor.mean()}. "
-                         f"I detect a rms variation of {out_data_motor.std()}. "
-                         f"This should be compatible with zero!")
-            motor_position = out_data_motor.mean().to_numpy()
+            if assume_motor is not None:
+                logging.info(f"Assuming motor position at {assume_motor}")
+                motor_position = assume_motor
+            else:
+                out_data_motor = run[self.grating_motor_source, self.grating_motor_key].xarray()
+                logging.info(f"Motor position being assumed fixed at {out_data_motor.mean()}. "
+                             f"I detect a rms variation of {out_data_motor.std()}. "
+                             f"This should be compatible with zero!")
+                motor_position = out_data_motor.mean().to_numpy()
         else:
             motor_position = 0.0
         sample = np.arange(self.calibration_data.shape[-1])
