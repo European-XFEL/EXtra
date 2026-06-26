@@ -78,6 +78,7 @@ class Grating1DCalibration(SerializableMixin):
                             "energy_axis",
                             "calibration_energies",
                             "calibration_data",
+                            "calibration_motor",
                             "grating_source",
                             "grating_key",
                             "sources",
@@ -295,7 +296,7 @@ class Grating1DCalibration(SerializableMixin):
         #res = linregress(sample_mode[mask], self.calibration_energies[mask])
         #self.slope = res.slope
         #self.e0 = res.intercept
-        x = np.stack((sample_mode, motor_position), axis=1)
+        x = np.stack((sample_mode[mask], motor_position[mask]), axis=1)
         y = self.calibration_energies[mask]
         model = RANSACRegressor(estimator=LinearRegression(), random_state=42)
         model.fit(x, y[:, np.newaxis])
@@ -373,6 +374,9 @@ class Grating1DCalibration(SerializableMixin):
                 out_data += [d]
             out_data = np.stack(out_data, axis=0)
         #energy = self.energy_axis
+        if self.slope < 0:
+            energy = energy[::-1]
+            out_data = out_data[:, :, ::-1]
         out_data = xr.DataArray(data=out_data,
                             dims=('trainId', 'pulseIndex', 'energy'),
                             coords=dict(trainId=np.array(trainId),
