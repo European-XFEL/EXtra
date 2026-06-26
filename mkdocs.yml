@@ -31,6 +31,7 @@ nav:
     - components/timepix.md
     - components/optical-lasers.md
     - components/adq-digitizers.md
+    - components/adc-digitizers.md
     - components/detector-motors.md
   - Applications:
     - applications/index.md
