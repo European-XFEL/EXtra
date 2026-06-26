@@ -60,7 +60,7 @@ class Grating1DCalibration(SerializableMixin):
     ```
     """
     def __init__(self, offset: Optional[int]=None, min_pixel: int=0, max_pixel: int=1200, sigma: float=2.0):
-        self._version = 1
+        self._version = 2
         self.offset = offset
         self.min_pixel = min_pixel
         self.max_pixel = max_pixel
@@ -74,6 +74,7 @@ class Grating1DCalibration(SerializableMixin):
                             "max_pixel",
                             "e0",
                             "slope",
+                            "slope_motor",
                             "energy_axis",
                             "calibration_energies",
                             "calibration_data",
@@ -81,6 +82,8 @@ class Grating1DCalibration(SerializableMixin):
                             "grating_key",
                             "sources",
                             "grating_mask_key",
+                            "grating_motor_source",
+                            "grating_motor_key",
                             "sigma",
                             "_version",
                            ]
@@ -90,6 +93,7 @@ class Grating1DCalibration(SerializableMixin):
               scan: Scan,
               pulses: XrayPulses,
               grating_mask: Optional[KeyData]=None,
+              grating_motor: Optional[KeyData]=None,
               ):
         """
         Setup calibration.
@@ -103,6 +107,8 @@ class Grating1DCalibration(SerializableMixin):
                 Example: `XrayPulses(run)`
           grating_mask: Grating mask from the calibration system.
                    Example: `signal_run["SQS_EXP_GH2-2/CORR/RECEIVER:daqOutput", "data.mask"]`
+          grating_motor: KeyData corresponding to the motor position.
+               Example: `signal_run['SQS_DIAG3_SCAM/MOTOR/ST_AXIS_X', 'encoderPosition.value']`
         """
         self.grating_source = grating_signal.source
         self.grating_key = grating_signal.key
@@ -116,6 +122,16 @@ class Grating1DCalibration(SerializableMixin):
                         self.grating_source,
                        ]
 
+        if grating_motor is not None:
+            self.grating_motor_source = grating_motor.source
+            self.grating_motor_key = grating_motor.key
+            self._grating_motor = grating_motor
+            self.sources += [self.grating_motor_source]
+        else:
+            self.grating_motor_source = ""
+            self.grating_motor_key = ""
+            self._grating_motor = None
+
         # create scan object
         self._scan = scan
         self.calibration_energies = self._scan.positions
@@ -123,6 +139,7 @@ class Grating1DCalibration(SerializableMixin):
         # outputs
         self.e0 = 0
         self.slope = 0
+        self.slope_motor = 0
         self.energy_axis = None
 
         if self.offset is None:
@@ -231,10 +248,18 @@ class Grating1DCalibration(SerializableMixin):
                      grating=self._grating_signal,
                      mask=self._grating_mask,
                      )
+        fn_motor = partial(calc_mean,
+                     scan=self._scan,
+                     grating=self._grating_motor,
+                     )
         energy_ids = np.arange(len(self.calibration_energies))
         # average data in each mono scan bin
         with ProcessPoolExecutor() as p:
             data = np.stack(list(p.map(fn, energy_ids)), axis=0)
+            if self.grating_motor_source != "":
+                data_motor = np.stack(list(p.map(fn_motor, energy_ids)), axis=0)
+            else:
+                data_motor = np.zeros((data.shape[0]))
         # skip offset and collect pulse data each pulse_period samples only
         self.calibration_data = data[:, self.offset::self.pulse_period, self.min_pixel:self.max_pixel]
         # apply mask
@@ -244,6 +269,7 @@ class Grating1DCalibration(SerializableMixin):
         if self.sigma > 0:
             self.calibration_data = gaussian_filter(np.nan_to_num(self.calibration_data), axes=-1, sigma=self.sigma)
         self.calibration_mask = np.ones(self.calibration_data.shape[0], dtype=bool)
+        self.calibration_motor = data_motor
 
     def mask_calibration_point(self, energy: float, mask: bool=False, tol: float=1.0):
         """
@@ -264,17 +290,19 @@ class Grating1DCalibration(SerializableMixin):
         mask = self.calibration_mask
         sample = np.arange(self.calibration_data.shape[-1])
         sample_mode = np.nanargmax(self.calibration_data, axis=-1)
+        motor_position = self.calibration_motor
         #sample_mode = np.sum(self.calibration_data*sample, axis=-1)/np.sum(self.calibration_data, axis=-1)
         #res = linregress(sample_mode[mask], self.calibration_energies[mask])
         #self.slope = res.slope
         #self.e0 = res.intercept
-        x = sample_mode[mask]
+        x = np.stack((sample_mode, motor_position), axis=1)
         y = self.calibration_energies[mask]
         model = RANSACRegressor(estimator=LinearRegression(), random_state=42)
-        model.fit(x[:,np.newaxis], y[:, np.newaxis])
+        model.fit(x, y[:, np.newaxis])
         self.slope = model.estimator_.coef_[0,0]
+        self.slope_motor = model.estimator_.coef_[0,1]
         self.e0 = model.estimator_.intercept_[0]
-        self.energy_axis = self.e0 + self.slope*sample
+        self.energy_axis = self.e0 + self.slope*sample + self.slope_motor*motor_position.mean()
 
     def plot(self):
         """
@@ -284,9 +312,12 @@ class Grating1DCalibration(SerializableMixin):
         plt.figure(figsize=(10, 8))
         sample = np.arange(self.calibration_data.shape[-1])
         sample_mode = np.nanargmax(self.calibration_data, axis=-1)
+        motor_position = self.calibration_motor
         plt.plot(sample, self.energy_axis, lw=2, label="Fit")
         plt.xlabel("Pixel")
         plt.ylabel("Energy [eV]")
+        plt.scatter(sample_mode, self.e0 + self.slope*sample_mode + self.slope_motor*motor_position,
+                    s=200, marker='o', facecolors='w', edgecolors="k", label="Prediction (w. motor)")
         plt.scatter(sample_mode, self.calibration_energies, s=200, marker='x', c='r', label="Data")
         plt.legend(frameon=False)
         plt.grid()
@@ -302,6 +333,16 @@ class Grating1DCalibration(SerializableMixin):
           load_all: If True, load all data in memory at once. This is faste, but uses more memory.
                     Disable if not enough memory is available.
         """
+        if self.grating_motor_source != "":
+            out_data_motor = run[self.grating_motor_source, self.grating_motor_key].xarray()
+            logging.info(f"Motor position being assumed fixed at {out_data_motor.mean()}. "
+                         f"I detect a rms variation of {out_data_motor.std()}. "
+                         f"This should be compatible with zero!")
+            motor_position = out_data_motor.mean().to_numpy()
+        else:
+            motor_position = 0.0
+        sample = np.arange(self.calibration_data.shape[-1])
+        energy = self.e0 + self.slope*sample + self.slope_motor*motor_position
         # do it per train to avoid memory overflow
         pulse_period = self.get_pulse_period(XrayPulses(run))
         if load_all:
@@ -331,7 +372,7 @@ class Grating1DCalibration(SerializableMixin):
                 trainId += [tid]
                 out_data += [d]
             out_data = np.stack(out_data, axis=0)
-        energy = self.energy_axis
+        #energy = self.energy_axis
         out_data = xr.DataArray(data=out_data,
                             dims=('trainId', 'pulseIndex', 'energy'),
                             coords=dict(trainId=np.array(trainId),
