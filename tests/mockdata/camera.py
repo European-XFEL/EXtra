@@ -7,10 +7,12 @@ class GotthardIIWithData(DeviceBase):
 
     instrument_keys = [
         ("adc", "f4", (12,1000)),
+        ("mask", "i4", (12,1000)),
     ]
 
-    def __init__(self, *args, data, **kwargs):
+    def __init__(self, *args, data, mask, **kwargs):
         self.data = data
+        self.mask = mask
         super().__init__(*args, **kwargs)
 
     def write_instrument(self, f):
