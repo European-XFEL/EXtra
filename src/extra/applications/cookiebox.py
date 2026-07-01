@@ -475,7 +475,8 @@ class CookieboxCalibration(SerializableMixin):
               scan: Scan,
               xgm: XGM,
               tof_response: Dict[int, TOFAnalogResponse]=None,
-              parallel=None
+              parallel=False,
+              parallel_over_tofs=None,
               ):
         """
         Derive calibrations.
@@ -493,6 +494,7 @@ class CookieboxCalibration(SerializableMixin):
                For example: `XGM(run, "SQS_DIAG1_XGMD/XGM/DOOCS")`
           tof_response: The response function object for deconvolution if that is desired.
           parallel: Whether to paralellize data reading.
+          parallel_over_tofs: Whether to parallelize over eTOFs.
         """
         # base properties
         self._run = run
@@ -524,7 +526,7 @@ class CookieboxCalibration(SerializableMixin):
         self.update_metadata()
 
         # find RoI if needed
-        self.update_roi(parallel)
+        self.update_roi(parallel, parallel_over_tofs)
 
         # find where the peaks are per energy in each Tof
         self.update_fit_result()
@@ -688,7 +690,7 @@ class CookieboxCalibration(SerializableMixin):
             self.kwargs_adq[tof_id]["name"] = self._tof[tof_id].name
         self.mask = {tof_id: True for tof_id in self.kwargs_adq.keys()}
 
-    def update_roi(self, parallel=None):
+    def update_roi(self, parallel=False, parallel_over_tofs=16):
         """
         Given calibrated data, apply a selection and find RoI if needed.
 
@@ -697,7 +699,7 @@ class CookieboxCalibration(SerializableMixin):
         """
         # average data for each energy slice
         logging.info("Reading calibration data ... (this takes a while)")
-        self.select_calibration_data(parallel)
+        self.select_calibration_data(parallel, parallel_over_tofs=parallel_over_tofs)
         # find RoI if needed
         for tof_id in self.kwargs_adq.keys():
             if (self.auger_start_roi[tof_id] is None
@@ -728,7 +730,7 @@ class CookieboxCalibration(SerializableMixin):
     def fast_response_correction(self, x, tof_id):
         return self._tof_response[tof_id].apply(x.fillna(0.0), method="nn_matrix", n_iter=100, nonneg=True)
 
-    def select_calibration_data(self, parallel=None, parallel_over_tofs=None):
+    def select_calibration_data(self, parallel=False, parallel_over_tofs=None):
         """
         Select data for calibration.
         """
