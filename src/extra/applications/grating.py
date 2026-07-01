@@ -260,14 +260,9 @@ class Grating1DCalibration(SerializableMixin):
 
     def fit(self):
         """Fit line."""
-        #from scipy.stats import linregress
         mask = self.calibration_mask
         sample = np.arange(self.calibration_data.shape[-1])
         sample_mode = np.nanargmax(self.calibration_data, axis=-1)
-        #sample_mode = np.sum(self.calibration_data*sample, axis=-1)/np.sum(self.calibration_data, axis=-1)
-        #res = linregress(sample_mode[mask], self.calibration_energies[mask])
-        #self.slope = res.slope
-        #self.e0 = res.intercept
         x = sample_mode[mask]
         y = self.calibration_energies[mask]
         model = RANSACRegressor(estimator=LinearRegression(), random_state=42)
