@@ -120,6 +120,8 @@ Changed:
   parallelization to the `AdqRawChannel` class (!509).
 - [TOFAnalogResponse][extra.applications.TOFAnalogResponse] averages analog pulses using thresholding
   from `AdqRawChannel` to clean up the data (!511).
+- [CookieboxCalibration][extra.applications.CookieboxCalibration] use
+  processes to parallelize over eTOFs (!513).
 
 ## [2025.1]
 
