@@ -18,7 +18,7 @@ class GotthardIIWithData(DeviceBase):
 
         ds = f[f'INSTRUMENT/{self.device_id}:daqOutput/data/adc']
         ds[:] = self.data
-        ds = f[f'INSTRUMENT/{self.device_id}:daqOutput/mask']
+        ds = f[f'INSTRUMENT/{self.device_id}:daqOutput/data/mask']
         ds[:] = self.mask
 
 class CameraWithData(DeviceBase):
