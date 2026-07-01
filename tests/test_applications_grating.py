@@ -95,6 +95,7 @@ def test_reading_grating1d(mock_sqs_grating_calibration_run, tmp_path):
     grating_calibration.setup(mock_sqs_grating_calibration_run[final_photon_spectrometer, "data.adc"],
                               monochromator_scan,
                               pulses=XrayPulses(mock_sqs_grating_calibration_run),
+                              mask=mock_sqs_grating_calibration_run[final_photon_spectrometer, "data.adc"]
                              )
     d = tmp_path / "data"
     d.mkdir()

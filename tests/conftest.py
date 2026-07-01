@@ -319,7 +319,8 @@ def mock_sqs_grating_calibration_directory():
         Timeserver('SQS_RR_UTC/TSYS/TIMESERVER'),
         MonoMdl('SA3_XTD10_MONO/MDL/PHOTON_ENERGY', energy_data=energy),
         CameraWithData("SQS_DIAG3_BIU/CAM/CAM_6", data=data2d),
-        GotthardIIWithData("SQS_EXP_GH2-2/CORR/RECEIVER", data=data_gh),
+        GotthardIIWithData("SQS_EXP_GH2-2/CORR/RECEIVER", data=data_gh,
+                           mask=np.zeros_like(data_gh)),
               ]
 
     # for tests
