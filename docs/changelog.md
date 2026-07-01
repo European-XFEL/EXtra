@@ -98,6 +98,8 @@ Fixed:
 - Fixed counting threshold for `CookieboxCalibration` (!498).
 - [CookieboxCalibration][extra.applications.CookieboxCalibration] bug fix for
   new `extra.applications.base.SerializableMixin` interface (!506).
+- [CookieboxCalibration][extra.applications.CookieboxCalibration] transmission
+  corrected based on pulse energy (!512).
 
 Changed:
 
