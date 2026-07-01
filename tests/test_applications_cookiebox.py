@@ -441,6 +441,58 @@ def test_no_parallel(mock_sqs_etof_calibration_run, tmp_path, mock_etof_mono_ene
         # check how well it matches
         assert np.allclose(ts, ts_true, rtol=1e-2, atol=1e-2)
 
+# tests data reading parallelizing over etofs
+def test_parallel_tofs(mock_sqs_etof_calibration_run, tmp_path, mock_etof_mono_energies, mock_etof_calibration_constants):
+    # same as above, but tests only if a crash happens in `calc_mean`
+    # somehow parallelization means that `calc_mean` is not shown in the coverage
+    pulse_timing = 'SQS_RR_UTC/TSYS/TIMESERVER'
+    monochromator_energy = 'SA3_XTD10_MONO/MDL/PHOTON_ENERGY'
+    digitizer = 'SQS_DIGITIZER_UTC4/ADC/1:network'
+    digitizer_control = 'SQS_DIGITIZER_UTC4/ADC/1'
+    pulse_energy = 'SQS_DIAG1_XGMD/XGM/DOOCS'
+    mock_sqs_etof_calibration_run = mock_sqs_etof_calibration_run.select([pulse_timing,
+                                  digitizer, digitizer_control,
+                                  pulse_energy, f"{pulse_energy}:output",
+                                  monochromator_energy], require_all=True).select_trains(np.s_[10:])
+    channel_name = "1_A"
+    tof_ids = [0]
+    tof_channel = {}
+    tof_channel[0] = AdqRawChannel(mock_sqs_etof_calibration_run,
+                                   channel_name,
+                                   digitizer=digitizer,
+                                   first_pulse_offset=1000)
+    scan = Scan(mock_sqs_etof_calibration_run[monochromator_energy, "actualEnergy"], resolution=2)
+    energy_axis = np.linspace(965, 1070, 160)
+    xgm = XGM(mock_sqs_etof_calibration_run, pulse_energy)
+    cal = CookieboxCalibration(
+                    auger_start_roi=1,
+                    start_roi=75,
+                    stop_roi=320,
+    )
+    cal.setup(run=mock_sqs_etof_calibration_run, energy_axis=energy_axis, tof_settings=tof_channel,
+              xgm=xgm,
+              scan=scan,
+              parallel=False,
+              parallel_over_tofs=2,
+              )
+
+    correct_energies = np.unique(mock_etof_mono_energies)
+    correct_constants = np.array(mock_etof_calibration_constants)
+    for tof_id in tof_ids:
+        assert np.allclose(cal.tof_fit_result[tof_id].energy, correct_energies, rtol=1e-2, atol=1e-2)
+
+        energy = correct_energies
+
+        # get calibration curve
+        c, e0, t0 = cal.model_params[tof_id]
+        ts = t0 + np.sqrt(c/(energy - e0))
+
+        c_true, e0_true, t0_true = correct_constants
+        ts_true = t0_true + np.sqrt(c_true/(energy - e0_true))
+
+        # check how well it matches
+        assert np.allclose(ts, ts_true, rtol=1e-2, atol=1e-2)
+
 def test_deconvolve(mock_sqs_etof_calibration_run, tmp_path):
     # use mock data and do the same as before, but with deconvolution
     # it should improve resolution, but lead to the same calibration constants
