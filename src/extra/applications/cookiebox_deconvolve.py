@@ -490,7 +490,7 @@ class TOFAnalogResponse(SerializableMixin):
                 idx = tof_data.loc[:, ['trainId', 'pulseIndex']].set_index(['trainId', 'pulseIndex']).index
                 logging.info("Summing good trains ...")
                 analog_data = -tof.select_trains(by_id[good_trains]).pulse_data(pulse_dim="pulseIndex", parallel=parallel)
-                this_tof_data = analog_data.sel(pulse=idx)
+                this_tof_data = analog_data.sel(pulse=idx).mean("pulse")
             if self.roi is not None:
                 this_tof_data = this_tof_data.isel(sample=self.roi)
             data += [this_tof_data.to_numpy()]
