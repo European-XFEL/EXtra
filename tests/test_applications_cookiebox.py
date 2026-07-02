@@ -441,6 +441,10 @@ def test_deconvolve(mock_sqs_etof_calibration_run, tmp_path):
     tof_response_noscan = TOFAnalogResponse(roi=slice(75, None), n_samples=150)
     tof_response_noscan.setup(tof_channel[0])
 
+    # setup TOFAnalogResponse without Scan and counting of photo-electrons
+    tof_response_noscan_count = TOFAnalogResponse(roi=slice(75, None), n_samples=150, count_threshold=-20)
+    tof_response_noscan_count.setup(tof_channel[0])
+
     # create calibration object to read data in the appropriate format
     energy_axis = np.linspace(965, 1070, 160)
     xgm = XGM(mock_sqs_etof_calibration_run, pulse_energy)
