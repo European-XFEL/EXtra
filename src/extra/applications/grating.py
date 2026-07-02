@@ -295,7 +295,7 @@ class Grating1DCalibration(SerializableMixin):
 
         Args:
           run: Input run.
-          load_all: If True, load all data in memory at once. This is faste, but uses more memory.
+          load_all: If True, load all data in memory at once. This is faster, but uses more memory.
                     Disable if not enough memory is available.
         """
         # do it per train to avoid memory overflow
@@ -305,7 +305,7 @@ class Grating1DCalibration(SerializableMixin):
             trainId = out_data.trainId.to_numpy()
             out_data = out_data.to_numpy()
             out_data = out_data[:, self.offset::pulse_period, self.min_pixel:self.max_pixel]
-            if len(self.grating_mask_key) > 0:
+            if self.grating_mask_key:
                 out_mask = run[self.grating_source, self.grating_mask_key].ndarray() > 0
                 out_mask = out_mask[:, self.offset::pulse_period, self.min_pixel:self.max_pixel]
                 out_data[out_mask] = np.nan
@@ -318,7 +318,7 @@ class Grating1DCalibration(SerializableMixin):
                 # skip offset and collect pulse data each pulse_period samples only
                 d = d[self.offset::pulse_period, self.min_pixel:self.max_pixel]
 
-                if len(self.grating_mask_key) > 0:
+                if self.grating_mask_key:
                     m = data[self.grating_source][self.grating_mask_key] > 0
                     m = m[self.offset::pulse_period, self.min_pixel:self.max_pixel]
                     d[m] = np.nan
