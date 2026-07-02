@@ -73,7 +73,8 @@ Added:
   and photon line if the flag `deconvolve` is set to True.
   summary about a pulse pattern (!435).
 - `StepTimer` class for measuring performance within functions.
-- [Grating1DCalibration][extra.applications.Grating1DCalibration] can use the calibration mask
+- [Grating1DCalibration][extra.applications.Grating1DCalibration] can use the calibration mask,
+  removes the background subtraction (leaving it to the calibration DB),
   and use robust tools to improve the fit quality (!510).
 
 Fixed:
