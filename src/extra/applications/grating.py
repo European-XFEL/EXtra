@@ -59,8 +59,8 @@ class Grating1DCalibration(SerializableMixin):
     grating_calib.apply(new_run)
     ```
     """
-    def __init__(self, offset: Optional[int]=None, min_pixel: int=0, max_pixel: int=1200, sigma: float=2.0):
-        self._version = 1
+    def __init__(self, offset: Optional[int]=None, min_pixel: int=0, max_pixel: int=1280, sigma: float=2.0):
+        self._version = 2
         self.offset = offset
         self.min_pixel = min_pixel
         self.max_pixel = max_pixel
@@ -156,6 +156,8 @@ class Grating1DCalibration(SerializableMixin):
         Rebuild object from dict.
         """
         self = cls()
+        # backwards compatibility
+        self.grating_mask_key = ""
         for k, v in all_data.items():
             setattr(self, k, v)
         return self
