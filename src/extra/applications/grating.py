@@ -169,8 +169,7 @@ class Grating1DCalibration(SerializableMixin):
         I = self._grating_signal.xarray().sel(dim_1=np.s_[self.min_pixel:self.max_pixel]).to_numpy()
         if self._grating_mask is not None:
             Im = self._grating_mask.xarray().sel(dim_1=np.s_[self.min_pixel:self.max_pixel]).to_numpy()
-            Im = (Im > 0)
-            I[Im] = 0
+            I[Im > 0] = 0
         # smooth over energy-pixels
         if self.sigma > 0:
             I = gaussian_filter(np.nan_to_num(I), axes=-1, sigma=self.sigma)
