@@ -487,13 +487,13 @@ class TOFAnalogResponse(SerializableMixin):
                 logging.info("Calling pulse_edges ...")
                 tof_data = tof.pulse_edges(pulse_dim='pulseIndex', threshold=self.count_threshold, parallel=parallel).reset_index()
                 good_trains = np.unique(tof_data.loc[:,'trainId'].to_numpy())
-                idx = tof_data.loc[:, ['trainId', 'pulseIndex']].set_index(['trainId', 'pulseIndex']).idx
+                idx = tof_data.loc[:, ['trainId', 'pulseIndex']].set_index(['trainId', 'pulseIndex']).index
                 logging.info("Summing good trains ...")
                 analog_data = -tof.select_trains(by_id[good_trains]).pulse_data(pulse_dim="pulseIndex", parallel=parallel)
                 this_tof_data = analog_data.sel(pulse=idx)
-            if self.roi is not None:
-                this_tof_data = this_tof_data.isel(sample=self.roi)
-            data += [this_tof_data.to_numpy()]
+                if self.roi is not None:
+                    this_tof_data = this_tof_data.isel(sample=self.roi)
+                data += [this_tof_data.to_numpy()]
 
         for d in data:
             this_h = self.shift_h(d, h_axis)
