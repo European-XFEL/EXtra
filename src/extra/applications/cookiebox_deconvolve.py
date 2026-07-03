@@ -462,7 +462,9 @@ class TOFAnalogResponse(SerializableMixin):
         if scan is not None: # use the scan
             # if not counting photo-electrons -- ie: analog mode
             if self.count_threshold is None or self.count_threshold >= 0:
+                logging.info("Calling pulse_data ...")
                 this_tof_data = -tof.pulse_data(pulse_dim="pulseIndex", parallel=parallel).unstack("pulse")
+                logging.info("Averaging over mono settings ...")
                 for k, e in enumerate(scan.positions):
                     data += [this_tof_data.sel(trainId=scan.positions_train_ids[k]).mean("trainId").mean("pulseIndex").to_numpy()]
             else:

@@ -8,13 +8,16 @@ import numpy as np
 import xarray as xr
 import h5py
 
+from sklearn.linear_model import RANSACRegressor, LinearRegression
 from extra_data import open_run, by_id, DataCollection, KeyData
 from extra.components import Scan, XrayPulses
+from scipy.ndimage import gaussian_filter
 
 from .base import SerializableMixin
 
 def calc_mean(energy_id: int, scan: Scan,
              grating: KeyData,
+              mask: KeyData=None
              ) -> np.ndarray:
     """
     Calculate mean over train IDs with a given energy value.
@@ -23,11 +26,15 @@ def calc_mean(energy_id: int, scan: Scan,
       energy_id: The id of this energy bin in the `scan` object.
       scan: The `Scan` object.
       grating: The camera key object.
+      mask: Calibration mask object.
     """
     energy, train_ids = scan.steps[energy_id]
     logging.debug(f"Energy {energy}, energy id {energy_id}")
-    data = grating.select_trains(by_id[list(train_ids)]).xarray()
-    return data.mean('trainId').to_numpy()
+    data = grating.select_trains(by_id[list(train_ids)]).ndarray()
+    if mask is not None:
+        mask = mask.select_trains(by_id[list(train_ids)]).ndarray()
+        data[mask > 0] = np.nan
+    return np.nanmean(data, 0)
 
 class Grating1DCalibration(SerializableMixin):
     """
@@ -35,6 +42,7 @@ class Grating1DCalibration(SerializableMixin):
 
     Args:
       offset: Offset of the first pulse.
+      sigma: Smoothing factor to apply to data to reduce noise in pixels.
 
     Example:
     ```
@@ -42,22 +50,22 @@ class Grating1DCalibration(SerializableMixin):
     calib_run = open_run(proposal=900485, run=611)
     scan = Scan(calib_run["SA3_XTD10_MONO/MDL/PHOTON_ENERGY", "actualEnergy"])
     grating_signal = calib_run["SQS_EXP_GH2-2/CORR/RECEIVER:daqOutput", "data.adc"]
-    grating_bkg = bkg_run["SQS_EXP_GH2-2/CORR/RECEIVER:daqOutput", "data.adc"]
     pulses = XrayPulses(calib_run)
     grating_calib = Grating1DCalibration()
-    grating_calib.setup(grating_signal, grating_bkg, scan, pulses)
+    grating_calib.setup(grating_signal, scan, pulses)
 
     # apply it in new data
     new_run = open_run(...)
     grating_calib.apply(new_run)
     ```
     """
-    def __init__(self, offset: Optional[int]=None, min_pixel: int=500, max_pixel: int=1000):
-        self._version = 1
+    def __init__(self, offset: Optional[int]=None, min_pixel: int=0, max_pixel: int=1280, sigma: float=2.0):
+        self._version = 2
         self.offset = offset
         self.min_pixel = min_pixel
         self.max_pixel = max_pixel
         self.calibration_mask = None
+        self.sigma = sigma
         self._all_fields = [
                             "pulse_period",
                             "offset",
@@ -66,15 +74,14 @@ class Grating1DCalibration(SerializableMixin):
                             "max_pixel",
                             "e0",
                             "slope",
-                            "bkg",
-                            "bkg_unc",
                             "energy_axis",
                             "calibration_energies",
                             "calibration_data",
-                            "calibration_unc",
                             "grating_source",
                             "grating_key",
                             "sources",
+                            "grating_mask_key",
+                            "sigma",
                             "_version",
                            ]
 
@@ -82,7 +89,7 @@ class Grating1DCalibration(SerializableMixin):
               grating_signal: KeyData,
               scan: Scan,
               pulses: XrayPulses,
-              grating_bkg: Optional[KeyData]=None,
+              grating_mask: Optional[KeyData]=None,
               ):
         """
         Setup calibration.
@@ -94,13 +101,16 @@ class Grating1DCalibration(SerializableMixin):
                 Example: `Scan(run["SA3_XTD10_MONO/MDL/PHOTON_ENERGY", "actualEnergy"])`
           pulses: Object with bunch pattern table.
                 Example: `XrayPulses(run)`
-          grating_bkg: Where to read the grating background data from.
-               Example: `bkg_run["SQS_EXP_GH2-2/CORR/RECEIVER:daqOutput", "data.adc"]`
+          grating_mask: Grating mask from the calibration system.
+                   Example: `signal_run["SQS_EXP_GH2-2/CORR/RECEIVER:daqOutput", "data.mask"]`
         """
         self.grating_source = grating_signal.source
         self.grating_key = grating_signal.key
+        self.grating_mask_key = ""
+        if grating_mask is not None:
+            self.grating_mask_key = grating_mask.key
         self._grating_signal = grating_signal
-        self._grating_bkg = grating_bkg
+        self._grating_mask = grating_mask
 
         self.sources = [
                         self.grating_source,
@@ -122,10 +132,6 @@ class Grating1DCalibration(SerializableMixin):
         # pulse delta
         logging.info("Extract bunch pattern table")
         self.pulse_period = self.get_pulse_period(pulses)
-
-        # background
-        logging.info("Load background ...")
-        self.get_background_template()
 
         # load data
         logging.info("Load data ...")
@@ -150,6 +156,8 @@ class Grating1DCalibration(SerializableMixin):
         Rebuild object from dict.
         """
         self = cls()
+        # backwards compatibility
+        self.grating_mask_key = ""
         for k, v in all_data.items():
             setattr(self, k, v)
         return self
@@ -158,9 +166,24 @@ class Grating1DCalibration(SerializableMixin):
         """
         Guess offset.
         """
-        I = self._grating_signal.xarray().sel(dim_1=np.s_[self.min_pixel:self.max_pixel]).mean('dim_1').mean('trainId')
-        threshold = np.median(I)
-        self.offset = np.where(I >= threshold)[0][0]
+        I = self._grating_signal.xarray().sel(dim_1=np.s_[self.min_pixel:self.max_pixel]).to_numpy()
+        if self._grating_mask is not None:
+            Im = self._grating_mask.xarray().sel(dim_1=np.s_[self.min_pixel:self.max_pixel]).to_numpy()
+            I[Im > 0] = 0
+        # smooth over energy-pixels
+        if self.sigma > 0:
+            I = gaussian_filter(np.nan_to_num(I), axes=-1, sigma=self.sigma)
+        # maximum over energy-pixels
+        I = np.max(I, axis=-1)
+        # mean over trains
+        I = np.mean(I, 0)
+        # at this point I contains only the time dimension
+        # look for peaks over background
+        offset = [None, None]
+        for s in [0, 1]:
+            threshold = np.median(I[s::2])
+            offset[s] = np.where(I[s::2] >= threshold)[0][0]*2 + s
+        self.offset = max(offset)
         logging.info(f"Offset estimated at {self.offset}")
 
     def get_pulse_period(self, pulses: XrayPulses):
@@ -181,15 +204,25 @@ class Grating1DCalibration(SerializableMixin):
         logging.info(f"Pulse period estimated at {pulse_period}")
         return pulse_period
 
-    def get_background_template(self):
-        """Get the background template.
+    def apply_mask(self, arr):
         """
-        if self._grating_bkg is None:
-            self.bkg = None
-            self.bkg_unc = None
-        else:
-            self.bkg = self._grating_bkg.ndarray().mean(0)
-            self.bkg_unc = self._grating_bkg.ndarray().std(0)
+        Interpolate nans.
+        """
+        axis_full = np.arange(arr.shape[-1])
+        shape = arr.shape
+        arr = np.reshape(arr, (-1, shape[-1]))
+        # if all points are bad, set it to zero
+        # nothing else can be done there ...
+        all_bad = np.all(np.isnan(arr), axis=1)
+        arr[all_bad, :] = 0
+        # otherwise interpolate
+        arr = np.apply_along_axis(lambda a: np.interp(axis_full,
+                                                      axis_full[~np.isnan(a)],
+                                                      a[~np.isnan(a)],
+                                                      left=0, right=0),
+                                  arr=arr, axis=1)
+        arr = np.reshape(arr, shape)
+        return arr
 
     def load_data(self):
         """Load calibration data."""
@@ -197,26 +230,20 @@ class Grating1DCalibration(SerializableMixin):
         fn = partial(calc_mean,
                      scan=self._scan,
                      grating=self._grating_signal,
+                     mask=self._grating_mask,
                      )
         energy_ids = np.arange(len(self.calibration_energies))
         # average data in each mono scan bin
         with ProcessPoolExecutor() as p:
             data = np.stack(list(p.map(fn, energy_ids)), axis=0)
-        # subtract the background
-        bkg_unc = np.zeros_like(data).mean(0)
-        if self.bkg is not None:
-            data = data - self.bkg
-            bkg_unc = self.bkg_unc
-        else:
-            self.bkg_unc = bkg_unc
-            self.bkg = np.zeros_like(data).mean(0)
-        self.calibration_unc = bkg_unc
         # skip offset and collect pulse data each pulse_period samples only
         self.calibration_data = data[:, self.offset::self.pulse_period, self.min_pixel:self.max_pixel]
-        self.calibration_unc = self.calibration_unc[self.offset::self.pulse_period, self.min_pixel:self.max_pixel]
+        # apply mask
+        self.calibration_data = self.apply_mask(self.calibration_data)
         # average over pulses
-        self.calibration_data = np.mean(self.calibration_data, axis=1)
-        self.calibration_unc = np.mean(self.calibration_unc, axis=0)
+        self.calibration_data = np.nanmean(self.calibration_data, axis=1)
+        if self.sigma > 0:
+            self.calibration_data = gaussian_filter(np.nan_to_num(self.calibration_data), axes=-1, sigma=self.sigma)
         self.calibration_mask = np.ones(self.calibration_data.shape[0], dtype=bool)
 
     def mask_calibration_point(self, energy: float, mask: bool=False, tol: float=1.0):
@@ -234,14 +261,15 @@ class Grating1DCalibration(SerializableMixin):
 
     def fit(self):
         """Fit line."""
-        from scipy.stats import linregress
         mask = self.calibration_mask
         sample = np.arange(self.calibration_data.shape[-1])
-        sample_mode = np.argmax(self.calibration_data, axis=-1)
-        #sample_mode = snp.sum(self.calibration_data*sample, axis=-1)/np.sum(self.calibration_data, axis=-1)
-        res = linregress(sample_mode[mask], self.calibration_energies[mask])
-        self.slope = res.slope
-        self.e0 = res.intercept
+        sample_mode = np.nanargmax(self.calibration_data, axis=-1)
+        x = sample_mode[mask]
+        y = self.calibration_energies[mask]
+        model = RANSACRegressor(estimator=LinearRegression(), random_state=42)
+        model.fit(x[:,np.newaxis], y[:, np.newaxis])
+        self.slope = model.estimator_.coef_[0,0]
+        self.e0 = model.estimator_.intercept_[0]
         self.energy_axis = self.e0 + self.slope*sample
 
     def plot(self):
@@ -251,7 +279,7 @@ class Grating1DCalibration(SerializableMixin):
         import matplotlib.pyplot as plt
         plt.figure(figsize=(10, 8))
         sample = np.arange(self.calibration_data.shape[-1])
-        sample_mode = np.argmax(self.calibration_data, axis=-1)
+        sample_mode = np.nanargmax(self.calibration_data, axis=-1)
         plt.plot(sample, self.energy_axis, lw=2, label="Fit")
         plt.xlabel("Pixel")
         plt.ylabel("Energy [eV]")
@@ -267,7 +295,7 @@ class Grating1DCalibration(SerializableMixin):
 
         Args:
           run: Input run.
-          load_all: If True, load all data in memory at once. This is faste, but uses more memory.
+          load_all: If True, load all data in memory at once. This is faster, but uses more memory.
                     Disable if not enough memory is available.
         """
         # do it per train to avoid memory overflow
@@ -275,18 +303,27 @@ class Grating1DCalibration(SerializableMixin):
         if load_all:
             out_data = run[self.grating_source, self.grating_key].xarray()
             trainId = out_data.trainId.to_numpy()
-            out_data = out_data.to_numpy() - self.bkg
+            out_data = out_data.to_numpy()
             out_data = out_data[:, self.offset::pulse_period, self.min_pixel:self.max_pixel]
+            if self.grating_mask_key:
+                out_mask = run[self.grating_source, self.grating_mask_key].ndarray() > 0
+                out_mask = out_mask[:, self.offset::pulse_period, self.min_pixel:self.max_pixel]
+                out_data[out_mask] = np.nan
+                out_data = self.apply_mask(out_data)
         else:
             trainId = list()
             out_data = list()
             for i, (tid, data) in enumerate(run.trains()):
-                #print(f"Train {tid}, idx {i}")
                 d = data[self.grating_source][self.grating_key]
-                if self.bkg is not None:
-                    d = d - self.bkg
                 # skip offset and collect pulse data each pulse_period samples only
                 d = d[self.offset::pulse_period, self.min_pixel:self.max_pixel]
+
+                if self.grating_mask_key:
+                    m = data[self.grating_source][self.grating_mask_key] > 0
+                    m = m[self.offset::pulse_period, self.min_pixel:self.max_pixel]
+                    d[m] = np.nan
+                    d = self.apply_mask(d)
+
                 trainId += [tid]
                 out_data += [d]
             out_data = np.stack(out_data, axis=0)
@@ -298,9 +335,7 @@ class Grating1DCalibration(SerializableMixin):
                                         energy=energy
                                         )
                            )
-        out_unc = xr.DataArray(data=self.calibration_unc, dims=('energy'),
-                               coords=dict(energy=energy))
-        return xr.Dataset(data_vars=dict(data=out_data, unc=out_unc))
+        return xr.Dataset(data_vars=dict(data=out_data))
 
 class Grating2DCalibration(SerializableMixin):
     """
