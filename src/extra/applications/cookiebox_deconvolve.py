@@ -469,9 +469,9 @@ class TOFAnalogResponse(SerializableMixin):
                     data += [this_tof_data.sel(trainId=scan.positions_train_ids[k]).mean("trainId").mean("pulseIndex").to_numpy()]
             else:
                 # count photo-electrons by histogramming peak positions
-                for k, e in enumerate(scan.positions):
+                for tof_part in scan.split_by_steps(tof):
                     logging.info("Calling pulse_edges for selected trains ...")
-                    tof_data = tof.select_trains(by_id[scan.positions_train_ids[k]]).pulse_edges(pulse_dim='pulseIndex', threshold=self.count_threshold, parallel=parallel).reset_index()
+                    tof_data = tof_part.pulse_edges(pulse_dim='pulseIndex', threshold=self.count_threshold, parallel=parallel).reset_index()
                     good_trains = np.unique(tof_data.loc[:,'trainId'].to_numpy())
                     idx = tof_data.loc[:, ['trainId', 'pulseIndex']].set_index(['trainId', 'pulseIndex']).index
                     logging.info("Summing good trains ...")
