@@ -465,6 +465,7 @@ class TOFAnalogResponse(SerializableMixin):
         # apply an roi
         if self.roi is not None:
             this_tof_data = this_tof_data.isel(sample=self.roi)
+        return this_tof_data
 
     def setup(self,
               tof: AdqRawChannel,
