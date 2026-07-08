@@ -459,7 +459,7 @@ class TOFAnalogResponse(SerializableMixin):
         idx = tof_data.loc[:, ['trainId', 'pulseIndex']].set_index(['trainId', 'pulseIndex']).index
         logging.info("Summing good trains ...")
         # select only trains with a photo-electron detected ("good trains") to do this faster
-        analog_data = -tof.select_trains(by_id[good_trains]).pulse_data(pulse_dim="pulseIndex", parallel=parallel)
+        analog_data = -tof_part.select_trains(by_id[good_trains]).pulse_data(pulse_dim="pulseIndex", parallel=parallel)
         # select the train-pulses of interest
         this_tof_data = analog_data.sel(pulse=idx).mean("pulse")
         # apply an roi
