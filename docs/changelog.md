@@ -116,7 +116,7 @@ Changed:
 - [CookieboxCalibration][extra.applications.CookieboxCalibration] and
   [TOFAnalogResponse][extra.applications.TOFAnalogResponse] delegate
   parallelization to the `AdqRawChannel` class (!509).
-- [TOFAnalogResponse][extra.applications.TOFAnalogResponse] average analog pulses using thresholding
+- [TOFAnalogResponse][extra.applications.TOFAnalogResponse] averages analog pulses using thresholding
   from `AdqRawChannel` to clean up the data (!511).
 
 ## [2025.1]
