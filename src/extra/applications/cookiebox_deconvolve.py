@@ -437,6 +437,36 @@ class TOFAnalogResponse(SerializableMixin):
         this_h = np.interp(h_axis, xi, this_h)
         return this_h
 
+    def _count_photo_electrons(self, tof_part, parallel):
+        """
+        Given an `AdqRawChannel` object with monochromated data, count photo-electrons
+        and build a response function.
+
+        Args:
+          tof_part: The `AdqRawChannel` object to use for counting the electrons.
+          parallel: Argument used to parallelize `pulse_edges`.
+
+        Returns: The response function aligned to this monochromated peak.
+        """
+        logging.info("Calling pulse_edges for selected trains ...")
+        # get peak positions where photo-electrons were found
+        tof_data = tof_part.pulse_edges(pulse_dim='pulseIndex',
+                                        threshold=self.count_threshold,
+                                        parallel=parallel).reset_index()
+        # use the peaks identified to select trains
+        good_trains = np.unique(tof_data.loc[:,'trainId'].to_numpy())
+        # create an index of good elements
+        idx = tof_data.loc[:, ['trainId', 'pulseIndex']].set_index(['trainId', 'pulseIndex']).index
+        logging.info("Summing good trains ...")
+        # select only trains with a photo-electron detected ("good trains") to do this faster
+        analog_data = -tof_part.select_trains(by_id[good_trains]).pulse_data(pulse_dim="pulseIndex", parallel=parallel)
+        # select the train-pulses of interest
+        this_tof_data = analog_data.sel(pulse=idx).mean("pulse")
+        # apply an roi
+        if self.roi is not None:
+            this_tof_data = this_tof_data.isel(sample=self.roi)
+        return this_tof_data
+
     def setup(self,
               tof: AdqRawChannel,
               scan: Scan=None,
@@ -466,25 +496,23 @@ class TOFAnalogResponse(SerializableMixin):
                 this_tof_data = -tof.pulse_data(pulse_dim="pulseIndex", parallel=parallel).unstack("pulse")
                 logging.info("Averaging over mono settings ...")
                 for k, e in enumerate(scan.positions):
-                    data += [this_tof_data.sel(trainId=scan.positions_train_ids[k]).mean("trainId").mean("pulseIndex").to_numpy()]
+                    d = this_tof_data.sel(trainId=scan.positions_train_ids[k])
+                    if self.roi is not None:
+                        d = d.isel(sample=self.roi)
+                    d = d.mean("trainId").mean("pulseIndex").to_numpy()
+                    data += [d]
             else:
                 # count photo-electrons by histogramming peak positions
-                for k, e in enumerate(scan.positions):
-                    tof_data = tof.select_trains(by_id[scan.positions_train_ids[k]]).pulse_edges(pulse_dim='pulseIndex', threshold=self.count_threshold, parallel=parallel).reset_index()
-                    this_tof_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.amplitude)
-                    this_tof_data = xr.DataArray(this_tof_data, dims=('sample'), coords={'sample': bins[:-1]})
-                if self.roi is not None:
-                    this_tof_data = this_tof_data.isel(sample=self.roi)
-                data += [this_tof_data.to_numpy()]
+                for tof_part in scan.split_by_steps(tof):
+                    this_tof_data = self._count_photo_electrons(tof_part, parallel=parallel)
+                    data += [this_tof_data.to_numpy()]
         else:
             if self.count_threshold is None or self.count_threshold >= 0:
                 this_tof_data = -tof.pulse_data(pulse_dim="pulseIndex", parallel=parallel).mean('pulse')
+                if self.roi is not None:
+                    this_tof_data = this_tof_data.isel(sample=self.roi)
             else:
-                tof_data = tof.pulse_edges(pulse_dim='pulseIndex', threshold=self.count_threshold, parallel=parallel).reset_index()
-                this_tof_data, _ = np.histogram(tof_data.edge, bins=bins, weights=-tof_data.amplitude)
-                this_tof_data = xr.DataArray(this_tof_data, dims=('sample'), coords={'sample': bins[:-1]})
-            if self.roi is not None:
-                this_tof_data = this_tof_data.isel(sample=self.roi)
+                this_tof_data = self._count_photo_electrons(tof, parallel=parallel)
             data += [this_tof_data.to_numpy()]
 
         for d in data:
