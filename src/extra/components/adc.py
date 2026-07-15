@@ -93,11 +93,6 @@ class AdcRawChannel:
         self._inst_sourcedata = self._selection[inst_name]
 
         self._inst_keydata = data[inst_name, 'data.rawData']
-        #print(f"{ctrl_name=!r}")
-        #self._ctrl_data = data.select([
-        #    (ctrl_name, 'sampleFirstBunch.value'), 
-        #    (ctrl_name, 'numberRawSamples.value'),
-        #     ])
 
         self._pulses = self._validate_pulses(data, pulses)
 
