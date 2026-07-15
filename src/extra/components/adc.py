@@ -66,18 +66,20 @@ class AdcRawChannel:
     _bunch_repetition_rate = 1.3e9 / _bunch_repetition_divider
     _fast_adc_clock_rate = 1.3e9 / _fast_adc_divider
     _clock_ratio = _bunch_repetition_divider // _fast_adc_divider
-    _adc_regex = re.compile(r'^.*\/ADC\/[0-9]+:channel_([0-9]+).output$')
+    _adc_regex = re.compile(r'(^.*\/ADC\/[0-9]+):channel_([0-9]+).output$')
 
     def __init__(
         self,
         data: DataCollection,
-        adc_channel: str | int,
+        channel: int,
         *,
+        digitizer: str | None = None,
         pulses: PulsesOrFalse = None,
         first_pulse_offset: int | None  = None,
     ):
 
-        self._adc_channel = str(adc_channel)
+        self._adc_channel = channel
+        self._digitizer = digitizer
         self._first_pulse_offset = first_pulse_offset
 
         # Check that the required instrument and control sources are present
@@ -285,40 +287,76 @@ class AdcRawChannel:
 
         return pulses
 
+    def _match_digitizer(self, source: str) -> tuple[str, str, int] | None:
+        """Match the digitizer name and channel number from the source name.
+
+        Returns:
+            A tuple of (digitizer_name, channel_number) if a match is found,
+            otherwise None.
+        """
+
+        result = self._adc_regex.search(source)
+        if result:
+            inst_name = result.group(0)
+            ctrl_name = result.group(1)
+            channel_number = int(result.group(2))
+            return inst_name, ctrl_name, channel_number
+
+        return None
+
     def _validate_sources(
             self,
             data: DataCollection
     ) -> tuple[str, str]:
-        """Check that instrument and control sources are present and valid.
+        """Check that the instrument and control sources are present and valid.
+
+        Parameters:
+            data (DataCollection): The data collection to validate.
+
+        Raises:
+            SourceNameError: If the instrument or control source is not found.
+            ValueError: If there are too many sources that match the provided
+                channel or if the control source is missing.
         """
 
-        found = set(filter(self._adc_regex.search,
-                           data.instrument_sources))
+        found = set(filter(None, map(self._match_digitizer, data.instrument_sources)))
 
         adc_channel = self._adc_channel
+        digitizer = self._digitizer
 
-        candidates = set()
-        for channel in found:
-            if adc_channel in channel:
-                candidates.add(channel)
+        # This is perhaps a bit too convoluted... The idea is that if the
+        # digitizer option is not passed at instantiation, then we should
+        # match any digitizer that has that channel number.
+        # But if the digitizer option is passed, then we should match both
+        # the control source name and the channel number.
+        candidates = {
+            tup for tup in found
+            if tup[2] == adc_channel and (
+                digitizer is None or tup[1] == digitizer
+            )
+        }
+        #for digitizer, channel in found:
+        #    if adc_channel == channel:
+        #        candidates.add(channel)
 
         len_ = len(candidates)
         if len_ == 0:
             message = (
-                    f"The source you provided, {adc_channel}, could not be "
+                    f"The channel you provided, {adc_channel}, could not be "
                     "be matched to any of the instrument sources in the "
                     "data. See data.instrument_sources."
             )
             raise SourceNameError(custom_message=message)
 
         if len_ > 1:
+            digitizers = {dig for _, dig, _ in candidates}
             raise ValueError(
-                    f"There are too many instrument sources in the data that "
-                    f"match the source you provided, {adc_channel}. Namely "
-                    f"{candidates}. Please be more specific.")
+                    f"There is more than one FastADC digitizer that has a "
+                    f"channel number {adc_channel}. Please pass one of the "
+                    f"following digitizers: {digitizers} via the `digitizer=` "
+                    "paramter."
 
-        inst_name = candidates.pop()
-        ctrl_name = inst_name.split(':')[0]
+        inst_name, ctrl_name, _ = candidates.pop()
 
         if ctrl_name not in data.control_sources:
             message = (
