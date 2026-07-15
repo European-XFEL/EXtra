@@ -365,7 +365,7 @@ class AdcRawChannel:
             offset += num_trains
             chunk.ndarray(roi=train_roi, out=out[this_slice])
 
-        if labelled:
+        if not labelled:
             return out
 
         coords = {
