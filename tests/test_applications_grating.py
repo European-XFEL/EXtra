@@ -100,7 +100,8 @@ def test_reading_grating1d(mock_sqs_grating_calibration_run, tmp_path):
     grating_calibration.setup(mock_sqs_grating_calibration_run[final_photon_spectrometer, "data.adc"],
                               monochromator_scan,
                               pulses=XrayPulses(mock_sqs_grating_calibration_run),
-                              grating_mask=mock_sqs_grating_calibration_run[final_photon_spectrometer, "data.mask"]
+                              grating_mask=mock_sqs_grating_calibration_run[final_photon_spectrometer, "data.mask"],
+                              grating_motor=mock_sqs_grating_calibration_run[final_photon_spectrometer, "data.motor"]
                              )
     d = tmp_path / "data"
     d.mkdir()
@@ -108,7 +109,7 @@ def test_reading_grating1d(mock_sqs_grating_calibration_run, tmp_path):
     grating_calibration.to_file(fpath)
     grating_calibration = Grating1DCalibration.from_file(fpath)
 
-    calibrated = grating_calibration.apply(mock_sqs_grating_calibration_run.select_trains(np.s_[10:20]))
+    calibrated = grating_calibration.apply(mock_sqs_grating_calibration_run.select_trains(np.s_[10:20]), assume_motor=0.0)
 
     assert np.isclose(grating_calibration.e0, 990.0, atol=1e-2, rtol=1e-2)
     assert np.isclose(grating_calibration.slope, 20.0/1000.0, atol=1e-2, rtol=1e-2)
