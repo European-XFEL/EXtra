@@ -191,20 +191,6 @@ class AdcRawChannel:
 
         return None
 
-    @property
-    def _channel_number(self):
-        """Extract the channel number from the instrument source name."""
-
-        # Could also do AdcRawChannel._adc_regex or define a @classmethod
-        # if this is deemed unclear
-        result = self._adc_regex.search(self._inst_keydata.source)
-
-        if result:
-            return int(result.group(1))
-
-        raise ValueError("Couldn't extract the channel number from "
-                         "the source name.")
-
     def _get_sample_first_bunch(self):
         """Check if an explicit offset was passed otherwise extract it."""
 
