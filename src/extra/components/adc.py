@@ -106,7 +106,7 @@ class AdcRawChannel:
                 data[ctrl_name, 'sampleFirstBunch.value'].as_single_value()
             value = self._ctrl_sourcedata['sampleFirstBunch.value'] \
                     .as_single_value()
-        self._number_of_samples = self._ctrl_data['numberRAwSample.value'] \
+        self._number_of_samples = self._ctrl_sourcedata['numberRawSamples.value'] \
             .as_single_value()
 
     @property
