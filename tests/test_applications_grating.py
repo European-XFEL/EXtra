@@ -37,6 +37,7 @@ def test_grating_1d_fit():
     cal.calibration_data = data
     cal.calibration_mask = np.ones(data.shape[0], dtype=bool)
     cal.calibration_unc = np.zeros_like(data)
+    cal.calibration_motor = np.zeros((data.shape[0]))
 
     cal.fit()
 
