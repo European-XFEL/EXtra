@@ -8,7 +8,7 @@ class GotthardIIWithData(DeviceBase):
     instrument_keys = [
         ("adc", "f4", (12,1000)),
         ("mask", "i4", (12,1000)),
-        ("motor", "i4", (12,1000)),
+        ("motor", "f4", ()),
     ]
 
     def __init__(self, *args, data, mask, motor, **kwargs):
