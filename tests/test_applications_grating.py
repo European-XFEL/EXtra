@@ -64,6 +64,8 @@ def test_grating_2d_fit():
 
     cal.fit()
 
+    cal.plot()
+
     assert np.isclose(cal.e0, true_offset, atol=1e-2, rtol=1e-2)
     assert np.isclose(cal.slope, true_slope, atol=1e-2, rtol=1e-2)
 
