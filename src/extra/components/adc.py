@@ -82,12 +82,22 @@ class AdcRawChannel:
 
         # Check that the required instrument and control sources are present
         # and have the correct keys.
+        # extra.data will raise KeyError if a key is not found
         inst_name, ctrl_name = self._validate_sources(data)
-        # extra.data will raise KeyError if key is not found
+        self._selection = data.select({
+            inst_name: {'data.rawData'},
+            ctrl_name: {'sampleFirstBunch.value', 'numberRawSamples.value'},
+        }, require_all=True)
+
+        self._ctrl_sourcedata = self._selection[ctrl_name]
+        self._inst_sourcedata = self._selection[inst_name]
+
         self._inst_keydata = data[inst_name, 'data.rawData']
-        self._ctrl_data = data.select(
-            ctrl_name, ['sampleFirstBunch.value', 'numberRawSamples.value']
-        )
+        #print(f"{ctrl_name=!r}")
+        #self._ctrl_data = data.select([
+        #    (ctrl_name, 'sampleFirstBunch.value'), 
+        #    (ctrl_name, 'numberRawSamples.value'),
+        #     ])
 
         self._pulses = self._validate_pulses(data, pulses)
 
