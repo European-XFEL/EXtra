@@ -76,6 +76,8 @@ Added:
 - [Grating1DCalibration][extra.applications.Grating1DCalibration] can use the calibration mask,
   removes the background subtraction (leaving it to the calibration DB),
   and use robust tools to improve the fit quality (!510).
+- [Grating1DCalibration][extra.applications.Grating1DCalibration] includes the motor position
+  in the calibration fit (!515).
 
 Fixed:
 
