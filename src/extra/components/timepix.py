@@ -10,6 +10,7 @@ import pandas as pd
 
 from extra_data import by_id
 from extra_data.read_machinery import split_trains
+from .utils import _select_subcomponent_trains
 
 
 # Pulse indices used internally for virtual leading and trailing pulses.
@@ -117,22 +118,18 @@ class Timepix3:
         This method accepts the same type of arguments as
         [DataCollection.select_trains][extra_data.DataCollection.select_trains].
         """
-        res = copy(self)
-
-        if self._raw_control_src is not None:
-            res._raw_control_src = self._raw_control_src.select_trains(trains)
-        if self._raw_instrument_src is not None:
-            res._raw_instrument_src = self._raw_instrument_src.select_trains(trains)
+        res = _select_subcomponent_trains(self, [
+            '_raw_control_src',
+            '_raw_instrument_src',
+            '_centroids_control_src',
+            '_centroids_instrument_src',
+            '_pulses',
+        ], trains)
         if self._raw_instrument_dc is not None:
             raw_train_ids = res.raw_size_key.drop_empty_trains().train_ids
             res._raw_instrument_dc = self._raw_instrument_dc.select_trains(
                 by_id[raw_train_ids]
             )
-        if self._centroids_control_src is not None:
-            res._centroids_control_src = self._centroids_control_src.select_trains(trains)
-        if self._centroids_instrument_src is not None:
-            res._centroids_instrument_src = self._centroids_instrument_src.select_trains(trains)
-        res._pulses = self._pulses.select_trains(trains)
 
         return res
 

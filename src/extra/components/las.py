@@ -288,7 +288,7 @@ class OpticalLaserDelay:
             '_stage_src', '_stage_delay_key',
             '_bam_src', '_bam_delay_key',
             '_pulses'
-        ])
+        ], trains)
 
     def _trigger_delays(self, labelled=True, by_pulse=False,
                         pulse_dim='pulseId'):
