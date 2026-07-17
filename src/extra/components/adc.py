@@ -36,7 +36,7 @@ class AdcRawChannel:
 
 
     Warning:
-        Instantiation will fail if the pulse pattern changed during teh run.
+        Instantiation will fail if the pulse pattern changed during the run.
 
     Examples:
         >>> from extra.components import AdcRawChannel
@@ -45,16 +45,16 @@ class AdcRawChannel:
         >>> adc2_8 = AdcRawChannel(run, 8)
         Traceback (most recent call last):
             ...
-        ValueError: More than one instrument source matched 
-            match the source you provided, 8. Namely {
-            'LA3_LAS_PPL/ADC/2:channel_8.output',
-        'LA3_LAS_PPL/ADC/3:channel_8.output'}. Please be more specific.
+        ValueError: There is more than one FastADC digitizer that has a
+            channel number 8. Please pass one of the following digitizers:
+            {'LA3_LAS_PPL/ADC/3', 'LA3_LAS_PPL/ADC/2'} via the `digitizer=`
+            parameter.
 
-        This failed because this run has two different FastADCs, both with a
-        channel 8. To instantiate either one, we need to provide more of the
-        name to uniquely identify the digitizer channel we're interested in.
+        This failed because this run has two different FastADCs with a
+        channel 8. To instantiate either one, we need to pass the name of the
+        digitizer in addition to the channel number.
 
-        >>> adc2_8 = AdcRawChannel(run, '2:channel_8')
+        >>> adc2_8 = AdcRawChannel(run, 8, digitizer='LA3_LAS_PPL/ADC/2')
 
 
     """
@@ -234,8 +234,8 @@ class AdcRawChannel:
 
     def _validate_pulses(
             self,
-            data: KeyData,
-            pulses: PulsePattern | Literal[False] | None,
+            data: DataCollection,
+            pulses: PulsesOrFalse,
     ) -> PulsePattern | None:
         """Offloads pulses validation logic from the __init__ method.
 
@@ -264,7 +264,7 @@ class AdcRawChannel:
                     'please explicitly disable it with pulses=False.'
                 ) from None
 
-        # Make sure that the pulse pattern if constant
+        # Make sure that the pulse pattern is constant
         if not pulses.is_constant_pattern():
             raise RuntimeError(
                 "The pulse pattern is not constant. Please split the "
@@ -275,6 +275,9 @@ class AdcRawChannel:
 
     def _match_digitizer(self, source: str) -> tuple[str, str, int] | None:
         """Match the digitizer name and channel number from the source name.
+
+        Parameters:
+            source (str): The source name to match against the regex.
 
         Returns:
             A tuple of (digitizer_name, channel_number) if a match is found,
@@ -340,7 +343,8 @@ class AdcRawChannel:
                     f"There is more than one FastADC digitizer that has a "
                     f"channel number {adc_channel}. Please pass one of the "
                     f"following digitizers: {digitizers} via the `digitizer=` "
-                    "paramter."
+                    "parameter."
+            )
 
         inst_name, ctrl_name, _ = candidates.pop()
 
@@ -361,29 +365,36 @@ class AdcRawChannel:
         auto_trim_trace: bool = False,
         # num_cores_to_use: None | int = None,
     ) -> np.ndarray | DataArray:
-        """Return train data"""
+        """Return train data.and
+        
+        
+        """
+
+        # Maybe we want to make one take precedence over the other?
+        if auto_trim_trace and train_roi is not None:
+            raise ValueError(
+                "The `train_roi` parameter cannot be used with "
+                "`auto_trim_trace=True`. Please specify one or the other."
+            )
 
         # Validate the roi parameter
         # if not isinstance(train_roi, slice):
         #    raise ValueError("The roi parameter must be a slice object.")
 
+        roi = slice(None)
         # Trim the trace to avoid carrying useless information around
-        if auto_trim_trace and train_roi is None:
-            start = train_roi.start
-            if train_roi.stop is not None:
-                stop = min(train_roi.stop, self.trace_length)
-            else:
-                stop = self.trace_length
-            train_roi = slice(start, stop)
+        if auto_trim_trace:
+            roi = slice(self._sample_first_bunch, self.trace_length)
 
-        if train_roi is None:
-            train_roi = slice(None)
+        if train_roi is not None:
+            roi = train_roi
 
-        temp = roi_shape(self._inst_keydata.entry_shape, (train_roi,))
+        temp = roi_shape(self._inst_keydata.entry_shape, (roi,))
         shape = (self._inst_keydata.shape[0],) \
             + temp
         out = np.empty(shape)
 
+        # NOTE: see note in .pulse_data() about chunking.
         offset = 0
         for chunk in self._inst_keydata.split_trains(trains_per_part=200):
             # In AdqRawChannel, there is a BEWARE about uint64, what is this
@@ -392,7 +403,7 @@ class AdcRawChannel:
             num_trains = chunk.shape[0]
             this_slice = slice(offset, offset + num_trains)
             offset += num_trains
-            chunk.ndarray(roi=train_roi, out=out[this_slice])
+            chunk.ndarray(roi=roi, out=out[this_slice])
 
         if not labelled:
             return out
@@ -424,8 +435,9 @@ class AdcRawChannel:
         # The quotient gives the number of full pulses supported by a trace
         # of this length. The remainder can be used for diagnosing 
         # quotient, remainder = divmod(pulse_trace, self.samples_per_pulse)
-        quotient = (self.trace_length - self._sample_first_bunch)
-        quotient //= self.samples_per_pulse
+        quotient = (
+            self.trace_length - self._sample_first_bunch
+        ) // self.samples_per_pulse
 
         pulse_trace_len = quotient * self.samples_per_pulse
         pulse_trace_roi = slice(
@@ -434,6 +446,11 @@ class AdcRawChannel:
         )
         out = np.empty((keydata.shape[0], pulse_trace_len))
 
+        # NOTE: This logic is imported from the AdqRawChannel implementation.
+        # I Kept it here for consistency but it is not really needed for 
+        # FastADCs because the trace legnths are much shorter due to clock
+        # ratio of 12. Not sure chunking is needed for I/O performance or
+        # for memory management but it doesn't hurt.
         offset = 0
         for chunk in keydata.split_trains(trains_per_part=200):
             # In AdqRawChannel, there is a BEWARE about uint64, what is this
@@ -454,7 +471,7 @@ class AdcRawChannel:
         pulse_ids = pulse_ids[:quotient]
 
         coords = {
-            'trainId': self._inst_keydata.train_id_coordinates(),
+            'trainId': keydata.train_ids,
             'pulseId': pulse_ids,
             'sample': np.arange(self.samples_per_pulse)
         }
