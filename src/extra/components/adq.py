@@ -12,6 +12,7 @@ from ..utils.misc import StepTimer
 from .pulses import XrayPulses, PulsePattern
 from .utils import _isinstance_no_import
 from ._adq import _reshape_flat_pulses
+from .digitizers import _pull_to_baselevel
 
 
 class AdqRawChannel:
@@ -268,19 +269,6 @@ class AdqRawChannel:
                         out=out[..., sel], casting='safe')
 
     @staticmethod
-    def _pull_to_baselevel(signal, out, baseline, baselevel=None):
-        """Pull baseline to a certain level."""
-
-        if isinstance(baseline, slice):
-            baseline = signal[..., baseline]
-
-        correction = baseline.mean(axis=signal.ndim - 1)
-        if baselevel is not None:
-            correction -= baselevel
-
-        np.subtract(signal, correction[..., None], out=out, casting='unsafe')
-
-    @staticmethod
     def _minimize_ragged_array(array):
         """Minimize ragged axis in an array."""
 
@@ -362,7 +350,7 @@ class AdqRawChannel:
                                       self._baseline, self._baselevel)
 
         elif self._baselevel is not None:
-            self._pull_to_baselevel(data, out, self._baseline, self._baselevel)
+            _pull_to_baselevel(data, out, self._baseline, self._baselevel)
 
         return out
 
@@ -779,7 +767,7 @@ class AdqRawChannel:
             data = np.asarray(data)
 
         out = np.zeros_like(data, dtype=np.float32)
-        self._pull_to_baselevel(data, out, baseline, baselevel)
+        _pull_to_baselevel(data, out, baseline, baselevel)
 
         return out
 
