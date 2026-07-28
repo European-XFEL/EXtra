@@ -63,13 +63,13 @@ def _instrument_to_sase(instrument):
         return 3
 
 
-def _select_subcomponent_trains(src, keys, dst=None):
+def _select_subcomponent_trains(src, keys, trains, dst=None):
     if dst is None:
         from copy import copy
         dst = copy(src)
 
     for key in keys:
-        prop = getattr(self, key)
+        prop = getattr(src, key)
 
         if prop is not None:
             setattr(dst, key, prop.select_trains(trains))

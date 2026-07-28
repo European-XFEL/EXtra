@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 from extra.data import KeyData, PropertyNameError
+from extra_data.read_machinery import split_trains
 from .utils import _isinstance_no_import
 
 
@@ -282,6 +283,11 @@ class DelayLineDetector:
         new_self._pulses = self._pulses.select_trains(trains)
 
         return new_self
+
+    def split_trains(self, parts=None, trains_per_part=None):
+        n_trains = len(self._instrument_src.train_ids)
+        for sl in split_trains(n_trains, parts=parts, trains_per_part=trains_per_part):
+            yield self.select_trains(sl)
 
     def pulses(self, **kwargs):
         """Get pulse object based on internal triggers.

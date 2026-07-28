@@ -76,6 +76,12 @@ Added:
 - [Grating1DCalibration][extra.applications.Grating1DCalibration] can use the calibration mask,
   removes the background subtraction (leaving it to the calibration DB),
   and use robust tools to improve the fit quality (!510).
+- [Timepix3.select_trains][extra.components.Timepix3.select_trains] and
+  [Timepix3.split_trains][extra.components.Timepix3.split_trains]
+- [XGM.select_trains][extra.components.XGM.select_trains] and
+  [XGM.split_trains][extra.components.XGM.split_trains]
+- [DelayLineDetector.split_trains][extra.components.DelayLineDetector.split_trains]
+- `split_trains()` methods for the pulse pattern components.
 
 Fixed:
 
