@@ -100,6 +100,8 @@ Fixed:
   new `extra.applications.base.SerializableMixin` interface (!506).
 - [CookieboxCalibration][extra.applications.CookieboxCalibration] transmission
   corrected based on pulse energy (!512).
+- [AdqRawChannel.pulse_data][extra.components.AdqRawChannel.pulse_data] can handle
+  selections containing no data (!517).
 
 Changed:
 
