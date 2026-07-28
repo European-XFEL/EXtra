@@ -1145,7 +1145,10 @@ class TimeserverPulses(PulsePattern):
 
         if not counts:
             # Immediately return an empty series if there is no data.
-            return pd.Series([], dtype=np.int32)
+            index = pd.MultiIndex.from_arrays([
+                np.zeros(0, dtype=np.uint64), np.zeros(0, dtype=np.int64)
+            ], names=['trainId', 'pulseIndex'])
+            return pd.Series([], index=index, dtype=np.int32)
 
         index = pd.MultiIndex.from_arrays([
             np.repeat(self._key.train_id_coordinates(), counts),
@@ -1899,13 +1902,19 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
             fel_by_train.append(np.isin(pids, fel_pids))
             ppl_by_train.append(np.isin(pids, ppl_pids))
 
+        def concat_1d(arrays, dtype):  # Allows an empty list of arrays
+            if len(arrays) == 0:
+                return np.zeros(0, dtype=dtype)
+            return np.concatenate(arrays)
+
         index = pd.MultiIndex.from_arrays([
             np.repeat(train_ids, counts),
-            np.concatenate([np.arange(count) for count in counts]),
-            np.concatenate(fel_by_train), np.concatenate(ppl_by_train)
+            concat_1d([np.arange(count) for count in counts], np.int64),
+            concat_1d(fel_by_train, np.bool_),
+            concat_1d(ppl_by_train, np.bool_),
         ], names=['trainId', 'pulseIndex', 'fel', 'ppl'])
 
-        return pd.Series(data=np.concatenate(pids_by_train),
+        return pd.Series(data=concat_1d(pids_by_train, np.int32),
                          index=index, dtype=np.int32)
 
     def _get_pulse_mask(self, reduced=False):

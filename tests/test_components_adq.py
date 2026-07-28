@@ -235,6 +235,11 @@ def test_pulse_data(mock_sqs_remi_run, parallel):
         # Test whether all pulses after the trace are nan.
         assert np.isnan(max_by_pulse[21:50]).all()
 
+    # No trains in data
+    empty_data = ch.select_trains(np.s_[:0]).pulse_data()
+    assert empty_data.dims == ('pulse', 'sample')
+    assert empty_data.shape[0] == 0
+
     # Use pulse information with not all trains available.
     ch = AdqRawChannel(
         mock_sqs_remi_run, '3B', digitizer='SQS_DIGITIZER_UTC2',

@@ -364,6 +364,11 @@ def test_pulse_ids(mock_spb_aux_run, source):
     # Test unlabelled.
     np.testing.assert_equal(pulses.pulse_ids(labelled=False), pids)
 
+    # Test with no trains selected
+    pids_empty = pulses.select_trains(np.s_[:0]).pulse_ids()
+    assert len(pids_empty) == 0
+    assert pids_empty.index.names == ['trainId', 'pulseIndex']
+
     # Test deprecated method.
     with pytest.warns():
         assert pulses.get_pulse_ids().equals(pulses.pulse_ids())
@@ -669,6 +674,11 @@ def test_pump_probe_basic(mock_spb_aux_run, source):
     ppl = pids.index.get_level_values('ppl')
     assert not ppl[0]
     assert ppl[1:51].all()
+
+    # Pulse IDs with no data
+    pids_empty = pulses.select_trains(np.s_[:0]).pulse_ids()
+    assert len(pids_empty) == 0
+    assert pids_empty.index.names == ['trainId', 'pulseIndex', 'fel', 'ppl']
 
     # Pulse mask.
     assert pulses.pulse_mask(labelled=False)[0, 1000:1306:6].all()
