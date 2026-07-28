@@ -676,7 +676,9 @@ def test_pump_probe_basic(mock_spb_aux_run, source):
     assert ppl[1:51].all()
 
     # Pulse IDs with no data
-    pids_empty = pulses.select_trains(np.s_[:0]).pulse_ids()
+    pids_empty = PumpProbePulses(
+        run.select_trains(np.s_[:0]), source=source, pulse_offset=1
+    ).pulse_ids()
     assert len(pids_empty) == 0
     assert pids_empty.index.names == ['trainId', 'pulseIndex', 'fel', 'ppl']
 
