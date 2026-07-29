@@ -78,8 +78,8 @@ def _select_pulse_ids(pulse_ids, pulse_sel, train_sel):
 
             def slice_pulses(pulse_ids):
                 return pulse_ids[(pulse_ids > start) &
-                                    (pulse_ids < stop) &
-                                    (pulse_ids % step == start % step)]
+                                 (pulse_ids < stop) &
+                                 (pulse_ids % step == start % step)]
 
         elif isinstance(pulse_sel.value, (list, np.ndarray)):
             new_pulse_ids = pulse_sel.value
@@ -538,7 +538,7 @@ class PulsePattern:
 
         rates = self.pulse_repetition_rates().dropna()
         if rates.empty:
-            print(f' Repetition rate: no pulses')
+            print(' Repetition rate: no pulses')
         elif len(rates.unique()) == 1:
             print(f' Repetition rate: {_format_rate(rates.iloc[0])}')
         else:
@@ -557,7 +557,7 @@ class PulsePattern:
 
         durations = self.train_durations().dropna()
         if durations.empty:
-            print(f' Train duration: no pulses')
+            print(' Train duration: no pulses')
         elif len(durations.unique()) == 1:
             print(f' Train duration: {_format_duration(durations.iloc[0])}')
         else:
@@ -638,7 +638,8 @@ class PulsePattern:
 
         The possible options for pulse selection are:
 
-        - By pulse index using `extra_data.by_index` with a slice, list or ndarray:
+        - By pulse index using `extra_data.by_index` with a slice, list
+          or ndarray:
             ```
             by_index[5:]  # All pulses after the first five.
             by_index[[0, 1, 2]]  # Explicitly the first three pulses.
@@ -776,7 +777,7 @@ class PulsePattern:
 
         index = pd.MultiIndex.from_arrays(
             [np.repeat(act_train_ids, pulse_counts),
-            np.concatenate([np.arange(num) for num in pulse_counts])],
+             np.concatenate([np.arange(num) for num in pulse_counts])],
             names=['trainId', 'pulseIndex'])
 
         new_pulse_ids = pd.Series(np.concatenate(new_pulse_ids), index=index)
@@ -928,7 +929,6 @@ class PulsePattern:
         else:
             return True
 
-
     def is_interleaved_with(self, other: PulsePattern) -> Optional[bool]:
         """Check whether pulses are interleaved with other pattern.
 
@@ -1033,8 +1033,7 @@ class PulsePattern:
         # Minimum of difference between pulses in a train by train.
         act_periods = (self.pulse_ids(copy=False)
             .groupby(level=0).diff()  # Periods within each train.
-            .groupby(level=0).min()  # Minimal period in each train.
-        )
+            .groupby(level=0).min())  # Minimal period in each train.
 
         # Fill any NaN value with a fill value.
         single_pulse_periods = act_periods.isna()
@@ -1586,10 +1585,8 @@ class TimeserverPulses(PulsePattern):
                 if (pids := np.flatnonzero(mask)).size == 0:
                     continue
 
-                ax.vlines(pids,
-                        i * (b/2) + i * d,
-                        i * (b/2) + i * d + b,
-                        color=f'C{i}', lw=1.0, alpha=count/total)
+                ax.vlines(pids, i * (b/2) + i * d, i * (b/2) + i * d + b,
+                          color=f'C{i}', lw=1.0, alpha=count/total)
 
                 min_pids[i] = min(min_pids[i], pids.min())
                 max_pids[i] = max(max_pids[i], pids.max())
@@ -2185,7 +2182,6 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
 
         train_ids = self._get_train_ids()
         pulse_ids = self.pulse_ids(copy=False)
-        pids_by_train = pulse_ids.groupby(level=0)
 
         if reduced:
             pid_offset = pulse_ids.min()
@@ -2427,7 +2423,7 @@ class ManualPulses(PulsePattern):
         """
 
         if repetition_rate is not None:
-            pulse_period = int(round(1.3e9 / 288 / repetition_rate , 0))
+            pulse_period = int(round(1.3e9 / 288 / repetition_rate, 0))
         elif pulse_period is None:
             raise ValueError('must specify either repetition_rate or '
                              'pulse_period')
