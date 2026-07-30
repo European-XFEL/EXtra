@@ -7,19 +7,20 @@ also resolves every or at least some of the underlying pulses a train is compose
 ![European XFEL timing structure](../images/trains_pulses.png){ width="75%" align=center }
 
 The `PulsePattern` family of components allows access to pulse patterns recorded
-by various sources. For example, in order to obtain the FEL pulses for a particular
-SASE:
+by various sources. For example, in order to obtain the FEL pulses recorded by the timeserver
+for a particular SASE:
 
 ```python
 p = XrayPulses(run)
 p.pulse_ids()
 ```
 
-There are different types available depending on the source that should be used for
-the pulse pattern information, but they all offer the same interface as
-[`PulsePattern`][extra.components.pulses.PulsePattern] for access. Furthermore,
-many other components like [`AdqRawChannel`][extra.components.AdqRawChannel] can be
-given a [`PulsePattern`][extra.components.pulses.PulsePattern] component to customize
+There are different pulse pattern types that use different information to build a pulse
+pattern or interpret it in a different way listed further below. They all offer the same
+basic interface of [`PulsePattern`][extra.components.pulses.PulsePattern] for access with
+additional methods somtimes provided for specialized operations. Furthermore, many other
+components like [`AdqRawChannel`][extra.components.AdqRawChannel] can receive a
+[`PulsePattern`][extra.components.pulses.PulsePattern] component to customize
 how pulse-resolved data is interpreted.
 
 The primary source of pulse pattern information is the bunch pattern table from
@@ -68,23 +69,23 @@ for a single SASE, instrument or device is called *pulse index*. If desired, the
 
 ::: extra.components.pulses.TimeserverPulses
 	options:
-		inherited_members: no
+		inherited_members: false
 
 ::: extra.components.XrayPulses
 	options:
-		inherited_members: no
+		inherited_members: false
 
 ::: extra.components.OpticalLaserPulses
 	options:
-		inherited_members: no
+		inherited_members: false
 
 ::: extra.components.PumpProbePulses
 	options:
-		inherited_members: no
+		inherited_members: false
 
 ::: extra.components.MachinePulses
 	options:
-		inherited_members: no
+		inherited_members: false
 
 ::: extra.components.ManualPulses
     options:
