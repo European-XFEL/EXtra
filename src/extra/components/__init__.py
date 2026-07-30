@@ -1,7 +1,7 @@
 
 from .scantool import Scantool  # noqa
 from .pulses import XrayPulses, OpticalLaserPulses, MachinePulses, \
-    PumpProbePulses, ManualPulses, DldPulses  # noqa
+    PumpProbePulses, ManualPulses, DldPulses, plot_pulse_grid  # noqa
 from .scan import Scan  # noqa
 from .xgm import XGM  # noqa
 from .dld import DelayLineDetector  # noqa

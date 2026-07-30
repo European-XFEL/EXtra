@@ -11,7 +11,7 @@ from euxfel_bunch_pattern import PPL_BITS, DESTINATION_TLD, DESTINATION_T5D, \
     PHOTON_LINE_DEFLECTION
 from extra.data import RunDirectory, SourceData, KeyData, by_index, by_id
 from extra.components import XrayPulses, OpticalLaserPulses, MachinePulses, \
-    PumpProbePulses, ManualPulses, DldPulses
+    PumpProbePulses, ManualPulses, DldPulses, plot_pulse_grid
 
 from .mockdata import assert_equal_sourcedata, assert_equal_keydata
 
@@ -943,3 +943,19 @@ def test_union_pulses():
     np.testing.assert_array_equal(
         p.pulse_ids(),
         2 * [100, 102, 104] + [100, 102, 103, 104, 105] + 2 * [100, 103, 105])
+
+
+def test_plot_pulse_grid():
+    p = ManualPulses.from_constant_pattern([1, 2, 3], 5, pulse_period=1)
+
+    for kind in ['main', 'marker', 'border']:
+        plot_pulse_grid(**{f'{kind}_pulses': p, f'{kind}_label': kind})
+        plot_pulse_grid(**{f'{kind}_pulses': p.pulse_ids()})
+
+        with pytest.raises(TypeError):
+            plot_pulse_grid(**{f'{kind}_pulses': p.pulse_ids(labelled=False)})
+
+    plot_pulse_grid(ManualPulses.from_constant_pulses([], []))
+
+    with pytest.raises(ValueError):
+        plot_pulse_grid()
