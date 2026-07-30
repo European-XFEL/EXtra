@@ -199,6 +199,18 @@ def test_is_interleaved(mock_spb_aux_run, source):
 
 
 @pytest.mark.parametrize('source', **pattern_sources)
+def test_inspect(mock_spb_aux_run, source):
+    pulses = XrayPulses(mock_spb_aux_run, source=source)
+
+    import matplotlib.pyplot as plt
+
+    # Smoke tests
+    pulses.inspect()
+    pulses.inspect(figsize=(5, 3))
+    pulses.inspect(ax=plt.subplots()[1])
+
+
+@pytest.mark.parametrize('source', **pattern_sources)
 def test_plot_xray_patterns(mock_spb_aux_run, source):
     pulses = XrayPulses(mock_spb_aux_run, source=source)
 
@@ -603,6 +615,9 @@ def test_dld_pulses(capsys):
     assert pulse_ids.index.names == ['trainId', 'pulseIndex', 'fel', 'ppl']
     np.testing.assert_equal(pulse_ids, triggers['pulse'])
 
+    # Smoke-test inspect.
+    pulses.inspect()
+
     counts = pulses.pulse_counts()
     np.testing.assert_equal(counts, np.array([10]))
 
@@ -662,6 +677,9 @@ def test_pump_probe_basic(mock_spb_aux_run, source):
 
     pulses = PumpProbePulses(run.select_trains(np.s_[10:]),
                              source=source, pulse_offset=1)
+
+    # Smoke testing inspect().
+    pulses.inspect()
 
     # Pulse IDs.
     pids = pulses.pulse_ids()

@@ -569,6 +569,27 @@ class PulsePattern:
         else:
             print(' Variable pattern')
 
+    def inspect(self, **plot_kwargs):
+        """Visualize pulse pattern in a grid.
+
+        Plots the pulse pattern this object describes for this data in
+        a grid, with each grid point representing a possible pulse
+        location at 4.5 MHz.
+
+        Args:
+            **edge_kw (Any): Any further keyword arguments are passed to
+                [plot_pulse_grid()][extra.components.pulses.plot_pulse_grid].
+
+        Returns:
+            ax (matplotlib.axes.Axes): Axes object the plot was
+                generated in.
+        """
+
+        ax = plot_pulse_grid(self, **plot_kwargs)
+        ax.set_title(f'{repr(self)}', fontsize='medium')
+
+        return self
+
     def select_trains(self, trains):
         """Select a subset of trains.
 
@@ -2198,6 +2219,43 @@ class PumpProbePulses(XrayPulses, OpticalLaserPulses):
 
         return flags
 
+    def inspect(self, **plot_kwargs):
+        """Visualize pulse pattern in a grid.
+
+        Plots the pulse pattern this object describes for this data in
+        a grid, with each grid point representing a possible pulse
+        location at 4.5 MHz. FEL pulses are represented by each cell's
+        background color, while PPL pulses are denoted by each cell's
+        border.
+
+        Args:
+            **edge_kw (Any): Any further keyword arguments are passed to
+                [plot_pulse_grid()][extra.components.pulses.plot_pulse_grid].
+
+        Returns:
+            ax (matplotlib.axes.Axes): Axes object the plot was
+                generated in.
+        """
+
+        pids = self.pulse_ids(copy=False)
+
+        plot_kwargs = dict(main_label='FEL', border_label='PPL') | plot_kwargs
+
+        try:
+            plot_kwargs['main_pulses'] = pids.xs(True, level='fel')
+        except KeyError:
+            pass
+
+        try:
+            plot_kwargs['border_pulses'] = pids.xs(True, level='ppl')
+        except KeyError:
+            pass
+
+        ax = plot_pulse_grid(**plot_kwargs)
+        ax.set_title(f'{repr(self)}', fontsize='small', pad=30)
+
+        return ax
+
     def pulse_mask(self, labelled=True, field=None):
         """Get boolean pulse mask.
 
@@ -2479,6 +2537,46 @@ class DldPulses(PulsePattern):
                 // (self._clock_ratio or 196) + (self._first_pulse_id or 0)
 
         return pd.Series(data=pulse_ids, index=index, dtype=np.int32)
+
+    def inspect(self, **plot_kwargs):
+        """Visualize pulse pattern in a grid.
+
+        Plots the pulse pattern this object describes for this data in
+        a grid, with each grid point representing a possible pulse
+        location at 4.5 MHz. FEL pulses are represented by each cell's
+        background color, while PPL pulses are denoted by each cell's
+        border.
+
+        Args:
+            **edge_kw (Any): Any further keyword arguments are passed to
+                [plot_pulse_grid()][extra.components.pulses.plot_pulse_grid].
+
+        Returns:
+            ax (matplotlib.axes.Axes): Axes object the plot was
+                generated in.
+        """
+
+        pids = self.pulse_ids(copy=False)
+
+        if 'fel' not in pids.index.names:
+            return super().plot_grid()
+
+        plot_kwargs = dict(main_label='FEL', border_label='PPL') | plot_kwargs
+
+        try:
+            plot_kwargs['main_pulses'] = pids.xs(True, level='fel')
+        except KeyError:
+            pass
+
+        try:
+            plot_kwargs['border_pulses'] = pids.xs(True, level='ppl')
+        except KeyError:
+            pass
+
+        ax = plot_pulse_grid(**plot_kwargs)
+        ax.set_title(f'{repr(self)}', fontsize='small', pad=30)
+
+        return ax
 
     def triggers(self, labelled=True):
         """Get trigger information.
