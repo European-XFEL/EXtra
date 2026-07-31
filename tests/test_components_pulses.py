@@ -11,7 +11,7 @@ from euxfel_bunch_pattern import PPL_BITS, DESTINATION_TLD, DESTINATION_T5D, \
     PHOTON_LINE_DEFLECTION
 from extra.data import RunDirectory, SourceData, KeyData, by_index, by_id
 from extra.components import XrayPulses, OpticalLaserPulses, MachinePulses, \
-    PumpProbePulses, ManualPulses, DldPulses
+    PumpProbePulses, ManualPulses, DldPulses, plot_pulse_grid
 
 from .mockdata import assert_equal_sourcedata, assert_equal_keydata
 
@@ -196,6 +196,18 @@ def test_is_interleaved(mock_spb_aux_run, source):
     assert not pulses.is_interleaved_with(
         XrayPulses(mock_spb_aux_run, source=source, sase=2))
     assert not pulses.is_sa1_interleaved_with_sa3()
+
+
+@pytest.mark.parametrize('source', **pattern_sources)
+def test_inspect(mock_spb_aux_run, source):
+    pulses = XrayPulses(mock_spb_aux_run, source=source)
+
+    import matplotlib.pyplot as plt
+
+    # Smoke tests
+    pulses.inspect()
+    pulses.inspect(figsize=(5, 3))
+    pulses.inspect(ax=plt.subplots()[1])
 
 
 @pytest.mark.parametrize('source', **pattern_sources)
@@ -603,6 +615,9 @@ def test_dld_pulses(capsys):
     assert pulse_ids.index.names == ['trainId', 'pulseIndex', 'fel', 'ppl']
     np.testing.assert_equal(pulse_ids, triggers['pulse'])
 
+    # Smoke-test inspect.
+    pulses.inspect()
+
     counts = pulses.pulse_counts()
     np.testing.assert_equal(counts, np.array([10]))
 
@@ -662,6 +677,9 @@ def test_pump_probe_basic(mock_spb_aux_run, source):
 
     pulses = PumpProbePulses(run.select_trains(np.s_[10:]),
                              source=source, pulse_offset=1)
+
+    # Smoke testing inspect().
+    pulses.inspect()
 
     # Pulse IDs.
     pids = pulses.pulse_ids()
@@ -943,3 +961,19 @@ def test_union_pulses():
     np.testing.assert_array_equal(
         p.pulse_ids(),
         2 * [100, 102, 104] + [100, 102, 103, 104, 105] + 2 * [100, 103, 105])
+
+
+def test_plot_pulse_grid():
+    p = ManualPulses.from_constant_pattern([1, 2, 3], 5, pulse_period=1)
+
+    for kind in ['main', 'marker', 'border']:
+        plot_pulse_grid(**{f'{kind}_pulses': p, f'{kind}_label': kind})
+        plot_pulse_grid(**{f'{kind}_pulses': p.pulse_ids()})
+
+        with pytest.raises(TypeError):
+            plot_pulse_grid(**{f'{kind}_pulses': p.pulse_ids(labelled=False)})
+
+    plot_pulse_grid(ManualPulses.from_constant_pulses([], []))
+
+    with pytest.raises(ValueError):
+        plot_pulse_grid()
