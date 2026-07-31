@@ -1137,7 +1137,10 @@ class AdqRawChannel:
         pulse_ids = pulses.pulse_ids(labelled=False)
 
         # Prepare output buffer shape.
-        out_shape = (len(pulse_ids), pulse_layout['length'].max())
+        if len(pulse_ids):
+            out_shape = (len(pulse_ids), pulse_layout['length'].max())
+        else:
+            out_shape = (0, 0)
 
         if parallel is not False:
             # Prepare parallelization.
