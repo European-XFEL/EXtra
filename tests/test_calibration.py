@@ -19,11 +19,11 @@ from extra.calibration import (
     SingleConstant,
     DetectorData,
     DetectorModule,
-    SourceNameFormatter,
     get_client,
     lpd_dark_consts_with_fallback,
     AutoConditionsError
 )
+from extra.calibration.detector import SourceNameFormatter
 
 # Most of these tests use saved HTTP responses by default (with pytest-recording).
 # To ignore these & use exflcalproxy, run pytest with the --disable-recording flag.
