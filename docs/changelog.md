@@ -5,48 +5,51 @@
 
 # Changelog
 
-## [Unreleased]
+## [2026.1]
 
-!!! note
-    All of the changes here are deployed to our current environment, even though
-    a release hasn't been made for them yet. If you want to have these updates
-    in a personal environment you'll need to install the package from git.
+Added in components:
 
-    ```bash title="Installation command"
-    pip install git+https://github.com/European-XFEL/EXtra.git
-    ```
-
-Added:
-
-- [PumpProbePattern.pumped_pulses_ratios][extra.components.PumpProbePattern.pumped_pulses_ratios]
+- [PumpProbePulses.pumped_pulses_ratios][extra.components.PumpProbePulses.pumped_pulses_ratios]
   determining the ratio of pumped pulses per train (!317).
 - [PulsePattern.inspect][extra.components.pulses.PulsePattern.inspect] to visualize any pulse patterns (!504).
 - [TimeserverPulses.plot_xray_patterns][extra.components.pulses.TimeserverPulses.plot_xray_patterns]
   to visualize the X-ray pulse patterns present in timeserver data (!499).
-- [DelayLineDetector.edges][extra.components.DelayLineDetector.edges] can include the edge amplitudes
-  in its result if requested (!505).
-- [AdqRawChannel.train_data][extra.components.AdqRawChannel.train_data] and
-  [AdqRawChannel.pulse_data][extra.components.AdqRawChannel.pulse_data] are now
-  reading data in parallel by default (!497).
-- [AdqRawChannel.pulse_data][extra.components.AdqRawChannel.pulse_data] accepts
-  a dtype parameter for the output array.
-- [AdqRawChannel.split_trains][extra.components.AdqRawChannel.split_trains]
-- [AGIPDConditions][extra.calibration.AGIPDConditions] now recognizes current source constant types
-- [CalibrationData.from_data][extra.calibration.CalibrationData.from_data] method to
-  find the constants suitable for a given `DataCollection`
-- [DetectorData][extra.calibration.DetectorData] to obtain detector metadata and
-  module mapping from the Calibration Cataloge (!408).
 - [PulsePattern.select_pulses][extra.components.pulses.PulsePattern.select_pulses],
   [PulsePattern.deselect_pulses][extra.components.pulses.PulsePattern.deselect_pulses] and
   [PulsePattern.union][extra.components.pulses.PulsePattern.union] to modify pulse patterns (!417).
 - [ManualPulses][extra.components.ManualPulses] to generate custom pulse pattern with
   the same interface as existing
   [PulsePattern][extra.components.pulses.PulsePattern]-based components (!417).
-- [SpectrometerCalibration][extra.gui.jupyter.SpectrometerCalibration] to
-  provide a Jupyter widget for energy calibration of 2D X-ray spectrum data
-  (!363).
-- Pre-built packages will be available on PyPI for Python 3.10 - 3.13 from the
-  next release, rather than only Python 3.10 (!377).
+- `split_trains()` methods for the pulse pattern components.
+- [PulsePattern.info()][extra.components.pulses.PulsePattern.info] to give a brief summary of a pulse pattern.
+- [DelayLineDetector.edges][extra.components.DelayLineDetector.edges] can include the edge amplitudes
+  in its result if requested (!505).
+- [DelayLineDetector.split_trains][extra.components.DelayLineDetector.split_trains]
+- [AdqRawChannel.train_data][extra.components.AdqRawChannel.train_data] and
+  [AdqRawChannel.pulse_data][extra.components.AdqRawChannel.pulse_data] are now
+  reading data in parallel by default (!497).
+- [AdqRawChannel.pulse_data][extra.components.AdqRawChannel.pulse_data] accepts
+  a dtype parameter for the output array.
+- [AdqRawChannel.split_trains][extra.components.AdqRawChannel.split_trains]
+- [AdqRawChannel][extra.components.AdqRawChannel.pulses] now has a public `.pulses` property.
+  It is either a `PulsePattern` object or None if the class is instantiated with the `pulses=False` option. (!411)
+- [Timepix3.select_trains][extra.components.Timepix3.select_trains] and
+  [Timepix3.split_trains][extra.components.Timepix3.split_trains]
+- [XGM.select_trains][extra.components.XGM.select_trains] and
+  [XGM.split_trains][extra.components.XGM.split_trains]
+- [Scan.group_data()][extra.components.Scan.group_data] method to make an xarray
+  or pandas GroupBy object based on scan steps (!379).
+- [Scan.from_motor_targets()][extra.components.Scan.from_motor_targets] method
+  to make a scan object based on the target positions of the motor, excluding
+  points where the actual position is too far from the target.
+
+Added in calibration:
+
+- [AGIPDConditions][extra.calibration.AGIPDConditions] now recognizes current source constant types
+- [CalibrationData.from_data][extra.calibration.CalibrationData.from_data] method to
+  find the constants suitable for a given `DataCollection`
+- [DetectorData][extra.calibration.DetectorData] to obtain detector metadata and
+  module mapping from the Calibration Catalog (!408).
 - [CalibrationData.from_condition][extra.calibration.CalibrationData.from_condition]
   supports `DataCollection` objects to reference a point in time
 - [CalibrationData.from_correction][extra.calibration.CalibrationData.from_correction]
@@ -57,19 +60,18 @@ Added:
 - [lpd_dark_consts_with_fallback][extra.calibration.lpd_dark_consts_with_fallback]
   function to find LPD dark constants with a fallback to constants recorded with
   all memory cells.
-- [Scan.group_data()][extra.components.Scan.group_data] method to make an xarray
-  or pandas GroupBy object based on scan steps (!379).
-- [Scan.from_motor_targets()][extra.components.Scan.from_motor_targets] method
-  to make a scan object based on the target positions of the motor, excluding
-  points where the actual position is too far from the target.
+
+Added (other):
+
 - [fit_gaussian()][extra.utils.fit_gaussian] has a new `nans_on_failure`
   argument to allow returning NaN arrays when fitting fails (!385).
 - [fit_gaussian()][extra.utils.fit_gaussian] now supports
   [DataArray][xarray.DataArray] inputs (!385).
-- [AdqRawChannel][extra.components.AdqRawChannel.pulses] now has a public `.pulses` property. It is either a `PulsePattern` object or None if the class is instantiated with the `pulses=False` option. (!411)
 - Added support for plotting wrapped Julia arrays from PythonCall.jl to
   [imshow2()][extra.utils.imshow2].
-- [PulsePattern.info()][extra.components.pulses.PulsePattern.info] to give a brief
+- [SpectrometerCalibration][extra.gui.jupyter.SpectrometerCalibration] to
+  provide a Jupyter widget for energy calibration of 2D X-ray spectrum data
+  (!363).
 - [TOFAnalogResponse][extra.applications.TOFAnalogResponse] can deconvolve the Auger-Meitner
   and photon line if the flag `deconvolve` is set to True.
   summary about a pulse pattern (!435).
@@ -77,12 +79,6 @@ Added:
 - [Grating1DCalibration][extra.applications.Grating1DCalibration] can use the calibration mask,
   removes the background subtraction (leaving it to the calibration DB),
   and use robust tools to improve the fit quality (!510).
-- [Timepix3.select_trains][extra.components.Timepix3.select_trains] and
-  [Timepix3.split_trains][extra.components.Timepix3.split_trains]
-- [XGM.select_trains][extra.components.XGM.select_trains] and
-  [XGM.split_trains][extra.components.XGM.split_trains]
-- [DelayLineDetector.split_trains][extra.components.DelayLineDetector.split_trains]
-- `split_trains()` methods for the pulse pattern components.
 
 Fixed:
 
@@ -131,6 +127,7 @@ Changed:
   from `AdqRawChannel` to clean up the data (!511).
 - [CookieboxCalibration][extra.applications.CookieboxCalibration] use
   processes to parallelize over eTOFs (!513).
+- Pre-built packages are now available on PyPI for Python 3.10 - 3.13 (!377).
 
 ## [2025.1]
 
@@ -370,7 +367,8 @@ Added:
   [EXtra-geom](detector-geometry.md), and [karabo-bridge-py](karabo-bridge.md).
 
 
-[Unreleased]: https://github.com/European-XFEL/EXtra/compare/2025.1...master
+[Unreleased]: https://github.com/European-XFEL/EXtra/compare/2026.1...master
+[2026.1]: https://github.com/European-XFEL/EXtra/releases/tag/2026.1
 [2025.1]: https://github.com/European-XFEL/EXtra/releases/tag/2025.1
 [2024.2]: https://github.com/European-XFEL/EXtra/releases/tag/2024.2
 [2024.1.2]: https://github.com/European-XFEL/EXtra/releases/tag/2024.1.2

@@ -621,6 +621,11 @@ class PulsePattern:
         return res
 
     def split_trains(self, parts=None, trains_per_part=None):
+        """Split this data into subsets along the train dimension.
+
+        This method accepts the same type of arguments as
+        [DataCollection.split_trains][extra_data.DataCollection.split_trains].
+        """
         # Get train IDs from an EXtra-data object if possible, so it will split
         # the same way as other things from the same data.
         if self._source is not None:
