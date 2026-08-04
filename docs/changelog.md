@@ -60,6 +60,9 @@ Added in calibration:
 - [lpd_dark_consts_with_fallback][extra.calibration.lpd_dark_consts_with_fallback]
   function to find LPD dark constants with a fallback to constants recorded with
   all memory cells.
+- New bits in [BadPixels][extra.calibration.BadPixels] flags: ``EXPERT_CHOICE``
+  for manually created masks, and ``USER1`` & ``USER2`` to allow for experiment
+  specific meanings.
 
 Added (other):
 
