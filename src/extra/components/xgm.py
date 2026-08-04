@@ -242,6 +242,11 @@ class XGM:
         return res
 
     def split_trains(self, parts=None, trains_per_part=None):
+        """Split this data into subsets along the train dimension.
+
+        This method accepts the same type of arguments as
+        [DataCollection.split_trains][extra_data.DataCollection.split_trains].
+        """
         n_trains = len(self._control_source.train_ids)
         for sl in split_trains(n_trains, parts=parts, trains_per_part=trains_per_part):
             yield self.select_trains(sl)

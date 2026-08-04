@@ -52,8 +52,6 @@ __all__ = [
     "JUNGFRAUConditions",
     "ShimadzuHPVX2Conditions",
     "DetectorData",
-    "DetectorModule"
-    "AutoConditionsError"
+    "DetectorModule",
+    "AutoConditionsError",
 ]
-
-

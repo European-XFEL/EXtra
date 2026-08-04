@@ -275,6 +275,11 @@ class DelayLineDetector:
                 if not key.endswith('.timestamp')}
 
     def select_trains(self, trains):
+        """Select a subset of trains in this data.
+
+        This method accepts the same type of arguments as
+        [DataCollection.select_trains][extra_data.DataCollection.select_trains].
+        """
         new_self = copy(self)
 
         if self._control_src is not None:
@@ -285,6 +290,11 @@ class DelayLineDetector:
         return new_self
 
     def split_trains(self, parts=None, trains_per_part=None):
+        """Split this data into subsets along the train dimension.
+
+        This method accepts the same type of arguments as
+        [DataCollection.split_trains][extra_data.DataCollection.split_trains].
+        """
         n_trains = len(self._instrument_src.train_ids)
         for sl in split_trains(n_trains, parts=parts, trains_per_part=trains_per_part):
             yield self.select_trains(sl)
