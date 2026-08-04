@@ -34,6 +34,9 @@ class BadPixels(IntFlag):
     NON_LIN_RESPONSE_REGION  = 1 << 20
     WRONG_GAIN_VALUE         = 1 << 21
     NON_STANDARD_SIZE        = 1 << 22
+    EXPERT_CHOICE            = 1 << 23
+    USER1                    = 1 << 30
+    USER2                    = 1 << 31
 
 
 __all__ = [
