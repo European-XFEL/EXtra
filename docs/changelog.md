@@ -5,6 +5,10 @@
 
 # Changelog
 
+## [2026.1.1]
+
+- Fixed some imports from `extra.calibration` which were broken by refactoring (!523).
+
 ## [2026.1]
 
 Added in components:
@@ -370,7 +374,8 @@ Added:
   [EXtra-geom](detector-geometry.md), and [karabo-bridge-py](karabo-bridge.md).
 
 
-[Unreleased]: https://github.com/European-XFEL/EXtra/compare/2026.1...master
+[Unreleased]: https://github.com/European-XFEL/EXtra/compare/2026.1.1...master
+[2026.1.1]: https://github.com/European-XFEL/EXtra/releases/tag/2026.1.1
 [2026.1]: https://github.com/European-XFEL/EXtra/releases/tag/2026.1
 [2025.1]: https://github.com/European-XFEL/EXtra/releases/tag/2025.1
 [2024.2]: https://github.com/European-XFEL/EXtra/releases/tag/2024.2
