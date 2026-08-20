@@ -13,7 +13,7 @@ matplotlib==3.10.9
 msgpack==1.2.1
 msgpack-numpy==0.4.8
 mypy-extensions==1.1.0
-numpy<=2.4.6
+numpy<=2.5.2
 packaging==26.3
 pandas==3.0.3
 Pillow==12.2.0
