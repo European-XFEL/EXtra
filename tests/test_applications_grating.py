@@ -37,8 +37,13 @@ def test_grating_1d_fit():
     cal.calibration_data = data
     cal.calibration_mask = np.ones(data.shape[0], dtype=bool)
     cal.calibration_unc = np.zeros_like(data)
+    cal.calibration_motor = np.zeros((data.shape[0]))
 
     cal.fit()
+
+    import matplotlib as mpl
+    mpl.use('Agg')
+    cal.plot()
 
     assert np.isclose(cal.e0, true_offset, atol=1e-2, rtol=1e-2)
     assert np.isclose(cal.slope, true_slope, atol=1e-2, rtol=1e-2)
@@ -62,6 +67,10 @@ def test_grating_2d_fit():
     cal.calibration_motor = np.zeros((data.shape[0]))
 
     cal.fit()
+
+    import matplotlib as mpl
+    mpl.use('Agg')
+    cal.plot()
 
     assert np.isclose(cal.e0, true_offset, atol=1e-2, rtol=1e-2)
     assert np.isclose(cal.slope, true_slope, atol=1e-2, rtol=1e-2)
@@ -91,11 +100,22 @@ def test_reading_grating1d(mock_sqs_grating_calibration_run, tmp_path):
     final_photon_spectrometer = "SQS_EXP_GH2-2/CORR/RECEIVER:daqOutput"
 
     monochromator_scan = Scan(mock_sqs_grating_calibration_run[monochromator_energy, "actualEnergy"], resolution=1)
+
+    # fit without motor
     grating_calibration = Grating1DCalibration(min_pixel=0, max_pixel=1000)
     grating_calibration.setup(mock_sqs_grating_calibration_run[final_photon_spectrometer, "data.adc"],
                               monochromator_scan,
                               pulses=XrayPulses(mock_sqs_grating_calibration_run),
-                              grating_mask=mock_sqs_grating_calibration_run[final_photon_spectrometer, "data.mask"]
+                              grating_mask=mock_sqs_grating_calibration_run[final_photon_spectrometer, "data.mask"],
+                             )
+
+    # use motor information
+    grating_calibration = Grating1DCalibration(min_pixel=0, max_pixel=1000)
+    grating_calibration.setup(mock_sqs_grating_calibration_run[final_photon_spectrometer, "data.adc"],
+                              monochromator_scan,
+                              pulses=XrayPulses(mock_sqs_grating_calibration_run),
+                              grating_mask=mock_sqs_grating_calibration_run[final_photon_spectrometer, "data.mask"],
+                              grating_motor=mock_sqs_grating_calibration_run[final_photon_spectrometer, "data.motor"]
                              )
     d = tmp_path / "data"
     d.mkdir()
@@ -103,9 +123,15 @@ def test_reading_grating1d(mock_sqs_grating_calibration_run, tmp_path):
     grating_calibration.to_file(fpath)
     grating_calibration = Grating1DCalibration.from_file(fpath)
 
-    calibrated = grating_calibration.apply(mock_sqs_grating_calibration_run.select_trains(np.s_[10:20]))
+    # with motor
+    calibrated = grating_calibration.apply(mock_sqs_grating_calibration_run.select_trains(np.s_[10:20]), assume_motor=0.0)
 
     assert np.isclose(grating_calibration.e0, 990.0, atol=1e-2, rtol=1e-2)
     assert np.isclose(grating_calibration.slope, 20.0/1000.0, atol=1e-2, rtol=1e-2)
 
+    # without motor
+    calibrated = grating_calibration.apply(mock_sqs_grating_calibration_run.select_trains(np.s_[10:20]))
+
+    assert np.isclose(grating_calibration.e0, 990.0, atol=1e-2, rtol=1e-2)
+    assert np.isclose(grating_calibration.slope, 20.0/1000.0, atol=1e-2, rtol=1e-2)
 
