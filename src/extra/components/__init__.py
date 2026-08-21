@@ -8,6 +8,7 @@ from .dld import DelayLineDetector  # noqa
 from .timepix import Timepix3  # noqa
 from .las import OpticalLaserDelay  # noqa
 from .adq import AdqRawChannel  # noqa
+from .adc import AdcRawChannel
 from .detector_motors import AGIPD1MQuadrantMotors, JF4MHalfMotors  # noqa
 
 # Also expose extra_data's components for multi-module detectors here
