@@ -1,6 +1,6 @@
 from typing import Tuple, Union, Optional, List
 from functools import partial
-from scipy.linalg import convolution_matrix, pinvh
+from scipy.linalg import convolution_matrix, pinvh, LinAlgError
 from scipy.signal import find_peaks
 import numpy as np
 import xarray as xr
