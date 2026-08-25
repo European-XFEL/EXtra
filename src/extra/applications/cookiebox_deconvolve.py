@@ -1,6 +1,6 @@
 from typing import Tuple, Union, Optional, List
 from functools import partial
-from scipy.linalg import convolution_matrix
+from scipy.linalg import convolution_matrix, pinvh
 from scipy.signal import find_peaks
 import numpy as np
 import xarray as xr
@@ -79,7 +79,7 @@ def nn_deconvolution(data: np.ndarray, h: np.ndarray, n_iter: int=4000, n_shift:
     I = np.eye(N)
 
     rho = 0.1
-    G = np.linalg.pinv(A.T @ A + rho*I)
+    G = pinvh(A.T @ A + rho*I)
     x = np.copy(b)
     z = np.copy(b)
     u = np.copy(b)
@@ -195,7 +195,7 @@ def tv_deconvolution(data: np.ndarray, h: np.ndarray, Lambda: float=1e-5, n_iter
     # Its proximal operator is tabulated (see Ref. [2], sec. 6.1.1):
     # $\text{prox}_{\tau G} (v) = (I + \tau A^T A)^{-1} (v + \tau A^T b)
     I = np.eye(N)
-    GG = np.linalg.pinv(I + tau*(A.T @ A))
+    GG = pinvh(I + tau*(A.T @ A))
     ATb = np.ascontiguousarray((A.T @ b))
     if nonneg:
         prox_G = lambda v: np.clip(GG @ (v + tau*ATb), a_min=0, a_max=None)
@@ -520,7 +520,11 @@ class TOFAnalogResponse(SerializableMixin):
             this_h /= np.amax(this_h)
             if self.deconvolve:
                 this_t, p = self.estimate_truth(this_h)
-                h_dec = tv_deconvolution(this_h, np.roll(this_t, -p), Lambda=1, nonneg=False)
+                try:
+                    h_dec = tv_deconvolution(this_h, np.roll(this_t, -p), Lambda=1, nonneg=False)
+                except LinAlgError:
+                    logging.warning("Skipping data with singular response function.")
+                    continue
                 h_dec /= np.amax(h_dec)
                 h += [h_dec]
             else:
