@@ -17,7 +17,7 @@
     ```
 
 Added:
-
+- [XCCA](applications/xcca.md) Toolbox for the computation of X-ray cross-correlation analysis related quantities.
 Fixed:
 - [TOFAnalogResponse][extra.applications.TOFAnalogResponse] has improved numerical stability (!538).
 
