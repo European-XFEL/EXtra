@@ -19,6 +19,7 @@
 Added:
 
 Fixed:
+- [TOFAnalogResponse][extra.applications.TOFAnalogResponse] has improved numerical stability (!538).
 
 Changed:
 

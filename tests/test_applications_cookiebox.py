@@ -535,6 +535,10 @@ def test_deconvolve(mock_sqs_etof_calibration_run, tmp_path):
     tof_response_count = TOFAnalogResponse(roi=slice(75, None), n_samples=150, count_threshold=-20)
     tof_response_count.setup(tof_channel[0], scan)
 
+    # setup TOFAnalogResponse using deconvolution
+    tof_response_count = TOFAnalogResponse(roi=slice(75, None), n_samples=150, deconvolve=True)
+    tof_response_count.setup(tof_channel[0], scan)
+
     # setup TOFAnalogResponse without Scan
     tof_response_noscan = TOFAnalogResponse(roi=slice(75, None), n_samples=150)
     tof_response_noscan.setup(tof_channel[0])
