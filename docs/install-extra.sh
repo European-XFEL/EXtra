@@ -1,7 +1,7 @@
 ###########################################################################################
 #                                                                                         #
 # Note: if this script is updated make sure to update the copy in xsoft's home directory! #
-# Repo link: https://github.com/European-XFEL/EXtra/edit/master/docs/install-extra.sh     #
+# Repo link: https://github.com/European-XFEL/EXtra/blob/master/docs/install-extra.sh     #
 #                                                                                         #
 ###########################################################################################
 
