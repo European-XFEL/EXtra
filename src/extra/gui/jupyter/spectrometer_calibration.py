@@ -240,7 +240,8 @@ class SpectrometerCalibration:
             run (int): run number
             source (tuple[str, str]): data source
             image_data (np.ndarray): 2D array
-            use_cache (bool): try loading data from cache if True (default)
+            use_cache (bool): try loading data from cache if True (default).
+              If set to False, data will neither be loaded from nor written to cache.
         """
         self.image_data = image_data
         if image_data is None:
@@ -359,9 +360,11 @@ class SpectrometerCalibration:
         data = kd.xarray().squeeze()
         mean_data = data.mean(dim="trainId")
 
-        # cache data for faster loading
-        cache_path.mkdir(mode=666, exist_ok=True, parents=True)
-        np.save(cache_path / fname, mean_data)
+        # cache data for faster loading unless use_cache=False
+        if use_cache:
+            cache_path.mkdir(mode=666, exist_ok=True, parents=True)
+            np.save(cache_path / fname, mean_data)
+
         return mean_data
 
     # Widget Initialization Methods
