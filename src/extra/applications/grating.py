@@ -261,7 +261,7 @@ class Grating1DCalibration(SerializableMixin):
             if self.grating_motor_source != "":
                 data_motor = np.stack(list(p.map(fn_motor, energy_ids)), axis=0)
             else:
-                data_motor = np.zeros((data.shape[0]))
+                data_motor = np.zeros(data.shape[0])
         # skip offset and collect pulse data each pulse_period samples only
         self.calibration_data = data[:, self.offset::self.pulse_period, self.min_pixel:self.max_pixel]
         # apply mask
