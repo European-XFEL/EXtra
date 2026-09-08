@@ -293,10 +293,6 @@ class Grating1DCalibration(SerializableMixin):
         sample = np.arange(self.calibration_data.shape[-1])
         sample_mode = np.nanargmax(self.calibration_data, axis=-1)
         motor_position = self.calibration_motor
-        #sample_mode = np.sum(self.calibration_data*sample, axis=-1)/np.sum(self.calibration_data, axis=-1)
-        #res = linregress(sample_mode[mask], self.calibration_energies[mask])
-        #self.slope = res.slope
-        #self.e0 = res.intercept
         x = np.stack((sample_mode[mask], motor_position[mask]), axis=1)
         y = self.calibration_energies[mask]
         model = RANSACRegressor(estimator=LinearRegression(), random_state=42)
