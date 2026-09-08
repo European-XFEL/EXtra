@@ -8,11 +8,13 @@ class GotthardIIWithData(DeviceBase):
     instrument_keys = [
         ("adc", "f4", (12,1000)),
         ("mask", "i4", (12,1000)),
+        ("motor", "f4", ()),
     ]
 
-    def __init__(self, *args, data, mask, **kwargs):
+    def __init__(self, *args, data, mask, motor, **kwargs):
         self.data = data
         self.mask = mask
+        self.motor = motor
         super().__init__(*args, **kwargs)
 
     def write_instrument(self, f):
@@ -22,6 +24,8 @@ class GotthardIIWithData(DeviceBase):
         ds[:] = self.data
         ds = f[f'INSTRUMENT/{self.device_id}:daqOutput/data/mask']
         ds[:] = self.mask
+        ds = f[f'INSTRUMENT/{self.device_id}:daqOutput/data/motor']
+        ds[:] = self.motor
 
 class CameraWithData(DeviceBase):
     output_channels = ('daqOutput/data',)
