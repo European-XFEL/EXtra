@@ -332,7 +332,7 @@ class Grating1DCalibration(SerializableMixin):
 
         Args:
           run: Input run.
-          load_all: If True, load all data in memory at once. This is faste, but uses more memory.
+          load_all: If True, load all data in memory at once. This is faster, but uses more memory.
                     Disable if not enough memory is available.
           assume_motor: Assume the grating motor is fixed at this position.
         """
