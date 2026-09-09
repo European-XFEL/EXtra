@@ -156,13 +156,19 @@ class StepTimer:
         pass
 
 
-def _isinstance_no_import(obj, mod: str, cls: str):
+def _isinstance_no_import(obj, mod: str, cls: str, allow_fail=False):
     """Check if isinstance(obj, mod.cls) without loading mod"""
     m = sys.modules.get(mod)
     if m is None:
         return False
 
-    return isinstance(obj, getattr(m, cls))
+    try:
+        return isinstance(obj, getattr(m, cls))
+    except AttributeError:
+        if allow_fail:
+            return False
+        else:
+            raise
 
 
 def imshow2(image, *args, colorbar=True, lognorm=False, ax=None, **kwargs):
@@ -192,7 +198,8 @@ def imshow2(image, *args, colorbar=True, lognorm=False, ax=None, **kwargs):
     import matplotlib.pyplot as plt
     is_dataarray = _isinstance_no_import(image, "xarray", "DataArray")
 
-    if _isinstance_no_import(image, "juliacall", "ArrayValue"):
+    if (_isinstance_no_import(image, "juliacall", "ArrayValue", allow_fail=True) or \
+        _isinstance_no_import(image, "juliacall", "JlArray")):
         image = np.asarray(image)
 
     # Disable interpolation by default
