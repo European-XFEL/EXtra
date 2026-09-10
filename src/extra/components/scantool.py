@@ -66,15 +66,17 @@ class Scantool:
         self._scan_type = values["scanEnv.scanType.value"]
         self._motors = [x.decode() for x in get_first_value(active_motors_keys) if len(x) > 0]
 
-        # The acquisition time vector gives the length of each step, unless the
-        # acquisition mode is some kind of 'continuous' in which case only the
-        # first element is used:
-        # - https://git.xfel.eu/karaboDevices/Karabacon/-/blob/bd22d4a69bf7a401856f49920789ef42fda14ad2/src/karabacon/devices/nodes.py#L264
-        # - https://git.xfel.eu/karaboDevices/Karabacon/-/blob/bd22d4a69bf7a401856f49920789ef42fda14ad2/src/karabacon/enums.py#L67
+        # Newer versions store a vector with the acquisition time of each step
+        # (padded with the last element for missing steps). For cscan/tscan
+        # only the first element is used, as the duration of the whole scan:
+        # - https://git.xfel.eu/karaboDevices3/Karabacon/-/blob/f015ea57e2d613f5dfdd2d34355a8f5ffaa10ef5/src/karabacon/Karabacon.py#L636
+        # - https://git.xfel.eu/karaboDevices3/Karabacon/-/blob/f015ea57e2d613f5dfdd2d34355a8f5ffaa10ef5/src/karabacon/Karabacon.py#L972
+        # - https://git.xfel.eu/karaboDevices3/Karabacon/-/blob/f015ea57e2d613f5dfdd2d34355a8f5ffaa10ef5/src/karabacon/Karabacon.py#L1070
         self._acquisition_time = get_first_value(acquisition_time_keys)
         if _isinstance_no_import(self._acquisition_time, "numpy", "ndarray"):
-            if "Continuous" in values["deviceEnv.acquisitionMode.value"]:
-                self._acquisition_time = self._acquisition_time[0]
+            acq_times = self._acquisition_time
+            if self._scan_type in ("cscan", "tscan") or (acq_times == acq_times[0]).all():
+                self._acquisition_time = acq_times[0]
 
         # The deviceEnv.activeMotors property stores the motor aliases,
         # but we can try to get the actual device names from the
@@ -122,8 +124,12 @@ class Scantool:
         return self._scan_type
 
     @property
-    def acquisition_time(self) -> float:
-        """Acquisition time in seconds."""
+    def acquisition_time(self):
+        """Acquisition time in seconds.
+
+        Usually a single number, unless the acquisition time was set per-step in
+        which case it will be an array.
+        """
         return self._acquisition_time
 
     @property
