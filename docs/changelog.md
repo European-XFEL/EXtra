@@ -21,7 +21,11 @@ Added:
 Fixed:
 - [TOFAnalogResponse][extra.applications.TOFAnalogResponse] has improved numerical stability (!538).
 
-Changed:
+Fixed:
+- Fixed support for future PythonCall.jl versions in
+  [imshow2()][extra.utils.imshow2] (!547).
+- Fixed reading of the acquisition time for newer Karabacon versions in the
+  [Scantool](extra.components.Scantool) component (!547).
 
 ## [2026.1.1]
 
