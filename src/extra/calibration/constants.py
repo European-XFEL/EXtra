@@ -95,7 +95,15 @@ class SingleConstant:
         return f[self.dataset]["data"]
 
     def ndarray(self, caldb_root=None):
-        """Load the constant data as a Numpy array"""
+        """Load the constant data as a Numpy array
+
+        Args:
+            caldb_root (Path or str, optional): Root directory of the
+                calibration files, overriding the default.
+
+        Returns:
+            numpy.ndarray: The constant data.
+        """
         return self.dataset_obj(caldb_root)[:]
 
     def dimension_names(self, caldb_root=None):
@@ -778,7 +786,16 @@ class CalibrationData(Mapping):
         return self.detector.identifier
 
     def require_calibrations(self, calibrations) -> "CalibrationData":
-        """Drop any modules missing the specified constant types"""
+        """Drop any modules missing the specified constant types
+
+        Args:
+            calibrations (Iterable[str]): Constant types that modules
+                must provide.
+
+        Returns:
+            CalibrationData: A new object with only the remaining
+                modules.
+        """
         mods = set(self.aggregator_names)
         for cal_type in calibrations:
             if cal_type in self:
@@ -815,7 +832,15 @@ class CalibrationData(Mapping):
             constant_groups, self.detector._replace_modules(module_details))
 
     def select_calibrations(self, calibrations) -> "CalibrationData":
-        """Return a new `CalibrationData` object with only the selected constant types"""
+        """Return a new `CalibrationData` object with only the selected constant types
+
+        Args:
+            calibrations (Iterable[str]): Constant types to keep.
+
+        Returns:
+            CalibrationData: A new object with only the selected
+                constant types.
+        """
         const_groups = {c: self.constant_groups[c] for c in calibrations}
         return type(self)(const_groups, self.detector)
 
