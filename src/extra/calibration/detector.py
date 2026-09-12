@@ -213,7 +213,17 @@ class DetectorData(Mapping):
 
     @staticmethod
     def list_by_instrument(instrument, client=None):
-        """List all detectors by instrument."""
+        """List all detectors by instrument.
+
+        Args:
+            instrument (str): Instrument identifier to list detectors
+                for.
+            client (CalCatAPIClient, optional): Client to use. The global
+                client is used by default.
+
+        Returns:
+            list[str]: Identifiers of the detectors for this instrument.
+        """
 
         client = client or get_client()
         instrument_id = client.instrument_by_identifier(instrument)['id']

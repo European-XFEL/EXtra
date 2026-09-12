@@ -42,7 +42,25 @@ def setup_client(
         oauth_timeout=12,
         ssl_verify=True,
 ):
-    """Configure the global CalCat API client."""
+    """Configure the global CalCat API client.
+
+    Args:
+        base_url (str): Base URL of the CalCat instance.
+        client_id (str or None): OAuth2 client ID. If None, the client
+            connects without authentication.
+        client_secret (str): OAuth2 client secret.
+        user_email (str): Email address of the user to identify requests
+            with.
+        scope (str): OAuth2 scope to request, empty by default.
+        session_token (optional): An existing session token to reuse, if
+            any.
+        oauth_retries (int): Maximum number of retries for OAuth2
+            requests, 3 by default.
+        oauth_timeout (int): Timeout in seconds for OAuth2 requests,
+            12 by default.
+        ssl_verify (bool): Whether to verify SSL certificates, True by
+            default.
+    """
     global global_client
     if client_id is not None:
         oauth_client = Oauth2ClientBackend(
@@ -79,7 +97,12 @@ def setup_client(
 
 
 def set_default_caldb_root(p: Path):
-    """Override the default root directory for constants in CalCat"""
+    """Override the default root directory for constants in CalCat
+
+    Args:
+        p (Path): Path to use as the default root directory for
+            constants.
+    """
     global _default_caldb_root
     _default_caldb_root = p
 
@@ -144,7 +167,21 @@ class CalCatAPIClient:
 
     @classmethod
     def format_time(cls, dt):
-        """Parse different ways to specify time to CalCat."""
+        """Parse different ways to specify time to CalCat.
+
+        Args:
+            dt (str or datetime or date or DataCollection or None): The
+                time to format. A DataCollection is represented by the
+                timestamp of its first train. None becomes an empty
+                string, which searches usually interpret as "now".
+
+        Returns:
+            str: The timestamp as an ISO 8601 string in UTC.
+
+        Raises:
+            TypeError: If the timestamp is not a string, datetime or
+                date object.
+        """
 
         if isinstance(dt, datetime):
             return dt.astimezone(timezone.utc).isoformat()
@@ -163,7 +200,20 @@ class CalCatAPIClient:
         return dt
 
     def request(self, method, relative_url, params=None, headers=None, **kwargs):
-        """Make a GET request, return the HTTP response object"""
+        """Make a GET request, return the HTTP response object
+
+        Args:
+            method (str): HTTP method to use.
+            relative_url (str): URL relative to the base API URL.
+            params (dict, optional): Query parameters for the request.
+            headers (dict, optional): Extra headers to merge into the
+                default headers.
+            **kwargs: Extra keyword arguments passed on to
+                ``requests.Session.request``.
+
+        Returns:
+            requests.Response: The HTTP response object.
+        """
         # Base URL may include e.g. '/api/'. This is a prefix for all URLs;
         # even if they look like an absolute path.
         url = urljoin(self.base_api_url, relative_url.lstrip("/"))
@@ -194,7 +244,21 @@ class CalCatAPIClient:
             return json.loads(resp.content.decode("utf-8"))
 
     def get(self, relative_url, params=None, **kwargs):
-        """Make a GET request, return response content from JSON"""
+        """Make a GET request, return response content from JSON
+
+        Args:
+            relative_url (str): URL relative to the base API URL.
+            params (dict, optional): Query parameters for the request.
+            **kwargs: Extra keyword arguments passed on to
+                :meth:`request`.
+
+        Returns:
+            dict or list or None: The response content parsed from JSON;
+                None for an empty response.
+
+        Raises:
+            CalCatAPIError: If the API returns an error response.
+        """
         resp = self.request('GET', relative_url, params, **kwargs)
         return self._parse_response(resp)
 
@@ -206,7 +270,23 @@ class CalCatAPIClient:
     )
 
     def get_paged(self, relative_url, params=None, **kwargs):
-        """Make a GET request, return response content & pagination info"""
+        """Make a GET request, return response content & pagination info
+
+        Args:
+            relative_url (str): URL relative to the base API URL.
+            params (dict, optional): Query parameters for the request.
+            **kwargs: Extra keyword arguments passed on to
+                :meth:`request`.
+
+        Returns:
+            tuple: ``(content, pagination_info)`` — the parsed response
+                content (dict or list or None) and a dict of pagination
+                headers, with keys lowercased and the ``X-`` prefix
+                stripped.
+
+        Raises:
+            CalCatAPIError: If the API returns an error response.
+        """
         resp = self.request('GET', relative_url, params, **kwargs)
         content = self._parse_response(resp)
         pagination_info = {
@@ -217,7 +297,21 @@ class CalCatAPIClient:
         return content, pagination_info
 
     def post(self, relative_url, json, **kwargs):
-        """Make a POST request, return response content from JSON"""
+        """Make a POST request, return response content from JSON
+
+        Args:
+            relative_url (str): URL relative to the base API URL.
+            json: JSON-serializable payload for the request body.
+            **kwargs: Extra keyword arguments passed on to
+                :meth:`request`.
+
+        Returns:
+            dict or list or None: The response content parsed from JSON;
+                None for an empty response.
+
+        Raises:
+            CalCatAPIError: If the API returns an error response.
+        """
         resp = self.request('POST', relative_url, json=json, **kwargs)
         return self._parse_response(resp)
 
