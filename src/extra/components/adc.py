@@ -1,0 +1,481 @@
+"""Fast ADC component"""
+
+from typing import Literal, TypeAlias
+import re
+
+import numpy as np
+from xarray import DataArray
+
+from extra_data import by_id, DataCollection, KeyData, SourceData
+from extra_data.exceptions import SourceNameError
+from extra_data.read_machinery import roi_shape
+from .pulses import XrayPulses, PulsePattern
+from .utils import _isinstance_no_import
+
+PulsesOrFalse: TypeAlias = PulsePattern | Literal[False] | None
+"""An optional PulsePattern type or `False` to explicitly disable it."""
+
+
+class AdcRawChannel:
+    r"""A high-level interface for the (raw) output of fast ADC channels.
+
+    ![](../images/pulses.svg)
+
+    Args:
+        data (DataCollection): The object returned by `extra.data.RunDirectory`
+            or `extra.data.OpenRun`.
+        adc_channel (str | int): either a channel number if only one FastADC
+            digitizer is present or enough of the digitizer name to uniquely
+            identify it and the channel of interest (see examples below).
+        pulses (PulsesOrFalse, optional): An
+            `extra.components.PulsePattern` instance. For example,
+            [XrayPulses][extra.components.XrayPulses] or
+            [ManualPulses][extra.components.ManualPulses].
+            Defaults to `None`, in which case the pulse pattern is extracted
+            from the run if possible. Otherwise, it remains
+
+
+    Warning:
+        Instantiation will fail if the pulse pattern changed during the run.
+
+    Examples:
+        >>> from extra.components import AdcRawChannel
+        >>> from extra.data import open_run
+        >>> run = open_run(700004, 19)
+        >>> adc2_8 = AdcRawChannel(run, 8)
+        Traceback (most recent call last):
+            ...
+        ValueError: There is more than one FastADC digitizer that has a
+            channel number 8. Please pass one of the following digitizers:
+            {'LA3_LAS_PPL/ADC/3', 'LA3_LAS_PPL/ADC/2'} via the `digitizer=`
+            parameter.
+
+        This failed because this run has two different FastADCs with a
+        channel 8. To instantiate either one, we need to pass the name of the
+        digitizer in addition to the channel number.
+
+        >>> adc2_8 = AdcRawChannel(run, 8, digitizer='LA3_LAS_PPL/ADC/2')
+
+
+    """
+
+    # The maximum rate of 4.5 MHz (see extra.components.pulses)
+    _bunch_repetition_divider = 288
+    # The Fast ADC boards run at 108.3333 MHz (see ...)
+    _fast_adc_divider = 12
+    _bunch_repetition_rate = 1.3e9 / _bunch_repetition_divider
+    _fast_adc_clock_rate = 1.3e9 / _fast_adc_divider
+    _clock_ratio = _bunch_repetition_divider // _fast_adc_divider
+    _adc_regex = re.compile(r'(^.*\/ADC\/[0-9]+):channel_([0-9]+).output$')
+
+    def __init__(
+        self,
+        data: DataCollection,
+        channel: int,
+        *,
+        digitizer: str | None = None,
+        pulses: PulsesOrFalse = None,
+        first_pulse_offset: int | None  = None,
+    ):
+
+        self._adc_channel = channel
+        self._digitizer = digitizer
+        self._first_pulse_offset = first_pulse_offset
+
+        # Check that the required instrument and control sources are present
+        # and have the correct keys.
+        # extra.data will raise KeyError if a key is not found
+        inst_name, ctrl_name = self._validate_sources(data)
+        self._selection = data.select({
+            inst_name: {'data.rawData'},
+            ctrl_name: {'sampleFirstBunch.value', 'numberRawSamples.value'},
+        }, require_all=True)
+
+        self._ctrl_sourcedata = self._selection[ctrl_name]
+        self._inst_sourcedata = self._selection[inst_name]
+
+        self._inst_keydata = data[inst_name, 'data.rawData']
+
+        self._pulses = self._validate_pulses(data, pulses)
+
+        # If all is in order, assign the SourceData objects
+
+        # Get two useful control source properties
+        self._sample_first_bunch = self._get_sample_first_bunch()
+
+        if first_pulse_offset is not None:
+            self._sample_first_pulse = \
+                data[ctrl_name, 'sampleFirstBunch.value'].as_single_value()
+            value = self._ctrl_sourcedata['sampleFirstBunch.value'] \
+                    .as_single_value()
+        self._number_of_samples = self._ctrl_sourcedata['numberRawSamples.value'] \
+            .as_single_value()
+
+    @property
+    def pulses(self) -> PulsePattern | None:
+        """The pulse pattern (XrayPulses) if present, False if not."""
+
+        return self._pulses
+
+    @property
+    def pulse_period(self) -> int | None:
+        """Get a unique pulse period from the data.
+
+        If a pulse pattern was successfully detected or a `PulsePattern` object
+        was explicitly passed to the pulses parameter, extract the pulse
+        period.
+
+        Returns:
+            The common pulse period for all trains in the data.
+
+        """
+
+        # If the condition evaluates to True, then .is_constant_pattern
+        # also evaluated to True and we can safely assume that there is a
+        # unique pulse_period etc.
+        if isinstance(self.pulses, PulsePattern):
+            # Take a reasonable guess, 10 say, for the pulse_period if the
+            # trains contain a single pulse. This will additionally prevent
+            # .pulse_periods from raising a ValueError.
+            pulse_period, = self.pulses.pulse_periods(
+                    single_pulse_value=10).unique()
+            return int(pulse_period)
+
+        return None
+
+    def _pulses_not_none_or_false(self) -> Literal[True]:
+        """Raises ValueError if ._pulses is None else return True."""
+
+        if self.pulses is None:
+            raise ValueError(
+                "This component was not initialized with a "
+                "pulse pattern.") from None
+
+        return True
+
+    @property
+    def samples_per_pulse(self) -> int | None:
+        """Compute the number of samples per pulse."""
+
+        if isinstance(self.pulses, PulsePattern):
+            samples = self.pulse_period * self._clock_ratio
+            return samples
+
+        return None
+
+    @property
+    def pulses_per_train(self) -> int | None:
+        """The number of pulses per train."""
+
+        # Raise a ValueError, also if .is_constant_pattern() is False
+        if isinstance(self.pulses, PulsePattern):
+            ppt, = self.pulses.pulse_counts().unique()
+            return int(ppt)
+
+        return None
+
+    @property
+    def trace_length(self) -> int | None:
+        """Compute the trace length based on the pulse pattern"""
+
+        if isinstance(self.pulses, PulsePattern):
+            trace_len = self.samples_per_pulse * self.pulses_per_train \
+                    + self._sample_first_bunch
+
+            # Make sure trace_len <= self._number_of_samples.
+            # TODO: Issue warning if not? This would mean that the device was not
+            # configured correctly before the run...
+            trace_len = min(trace_len, self._number_of_samples)
+
+            return int(trace_len)
+
+        return None
+
+    def _get_sample_first_bunch(self):
+        """Check if an explicit offset was passed otherwise extract it."""
+
+        if isinstance(self._first_pulse_offset, int):
+            value = self._first_pulse_offset
+        elif self._first_pulse_offset is None:
+            # `.as_single_value` raises a ValueError if it cannot reduce data
+            # to a single value
+            value = self._ctrl_sourcedata['sampleFirstBunch.value'] \
+                    .as_single_value()
+        else:
+            raise TypeError(
+                "The `first_pulse_offset` argument should be an integer "
+                "or None, you passed an object of type "
+                f"{type(self._first_pulse_offset)}.") from None
+
+        return int(value)
+
+    @staticmethod
+    def _get_unique_value(source: SourceData, key: str) -> np.typing.ArrayLike:
+        """General method that takes a key and returns a unique
+        value in the KeyData.ndarray()."""
+
+        if key not in source:
+            raise KeyError(
+                f"The SourceData object you passed, {source}, does not "
+                f"contain the {key} key. Please provide a valid key."
+            )
+
+        array = source[key].ndarray()
+        array = np.unique(array)
+
+        if len(array) > 1:
+            # 
+            raise ValueError(
+                f"It looks like the {key} key changed during the run. "
+                f"Please specify a value explicitly. I found {array}."
+            )
+
+        return int(array[0])
+
+    def _validate_pulses(
+            self,
+            data: DataCollection,
+            pulses: PulsesOrFalse,
+    ) -> PulsePattern | None:
+        """Offloads pulses validation logic from the __init__ method.
+
+        The validation needs to check for the following conditions:
+          1. If pulses is not explicitly set to False, then a timeserver or
+             a pulse pattern decoder source needs to be present.
+          2. The pulse pattern needs to be constant.
+        """
+
+        if pulses is False:
+            return None
+
+        if isinstance(pulses, PulsePattern):
+            return pulses
+
+        if pulses is None:
+            # If none, try to auto-detect XrayPulses for this data.
+            try:
+                pulses = XrayPulses(data)
+            except ValueError:
+                # Probably better to re-raise the ValueError from the pulses
+                # component because it's much more fine-grained?
+                raise ValueError(
+                    'Could not auto-detect pulse information, please pass a '
+                    'PulsePattern object to the pulses parameter. Otherwise, '
+                    'please explicitly disable it with pulses=False.'
+                ) from None
+
+        # Make sure that the pulse pattern is constant
+        if not pulses.is_constant_pattern():
+            raise RuntimeError(
+                "The pulse pattern is not constant. Please split the "
+                "current selection into sub-selections with constant patterns."
+            )
+
+        return pulses
+
+    def _match_digitizer(self, source: str) -> tuple[str, str, int] | None:
+        """Match the digitizer name and channel number from the source name.
+
+        Parameters:
+            source (str): The source name to match against the regex.
+
+        Returns:
+            A tuple of (digitizer_name, channel_number) if a match is found,
+            otherwise None.
+        """
+
+        result = self._adc_regex.search(source)
+        if result:
+            inst_name = result.group(0)
+            ctrl_name = result.group(1)
+            channel_number = int(result.group(2))
+            return inst_name, ctrl_name, channel_number
+
+        return None
+
+    def _validate_sources(
+            self,
+            data: DataCollection
+    ) -> tuple[str, str]:
+        """Check that the instrument and control sources are present and valid.
+
+        Parameters:
+            data (DataCollection): The data collection to validate.
+
+        Raises:
+            SourceNameError: If the instrument or control source is not found.
+            ValueError: If there are too many sources that match the provided
+                channel or if the control source is missing.
+        """
+
+        found = set(filter(None, map(self._match_digitizer, data.instrument_sources)))
+
+        adc_channel = self._adc_channel
+        digitizer = self._digitizer
+
+        # This is perhaps a bit too convoluted... The idea is that if the
+        # digitizer option is not passed at instantiation, then we should
+        # match any digitizer that has that channel number.
+        # But if the digitizer option is passed, then we should match both
+        # the control source name and the channel number.
+        candidates = {
+            tup for tup in found
+            if tup[2] == adc_channel and (
+                digitizer is None or tup[1] == digitizer
+            )
+        }
+        #for digitizer, channel in found:
+        #    if adc_channel == channel:
+        #        candidates.add(channel)
+
+        len_ = len(candidates)
+        if len_ == 0:
+            message = (
+                    f"The channel you provided, {adc_channel}, could not be "
+                    "be matched to any of the instrument sources in the "
+                    "data. See data.instrument_sources."
+            )
+            raise SourceNameError(custom_message=message)
+
+        if len_ > 1:
+            digitizers = {dig for _, dig, _ in candidates}
+            raise ValueError(
+                    f"There is more than one FastADC digitizer that has a "
+                    f"channel number {adc_channel}. Please pass one of the "
+                    f"following digitizers: {digitizers} via the `digitizer=` "
+                    "parameter."
+            )
+
+        inst_name, ctrl_name, _ = candidates.pop()
+
+        if ctrl_name not in data.control_sources:
+            message = (
+                "The corresponding control source to the instrument "
+                f"{self._inst_keydata.source}, which should be called "
+                f"{ctrl_name}, is missing from `.control_sources`."
+            )
+            raise SourceNameError(custom_message=message)
+
+        return inst_name, ctrl_name
+
+    def train_data(
+        self,
+        labelled: bool = True,
+        train_roi: slice | None = None,
+        auto_trim_trace: bool = False,
+        # num_cores_to_use: None | int = None,
+    ) -> np.ndarray | DataArray:
+        """Return train data.and
+        
+        
+        """
+
+        # Maybe we want to make one take precedence over the other?
+        if auto_trim_trace and train_roi is not None:
+            raise ValueError(
+                "The `train_roi` parameter cannot be used with "
+                "`auto_trim_trace=True`. Please specify one or the other."
+            )
+
+        # Validate the roi parameter
+        # if not isinstance(train_roi, slice):
+        #    raise ValueError("The roi parameter must be a slice object.")
+
+        roi = slice(None)
+        # Trim the trace to avoid carrying useless information around
+        if auto_trim_trace:
+            roi = slice(self._sample_first_bunch, self.trace_length)
+
+        if train_roi is not None:
+            roi = train_roi
+
+        temp = roi_shape(self._inst_keydata.entry_shape, (roi,))
+        shape = (self._inst_keydata.shape[0],) \
+            + temp
+        out = np.empty(shape)
+
+        # NOTE: see note in .pulse_data() about chunking.
+        offset = 0
+        for chunk in self._inst_keydata.split_trains(trains_per_part=200):
+            # In AdqRawChannel, there is a BEWARE about uint64, what is this
+            # about? Doing `type(chunk.shape[0])` gives int... trainIds are
+            # uint64 but...
+            num_trains = chunk.shape[0]
+            this_slice = slice(offset, offset + num_trains)
+            offset += num_trains
+            chunk.ndarray(roi=roi, out=out[this_slice])
+
+        if not labelled:
+            return out
+
+        coords = {
+            'trainId': self._inst_keydata.train_id_coordinates(),
+            'sample': np.arange(out.shape[1]),
+        }
+
+        return DataArray(out, coords=coords)
+
+    def pulse_data(
+        self,
+        labelled: bool = True,
+        # train_roi: slice = slice(None),
+        # auto_trim_trace: bool = False,
+    ) -> np.ndarray | DataArray:
+        """Identify all the pulses and return an array containing them.
+
+        See [XrayPulses.pulse_periods]
+        [extra.components.XrayPulses.pulse_periods] for details about the 
+        pulse component.
+        """
+
+        keydata = self._inst_keydata.drop_empty_trains()
+
+        # pulse_trace = self.trace_length - self._sample_first_bunch
+
+        # The quotient gives the number of full pulses supported by a trace
+        # of this length. The remainder can be used for diagnosing 
+        # quotient, remainder = divmod(pulse_trace, self.samples_per_pulse)
+        quotient = (
+            self.trace_length - self._sample_first_bunch
+        ) // self.samples_per_pulse
+
+        pulse_trace_len = quotient * self.samples_per_pulse
+        pulse_trace_roi = slice(
+            self._sample_first_bunch,
+            self.trace_length
+        )
+        out = np.empty((keydata.shape[0], pulse_trace_len))
+
+        # NOTE: This logic is imported from the AdqRawChannel implementation.
+        # I Kept it here for consistency but it is not really needed for 
+        # FastADCs because the trace legnths are much shorter due to clock
+        # ratio of 12. Not sure chunking is needed for I/O performance or
+        # for memory management but it doesn't hurt.
+        offset = 0
+        for chunk in keydata.split_trains(trains_per_part=200):
+            # In AdqRawChannel, there is a BEWARE about uint64, what is this
+            # about? Doing `type(chunk.shape[0])` gives int... trainIds are 
+            # uint64 but...
+            num_trains = int(chunk.shape[0])
+            this_slice = slice(offset, offset + num_trains)
+            offset += num_trains
+            # out[this_slice] = chunk.ndarray(roi=pulse_trace_roi)
+            chunk.ndarray(roi=pulse_trace_roi, out=out[this_slice])
+
+        out = out.reshape((keydata.shape[0], quotient, self.samples_per_pulse))
+
+        if not labelled:
+            return out
+
+        pulse_ids = self.pulses.peek_pulse_ids(labelled=False)
+        pulse_ids = pulse_ids[:quotient]
+
+        coords = {
+            'trainId': keydata.train_ids,
+            'pulseId': pulse_ids,
+            'sample': np.arange(self.samples_per_pulse)
+        }
+        return DataArray(data=out, coords=coords)
+
+    def find_peaks(self, labelled=True):
+        """Find the peak heights and locations in the trace"""

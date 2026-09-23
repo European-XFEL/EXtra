@@ -24,6 +24,8 @@ Component index:
     - [OpticalLaserDelay][extra.components.OpticalLaserDelay]
 - [ADQ Digitizers](adq-digitizers.md)
     - [AdqRawChannel][extra.components.AdqRawChannel]
+- [Fast ADC Digitizers](adc-digitizers.md)
+    - [AdcRawChannel][extra.components.AdcRawChannel]
 - [Detector motors](detector-motors.md)
     - [AGIPD1MQuadrantMotors][extra.components.AGIPD1MQuadrantMotors]
     - [JF4MHalfMotors][extra.components.JF4MHalfMotors]
