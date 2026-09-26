@@ -26,6 +26,7 @@ Fixed:
   [imshow2()][extra.utils.imshow2] (!547).
 - Fixed reading of the acquisition time for newer Karabacon versions in the
   [Scantool](extra.components.Scantool) component (!547).
+- [CookieboxCalibration][extra.applications.CookieboxCalibration] can handle missing Auger-Meitner peak (!556).
 
 ## [2026.1.1]
 
