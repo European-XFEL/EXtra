@@ -180,10 +180,10 @@ class TestAngularCrossCorrelation:
         data = self.get_test_data(N,n_q,n_phi)
         
         ccn1 = xcca.AveragedAngularCorrelation.from_dataset(data,max_order=11)
-        ccf1 = xcca.AveragedAngularCorrelation.from_dataset(data,max_order=11,compute_coefficients=False)#bug here
+        ccf1 = xcca.AveragedAngularCorrelation.from_dataset(data,compute_coefficients=False)#bug here
         
         ccn2 = xcca.AveragedAngularCorrelation(n_q,n_phi,max_order=11)
-        ccf2 = xcca.AveragedAngularCorrelation(n_q,n_phi,max_order=11,compute_coefficients=False)
+        ccf2 = xcca.AveragedAngularCorrelation(n_q,n_phi,compute_coefficients=False)
         for I in data:
             ccn2.update(I)
             ccf2.update(I)
