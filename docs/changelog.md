@@ -18,6 +18,7 @@
 
 Added:
 - [XCCA](applications/xcca.md) Toolbox for the computation of X-ray cross-correlation analysis related quantities.
+- [XCCA](extra.applications.xcca.AngularCorrelator) Added options to compute q1=q2 correlations as well as inter-pattern correlations
 Fixed:
 - [TOFAnalogResponse][extra.applications.TOFAnalogResponse] has improved numerical stability (!538).
 
