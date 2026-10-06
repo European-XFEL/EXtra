@@ -18,7 +18,7 @@ packaging==26.3
 pandas==3.0.6
 Pillow==12.3.0
 pint<=0.26.1
-platformdirs~=4.12.1
+platformdirs~=4.12.2
 pyparsing==3.3.3
 python-dateutil==2.9.0.post0
 pytz==2026.4
