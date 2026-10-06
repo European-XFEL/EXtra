@@ -51,9 +51,9 @@ class AngularCorrelator:
         n_q = self.n_radial_samples
         self.bw = self.n_angular_samples // 2 + 1
 
-        self.ccf_workspace = xp.empty((3,n_q,self.n_angular_samples),dtype = float)
+        self.ccf_workspace = xp.empty((3,n_q,self.n_angular_samples),dtype = np.float64)
         self.ccn_workspace = xp.empty((4,n_q,self.bw),dtype = complex)
-        self.image_workspace = xp.empty((3,n_q,self.n_angular_samples),dtype = float)
+        self.image_workspace = xp.empty((3,n_q,self.n_angular_samples),dtype = np.float64)
         self.fourier_workspace = xp.empty((4,n_q,self.bw),dtype = complex)
         self.mask_workspace = xp.empty((n_q,self.n_angular_samples),dtype = bool)
 
@@ -76,7 +76,7 @@ class AngularCorrelator:
         return out
     def _rfft_into(self,func:NDArray,out:NDArray)->NDArray:
         if func.dtype != np.float64:
-            func = func.astype(float)
+            func = func.astype(np.float64)
         if self.use_cuda:
             out[...] = self.rfft(func,n=self.n_angular_samples,axis=-1,norm="forward")
         else:
@@ -264,9 +264,8 @@ class AngularCorrelator:
         if out is None:
             out = xp.zeros((n_q,n_q,bw),dtype=complex)
             
-        mult = xp.multiply
         for q1 in range(n_q):
-            mult(fn[q1],fn_conj[q1:],out = out[q1,q1:])
+            xp.multiply(fn[q1],fn_conj[q1:],out = out[q1,q1:])
             self._fill_symmetry_ccn(out,q1)
         return  out
     def _compute_ccn_from_fourier_full(
@@ -325,7 +324,7 @@ class AngularCorrelator:
         if out is None:
             out = self.xp.zeros((self.n_radial_samples,
                                  self.n_angular_samples),
-                                dtype=float)            
+                                dtype=np.float64)            
         ccn_workspace = self.ccn_workspace[1]
         self._compute_ccn_from_fourier_diagonal(fn,
                                                 gn,
@@ -345,7 +344,7 @@ class AngularCorrelator:
 
         N = self.n_angular_samples
         if out is None: 
-            out = xp.zeros((n_q,n_q,N),dtype=float)
+            out = xp.zeros((n_q,n_q,N),dtype=np.float64)
         
         mult = xp.multiply
         ccn_workspace = self.ccn_workspace[0]
@@ -368,7 +367,7 @@ class AngularCorrelator:
 
         N = self.n_angular_samples
         if out is None: 
-            out = xp.zeros((n_q,n_q,N),dtype=float)
+            out = xp.zeros((n_q,n_q,N),dtype=np.float64)
         
         mult = xp.multiply
         ccn_workspace = self.ccn_workspace[0]
@@ -412,7 +411,7 @@ class AngularCorrelator:
         if out is None:
             out = self.xp.zeros((self.n_radial_samples,
                                  self.n_angular_samples),
-                                dtype=float)
+                                dtype=np.float64)
         if out_mask is None:
             out_mask = self.xp.zeros((self.n_radial_samples,
                                       self.n_angular_samples),
@@ -451,7 +450,7 @@ class AngularCorrelator:
 
         N = self.n_angular_samples
         if out is None:
-            out = xp.zeros((n_q,n_q,N),dtype=float)
+            out = xp.zeros((n_q,n_q,N),dtype=np.float64)
         if out_mask is None:
             out_mask = xp.zeros((n_q,n_q,N),dtype=bool)
 
@@ -495,7 +494,7 @@ class AngularCorrelator:
 
         N = self.n_angular_samples
         if out is None:
-            out = xp.zeros((n_q,n_q,N),dtype=float)
+            out = xp.zeros((n_q,n_q,N),dtype=np.float64)
         if out_mask is None:
             out_mask = xp.zeros((n_q,n_q,N),dtype=bool)
 
@@ -978,7 +977,7 @@ class CumulativeVarianceMasked(_CumulativeVarianceBase):
         delta = mask*(val - self._mean)
         nzero_mask = self.count>0
         w[~nzero_mask]=0
-        np.divide(delta,self.count.astype(float),where=nzero_mask,out=w)
+        np.divide(delta,self.count.astype(np.float64),where=nzero_mask,out=w)
         np.add(self._mean,w,out=self._mean)
         delta2 = mask*val - self._mean
         np.add(self.m2,(delta * delta2.conj()).real,out=self.m2)
@@ -1019,7 +1018,7 @@ class CumulativeVarianceMasked(_CumulativeVarianceBase):
         np.add(self.count,count,out=self.count)
         delta = mean-self._mean
         nzero_mask = self.count>0
-        count = count.astype(float)
+        count = count.astype(np.float64)
         count[nzero_mask]/=self.count[nzero_mask] 
         temp = delta*count
         np.add(self._mean,temp,out=self._mean)
