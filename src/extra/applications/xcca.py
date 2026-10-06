@@ -123,7 +123,7 @@ class AngularCorrelator:
 
         Args:
             ccf: (n_q,n_q,n_phi): Cross-correlation function $C(q_1,q_2,\phi)$.
-            max_order: Maximum computed Fouerier series order. Defaults to None.
+            max_order: Maximum computed Fourier series order. Defaults to None.
 
         Returns:
             NDArray[np.float64]: (n_q,n_q,n_orders): Fourier coefficients $C_n(q_1,q_2)$.
@@ -148,7 +148,7 @@ class AngularCorrelator:
 
         Args:
             ccf: (n_q,n_q,n_phi): Cross-correlation function $C(q_1,q_2,\phi)$.
-            max_order: Maximum computed Fouerier series order. Defaults to None.
+            max_order: Maximum computed Fourier series order. Defaults to None.
 
         Returns:
             NDArray[np.float64]: (n_q,n_q,n_orders): Fourier coefficients $C_n(q_1,q_2)$.
