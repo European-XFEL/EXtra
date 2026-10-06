@@ -380,7 +380,7 @@ class AngularCorrelator:
                                       self.n_angular_samples),
                                      dtype=bool)
             
-        ccn_workspace = self.ccn_workspace[1]
+        ccn_workspace = self.ccn_workspace[1] # 0 is used in ccn_from_fourier_diagonal
         ccn_mask_workspace = self.ccn_workspace[2]
         ccf_workspace = self.ccf_workspace[0]
         ccf_mask_workspace = self.ccf_workspace[1]
@@ -544,17 +544,19 @@ class AngularCorrelator:
             out_mask = xp.empty((self.n_radial_samples,bw),dtype = bool)
             
         ccf_workspace = self.ccf_workspace[2] # 0 and 1 are used in ccn_masked routine
+        ccn_workspace = self.ccn_workspace[3] # 0-2 are used in ccn_masked routine
         mask_workspace = self.mask_workspace
         rfft = self._rfft_into
         self._compute_ccf_masked_from_fourier_diagonal(
-            fn,
-            fmask_n,
-            gn,
-            gmask_n,
+            fn,fmask_n,
+            gn,gmask_n,
             out = ccf_workspace,
             out_mask = mask_workspace            
         )
-        rfft(ccf_workspace,out)
+
+        rfft(ccf_workspace,ccn_workspace)
+        out[...] = ccn_workspace[:,:bw
+                                 ]
         xp.prod(mask_workspace,axis = -1,out=out_mask[:,0])
         out_mask[...] = out_mask[..., :1]
         return out[:,:bw],out_mask
@@ -647,11 +649,11 @@ class AngularCorrelator:
             self._irfft_into(ccn_mask_workspace,ccf_mask_workspace)
             
             # compute the boolean mask at wich ccf is defined (i.e. could be computed)
-            mask_workspace= ccf_mask_workspace > mask_thresh
+            mask_workspace[...] = ccf_mask_workspace > mask_thresh
             self._divide_into(ccf_workspace,ccf_mask_workspace,
                               mask_workspace,ccf_workspace2)
             out[q1] = rfft(ccf_workspace2,ccn_workspace)[:,:bw]
-            xp.prod(mask_workspace,axis=-1,out = out_mask[q1])
+            #xp.prod(mask_workspace,axis=-1,out = out_mask[q1])
             xp.prod(mask_workspace,axis=-1,out = out_mask[q1,:,0])
             out_mask[q1,:] = out_mask[q1,:, :1]
             
@@ -676,7 +678,7 @@ class AngularCorrelator:
             self._rfft_into(fma,fn)
             self._rfft_into(mask,fmask_n)
             if same_q:
-                ccn = self._compute_ccf_masked_from_fourier_diagonal(fn,fmask_n,fn,fmask_n,max_order = max_order,out=out,out_mask=out_mask)
+                ccn = self._compute_ccn_masked_from_fourier_diagonal(fn,fmask_n,fn,fmask_n,max_order = max_order,out=out,out_mask=out_mask)
             else:
                 ccn = self._compute_ccn_masked_from_fourier_triagonal(fn,fmask_n,max_order = max_order,out=out,out_mask=out_mask)
         else:
@@ -850,7 +852,6 @@ class _CumulativeVarianceBase:
         new_data = tuple(np.moveaxis(d,axis,0) for d in data)
         for args in zip(*new_data):
             obj.update(*args)
-            obj.update(*args)
         return obj
     
     def update(self,*args) -> Self:
@@ -892,7 +893,11 @@ class _CumulativeVarianceBase:
     def data(self) ->tuple((NDArray,NDArray,NDArray)):
         return (self._mean,self.count,self.m2)
     def copy(self):
-        return CumulativeVariance(mean = np.array(self.mean),count = np.array(self.count) ,m2=np.array(self.m2))
+        return type(self)(mean = np.array(self.mean),
+                          count = np.array(self.count),
+                          m2=np.array(self.m2),
+                          bessels_correction = self.bessels_correction,
+                          no_data_to_nan = self.no_data_to_nan)
 
 class CumulativeVarianceMasked(_CumulativeVarianceBase):
     '''
@@ -960,7 +965,13 @@ class CumulativeVarianceMasked(_CumulativeVarianceBase):
             # cv1.merge(cv2)  # Same as the following line
             cv1.merge_from_data(cv1._mean, cv1.count, cv1.m2)
             ```
-        """        
+        """
+        if self.workspace is None:
+            self.count = np.array(count, copy=True)
+            self._mean = np.array(mean, copy=True)
+            self.m2 = np.array(m2, copy=True)
+            self.workspace = np.zeros_like(self._mean)
+            return self
         # merges the data of another CummulativeVariance instance to create the combined average and variance.
         count_a = np.array(self.count)
         np.add(self.count,count,out=self.count)
@@ -1030,6 +1041,12 @@ class CumulativeVariance(_CumulativeVarianceBase):
             cv1.merge_from_data(cv1._mean,cv1.count,cv1.m2)
             ```
         """
+        if self.workspace is None:
+            self.count = np.array(count, copy=True)
+            self._mean = np.array(mean, copy=True)
+            self.m2 = np.array(m2, copy=True)
+            self.workspace = np.zeros_like(self._mean)
+            return self
         # merges the data of another CummulativeVariance instance to create the combined average and variance.
         count_a = np.array(self.count)
         np.add(self.count,count,out=self.count)
@@ -1049,7 +1066,6 @@ class AveragedAngularCorrelationMasked(CumulativeVarianceMasked):
         n_angular_samples (int): Number of uniform angular sampling points.
         max_order (int|None): Maximum considered harmonic expansion order (default = `n_angular_samples//2`) setting lower values saves RAM.
         compute_coefficients (bool): Whether to compute the harmonic coefficients of the average cross-correlation function or the average function itself.
-        use_cuda (bool): Whether or not to use cuda for ffts.
         ac (AngularCorrelator): AngularCorrelator instance.
     """
     def __init__(self,
@@ -1059,12 +1075,12 @@ class AveragedAngularCorrelationMasked(CumulativeVarianceMasked):
                  compute_coefficients:bool = True,
                  same_q = False,
                  inter_correlation = False,
-                 use_cuda:bool=False,
                  **kwargs):
         self._max_order = max_order
         self._compute_coefficients = compute_coefficients
-        self.ac = AngularCorrelator(n_radial_samples,n_angular_samples,use_cuda=use_cuda)
+        self.ac = AngularCorrelator(n_radial_samples,n_angular_samples,use_cuda=False)
         self.inter_correlation = inter_correlation
+        self.same_q = same_q
         if compute_coefficients:
             self.process_data = partial(self.ac.ccn,
                                         max_order = max_order,
@@ -1075,6 +1091,20 @@ class AveragedAngularCorrelationMasked(CumulativeVarianceMasked):
 
         super().__init__(**kwargs)
 
+    def copy(self):
+        new = type(self)(n_radial_samples=self.ac.n_radial_samples,
+                         n_angular_samples=self.ac.n_angular_samples,
+                         max_order = self._max_order,
+                         compute_coefficients = self._compute_coefficients,
+                         same_q = self.same_q,
+                         inter_correlation = self.inter_correlation)
+        
+        new.count = self.count.copy()
+        new.m2 = self.m2.copy()
+        new._mean = self._mean.copy()
+        new.bessels_correction = self.bessels_correction
+        new.no_data_to_nan = self.no_data_to_nan
+        return new
     @property
     def max_order(self):
         # Hiding max_order behind property since it should not be changed after instanciation.
@@ -1086,7 +1116,7 @@ class AveragedAngularCorrelationMasked(CumulativeVarianceMasked):
         return self._compute_coefficients
 
     @classmethod    
-    def from_dataset(cls,*data:ArrayLike,axis=0,max_order=None,compute_coefficients=True,use_cuda=False) -> Self:       
+    def from_dataset(cls,*data:ArrayLike,axis=0,max_order=None,compute_coefficients=True) -> Self:       
         r''' Creates instance from a dataset calculating var and mean along a specified axis.
         
         Args:
@@ -1097,11 +1127,10 @@ class AveragedAngularCorrelationMasked(CumulativeVarianceMasked):
         '''
         new_data = tuple(np.moveaxis(d,axis,0) for d in data)
         n_q,n_phi = data[0].shape[-2:]
-        obj = cls(n_q,n_phi,max_order=max_order,compute_coefficients=compute_coefficients,use_cuda=use_cuda)
+        obj = cls(n_q,n_phi,max_order=max_order,compute_coefficients=compute_coefficients)
         for args in zip(*new_data):
             obj.update(*args)
         return obj
-
     def update(self,
                data:NDArray[np.float64],
                mask:NDArray[np.bool_],
@@ -1121,13 +1150,11 @@ class AveragedAngularCorrelationMasked(CumulativeVarianceMasked):
                 raise ValueError("Inter-correlation computation requires the argument data2 to be given but data2 is None.")
             if mask2 is None:
                 raise ValueError("Inter-correlation computation requires the argument mask2 to be given but mask2 is None.")
-            cc,cc_mask = self.process(data,mask=mask,data2=data2,mask2=mask2)
+            cc,cc_mask = self.process_data(data,mask=mask,data2=data2,mask2=mask2)
         else:
             cc,cc_mask = self.process_data(data,mask)
         super().update(cc,cc_mask)
-
-        #ccf,ccf_mask = self.process_data(data,mask,max_order = self.max_order)
-        #super().update(ccf,ccf_mask)
+        return self
 class AveragedAngularCorrelation(CumulativeVariance):
     r"""Helper class to make computation of averages of angular cross-correlations or their coefficients easy.
 
@@ -1173,7 +1200,6 @@ class AveragedAngularCorrelation(CumulativeVariance):
         n_angular_samples (int): Number of uniform angular sampling points.
         max_order (int|None): Maximum considered harmonic expansion order (default = `n_angular_samples//2`) setting lower values saves RAM.
         compute_coefficients (bool): Whether to compute the harmonic coefficients of the average cross-correlation function or the average function itself.
-        use_cuda (bool): Whether or not to use cuda for ffts.
         ac (AngularCorrelator): AngularCorrelator instance.
     """
     def __init__(self,
@@ -1183,12 +1209,12 @@ class AveragedAngularCorrelation(CumulativeVariance):
                  compute_coefficients = True,
                  same_q = False,
                  inter_correlation = False,
-                 use_cuda=False,
                  **kwargs):
         self._max_order = max_order
         self._compute_coefficients = compute_coefficients
-        self.ac = AngularCorrelator(n_radial_samples,n_angular_samples,use_cuda=use_cuda)
+        self.ac = AngularCorrelator(n_radial_samples,n_angular_samples,use_cuda=False)
         self.inter_correlation=inter_correlation
+        self.same_q = same_q
         if compute_coefficients:
             self.process_data = partial(self.ac.ccn,
                                         max_order = max_order,
@@ -1199,19 +1225,34 @@ class AveragedAngularCorrelation(CumulativeVariance):
                                         
             
         super().__init__(**kwargs)
-
+        
+    def copy(self):
+        new = type(self)(n_radial_samples=self.ac.n_radial_samples,
+                         n_angular_samples=self.ac.n_angular_samples,
+                         max_order = self._max_order,
+                         compute_coefficients = self._compute_coefficients,
+                         same_q = self.same_q,
+                         inter_correlation = self.inter_correlation)
+        
+        new.count = self.count.copy()
+        new.m2 = self.m2.copy()
+        new._mean = self._mean.copy()
+        new.bessels_correction = self.bessels_correction
+        new.no_data_to_nan = self.no_data_to_nan
+        return new
+    
     @property
     def max_order(self):
         # Hiding max_order behind property since it should not be changed after instanciation.
         return self._max_order
-
+    
     @property
     def compute_coefficients(self):
         # Hiding compute_coefficients behind property since it should not be changed after instanciation.
         return self._compute_coefficients
-
+    
     @classmethod    
-    def from_dataset(cls,*data:ArrayLike,axis=0,max_order=None,compute_coefficients=True,use_cuda=False) -> Self:
+    def from_dataset(cls,*data:ArrayLike,axis=0,max_order=None,compute_coefficients=True) -> Self:
         r'''Creates istance from an array(dataset), calculating var and mean along a specified axis.
         
         Args:
@@ -1222,7 +1263,7 @@ class AveragedAngularCorrelation(CumulativeVariance):
         '''
         new_data = tuple(np.moveaxis(d,axis,0) for d in data)
         n_q,n_phi = data[0].shape[-2:]
-        obj = cls(n_q,n_phi,max_order=max_order,compute_coefficients=compute_coefficients,use_cuda=use_cuda)
+        obj = cls(n_q,n_phi,max_order=max_order,compute_coefficients=compute_coefficients)
         for args in zip(*new_data):
             obj.update(*args)
         return obj
@@ -1239,8 +1280,9 @@ class AveragedAngularCorrelation(CumulativeVariance):
         if self.inter_correlation:
             if data2 is None:
                 raise ValueError("Inter-correlation computation requires the argument data2 to be given but data2 is None.")
-            cc = self.process(data,data2=data2)
+            cc = self.process_data(data,data2=data2)
         else:
             cc = self.process_data(data)
         super().update(cc)
+        return self
 
