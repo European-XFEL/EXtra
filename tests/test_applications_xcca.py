@@ -453,41 +453,33 @@ n=2,
         n_q = 7
         n_phi = 32
         max_order = 11
-
         data1 = self.get_test_data(
             n=1,
             n_q=n_q,
             n_phi=n_phi,
         )[0]
-
         data2 = self.get_test_data(
             n=2,
             n_q=n_q,
             n_phi=n_phi,
         )[1]
-
         ac = xcca.AngularCorrelator(n_q, n_phi)
-
         ccf = ac.ccf(
             data1,
             data2=data2,
             same_q=same_q,
         )
-
         ccn_from_ccf = ac.ccn_from_ccf(
             ccf,
-            same_q=same_q,
             inter_correlation=not same_q,
             max_order=max_order,
-        )
-
+        )        
         ccn = ac.ccn(
             data1,
             data2=data2,
             same_q=same_q,
             max_order=max_order,
         )
-
         assert np.allclose(
             ccn_from_ccf,
             ccn,
