@@ -286,9 +286,8 @@ class AngularCorrelator:
         if out is None:
             out = xp.zeros((n_q,n_q,bw),dtype=complex)
             
-        mult = xp.multiply
         for q1 in range(n_q):
-            mult(fn[q1],gn_conj[:],out = out[q1,:])
+            xp.multiply(fn[q1],gn_conj[:],out = out[q1,:])
         return  out
     def _compute_ccn(self,
                      f:NDArray[np.float64],
@@ -346,10 +345,9 @@ class AngularCorrelator:
         if out is None: 
             out = xp.zeros((n_q,n_q,N),dtype=np.float64)
         
-        mult = xp.multiply
         ccn_workspace = self.ccn_workspace[0]
         for q1 in range(n_q):
-            mult(fn[q1],fn_conj[q1:],out = ccn_workspace[q1:])
+            xp.multiply(fn[q1],fn_conj[q1:],out = ccn_workspace[q1:])
             self._irfft_into(ccn_workspace[q1:],out[q1,q1:])
             self._fill_symmetry_ccf(out,q1)
         return  out
@@ -369,10 +367,9 @@ class AngularCorrelator:
         if out is None: 
             out = xp.zeros((n_q,n_q,N),dtype=np.float64)
         
-        mult = xp.multiply
         ccn_workspace = self.ccn_workspace[0]
         for q1 in range(n_q):
-            mult(fn[q1],gn_conj,out = ccn_workspace)
+            xp.multiply(fn[q1],gn_conj,out = ccn_workspace)
             self._irfft_into(ccn_workspace,out[q1])
         return  out
     def _compute_ccf(self,
@@ -497,8 +494,7 @@ class AngularCorrelator:
             out = xp.zeros((n_q,n_q,N),dtype=np.float64)
         if out_mask is None:
             out_mask = xp.zeros((n_q,n_q,N),dtype=bool)
-
-        mult = xp.multiply
+            
         ccn_workspace = self.ccn_workspace[2]
         ccn_mask_workspace = self.ccn_workspace[3]
         ccf_workspace = self.ccf_workspace[0]
@@ -506,8 +502,8 @@ class AngularCorrelator:
         mask_thresh = 1/(2*N)
         for q1 in range(n_q):
             # Compute ccn for data and mask
-            mult(fn[q1],gn_conj,out = ccn_workspace)
-            mult(fmask_n[q1],gmask_n_conj,out = ccn_mask_workspace)            
+            xp.multiply(fn[q1],gn_conj,out = ccn_workspace)
+            xp.multiply(fmask_n[q1],gmask_n_conj,out = ccn_mask_workspace)            
             self._irfft_into(ccn_workspace,ccf_workspace)
             self._irfft_into(ccn_mask_workspace,ccf_mask_workspace)
             
@@ -619,7 +615,6 @@ class AngularCorrelator:
         if out_mask is None:
             out_mask = xp.zeros((n_q,n_q,bw),dtype=bool)
 
-        mult = xp.multiply
         ccn_workspace = self.ccn_workspace[2]
         ccn_mask_workspace = self.ccn_workspace[3]
         ccf_workspace = self.ccf_workspace[0]
@@ -631,8 +626,8 @@ class AngularCorrelator:
         fill_by_symmetry = self._fill_symmetry_ccn
         for q1 in range(n_q):
             # Compute ccn for data and mask
-            mult(fn[q1],fn_conj[q1:],out = ccn_workspace[q1:])
-            mult(mask_n[q1],mask_n_conj[q1:],out = ccn_mask_workspace[q1:])            
+            xp.multiply(fn[q1],fn_conj[q1:],out = ccn_workspace[q1:])
+            xp.multiply(mask_n[q1],mask_n_conj[q1:],out = ccn_mask_workspace[q1:])            
             self._irfft_into(ccn_workspace[q1:],ccf_workspace[q1:])
             self._irfft_into(ccn_mask_workspace[q1:],ccf_mask_workspace[q1:])
             # compute the boolean mask at wich ccf is defined (i.e. could be computed)
@@ -668,8 +663,7 @@ class AngularCorrelator:
             out = xp.zeros((n_q,n_q,bw),dtype=complex)
         if out_mask is None:
             out_mask = xp.zeros((n_q,n_q,bw),dtype=bool)
-
-        mult = xp.multiply
+            
         ccn_workspace = self.ccn_workspace[2]
         ccn_mask_workspace = self.ccn_workspace[3]
         ccf_workspace = self.ccf_workspace[0]
@@ -680,8 +674,8 @@ class AngularCorrelator:
         rfft = self._rfft_into
         for q1 in range(n_q):
             # Compute ccn for data and mask
-            mult(fn[q1],gn_conj,out = ccn_workspace)
-            mult(fmask_n[q1],gmask_n_conj,out = ccn_mask_workspace)            
+            xp.multiply(fn[q1],gn_conj,out = ccn_workspace)
+            xp.multiply(fmask_n[q1],gmask_n_conj,out = ccn_mask_workspace)            
             self._irfft_into(ccn_workspace,ccf_workspace)
             self._irfft_into(ccn_mask_workspace,ccf_mask_workspace)
             
@@ -1024,6 +1018,7 @@ class CumulativeVarianceMasked(_CumulativeVarianceBase):
         np.add(self._mean,temp,out=self._mean)
         np.add(self.m2,m2 + (delta*count_a*temp.conj()).real,out = self.m2)
         return self
+    
 class CumulativeVariance(_CumulativeVarianceBase):
     '''
     Allows to computes the variance incrementally. 
