@@ -1,5 +1,7 @@
 import numpy as np
+from enum import Enum, auto
 from typing import Self
+from functools import partial
 from numpy.typing import NDArray,ArrayLike
 
 class AngularCorrelator:
@@ -10,12 +12,12 @@ class AngularCorrelator:
         n_radial_samples (int): Number of radial sampling points.
         n_angular_samples (int): Number of uniform angular sampling points.
         use_cuda (bool): Whether or not to use cuda for fft computations.
-
+    
     Examples:
         ```py
         import numpy as np
-        from extra.utils.xcca import AngularCorrelator
-
+        from extra.applications.xcca import AngularCorrelator
+    
         n_q,n_phi = 32,64
         data = np.random.rand(n_q,n_phi)
         mask = np.random.rand(n_q,n_phi)>0.7
@@ -35,19 +37,169 @@ class AngularCorrelator:
         self.use_cuda = use_cuda
         
         if use_cuda:
+            import cupy as cp
             import cupyx.scipy.fft as cufft
+            self.xp = cp
             self.rfft = cufft.rfft
             self.irfft = cufft.irfft
         else:
+            self.xp = np
             self.rfft = np.fft.rfft
             self.irfft = np.fft.irfft
-            
-        self.ccf_workspace = np.empty((3,self.n_radial_samples,self.n_angular_samples),dtype = float)
-        self.ccn_workspace = np.empty((3,self.n_radial_samples,self.n_angular_samples//2+1),dtype = complex)
-        self.mask_workspace = np.empty((self.n_radial_samples,self.n_angular_samples),dtype = bool)
 
+        xp = self.xp
+        n_q = self.n_radial_samples
+        self.bw = self.n_angular_samples // 2 + 1
+
+        self.ccf_workspace = xp.empty((3,n_q,self.n_angular_samples),dtype = np.float64)
+        self.ccn_workspace = xp.empty((4,n_q,self.bw),dtype = complex)
+        self.image_workspace = xp.empty((3,n_q,self.n_angular_samples),dtype = np.float64)
+        self.fourier_workspace = xp.empty((4,n_q,self.bw),dtype = complex)
+        self.mask_workspace = xp.empty((n_q,self.n_angular_samples),dtype = bool)
+
+    # helper functions
+    def _bandwidth(self, max_order: int | None) -> int:
+        if max_order is None:
+            return self.bw
+
+        if not 0 <= max_order < self.bw:
+            raise ValueError(
+                f"max_order must be in [0, {self.bw - 1}], got {max_order}"
+            )
+
+        return max_order + 1
+    def _irfft_into(self,coeff:NDArray,out:NDArray)->NDArray:
+        if self.use_cuda:
+            out[...] = self.irfft(coeff,n=self.n_angular_samples,axis=-1,norm="forward")
+        else:
+            self.irfft(coeff,n=self.n_angular_samples,axis=-1,norm="forward",out=out)
+        return out
+    def _rfft_into(self,func:NDArray,out:NDArray)->NDArray:
+        if func.dtype != np.float64:
+            func = func.astype(np.float64)
+        if self.use_cuda:
+            out[...] = self.rfft(func,n=self.n_angular_samples,axis=-1,norm="forward")
+        else:
+            self.rfft(func,axis=-1,norm="forward",out=out)
+        return out
+    def _divide_into(self,a,b,mask,out):
+        if self.use_cuda:
+            out[mask] = a[mask]/b[mask]
+        else:
+            np.divide(a,b,where = mask,out=out)
+        return out    
+    def _fill_symmetry_ccf(self,ccf,q):
+        ccf[q+1:,q,0] = ccf[q,q+1:,0]
+        ccf[q+1:,q,1:] = ccf[q,q+1:,-1:0:-1]
+        return ccf
+    def _fill_symmetry_ccn(self,ccn,q):
+        self.xp.conjugate(ccn[q,q+1:],out = ccn[q+1:,q])
+        return ccn
+    def ccn_from_ccf_diagonal(self,
+                              ccf:NDArray[np.float64],
+                              max_order: int|None = None,
+                              out: NDArray[np.complex128]|None = None) -> NDArray[np.complex128]:
+        r"""Compute Fourier series coefficients of cross-correlation.
+
+        Args:
+            ccf: (n_q,n_phi): Cross-correlation function $C(q_2,\phi)$.
+            max_order: Maximum computed Fouerier series order. Defaults to None.
+
+        Returns:
+            NDArray[np.float64]: (n_q,n_orders): Fourier coefficients $C_n(q_1,q_2)$.
+        """
+        xp = self.xp
+        bw = self._bandwidth(max_order)
+        ccn_workspace = self.ccn_workspace[3]
+        if out is None:
+            out = xp.zeros((self.n_radial_samples,bw),dtype=complex)
+        out[...] = self._rfft_into(ccf,ccn_workspace)[:,:bw]        
+        return out
+    def ccn_from_ccf_triagonal(self,
+                               ccf:NDArray[np.float64],
+                               max_order: int|None = None,
+                               out: NDArray[np.complex128]|None = None) -> NDArray[np.complex128]:
+        r"""Compute Fourier series coefficients of cross-correlation.
+
+        Args:
+            ccf: (n_q,n_q,n_phi): Cross-correlation function $C(q_1,q_2,\phi)$.
+            max_order: Maximum computed Fourier series order. Defaults to None.
+
+        Returns:
+            NDArray[np.float64]: (n_q,n_q,n_orders): Fourier coefficients $C_n(q_1,q_2)$.
+        """
+        xp = self.xp
+        bw = self._bandwidth(max_order)
+        n_q = self.n_radial_samples
+        ccn_workspace = self.ccn_workspace[0]
+        if out is None:
+            out = xp.zeros((n_q,n_q,bw),dtype=complex)
+        rfft = self._rfft_into
+        fill_sym = self._fill_symmetry_ccn
+        for q1 in range(n_q):
+            out[q1,q1:] = rfft(ccf[q1,q1:],ccn_workspace[q1:])[:,:bw]
+            fill_sym(out,q1)
+        return out    
+    def ccn_from_ccf_full(self,
+                          ccf:NDArray[np.float64],
+                          max_order: int|None = None,
+                          out: NDArray[np.complex128]|None = None) -> NDArray[np.complex128]:
+        r"""Compute Fourier series coefficients of cross-correlation.
+
+        Args:
+            ccf: (n_q,n_q,n_phi): Cross-correlation function $C(q_1,q_2,\phi)$.
+            max_order: Maximum computed Fourier series order. Defaults to None.
+
+        Returns:
+            NDArray[np.float64]: (n_q,n_q,n_orders): Fourier coefficients $C_n(q_1,q_2)$.
+        """
+        xp = self.xp
+        bw = self._bandwidth(max_order)
+        n_q = self.n_radial_samples
+        ccn_workspace = self.ccn_workspace[0]
+        if out is None:
+            out = xp.zeros((n_q,n_q,bw),dtype=complex)
+        rfft = self._rfft_into
+        for q1 in range(n_q):
+            out[q1] = rfft(ccf[q1],ccn_workspace)[:,:bw]
+        return out
+    def ccn_from_ccf(self,
+                     ccf:NDArray[np.float64],
+                     max_order: int|None = None,
+                     inter_correlation = False,
+                     out: NDArray[np.complex128]|None = None) -> NDArray[np.complex128]:
+        """Computes harmonic coefficients of a given cross-correlation function.
+        
+        Args:
+            ccf (NDArray[np.float64]): Input correlation function.
+            max_order (int): Maximum harmonic coefficients to compute.
+            inter_correlation ([type]): [description]
+            out ([type]): [description]
+
+        Returns:
+            NDArray[np.complex128]: [description]
+        """
+        if ccf.ndim==2:
+            return self.ccn_from_ccf_diagonal(
+                ccf,
+                max_order=max_order,
+                out=out
+            )
+        elif inter_correlation:
+            return self.ccn_from_ccf_full(
+                ccf,
+                max_order=max_order,
+                out=out
+            )
+        else:
+            return self.ccn_from_ccf_triagonal(
+                ccf,
+                max_order=max_order,
+                out=out
+            )
     @staticmethod 
-    def ccf_mask_correction(ccf_data:NDArray[np.float64], ccf_mask:NDArray[np.bool]) -> tuple((NDArray[np.float64],NDArray[np.bool])):
+    def ccf_mask_correction(ccf_data:NDArray[np.float64],
+                            ccf_mask:NDArray[np.bool_]) -> tuple((NDArray[np.float64],NDArray[np.bool_])):
         r"""Apply mask correction to cross-correlation
 
         Applies mask correction to ccf computed from data*mask (ccf_data) using ccf computed from only the mask (ccf_mask).
@@ -74,247 +226,528 @@ class AngularCorrelator:
         nonzero_mask = (ccf_mask>=1/(2*n_phis))
         np.divide(ccf_data, ccf_mask, out=ccf_data, where=nonzero_mask)
         return ccf_data,nonzero_mask
-
-    def ccn_from_ccf(self,ccf:NDArray[np.float64],max_order: int|None = None) -> NDArray[np.float64]:
-        r"""Compute Fourier series coefficients of cross-correlation.
-
-        Args:
-            ccf: (n_q,n_q,n_phi): Cross-correlation function $C(q_1,q_2,\phi)$.
-            max_order: Maximum computed Fouerier series order. Defaults to None.
-
-        Returns:
-            NDArray[np.float64]: (n_q,n_q,n_orders): Fourier coefficients $C_n(q_1,q_2)$.
-        """
-        rfft = self.rfft
-        if max_order is None:
-            bw = ccf.shape[-1]//2 + 1
-            ccn_workspace = self.ccn_workspace[0,:,:bw]
-        else:
-            bw = max_order+1
-            if  ccf.shape[-1] == 2*max_order:                
-                ccn_workspace = self.ccn_workspace[0,:,:bw]
-            else:
-                ccn_workspace = self.ccn_workspace[0]
-            
-        ccn = np.empty(ccf.shape[:2]+(bw,),dtype = complex)
-        for q1 in range(self.n_radial_samples):
-            rfft(ccf[q1,q1:],axis = -1,norm='forward',out=ccn_workspace[q1:])
-            ccn[q1,q1:] = ccn_workspace[q1:,:bw]
-            # Fill rest by symmetry
-            ccn[q1:,q1] = ccn[q1,q1:].conj()
-        return ccn
     
-    def ccf_from_ccn(self,ccn:NDArray[np.complex128],max_order: int|None = None) -> NDArray[np.float64]:
-        r"""Compute cross-correlation function from its Fourier coefficients.
 
-        Args:
-            ccn: (n_q,n_q,n_orders): Fourier coefficients $C_n(q_1,q_2)$.
-            max_order: Maximum considered Fourier coefficient order. Defaults to None.
-
-        Returns:
-            (n_q,n_q,n_phi): Cross-correlation function $C(q_1,q_2,\phi)$.
-        """
-        irfft = self.irfft
-        if max_order is None:
-            N = (ccn.shape[-1]-1)*2
-        else:
-            ccn = ccn[...,:max_order+1]
-            N = max_order*2
-            
-        ccf = np.empty(ccn.shape[:2]+(N,),dtype = float)
-        for q1 in range(self.n_radial_samples):
-            irfft(ccn[q1,q1:],n=N,axis = -1,norm='forward',out=ccf[q1,q1:])
-            # Fill rest by symmetry
-            ccf[q1:,q1,0] = ccf[q1,q1:,0]
-            ccf[q1:,q1,1:] = ccf[q1,q1:,-1:0:-1]
-        return ccf
-    
-    def _compute_ccf(self, data:NDArray[np.float64])->NDArray[np.float64]:
-        r"""Compute cross-correlation function from polar image.
-
-        Widh data = $I(q,\phi)$ this function computes
-        $C(q_1,q_2,\phi)=\mathfrac{F}\left(I_n(q_1) I_n(q_2)^*\right)$.
-
-        Using the symmetry $C(q1,q2,phi) = C(q2,q1,-phi)$
-
-        Args:
-            data: (n_q,n_phi): image data on a uniform polar grid.
-        Returns:
-            (n_q,n_q,n_phi): Cross-correlation function $C(q_1,q_2,\phi)$.
-        """
-        n_q = self.n_radial_samples
+    # Unmasked ccn routines
+    def _compute_ccn_from_fourier_diagonal(
+        self,
+        fn,
+        gn,
+        out = None,
+        max_order: int | None = None,
+    ):
+        xp = self.xp
+        bw = self._bandwidth(max_order)
+        fn =fn[:,:bw]
+        gn_conj = self.ccn_workspace[0,:,:bw]
+        xp.conjugate(gn[:,:bw],out = gn_conj)
         
-        fn = self.rfft(data,axis=-1,norm='forward')
-        fn_conj = fn.conj()
+        if out is None:
+            out = xp.zeros((self.n_radial_samples,bw),dtype=complex)
+            
+        xp.multiply(fn,gn_conj,out = out)
+        return out
+    def _compute_ccn_from_fourier_triagonal(
+        self,
+        fn,
+        max_order: int | None = None,
+        out: NDArray[np.complex128] | None = None
+    ):
+        n_q = self.n_radial_samples
+        xp = self.xp
+        bw = self._bandwidth(max_order)
 
-        ccf = np.zeros((n_q,n_q,self.n_angular_samples),dtype=float)
+        fn = fn[:,:bw]
+        fn_conj = self.ccn_workspace[1,:,:bw]
+        xp.conjugate(fn,out = fn_conj)
+        
+        if out is None:
+            out = xp.zeros((n_q,n_q,bw),dtype=complex)
+            
+        for q1 in range(n_q):
+            xp.multiply(fn[q1],fn_conj[q1:],out = out[q1,q1:])
+            self._fill_symmetry_ccn(out,q1)
+        return  out
+    def _compute_ccn_from_fourier_full(
+        self,
+        fn,
+        gn,
+        max_order: int | None = None,
+        out: NDArray[np.complex128] | None = None
+    ):
+        n_q = self.n_radial_samples
+        xp = self.xp
+        bw = self._bandwidth(max_order)
+        
+        fn = fn[:,:bw]
+        gn_conj = self.ccn_workspace[1,:,:bw]
+        xp.conjugate(gn[:,:bw],out = gn_conj)
+        
+        if out is None:
+            out = xp.zeros((n_q,n_q,bw),dtype=complex)
+            
+        for q1 in range(n_q):
+            xp.multiply(fn[q1],gn_conj[:],out = out[q1,:])
+        return  out
+    def _compute_ccn(self,
+                     f:NDArray[np.float64],
+                     g:None|NDArray[np.float64]=None,
+                     same_q:bool = False,
+                     max_order: int | None = None,
+                     out: NDArray[np.complex128] | None = None) ->  NDArray[np.complex128]:
+        
+        fn = self.fourier_workspace[0]
+        self._rfft_into(f,fn)
+        if g is None:
+            if same_q:
+                ccn = self._compute_ccn_from_fourier_diagonal(fn,fn,max_order=max_order,out=out)
+            else:
+                ccn = self._compute_ccn_from_fourier_triagonal(fn,max_order=max_order,out=out)
+        else:
+            gn = self.fourier_workspace[1]
+            self._rfft_into(g,gn)
+            if same_q:
+                ccn = self._compute_ccn_from_fourier_diagonal(fn,gn,max_order=max_order,out=out)
+            else:
+                ccn = self._compute_ccn_from_fourier_full(fn,gn,max_order=max_order,out=out)
+        return ccn 
+        
+    # Unmasked ccf routines
+    def _compute_ccf_from_fourier_diagonal(
+        self,
+        fn,
+        gn,
+        out = None
+    ):
+        
+        if out is None:
+            out = self.xp.zeros((self.n_radial_samples,
+                                 self.n_angular_samples),
+                                dtype=np.float64)            
+        ccn_workspace = self.ccn_workspace[1]
+        self._compute_ccn_from_fourier_diagonal(fn,
+                                                gn,
+                                                out=ccn_workspace)
+        self._irfft_into(ccn_workspace,out)
+        return out    
+    def _compute_ccf_from_fourier_triagonal(
+        self,
+        fn,
+        out: NDArray[np.float64] | None = None
+    ):
+        n_q = self.n_radial_samples
+        xp = self.xp
 
-        ircht = self.irfft
-        mult = np.multiply
+        fn_conj = self.ccn_workspace[1,:]
+        xp.conjugate(fn,out = fn_conj)
+
         N = self.n_angular_samples
+        if out is None: 
+            out = xp.zeros((n_q,n_q,N),dtype=np.float64)
+        
         ccn_workspace = self.ccn_workspace[0]
         for q1 in range(n_q):
-            mult(fn[q1],fn_conj[q1:],out = ccn_workspace[q1:])
-            ircht(ccn_workspace[q1:],n=N,axis=-1,norm='forward',out = ccf[q1,q1:])
-            # Fill symmetric part. 
-            ccf[q1:,q1,0] = ccf[q1,q1:,0]
-            ccf[q1:,q1,1:] = ccf[q1,q1:,-1:0:-1]
-        return  ccf
-
-    def _compute_ccn_masked(self,data:NDArray[np.float64],mask:NDArray[np.bool],max_order:int|None = None) -> tuple[NDArray[np.complex128],NDArray[np.bool]]:
-        r"""Compute mask corrected Fourier cofficients of the cross-correlation function.
-
-        Args:
-            data: (n_q,n_phi): Image data on uniform polar grid.
-            mask: Image mask on uniform polar grid.
-            max_order: Maximum computed Fourier series coefficient. Defaults to None.
-
-        Returns:
-            ((n_q,n_q,max_order+1) , (n_q,n_q)): (Fourier coefficients $C_n(q_1,q_2)$, Mask of Fourier coefficients.).
-        """
+            xp.multiply(fn[q1],fn_conj[q1:],out = ccn_workspace[q1:])
+            self._irfft_into(ccn_workspace[q1:],out[q1,q1:])
+            self._fill_symmetry_ccf(out,q1)
+        return  out
+    def _compute_ccf_from_fourier_full(
+        self,
+        fn,
+        gn,
+        out: NDArray[np.float64] | None = None
+    ):
         n_q = self.n_radial_samples
-        
-        # Compute harmonic coefficients of image and mask
-        fmask = mask.astype(float)
-        fn = self.rfft(data*fmask,axis = -1, norm='forward')
-        mn = self.rfft(fmask,axis = -1, norm='forward')
+        xp = self.xp
 
-        fn_conj = fn.conjugate()
-        mn_conj = mn.conjugate()
+        gn_conj = self.ccn_workspace[1,:]
+        xp.conjugate(gn,out = gn_conj)
 
-        if max_order is None:
-            bw = self.n_angular_samples//2+1
-        else:
-            bw = max_order+1
-
-        ccn_workspace = self.ccn_workspace
-        ccf_workspace = self.ccf_workspace
-        mask_workspace = self.mask_workspace
-        ccn = np.zeros((n_q,n_q,bw),dtype=complex)
-        ccn_mask = np.zeros((n_q,n_q,bw),dtype=bool)
-
-        #map numpy methods
-        mult = np.multiply
-        divide = np.divide
-        irfft = self.irfft
-        rfft = self.rfft
         N = self.n_angular_samples
+        if out is None: 
+            out = xp.zeros((n_q,n_q,N),dtype=np.float64)
         
-        # start loop over q1 of C(q1,q2,phi)
+        ccn_workspace = self.ccn_workspace[0]
         for q1 in range(n_q):
-            # Compute parts of the cross correlation of image and mask (only unsymmetric part)
-            mult(fn[q1],fn_conj[q1:],out = ccn_workspace[0,q1:])
-            mult(mn[q1],mn_conj[q1:],out = ccn_workspace[1,q1:])
-            irfft(ccn_workspace[0,q1:],n=N,axis=-1,norm='forward',out = ccf_workspace[0,q1:])
-            irfft(ccn_workspace[1,q1:],n=N,axis=-1,norm='forward',out = ccf_workspace[1,q1:])
-            
-            # compute the boolean mask at wich ccf is defined (i.e. could be computed)
-            mask_workspace[q1:]=ccf_workspace[1,q1:]>1/(2*N)
-            # correct the computed image cross correlation by dividing out the mask correlation
-            divide(ccf_workspace[0,q1:],ccf_workspace[1,q1:],where = mask_workspace[q1:],out=ccf_workspace[2,q1:])
-            
-            ccn_mask[q1,q1:] = np.all(mask_workspace[q1:],axis = -1)[...,None]
-            rfft(ccf_workspace[2,q1:],axis = -1, norm='forward',out = ccn_workspace[2,q1:])
-            ccn[q1,q1:]=ccn_workspace[2,q1:,:bw]
-            
-            # Use the Symmetrie C(q1,q2,phi)=C(q2,q1,-phi) which imposes
-            # the symmetry Cn(q1,q2) = Cn(q2,q1)^* on its harmonic coefficents
-            ccn[q1+1:,q1,:] = ccn[q1,q1+1:,:].conj()
-            ccn_mask[q1+1:,q1] = ccn_mask[q1,q1+1:]
-            
-        return ccn, ccn_mask
-    def _compute_ccf_masked(self,data:NDArray[np.float64],mask:NDArray[np.bool],max_order:int|None = None) -> tuple[NDArray[np.float64],NDArray[np.bool]]:
-        r"""Compute the mask corrected cross-correlation function.
+            xp.multiply(fn[q1],gn_conj,out = ccn_workspace)
+            self._irfft_into(ccn_workspace,out[q1])
+        return  out
+    def _compute_ccf(self,
+                     f:NDArray[np.float64],
+                     g:None|NDArray[np.float64]=None,
+                     same_q:bool = False,
+                     out: NDArray[np.float64] | None = None) ->  NDArray[np.float64]:
 
-        Args:
-            data: Image data on uniform polar grid.
-            mask: (n_1,n_phi): Image mask on uniform polar grid.
-            max_order: Maximum considered Fourier series order. Defaults to None.
-
-        Returns:
-            ((n_q,n_q,2*max_order), (n_q,n_q,2*max_order)): (Cross-correlation function $C(q_1,q_2,\phi)$, Mask of cross-correlation function.)
-                If max_order == None the last dimension has size n_phi.
-        """
-        
-        r"""Compute the mask corrected cross-correlation function.
-
-        Parameters
-        ----------
-        data : NDArray[np.float64]
-            Image data on uniform polar grid.
-        mask : NDArray[np.bool]
-            (n_1,n_phi): Image mask on uniform polar grid.
-        max_order : int|None
-            Maximum considered Fourier series order.
-
-        Returns
-        -------
-        tuple(NDArray[np.float64],NDArray[np.bool])
-            ((n_q,n_q,2*max_order), (n_q,n_q,2*max_order)): (Cross-correlation function $C(q_1,q_2,\phi)$, Mask of cross-correlation function.)
-            If max_order == None the last dimension has size n_phi.
-        
-        """
-        if max_order is None:
-            ccf,ccf_mask = self._compute_ccf_masked_full(data,mask)
+        fn = self.fourier_workspace[0]
+        self._rfft_into(f,fn)
+        if g is None:
+            if same_q:
+                ccf = self._compute_ccf_from_fourier_diagonal(fn,fn,out=out)
+            else:
+                ccf = self._compute_ccf_from_fourier_triagonal(fn,out = out)
         else:
-            ccn,ccn_mask = self._compute_ccn_masked(data,mask,max_order=max_order)
-            ccf = self.ccf_from_ccn(ccn,max_order=max_order)
-            ccf_mask = np.zeros(ccf.shape,bool)
-            ccf_mask[...] = ccn_mask[...,0,None]
-        return ccf,ccf_mask
-    def _compute_ccf_masked_full(self,data:NDArray[np.float64],mask:NDArray[np.bool]) -> tuple[NDArray[np.float64],NDArray[np.bool]]:
-        r"""Compute Cross-correlation function using all harmonic orders.
-
-        Args:
-            data: (n_q,n_phi): Image data on uniform polar grid.
-            mask: (n_q,n_phi): Image mask on uniform polar grid.
-
-        Returns:
-            (n_q,n_q,n_phi),(n_q,n_q,n_phi): (Cross-correlation $C(q_1,q_2,\phi)$, Mask of cross-correlation).
-        """
-        # Compute harmonic coefficients of image and mask
-        fmask = mask.astype(float)
-        fn = self.rfft(data*fmask,axis = -1, norm='forward')
-        mn = self.rfft(fmask,axis = -1, norm='forward')
-
-        fn_conj = fn.conjugate()
-        mn_conj = mn.conjugate()
-        
-        bw = self.n_angular_samples//2+1
-        N = self.n_angular_samples
-        n_q = self.n_radial_samples
-        
-        ccn_workspace = self.ccn_workspace
-        ccf_workspace = self.ccf_workspace
-        ccf = np.zeros((n_q,n_q,N),dtype=float)
-        ccf_mask = np.zeros((n_q,n_q,N),dtype=bool)
-        
-        #map numpy methods
-        mult = np.multiply
-        divide = np.divide
-        irfft = self.irfft
-        
-        # start loop over q1 of C(q1,q2,phi)
-        for q1 in range(n_q):
-            # Compute parts of the cross correlation of image and mask (only unsymmetric part)
-            mult(fn[q1],fn_conj[q1:],out = ccn_workspace[0,q1:])
-            mult(mn[q1],mn_conj[q1:],out = ccn_workspace[1,q1:])
-            irfft(ccn_workspace[0,q1:],n=N,axis=-1,norm='forward',out = ccf_workspace[0,q1:])
-            irfft(ccn_workspace[1,q1:],n=N,axis=-1,norm='forward',out = ccf_workspace[1,q1:])
-            
-            # compute the boolean mask at wich ccf is defined (i.e. could be computed)
-            ccf_mask[q1,q1:]=ccf_workspace[1,q1:]>1/(2*N)
-            # correct the computed image cross correlation by dividing out the mask correlation
-            divide(ccf_workspace[0,q1:],ccf_workspace[1,q1:],where = ccf_mask[q1,q1:],out=ccf[q1,q1:])
-            
-            # Fill rest using the Symmetrie C(q1,q2,phi)=C(q2,q1,-phi)
-            ccf[q1:,q1,0] = ccf[q1,q1:,0]
-            ccf[q1:,q1,1:] = ccf[q1,q1:,-1:0:-1]
-            ccf_mask[q1:,q1,0] = ccf_mask[q1,q1:,0]
-            ccf_mask[q1:,q1,1:] = ccf_mask[q1,q1:,-1:0:-1]                                
-        return ccf,ccf_mask
+            gn = self.fourier_workspace[1]
+            self._rfft_into(g,gn)
+            if same_q:
+                ccf = self._compute_ccf_from_fourier_diagonal(fn,gn,out=out)
+            else:
+                ccf = self._compute_ccf_from_fourier_full(fn,gn,out=out)
+        return ccf
     
-    def ccn(self,data:NDArray[np.float64], mask: NDArray[np.bool]|None  = None, max_order:int|None = None) -> NDArray[np.complex128]|tuple[NDArray[np.complex128],NDArray[np.bool]]:
+
+    # masked ccf routines
+    def _compute_ccf_masked_from_fourier_diagonal(
+        self,
+        fn,
+        fmask_n,
+        gn,
+        gmask_n,
+        out = None,
+        out_mask = None
+    ):        
+        if out is None:
+            out = self.xp.zeros((self.n_radial_samples,
+                                 self.n_angular_samples),
+                                dtype=np.float64)
+        if out_mask is None:
+            out_mask = self.xp.zeros((self.n_radial_samples,
+                                      self.n_angular_samples),
+                                     dtype=bool)
+            
+        ccn_workspace = self.ccn_workspace[1] # 0 is used in ccn_from_fourier_diagonal
+        ccn_mask_workspace = self.ccn_workspace[2]
+        ccf_workspace = self.ccf_workspace[0]
+        ccf_mask_workspace = self.ccf_workspace[1]
+
+        # Compute ccn for data and mask
+        self._compute_ccn_from_fourier_diagonal(fn,gn,out=ccn_workspace)
+        self._compute_ccn_from_fourier_diagonal(fmask_n,gmask_n,out=ccn_mask_workspace)        
+        self._irfft_into(ccn_workspace,ccf_workspace)
+        self._irfft_into(ccn_mask_workspace,ccf_mask_workspace)
+
+        # compute the boolean mask at wich ccf is defined (i.e. could be computed)
+        out_mask[:]= ccf_mask_workspace>1/(2*self.n_angular_samples)
+        # correct the computed image cross correlation by dividing out the mask correlation
+        self._divide_into(ccf_workspace,ccf_mask_workspace,out_mask,out)
+        return out,out_mask    
+    def _compute_ccf_masked_from_fourier_triagonal(
+        self,
+        fn,
+        mask_n,
+        out: NDArray[np.float64] | None = None,
+        out_mask: NDArray[np.bool_] | None = None
+    ):
+        n_q = self.n_radial_samples
+        xp = self.xp
+
+        fn_conj = self.ccn_workspace[0]
+        mask_n_conj = self.ccn_workspace[1]
+        xp.conjugate(fn,out = fn_conj)
+        xp.conjugate(mask_n,out = mask_n_conj)
+
+        N = self.n_angular_samples
+        if out is None:
+            out = xp.zeros((n_q,n_q,N),dtype=np.float64)
+        if out_mask is None:
+            out_mask = xp.zeros((n_q,n_q,N),dtype=bool)
+
+        mult = xp.multiply
+        ccn_workspace = self.ccn_workspace[2]
+        ccn_mask_workspace = self.ccn_workspace[3]
+        ccf_workspace = self.ccf_workspace[0]
+        ccf_mask_workspace = self.ccf_workspace[1]
+        mask_thresh = 1/(2*N)
+        for q1 in range(n_q):
+            # Compute ccn for data and mask
+            mult(fn[q1],fn_conj[q1:],out = ccn_workspace[q1:])
+            mult(mask_n[q1],mask_n_conj[q1:],out = ccn_mask_workspace[q1:])            
+            self._irfft_into(ccn_workspace[q1:],ccf_workspace[q1:])
+            self._irfft_into(ccn_mask_workspace[q1:],ccf_mask_workspace[q1:])
+            
+            # compute the boolean mask at wich ccf is defined (i.e. could be computed)
+            out_mask[q1,q1:]= ccf_mask_workspace[q1:] > mask_thresh
+            self._divide_into(ccf_workspace[q1:],ccf_mask_workspace[q1:],out_mask[q1,q1:],out[q1,q1:])
+            
+            # fill by triagonal symmetry
+            self._fill_symmetry_ccf(out,q1)
+            self._fill_symmetry_ccf(out_mask,q1)
+        return  out,out_mask    
+    def _compute_ccf_masked_from_fourier_full(
+        self,
+        fn,
+        fmask_n,
+        gn,
+        gmask_n,
+        out: NDArray[np.float64] | None = None,
+        out_mask: NDArray[np.bool_] | None = None
+    ):
+        n_q = self.n_radial_samples
+        xp = self.xp
+        
+        gn_conj = self.ccn_workspace[0]
+        gmask_n_conj = self.ccn_workspace[1]
+        xp.conjugate(gn,out = gn_conj)
+        xp.conjugate(gmask_n,out = gmask_n_conj)
+
+        N = self.n_angular_samples
+        if out is None:
+            out = xp.zeros((n_q,n_q,N),dtype=np.float64)
+        if out_mask is None:
+            out_mask = xp.zeros((n_q,n_q,N),dtype=bool)
+            
+        ccn_workspace = self.ccn_workspace[2]
+        ccn_mask_workspace = self.ccn_workspace[3]
+        ccf_workspace = self.ccf_workspace[0]
+        ccf_mask_workspace = self.ccf_workspace[1]
+        mask_thresh = 1/(2*N)
+        for q1 in range(n_q):
+            # Compute ccn for data and mask
+            xp.multiply(fn[q1],gn_conj,out = ccn_workspace)
+            xp.multiply(fmask_n[q1],gmask_n_conj,out = ccn_mask_workspace)            
+            self._irfft_into(ccn_workspace,ccf_workspace)
+            self._irfft_into(ccn_mask_workspace,ccf_mask_workspace)
+            
+            # compute the boolean mask at wich ccf is defined (i.e. could be computed)
+            out_mask[q1]= ccf_mask_workspace > mask_thresh
+            self._divide_into(ccf_workspace,ccf_mask_workspace,out_mask[q1],out[q1])
+            
+        return  out,out_mask    
+    def _compute_ccf_masked(self,
+                            f:NDArray[np.float64],
+                            f_mask:NDArray[np.bool_],
+                            g: NDArray[np.float64]|None=None,
+                            g_mask: NDArray[np.bool_]|None = None,
+                            same_q:bool = False,
+                            out: NDArray[np.float64] | None = None,
+                            out_mask: NDArray[np.bool_] | None = None) ->  NDArray[np.float64]:
+        xp = self.xp
+        fma = self.image_workspace[0]
+        mask = self.image_workspace[2]
+        fn = self.fourier_workspace[0]
+        fmask_n = self.fourier_workspace[1]
+        if g is None:
+            mask[...] = f_mask
+            xp.multiply(f,mask,out = fma)
+            self._rfft_into(fma,fn)
+            self._rfft_into(mask,fmask_n)
+            if same_q:
+                ccf = self._compute_ccf_masked_from_fourier_diagonal(fn,fmask_n,fn,fmask_n,out=out,out_mask=out_mask)
+            else:
+                ccf = self._compute_ccf_masked_from_fourier_triagonal(fn,fmask_n,out=out,out_mask=out_mask)
+        else:
+            gma = self.image_workspace[1]
+            gn = self.fourier_workspace[2]
+            gmask_n = self.fourier_workspace[3]
+                        
+            mask[...] = f_mask
+            xp.multiply(f,mask,out = fma)
+            self._rfft_into(mask,fmask_n)
+            self._rfft_into(fma,fn)
+            mask[...] = g_mask
+            xp.multiply(g,mask,out = gma)
+            self._rfft_into(mask,gmask_n)
+            self._rfft_into(gma,gn)
+
+            if same_q:
+                ccf = self._compute_ccf_masked_from_fourier_diagonal(fn,fmask_n,
+                                                                     gn,gmask_n,
+                                                                     out=out,out_mask=out_mask)
+            else:
+                ccf = self._compute_ccf_masked_from_fourier_full(fn,fmask_n,
+                                                                 gn,gmask_n,
+                                                                 out=out,out_mask=out_mask)
+        return ccf
+    
+    # masked ccn routines
+    def _compute_ccn_masked_from_fourier_diagonal(
+        self,
+        fn,
+        fmask_n,
+        gn,
+        gmask_n,
+        max_order: int | None = None,
+        out = None,
+        out_mask = None,
+    ):
+        xp = self.xp
+        bw = self._bandwidth(max_order)
+        if out is None:
+            out = xp.zeros((self.n_radial_samples,bw),dtype = complex)
+        if out_mask is None:
+            out_mask = xp.zeros((self.n_radial_samples,bw),dtype = bool)
+            
+        ccf_workspace = self.ccf_workspace[2] # 0 and 1 are used in ccn_masked routine
+        ccn_workspace = self.ccn_workspace[3] # 0-2 are used in ccn_masked routine
+        mask_workspace = self.mask_workspace
+        rfft = self._rfft_into
+        self._compute_ccf_masked_from_fourier_diagonal(
+            fn,fmask_n,
+            gn,gmask_n,
+            out = ccf_workspace,
+            out_mask = mask_workspace            
+        )
+
+        rfft(ccf_workspace,ccn_workspace)
+        out[...] = ccn_workspace[:,:bw
+                                 ]
+        xp.prod(mask_workspace,axis = -1,out=out_mask[:,0])
+        out_mask[...] = out_mask[..., :1]
+        return out[:,:bw],out_mask
+    def _compute_ccn_masked_from_fourier_triagonal(
+        self,
+        fn,
+        mask_n,
+        max_order: int|None = None,
+        out: NDArray[np.complex128] | None = None,
+        out_mask: NDArray[np.bool_] | None = None
+    ):
+        n_q = self.n_radial_samples
+        bw = self._bandwidth(max_order)
+        xp = self.xp
+
+        fn_conj = self.ccn_workspace[0]
+        mask_n_conj = self.ccn_workspace[1]
+        xp.conjugate(fn,out = fn_conj)
+        xp.conjugate(mask_n,out = mask_n_conj)
+
+        if out is None:
+            out = xp.zeros((n_q,n_q,bw),dtype=complex)
+        if out_mask is None:
+            out_mask = xp.zeros((n_q,n_q,bw),dtype=bool)
+
+        ccn_workspace = self.ccn_workspace[2]
+        ccn_mask_workspace = self.ccn_workspace[3]
+        ccf_workspace = self.ccf_workspace[0]
+        ccf_mask_workspace = self.ccf_workspace[1]
+        ccf_workspace2 = self.ccf_workspace[2]
+        mask_workspace = self.mask_workspace
+        mask_thresh = 1/(2*self.n_angular_samples)
+        rfft = self._rfft_into
+        fill_by_symmetry = self._fill_symmetry_ccn
+        for q1 in range(n_q):
+            # Compute ccn for data and mask
+            xp.multiply(fn[q1],fn_conj[q1:],out = ccn_workspace[q1:])
+            xp.multiply(mask_n[q1],mask_n_conj[q1:],out = ccn_mask_workspace[q1:])            
+            self._irfft_into(ccn_workspace[q1:],ccf_workspace[q1:])
+            self._irfft_into(ccn_mask_workspace[q1:],ccf_mask_workspace[q1:])
+            # compute the boolean mask at wich ccf is defined (i.e. could be computed)
+            mask_workspace[q1:]= ccf_mask_workspace[q1:] > mask_thresh
+            self._divide_into(ccf_workspace[q1:],ccf_mask_workspace[q1:],mask_workspace[q1:],ccf_workspace2[q1:])
+            out[q1,q1:] = rfft(ccf_workspace2[q1:],ccn_workspace[q1:])[:,:bw]
+            xp.prod(mask_workspace[q1:],axis=-1,out = out_mask[q1,q1:,0])
+            out_mask[q1,q1:] = out_mask[q1,q1:, :1]
+            
+            fill_by_symmetry(out,q1)
+            out_mask[q1+1:,q1] = out_mask[q1,q1+1:]
+        return  out,out_mask    
+    def _compute_ccn_masked_from_fourier_full(
+        self,
+        fn,
+        fmask_n,
+        gn,
+        gmask_n,
+        max_order: int | None = None,
+        out: NDArray[np.complex128] | None = None,
+        out_mask: NDArray[np.bool_] | None = None
+    ):
+        n_q = self.n_radial_samples
+        bw = self._bandwidth(max_order)
+        xp = self.xp
+
+        gn_conj = self.ccn_workspace[0]
+        gmask_n_conj = self.ccn_workspace[1]
+        xp.conjugate(gn,out = gn_conj)
+        xp.conjugate(gmask_n,out = gmask_n_conj)
+
+        if out is None:
+            out = xp.zeros((n_q,n_q,bw),dtype=complex)
+        if out_mask is None:
+            out_mask = xp.zeros((n_q,n_q,bw),dtype=bool)
+            
+        ccn_workspace = self.ccn_workspace[2]
+        ccn_mask_workspace = self.ccn_workspace[3]
+        ccf_workspace = self.ccf_workspace[0]
+        ccf_mask_workspace = self.ccf_workspace[1]
+        ccf_workspace2 = self.ccf_workspace[2]
+        mask_workspace = self.mask_workspace
+        mask_thresh = 1/(2*self.n_angular_samples)
+        rfft = self._rfft_into
+        for q1 in range(n_q):
+            # Compute ccn for data and mask
+            xp.multiply(fn[q1],gn_conj,out = ccn_workspace)
+            xp.multiply(fmask_n[q1],gmask_n_conj,out = ccn_mask_workspace)            
+            self._irfft_into(ccn_workspace,ccf_workspace)
+            self._irfft_into(ccn_mask_workspace,ccf_mask_workspace)
+            
+            # compute the boolean mask at wich ccf is defined (i.e. could be computed)
+            mask_workspace[...] = ccf_mask_workspace > mask_thresh
+            self._divide_into(ccf_workspace,ccf_mask_workspace,
+                              mask_workspace,ccf_workspace2)
+            out[q1] = rfft(ccf_workspace2,ccn_workspace)[:,:bw]
+            #xp.prod(mask_workspace,axis=-1,out = out_mask[q1])
+            xp.prod(mask_workspace,axis=-1,out = out_mask[q1,:,0])
+            out_mask[q1,:] = out_mask[q1,:, :1]
+            
+        return  out,out_mask    
+    def _compute_ccn_masked(self,
+                            f:NDArray[np.float64],
+                            f_mask:NDArray[np.bool_],
+                            g: NDArray[np.float64]|None=None,
+                            g_mask: NDArray[np.bool_]|None = None,
+                            same_q:bool = False,
+                            max_order: int | None = None,
+                            out: NDArray[np.complex128] | None = None,
+                            out_mask: NDArray[np.bool_] | None = None) ->  NDArray[np.complex128]:
+        xp = self.xp
+        fma = self.image_workspace[0]
+        mask = self.image_workspace[2]
+        fn = self.fourier_workspace[0]
+        fmask_n = self.fourier_workspace[1]
+        if g is None:
+            mask[...] = f_mask
+            xp.multiply(f,mask,out = fma)
+            self._rfft_into(fma,fn)
+            self._rfft_into(mask,fmask_n)
+            if same_q:
+                ccn = self._compute_ccn_masked_from_fourier_diagonal(fn,fmask_n,fn,fmask_n,max_order = max_order,out=out,out_mask=out_mask)
+            else:
+                ccn = self._compute_ccn_masked_from_fourier_triagonal(fn,fmask_n,max_order = max_order,out=out,out_mask=out_mask)
+        else:
+            gma = self.image_workspace[1]
+            gn = self.fourier_workspace[2]
+            gmask_n = self.fourier_workspace[3]
+                        
+            mask[...] = f_mask
+            xp.multiply(f,mask,out = fma)
+            self._rfft_into(mask,fmask_n)
+            self._rfft_into(fma,fn)
+            mask[...] = g_mask
+            xp.multiply(g,mask,out = gma)
+            self._rfft_into(mask,gmask_n)
+            self._rfft_into(gma,gn)
+
+            if same_q:
+                ccn = self._compute_ccn_masked_from_fourier_diagonal(fn,fmask_n,
+                                                                     gn,gmask_n,
+                                                                     max_order= max_order,
+                                                                     out=out,out_mask=out_mask)
+            else:
+                ccn = self._compute_ccn_masked_from_fourier_full(fn,fmask_n,
+                                                                 gn,gmask_n,
+                                                                 max_order=max_order,
+                                                                 out=out,out_mask=out_mask)
+        return ccn
+    
+    # public facing API
+    def ccn(self,
+            data:NDArray[np.float64],
+            mask: NDArray[np.bool_]|None  = None,
+            data2:NDArray[np.float64]|None = None,
+            mask2: NDArray[np.bool_]|None  = None,
+            same_q: bool = False,
+            max_order:int|None = None,
+            out: NDArray[np.complex128] | None = None,
+            out_mask: NDArray[np.bool_] | None = None) -> NDArray[np.complex128]|tuple[NDArray[np.complex128],NDArray[np.bool_]]:
         r"""Compute Fourier coefficients of the corss-correlation funcion.
 
         Lowering max_order does not save computation time but simply cuts the output to the required maximum order therefore saving RAM.
@@ -324,8 +757,12 @@ class AngularCorrelator:
             mask: If the (n_q,n_phi) Image mask array is provided this
                 routine automatically applies mask correction to the
                 computed Fourier coefficients.. Defaults to None.
-            max_order: Maximum computed Fourier coefficient order. Defaults to None.
-
+            data2: (n_q,n_phi): Optional second image data for inter_pattern correlation computation.
+            mask2: (n_q,n_phi): Optional second image mask for inter_pattern correlation computation.
+            same_q: bool: Whether to compute correlations for q1=q2 or q1!=q2.
+            max_order: int: maximum computed harmonic order of the cross-correlation function.
+            out: (n_q,n_q,max_order+1)|(n_q,max_order+1): Optional array to store the output ccn to. 
+            out_mask: (n_q,n_q,max_order+1)|(n_q,max_order+1): Optional array to store the output ccn mask to.  
         Returns:
             If mask was provided it returns both the mask corrected
                 Fourier coefficients and their mask. Other wise it just
@@ -345,14 +782,26 @@ class AngularCorrelator:
             ```
         """
         if mask is None:
-            ccf = self._compute_ccf(data)
-            ccn = self.ccn_from_ccf(ccf,max_order = max_order)
+            ccn = self._compute_ccn(data,g = data2,same_q = same_q,max_order = max_order,out=out)
             return ccn
         else:
-            ccn,ccn_mask = self._compute_ccn_masked(data,mask,max_order = max_order)
-            return ccn,ccn_mask
-    
-    def ccf(self,data:NDArray[np.float64], mask:NDArray[np.bool]|None = None, max_order:int|None = None) -> NDArray[np.float64]|tuple[NDArray[np.float64],NDArray[np.bool]]:
+            ccn,ccn_mask = self._compute_ccn_masked(data,
+                                                    mask,
+                                                    g = data2,
+                                                    g_mask = mask2,
+                                                    same_q = same_q,
+                                                    max_order = max_order,
+                                                    out=out,
+                                                    out_mask=out_mask)
+            return ccn,ccn_mask        
+    def ccf(self,
+            data:NDArray[np.float64],
+            mask:NDArray[np.bool_]|None = None,
+            data2:NDArray[np.float64]|None = None,
+            mask2: NDArray[np.bool_]|None  = None,
+            same_q: bool = False,
+            out: NDArray[np.float64] | None = None,
+            out_mask: NDArray[np.bool_] | None = None) -> NDArray[np.float64]|tuple[NDArray[np.float64],NDArray[np.bool_]]:
         r"""Compute the corss-correlation funcion.
 
         Lowering max_order does not save computation time but simply cuts the output to the required maximum order therefore saving RAM.
@@ -362,8 +811,12 @@ class AngularCorrelator:
             mask: If the (n_q,n_phi) Image mask array is provided this
                 routine automatically applies mask correction to the
                 computed Fourier coefficients.. Defaults to None.
+            data2:NDArray[np.float64]|None = None,
+            mask2: NDArray[np.bool_]|None  = None,
+            same_q: bool = False,
             max_order: Maximum computed Fourier coefficient order. Defaults to None.
-
+            out: (n_q,n_q,n_phi)|(n_q,n_phi): Optional array to store the output ccf to. 
+            out_mask: (n_q,n_q,n_phi)|(n_q,n_phi): Optional array to store the output ccf mask to.  
         Returns:
             If mask was provided it returns both the mask corrected
                 cross-correlation and its mask. Other wise it just
@@ -379,14 +832,20 @@ class AngularCorrelator:
 
             data = np.random.rand(n_q,n_phi)
             mask = np.random.rand(n_q,n_phi)>0.7
-            ccf,ccf_mask = a.ccf(data,mask,max_order=31)
+            ccf,ccf_mask = a.ccf(data,mask)
             ```
         """
         if mask is None:
-            ccf = self._compute_ccf(data)
+            ccf = self._compute_ccf(data,g=data2,same_q=same_q,out = out)
             return ccf
         else:
-            ccf,ccf_mask = self._compute_ccf_masked(data,mask,max_order = max_order)
+            ccf,ccf_mask = self._compute_ccf_masked(data,
+                                                    mask,
+                                                    g = data2,
+                                                    g_mask = mask2,
+                                                    same_q = same_q,
+                                                    out=out,
+                                                    out_mask=out_mask)
             return ccf,ccf_mask
 
 class _CumulativeVarianceBase:
@@ -429,7 +888,6 @@ class _CumulativeVarianceBase:
         new_data = tuple(np.moveaxis(d,axis,0) for d in data)
         for args in zip(*new_data):
             obj.update(*args)
-            obj.update(*args)
         return obj
     
     def update(self,*args) -> Self:
@@ -471,20 +929,23 @@ class _CumulativeVarianceBase:
     def data(self) ->tuple((NDArray,NDArray,NDArray)):
         return (self._mean,self.count,self.m2)
     def copy(self):
-        return CumulativeVariance(mean = np.array(self.mean),count = np.array(self.count) ,m2=np.array(self.m2))
-
+        return type(self)(mean = np.array(self.mean),
+                          count = np.array(self.count),
+                          m2=np.array(self.m2),
+                          bessels_correction = self.bessels_correction,
+                          no_data_to_nan = self.no_data_to_nan)
 class CumulativeVarianceMasked(_CumulativeVarianceBase):
     '''
     Allows to computes the variance incrementally. 
     Slightly modified version of Welford's online algorithm, to allow computation for masked data:
     Algorithm taken from wikipedia: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
     '''    
-    def update(self,val:NDArray,mask:NDArray[np.bool])->Self:
+    def update(self,val:NDArray,mask:NDArray[np.bool_])->Self:
         """Update variance with a single data point and mask.
         
         Args:
             val (NDArray): New data point.
-            mask (NDArray[np.bool]): Mask of the new data point.
+            mask (NDArray[np.bool_]): Mask of the new data point.
         
         Returns:
             CumulativeVarianceMasked: self
@@ -510,7 +971,7 @@ class CumulativeVarianceMasked(_CumulativeVarianceBase):
         delta = mask*(val - self._mean)
         nzero_mask = self.count>0
         w[~nzero_mask]=0
-        np.divide(delta,self.count.astype(float),where=nzero_mask,out=w)
+        np.divide(delta,self.count.astype(np.float64),where=nzero_mask,out=w)
         np.add(self._mean,w,out=self._mean)
         delta2 = mask*val - self._mean
         np.add(self.m2,(delta * delta2.conj()).real,out=self.m2)
@@ -539,13 +1000,19 @@ class CumulativeVarianceMasked(_CumulativeVarianceBase):
             # cv1.merge(cv2)  # Same as the following line
             cv1.merge_from_data(cv1._mean, cv1.count, cv1.m2)
             ```
-        """        
+        """
+        if self.workspace is None:
+            self.count = np.array(count, copy=True)
+            self._mean = np.array(mean, copy=True)
+            self.m2 = np.array(m2, copy=True)
+            self.workspace = np.zeros_like(self._mean)
+            return self
         # merges the data of another CummulativeVariance instance to create the combined average and variance.
         count_a = np.array(self.count)
         np.add(self.count,count,out=self.count)
         delta = mean-self._mean
         nzero_mask = self.count>0
-        count = count.astype(float)
+        count = count.astype(np.float64)
         count[nzero_mask]/=self.count[nzero_mask] 
         temp = delta*count
         np.add(self._mean,temp,out=self._mean)
@@ -610,6 +1077,12 @@ class CumulativeVariance(_CumulativeVarianceBase):
             cv1.merge_from_data(cv1._mean,cv1.count,cv1.m2)
             ```
         """
+        if self.workspace is None:
+            self.count = np.array(count, copy=True)
+            self._mean = np.array(mean, copy=True)
+            self.m2 = np.array(m2, copy=True)
+            self.workspace = np.zeros_like(self._mean)
+            return self
         # merges the data of another CummulativeVariance instance to create the combined average and variance.
         count_a = np.array(self.count)
         np.add(self.count,count,out=self.count)
@@ -618,7 +1091,6 @@ class CumulativeVariance(_CumulativeVarianceBase):
         np.add(self._mean,temp,out=self._mean)
         np.add(self.m2,m2 + (delta*count_a*temp.conj()).real,out = self.m2)
         return self
-
 class AveragedAngularCorrelationMasked(CumulativeVarianceMasked):
     r"""
     Helper class to easily compute averages of angular cross-correlations or their Fourier coefficients.
@@ -630,7 +1102,6 @@ class AveragedAngularCorrelationMasked(CumulativeVarianceMasked):
         n_angular_samples (int): Number of uniform angular sampling points.
         max_order (int|None): Maximum considered harmonic expansion order (default = `n_angular_samples//2`) setting lower values saves RAM.
         compute_coefficients (bool): Whether to compute the harmonic coefficients of the average cross-correlation function or the average function itself.
-        use_cuda (bool): Whether or not to use cuda for ffts.
         ac (AngularCorrelator): AngularCorrelator instance.
     """
     def __init__(self,
@@ -638,18 +1109,38 @@ class AveragedAngularCorrelationMasked(CumulativeVarianceMasked):
                  n_angular_samples:int=1024,
                  max_order:None|int = None,
                  compute_coefficients:bool = True,
-                 use_cuda:bool=False,
+                 same_q = False,
+                 inter_correlation = False,
                  **kwargs):
         self._max_order = max_order
         self._compute_coefficients = compute_coefficients
-        self.ac = AngularCorrelator(n_radial_samples,n_angular_samples,use_cuda=use_cuda)
+        self.ac = AngularCorrelator(n_radial_samples,n_angular_samples,use_cuda=False)
+        self.inter_correlation = inter_correlation
+        self.same_q = same_q
         if compute_coefficients:
-            self.process_data = self.ac.ccn
+            self.process_data = partial(self.ac.ccn,
+                                        max_order = max_order,
+                                        same_q=same_q)
         else:
-            self.process_data = self.ac.ccf
-            
+            self.process_data = partial(self.ac.ccf,
+                                        same_q=same_q)
+
         super().__init__(**kwargs)
 
+    def copy(self):
+        new = type(self)(n_radial_samples=self.ac.n_radial_samples,
+                         n_angular_samples=self.ac.n_angular_samples,
+                         max_order = self._max_order,
+                         compute_coefficients = self._compute_coefficients,
+                         same_q = self.same_q,
+                         inter_correlation = self.inter_correlation)
+        
+        new.count = self.count.copy()
+        new.m2 = self.m2.copy()
+        new._mean = self._mean.copy()
+        new.bessels_correction = self.bessels_correction
+        new.no_data_to_nan = self.no_data_to_nan
+        return new
     @property
     def max_order(self):
         # Hiding max_order behind property since it should not be changed after instanciation.
@@ -661,7 +1152,7 @@ class AveragedAngularCorrelationMasked(CumulativeVarianceMasked):
         return self._compute_coefficients
 
     @classmethod    
-    def from_dataset(cls,*data:ArrayLike,axis=0,max_order=None,compute_coefficients=True,use_cuda=False) -> Self:       
+    def from_dataset(cls,*data:ArrayLike,axis=0,max_order=None,compute_coefficients=True) -> Self:       
         r''' Creates instance from a dataset calculating var and mean along a specified axis.
         
         Args:
@@ -672,12 +1163,15 @@ class AveragedAngularCorrelationMasked(CumulativeVarianceMasked):
         '''
         new_data = tuple(np.moveaxis(d,axis,0) for d in data)
         n_q,n_phi = data[0].shape[-2:]
-        obj = cls(n_q,n_phi,max_order=max_order,compute_coefficients=compute_coefficients,use_cuda=use_cuda)
+        obj = cls(n_q,n_phi,max_order=max_order,compute_coefficients=compute_coefficients)
         for args in zip(*new_data):
             obj.update(*args)
         return obj
-
-    def update(self,data:NDArray[np.float64],mask:NDArray[np.bool]) -> Self:
+    def update(self,
+               data:NDArray[np.float64],
+               mask:NDArray[np.bool_],
+               data2:NDArray[np.float64]|None=None,
+               mask2:NDArray[np.bool_]|None  =None) -> Self:
         r''' Update average cross-correlation by a single scattering pattern.
 
         Args:
@@ -687,9 +1181,16 @@ class AveragedAngularCorrelationMasked(CumulativeVarianceMasked):
         Returns:
             Updated instance.
         '''
-        ccf,ccf_mask = self.process_data(data,mask,max_order = self.max_order)
-        super().update(ccf,ccf_mask)
-
+        if self.inter_correlation:
+            if data2 is None:
+                raise ValueError("Inter-correlation computation requires the argument data2 to be given but data2 is None.")
+            if mask2 is None:
+                raise ValueError("Inter-correlation computation requires the argument mask2 to be given but mask2 is None.")
+            cc,cc_mask = self.process_data(data,mask=mask,data2=data2,mask2=mask2)
+        else:
+            cc,cc_mask = self.process_data(data,mask)
+        super().update(cc,cc_mask)
+        return self
 class AveragedAngularCorrelation(CumulativeVariance):
     r"""Helper class to make computation of averages of angular cross-correlations or their coefficients easy.
 
@@ -735,7 +1236,6 @@ class AveragedAngularCorrelation(CumulativeVariance):
         n_angular_samples (int): Number of uniform angular sampling points.
         max_order (int|None): Maximum considered harmonic expansion order (default = `n_angular_samples//2`) setting lower values saves RAM.
         compute_coefficients (bool): Whether to compute the harmonic coefficients of the average cross-correlation function or the average function itself.
-        use_cuda (bool): Whether or not to use cuda for ffts.
         ac (AngularCorrelator): AngularCorrelator instance.
     """
     def __init__(self,
@@ -743,30 +1243,52 @@ class AveragedAngularCorrelation(CumulativeVariance):
                  n_angular_samples=1024,
                  max_order = None,
                  compute_coefficients = True,
-                 use_cuda=False,
+                 same_q = False,
+                 inter_correlation = False,
                  **kwargs):
         self._max_order = max_order
         self._compute_coefficients = compute_coefficients
-        self.ac = AngularCorrelator(n_radial_samples,n_angular_samples,use_cuda=use_cuda)
+        self.ac = AngularCorrelator(n_radial_samples,n_angular_samples,use_cuda=False)
+        self.inter_correlation=inter_correlation
+        self.same_q = same_q
         if compute_coefficients:
-            self.process_data = self.ac.ccn
+            self.process_data = partial(self.ac.ccn,
+                                        max_order = max_order,
+                                        same_q=same_q)
         else:
-            self.process_data = self.ac.ccf
+            self.process_data = partial(self.ac.ccf,
+                                        same_q=same_q)
+                                        
             
         super().__init__(**kwargs)
-
+        
+    def copy(self):
+        new = type(self)(n_radial_samples=self.ac.n_radial_samples,
+                         n_angular_samples=self.ac.n_angular_samples,
+                         max_order = self._max_order,
+                         compute_coefficients = self._compute_coefficients,
+                         same_q = self.same_q,
+                         inter_correlation = self.inter_correlation)
+        
+        new.count = self.count.copy()
+        new.m2 = self.m2.copy()
+        new._mean = self._mean.copy()
+        new.bessels_correction = self.bessels_correction
+        new.no_data_to_nan = self.no_data_to_nan
+        return new
+    
     @property
     def max_order(self):
         # Hiding max_order behind property since it should not be changed after instanciation.
         return self._max_order
-
+    
     @property
     def compute_coefficients(self):
         # Hiding compute_coefficients behind property since it should not be changed after instanciation.
         return self._compute_coefficients
-
+    
     @classmethod    
-    def from_dataset(cls,*data:ArrayLike,axis=0,max_order=None,compute_coefficients=True,use_cuda=False) -> Self:
+    def from_dataset(cls,*data:ArrayLike,axis=0,max_order=None,compute_coefficients=True) -> Self:
         r'''Creates istance from an array(dataset), calculating var and mean along a specified axis.
         
         Args:
@@ -777,11 +1299,12 @@ class AveragedAngularCorrelation(CumulativeVariance):
         '''
         new_data = tuple(np.moveaxis(d,axis,0) for d in data)
         n_q,n_phi = data[0].shape[-2:]
-        obj = cls(n_q,n_phi,max_order=max_order,compute_coefficients=compute_coefficients,use_cuda=use_cuda)
+        obj = cls(n_q,n_phi,max_order=max_order,compute_coefficients=compute_coefficients)
         for args in zip(*new_data):
             obj.update(*args)
         return obj
-    def update(self,data):
+    
+    def update(self,data,data2 = None):
         r''' Update average cross-correlation by a single scattering pattern.
 
         Args:
@@ -790,6 +1313,12 @@ class AveragedAngularCorrelation(CumulativeVariance):
         Returns:
             Updated instance.
         '''
-        ccf = self.process_data(data,max_order = self.max_order)
-        super().update(ccf)
+        if self.inter_correlation:
+            if data2 is None:
+                raise ValueError("Inter-correlation computation requires the argument data2 to be given but data2 is None.")
+            cc = self.process_data(data,data2=data2)
+        else:
+            cc = self.process_data(data)
+        super().update(cc)
+        return self
 
