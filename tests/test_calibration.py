@@ -466,7 +466,7 @@ def test_DetectorData_from_instrument():
 def test_DetectorData_list_by_instrument():
     assert DetectorData.list_by_instrument('SCS') == [
         'SCS_DET_DSSC1M-1', 'SCS_HRIXS_JUNGF', 'SCS_XOX_GH21',
-        'SCS_XOX_GH22', 'SCS_DET_DSSC2']
+        'SCS_XOX_GH22', 'SCS_DET_DSSC2', 'SCS_DET_DSSCSM']
 
 
 @pytest.mark.vcr
