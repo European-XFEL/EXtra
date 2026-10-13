@@ -22,6 +22,7 @@ Fixed:
 - [TOFAnalogResponse][extra.applications.TOFAnalogResponse] has improved numerical stability (!538).
 
 Fixed:
+- Added support in [OpticalLaserDelay][extra.components.OpticalLaserDelay] for changed key names of underlying delay sources (!577).
 - Fixed support for future PythonCall.jl versions in
   [imshow2()][extra.utils.imshow2] (!547).
 - Fixed reading of the acquisition time for newer Karabacon versions in the
