@@ -18,6 +18,9 @@
 
 Added:
 - [XCCA](applications/xcca.md) Toolbox for the computation of X-ray cross-correlation analysis related quantities.
+- [DetectorData][extra.calibration.DetectorData] can now look up detectors by instrument
+  at a specific point in the past, with a `snapshot_at` parameter.
+
 Fixed:
 - [TOFAnalogResponse][extra.applications.TOFAnalogResponse] has improved numerical stability (!538).
 

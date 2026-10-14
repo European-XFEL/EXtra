@@ -182,25 +182,31 @@ class DetectorData(Mapping):
         return cls._from_detector(detector_row, pdu_snapshot_at, client)
 
     @classmethod
-    def from_instrument(cls, instrument, identifier=None, pdu_snapshot_at=None,
-                        client=None):
+    def from_instrument(cls, instrument, identifier=None, snapshot_at=None, *,
+                        pdu_snapshot_at=None, client=None):
         """Look up a detector and its modules by instrument.
 
         `identifier` may be a string restricting the result using Unix
         shell-style glob patterns.
 
-        `pdu_snapshot_at` should either be an ISO 8601 compatible string
+        `snapshot_at` should either be an ISO 8601 compatible string
         or a datetime-like object. It may also be a DataCollection
         object from EXtra-data to use the beginning of the run as a
-        point in time.
+        point in time. This is used both for detectors in the instrument, and
+        modules in the detector.
+
+        `pdu_snapshot_at` is like `snapshot_at`, but is used only when finding
+        modules in the selected detector.
         """
 
         client = client or get_client()
         instrument_id = client.instrument_by_identifier(instrument)['id']
 
         rows = [det for det in client.get(
-            'detectors/get_all_by_instrument', {'instrument_id': instrument_id}
-        ) if identifier is None or fnmatch(det['identifier'], identifier)]
+            'detectors/get_all_by_instrument', {
+                'instrument_id': instrument_id,
+                'snapshot_at': client.format_time(snapshot_at),
+        }) if identifier is None or fnmatch(det['identifier'], identifier)]
 
         if not rows:
             raise ValueError(f'No such detector found for {instrument}')
@@ -209,18 +215,22 @@ class DetectorData(Mapping):
                 f'Multiple such detectors found for {instrument}: ' +
                 ', '.join([detector['identifier'] for detector in rows]))
 
+        if pdu_snapshot_at is None:
+            pdu_snapshot_at = snapshot_at
         return cls._from_detector(rows[0], pdu_snapshot_at, client)
 
     @staticmethod
-    def list_by_instrument(instrument, client=None):
+    def list_by_instrument(instrument, *, snapshot_at=None, client=None):
         """List all detectors by instrument."""
 
         client = client or get_client()
         instrument_id = client.instrument_by_identifier(instrument)['id']
 
         return [det['identifier'] for det in
-                client.get('detectors/get_all_by_instrument',
-                           {'instrument_id': instrument_id})]
+                client.get('detectors/get_all_by_instrument', {
+                    'instrument_id': instrument_id,
+                    'snapshot_at': client.format_time(snapshot_at),
+                })]
 
     def __getitem__(self, key):
         if isinstance(key, int):

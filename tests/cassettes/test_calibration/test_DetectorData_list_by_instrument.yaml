@@ -26,7 +26,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 12 Oct 2026 08:40:34 GMT
+      - Wed, 14 Oct 2026 09:47:29 GMT
       Etag:
       - W/"9ec4cec974b56aebafbb6dc312056934"
       Keep-Alive:
@@ -52,9 +52,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 64460430-61be-4a41-b662-c5bf8a18bfe1
+      - 433fb0e5-b077-4d83-af5c-149148f42c93
       X-Runtime:
-      - '0.041932'
+      - '0.027158'
       X-Xss-Protection:
       - '0'
     status:
@@ -86,7 +86,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 12 Oct 2026 08:40:34 GMT
+      - Wed, 14 Oct 2026 09:47:29 GMT
       Etag:
       - W/"c707e2c93200c3b80579cc4c14e8005c"
       Keep-Alive:
@@ -116,9 +116,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 1c27d7fd-4b2b-4a17-b78f-0b738a09914a
+      - 1b54a88a-1f91-44de-b6d1-c86b6ccc2e1a
       X-Runtime:
-      - '0.023865'
+      - '0.030372'
       X-Total-Count:
       - '1'
       X-Total-Pages:
@@ -142,7 +142,7 @@ interactions:
       content-type:
       - application/json
     method: GET
-    uri: http://exflcalproxy.desy.de:8080/api/detectors/get_all_by_instrument?instrument_id=1
+    uri: http://exflcalproxy.desy.de:8080/api/detectors/get_all_by_instrument?instrument_id=1&snapshot_at=2026-10-14T10%3A39%3A00%2B00%3A00
   response:
     body:
       string: '[{"id":1,"name":"SCS_DET_DSSC1M-1","identifier":"SCS_DET_DSSC1M-1","alias":null,"karabo_name":"SCS_DET_DSSC1M-1","karabo_id_control":"SCS_CDIDET_DSSC","source_name_pattern":null,"number_of_modules":16,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":1,"detector_id":1},{"instrument_id":7,"detector_id":1}]},{"id":46,"name":"SCS_HRIXS_JUNGF","identifier":"SCS_HRIXS_JUNGF","alias":null,"karabo_name":"SCS_HRIXS_JUNGF","karabo_id_control":"SCS_HRIXS_JUNGF","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":1,"detector_id":46}]},{"id":48,"name":"SCS_XOX_GH21","identifier":"SCS_XOX_GH21","alias":null,"karabo_name":"SCS_XOX_GH21","karabo_id_control":"SCS_XOX_GH21","source_name_pattern":null,"number_of_modules":1,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":1,"detector_id":48}]},{"id":49,"name":"SCS_XOX_GH22","identifier":"SCS_XOX_GH22","alias":null,"karabo_name":"SCS_XOX_GH22","karabo_id_control":"SCS_XOX_GH22","source_name_pattern":null,"number_of_modules":1,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":1,"detector_id":49}]},{"id":66,"name":"SCS_DET_DSSC2","identifier":"SCS_DET_DSSC2","alias":null,"karabo_name":"SCS_DET_DSSC2","karabo_id_control":"SCS_CDIDET_DSSC2","source_name_pattern":null,"number_of_modules":16,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":1,"detector_id":66}]},{"id":75,"name":"SCS_DET_DSSCSM","identifier":"SCS_DET_DSSCSM","alias":null,"karabo_name":"SCS_DET_DSSCSM","karabo_id_control":"","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":1,"detector_id":75}]}]'
@@ -154,7 +154,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 12 Oct 2026 08:40:34 GMT
+      - Wed, 14 Oct 2026 09:47:29 GMT
       Etag:
       - W/"badaa3060a85af17e3bfa3f6e447e688"
       Keep-Alive:
@@ -180,9 +180,9 @@ interactions:
       X-Powered-By:
       - Phusion Passenger(R)
       X-Request-Id:
-      - 75ba7cab-378d-4a01-beb4-01c9cc082b08
+      - 481e3b8b-07bd-4dad-9d1b-5b9ee8f8df48
       X-Runtime:
-      - '0.038857'
+      - '0.052220'
       X-Xss-Protection:
       - '0'
     status:
