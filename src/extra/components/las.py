@@ -143,7 +143,11 @@ class OpticalLaserDelay:
         if trigger:
             self._trigger_src = data[trigger]
 
-            if 'currentOpticalDelay' in self._trigger_src:
+            if 'lbsync.currentOpticalDelay' in self._trigger_src:
+                # PplDelayControlML post-Aug26
+                self._trigger_delay_key = self._trigger_src[
+                    'lbsync.currentOpticalDelay']
+            elif 'currentOpticalDelay' in self._trigger_src:
                 # PplDelayControlML
                 self._trigger_delay_key = self._trigger_src[
                     'currentOpticalDelay']
