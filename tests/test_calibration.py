@@ -51,7 +51,7 @@ def vcr_config():
 def reset_calibration_client():
     """Reset the global client object after each test, to avoid leaking state"""
     yield
-    extra.calibration.global_client = None
+    extra.calibration.calcat.global_client = None
 
 
 @pytest.mark.vcr
@@ -445,26 +445,30 @@ def test_DetectorData_from_identifier():
         dssc.detector_type
 
 
+detector_snapshot_kw = dict(
+    snapshot_at=datetime(2026, 10, 14, 10, 39, tzinfo=timezone.utc)
+)
+
 @pytest.mark.vcr
 def test_DetectorData_from_instrument():
-    with pytest.raises(ValueError):
-        DetectorData.from_instrument('SPB')  # More than one detector.
+    with pytest.raises(ValueError):  # More than one detector.
+        DetectorData.from_instrument('SPB', **detector_snapshot_kw)
 
-    with pytest.raises(ValueError):
-        DetectorData.from_instrument('SPB', '*JF*')  # More than one JF.
+    with pytest.raises(ValueError):  # More than one JF.
+        DetectorData.from_instrument('SPB', '*JF*', **detector_snapshot_kw)
 
     # Sufficiently narrow glob.
-    jf4m = DetectorData.from_instrument('SPB', '*JF4M', **pdu_date_kw)
+    jf4m = DetectorData.from_instrument('SPB', '*JF4M', **detector_snapshot_kw, **pdu_date_kw)
     assert jf4m.identifier == 'SPB_IRDA_JF4M'
 
     # Instrument with single detector.
-    hirex = DetectorData.from_instrument('SA1', **pdu_date_kw)
+    hirex = DetectorData.from_instrument('SA1', **detector_snapshot_kw, **pdu_date_kw)
     assert hirex.identifier == 'SA1_XTD9_HIREX'
 
 
 @pytest.mark.vcr
 def test_DetectorData_list_by_instrument():
-    assert DetectorData.list_by_instrument('SCS') == [
+    assert DetectorData.list_by_instrument('SCS', **detector_snapshot_kw) == [
         'SCS_DET_DSSC1M-1', 'SCS_HRIXS_JUNGF', 'SCS_XOX_GH21',
         'SCS_XOX_GH22', 'SCS_DET_DSSC2', 'SCS_DET_DSSCSM']
 
