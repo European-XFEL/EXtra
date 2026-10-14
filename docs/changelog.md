@@ -22,6 +22,8 @@ Fixed:
 - [TOFAnalogResponse][extra.applications.TOFAnalogResponse] has improved numerical stability (!538).
 
 Fixed:
+- Fixed negative results from [PulsePattern.pulse_periods][extra.components.pulses.PulsePattern.pulse_periods] in case of
+  non-monotonically increasing pulse IDs (!579).
 - Added support in [OpticalLaserDelay][extra.components.OpticalLaserDelay] for changed key names of underlying delay sources (!577).
 - Fixed support for future PythonCall.jl versions in
   [imshow2()][extra.utils.imshow2] (!547).
