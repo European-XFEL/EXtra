@@ -813,13 +813,12 @@ class CookieboxCalibration(SerializableMixin):
         if len(p) == 0:
             logging.info(f"No peaks found in eTOF {tof_id}. "
                          f"Check the data quality. "
-                         f"I will set the RoI to collect non-sense,"
-                         f" so this TOF data will be meaningless. "
-                         f"It will also be masked.")
+                         f"I will set the RoI to the full range."
+                         )
             self.auger_start_roi[tof_id] = 0
-            self.start_roi[tof_id] = 100
+            self.start_roi[tof_id] = 0
             self.stop_roi[tof_id] = N
-            self.mask[tof_id] = False
+            #self.mask[tof_id] = False
             return
         idx = np.argmin(p)
         pos = p[idx] - 2*w[idx]
