@@ -293,6 +293,10 @@ def test_pulse_periods(mock_spb_aux_run, source):
     assert (periods.iloc[:10] == 42.2).all()
     assert (periods.iloc[10:] == np.inf).all()
 
+    # Test non-monotonically increasing pulse IDs.
+    mp = ManualPulses.from_constant_pulses(
+        [1000, 1001, 1002], [100, 102, 104, -1])
+    np.testing.assert_array_equal(mp.pulse_periods(), 2)
 
 
 @pytest.mark.parametrize('source', **pattern_sources)
