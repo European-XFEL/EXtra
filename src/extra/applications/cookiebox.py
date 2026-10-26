@@ -1220,12 +1220,13 @@ class CookieboxCalibration(SerializableMixin):
 
         Args:
           trace: A pre-processed trace retrieved with the *same* `AdqRawChannel` settings as this calibration object.
-                 Its axes are expected to be ('trainId', 'pulseIndex', 'sample', 'tof').
+                 Its axes are expected to be either ('trainId', 'pulseIndex', 'sample', 'tof'),
+                 or ('pulse', 'sample', 'tof').
                  It is recommended to use always `load_trace` to obtain this.
           subtract_offset: Whether to subtract a offset.
 
         Returns: the calibrated data as an xarray DataArray.
-                 The axes of the output are ('trainId', 'pulseIndex', 'energy', 'tof').
+                 The axes of the output with the axis energy replacing sample.
         """
         tof_idx = [idx
                    for idx, tof_id in enumerate(self.kwargs_adq.keys())
@@ -1240,6 +1241,15 @@ class CookieboxCalibration(SerializableMixin):
                             dims=('energy', 'tof'),
                             coords=dict(energy=self.energy_axis,
                                         tof=tof_ids))
+        stacked = False
+        if not 'pulse' in trace.dims:
+            stacked = True
+            if "pulseIndex" in trace.dims:
+                in_trace = trace.stack(pulse=("trainId", "pulseIndex"))
+            elif "pulseId" in trace.dims:
+                in_trace = trace.stack(pulse=("trainId", "pulseId"))
+            else:
+                raise Exception("Expected either pulseIndex or pulseId as dimensions in input.")
 
         def apply_correction(tof_id, tof_trace):
             """
@@ -1248,18 +1258,16 @@ class CookieboxCalibration(SerializableMixin):
             from scipy.interpolate import PchipInterpolator
             logging.info(f"Correcting eTOF {tof_id} ...")
             # get it in the right order
-            pulses = tof_trace.transpose('trainId', 'pulseIndex', 'sample')
+            pulses = tof_trace.transpose('pulse', 'sample')
             coords = pulses.coords
 
             pulses = pulses.to_numpy()
             # the sample axis to use for the calibration
-            n_t, n_p, n_s = pulses.shape
-            pulses = np.reshape(pulses, (n_t*n_p, n_s))
-
+            n_p, n_s = pulses.shape
 
             # read model parameters
             if self.model_params[tof_id][0] == 0:
-                return np.zeros((n_trains, n_pulses, n_e), dtype=np.float32)
+                return np.zeros((n_p, n_e), dtype=np.float32)
             # create energy axis
             ts = coords['sample'].to_numpy()
             e = model(ts, *self.model_params[tof_id])
@@ -1274,30 +1282,37 @@ class CookieboxCalibration(SerializableMixin):
             #                       axis=1,
             #                       arr=pulses)
             n_e = len(self.energy_axis)
-            o = np.reshape(o, (n_t, n_p, n_e))
+            o = np.reshape(o, (n_p, n_e))
             # subtract offset
             if subtract_offset:
-                o = o - self.offset[tof_id][None, None, :]
+                o = o - self.offset[tof_id][None, :]
             # apply Jacobian
-            o = o*self.jacobian[tof_id][None, None, :]
+            o = o*self.jacobian[tof_id][None, :]
 
 
             #np.nan_to_num(o, copy=False)
             # regenerate DataArray
             o = xr.DataArray(data=o,
-                             dims=('trainId', 'pulseIndex', 'energy'),
-                             coords=dict(trainId=coords['trainId'],
-                                         pulseIndex=coords['pulseIndex'],
+                             dims=('pulse', 'energy'),
+                             coords=dict(pulse=coords['pulse'],
                                          energy=self.energy_axis
                                         )
                             )
             return o
 
-        outdata = [apply_correction(tof_id, trace.sel(tof=tof_id))
+        outdata = [apply_correction(tof_id, in_trace.sel(tof=tof_id))
                    for tof_id in tof_ids]
         outdata = xr.concat(outdata, pd.Index(tof_ids, name="tof"))
-        outdata = outdata.transpose('trainId', 'pulseIndex', 'energy', 'tof')
-        outdata_corr = outdata/norm.to_numpy()[None, None, :, :]
+        outdata = outdata.transpose(..., 'energy', 'tof')
+
+        # add extra dimensions in the transmission correction factor
+        n = norm.to_numpy()[None, :, :]
+
+        # apply transmission correction
+        outdata_corr = outdata/n
+
+        if stacked:
+            outdata_corr = outdata_corr.unstack("pulse")
 
         return outdata_corr
 
