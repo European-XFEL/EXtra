@@ -1250,6 +1250,8 @@ class CookieboxCalibration(SerializableMixin):
                 in_trace = trace.stack(pulse=("trainId", "pulseId"))
             else:
                 raise Exception("Expected either pulseIndex or pulseId as dimensions in input.")
+        else:
+            in_trace = trace
 
         def apply_correction(tof_id, tof_trace):
             """
