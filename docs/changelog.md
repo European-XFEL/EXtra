@@ -30,6 +30,8 @@ Fixed:
   [imshow2()][extra.utils.imshow2] (!547).
 - Fixed reading of the acquisition time for newer Karabacon versions in the
   [Scantool](extra.components.Scantool) component (!547).
+- Fixed data format for calibration in [CookieboxCalibration][extra.applications.CookieboxCalibration],
+  so that it accepts both stacked pulses and train IDs and pulse ID/indices separately (!588).
 
 ## [2026.1.1]
 
