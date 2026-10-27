@@ -561,7 +561,6 @@ def test_deconvolve(mock_sqs_etof_calibration_run, tmp_path):
 
     # read data
     data = cal.load_data(mock_sqs_etof_calibration_run.select_trains(np.s_[10:12]))
-    data = data.stack(pulse=("trainId", "pulseIndex"))
     # apply NN method
     tof_response.apply(data.sel(tof=0), nonneg=True, method="nn_matrix", n_iter=10)
     # apply TV method
