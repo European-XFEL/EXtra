@@ -419,7 +419,10 @@ class TOFAnalogResponse(SerializableMixin):
         peaks = peaks[:2]
         double_peak = np.zeros_like(this_h)
         double_peak[peaks] = this_h[peaks]
-        return double_peak, np.min(peaks)
+        min_peaks = -1
+        if len(peaks) > 0:
+            min_peaks = np.min(peaks)
+        return double_peak, min_peaks
 
     def shift_h(self, data, h_axis):
         """
@@ -520,6 +523,8 @@ class TOFAnalogResponse(SerializableMixin):
             this_h /= np.amax(this_h)
             if self.deconvolve:
                 this_t, p = self.estimate_truth(this_h)
+                if p < 0:
+                    continue
                 try:
                     h_dec = tv_deconvolution(this_h, np.roll(this_t, -p), Lambda=1, nonneg=False)
                 except np.linalg.LinAlgError:
