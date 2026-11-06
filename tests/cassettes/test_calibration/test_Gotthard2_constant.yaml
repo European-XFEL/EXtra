@@ -1,0 +1,2434 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/me
+  response:
+    body:
+      string: '{"id":-9,"email":"admin@example.com","provider":"local","contact_email":"admin@example.com","name":"Admin
+        User","first_name":"Admin","last_name":"User","nickname":null,"uid":null,"ldap_synced_at":null,"flg_service_account":true,"flg_ldap_account_valid":false,"roles":["admin"]}'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '277'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:30 GMT
+      Etag:
+      - W/"9ec4cec974b56aebafbb6dc312056934"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 579976c9-1fd3-461e-b559-724188dc5fc0
+      X-Runtime:
+      - '0.030882'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/detectors?identifier=FXE_XAD_G2XES
+  response:
+    body:
+      string: '[{"id":33,"name":"FXE_XAD_G2XES","identifier":"FXE_XAD_G2XES","alias":null,"karabo_name":"FXE_XAD_G2XES","karabo_id_control":"","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":6,"detector_id":33}]}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '310'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:30 GMT
+      Etag:
+      - W/"d43cb2ebbeb4d05f9d40ee1ed4ac1e68"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - a8dfcd0f-4c41-4fba-8ce7-663f79466bff
+      X-Runtime:
+      - '0.024096'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=33&pdu_snapshot_at=2022-07-10+11%3A11%3A11.11111%2B00%3A00
+  response:
+    body:
+      string: '[{"id":189,"physical_name":"GH2-0118","karabo_da":"GH201","virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"detector_type_id":11,"detector_id":33,"module_number":null,"flg_available":true,"description":null,"detector":{"id":33,"name":"FXE_XAD_G2XES","identifier":"FXE_XAD_G2XES","alias":null,"karabo_name":"FXE_XAD_G2XES","karabo_id_control":"","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":11,"name":"Gotthard2-Type","flg_available":true,"description":null,"data_frame_size":3840}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '610'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:30 GMT
+      Etag:
+      - W/"80569e21f6d4a6f315626a727b2cbc41"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 2dc39802-8ced-44eb-a55a-d404bafbf2a4
+      X-Runtime:
+      - '0.723126'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=OffsetGotthard2
+  response:
+    body:
+      string: '[{"id":49,"name":"OffsetGotthard2","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '126'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:31 GMT
+      Etag:
+      - W/"e66e1231acb23ca839823400b95df3ab"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 2a86afc6-8d74-4382-8e2b-02b98dd4784e
+      X-Runtime:
+      - '0.023597'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=NoiseGotthard2
+  response:
+    body:
+      string: '[{"id":47,"name":"NoiseGotthard2","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '125'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:31 GMT
+      Etag:
+      - W/"7236061c5f3392bc56c78fff663930ba"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 3dbcdea0-6227-4e3c-a5ab-3cae917a3ae4
+      X-Runtime:
+      - '0.024847'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=BadPixelsDarkGotthard2
+  response:
+    body:
+      string: '[{"id":46,"name":"BadPixelsDarkGotthard2","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '134'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:31 GMT
+      Etag:
+      - W/"f44e198ac5db1f1ade60f92f75cf124d"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 27a4d4f2-1c72-4653-a1ad-a9baf82ea9bf
+      X-Runtime:
+      - '0.021771'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=RelativeGainGotthard2
+  response:
+    body:
+      string: '[{"id":45,"name":"RelativeGainGotthard2","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '133'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:31 GMT
+      Etag:
+      - W/"556948e5b2ccd20b90db7b8874f3a05d"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 05e2939d-8cd6-4f1b-8227-43c10f12f40d
+      X-Runtime:
+      - '0.026531'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=LUTGotthard2
+  response:
+    body:
+      string: '[{"id":48,"name":"LUTGotthard2","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '124'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:31 GMT
+      Etag:
+      - W/"70808d31655a61ddde32810c731802eb"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 771103f1-ddf9-4f1a-a5e5-df05cbea4477
+      X-Runtime:
+      - '0.028072'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"parameters_conditions_attributes": [{"parameter_name": "Sensor Bias Voltage",
+      "value": 200.0}, {"parameter_name": "Acquisition rate", "value": 1.1}, {"parameter_name":
+      "Exposure time", "value": 0.0}, {"parameter_name": "Exposure period", "value":
+      0.0}, {"parameter_name": "Single photon", "value": 0.0}]}'
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '306'
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=FXE_XAD_G2XES&calibration_id=%5B49%2C+47%2C+46%2C+45%2C+48%5D&karabo_da=&event_at=2022-07-10+11%3A11%3A11.11111%2B00%3A00&pdu_snapshot_at=2022-07-10+11%3A11%3A11.11111%2B00%3A00&begin_at_strategy=closest
+  response:
+    body:
+      string: '[{"id":136961,"name":"20220725_091821_sIdx=0","file_name":"cal.1658740700.2984622.h5","path_to_file":"xfel/cal/gotthard2-type/gh2-0118/","data_set_name":"/GH2-0118/OffsetGotthard2/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-07-08T02:00:00.000+02:00","end_validity_at":null,"begin_at":"2022-07-08T02:00:00.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"PSI
+        initial constant.","report_id":null,"description":"","created_at":"2022-07-25T11:18:21.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/136961","calibration_constant":{"id":33556,"name":"Gotthard2-Type_OffsetGotthard2_Gotthard2
+        Defmu74m+DYmLDtYCKlJ3PhWQ==\nmu74m+DYmLDtYCKlJ3PhWQ-2","detector_type_id":11,"calibration_id":49,"condition_id":10846,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        offset","created_at":"2022-07-25T11:18:21.000+02:00","updated_at":"2025-11-28T09:49:25.000+01:00"},"physical_detector_unit":{"id":189,"physical_name":"GH2-0118","detector_type_id":11,"flg_available":true,"description":null,"created_at":"2022-07-07T17:57:02.000+02:00","updated_at":"2022-07-07T17:57:02.000+02:00","karabo_da":"GH201","detector_id":33,"virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"GH201","detector_id_at_ccv_begin_at":33,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":171472,"name":"20230719_134958_sIdx=0","file_name":"cal.1689774597.10672.h5","path_to_file":"xfel/cal/gotthard2-type/gh2-0118/","data_set_name":"/GH2-0118/NoiseGotthard2/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-19T15:31:17.000+02:00","end_validity_at":null,"begin_at":"2023-07-19T15:31:17.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900390
+        runs:20 21 22","report_id":null,"description":"","created_at":"2023-07-19T15:49:58.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/171472","calibration_constant":{"id":33564,"name":"Gotthard2-Type_NoiseGotthard2_Gotthard2
+        DefhkI24QyG7kSVKglxYSrD6Q==\n-2","detector_type_id":11,"calibration_id":47,"condition_id":10847,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        noise","created_at":"2023-01-20T16:04:06.000+01:00","updated_at":"2025-11-28T09:49:28.000+01:00"},"physical_detector_unit":{"id":189,"physical_name":"GH2-0118","detector_type_id":11,"flg_available":true,"description":null,"created_at":"2022-07-07T17:57:02.000+02:00","updated_at":"2022-07-07T17:57:02.000+02:00","karabo_da":"GH201","detector_id":33,"virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"GH201","detector_id_at_ccv_begin_at":33,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":171473,"name":"20230719_134959_sIdx=0","file_name":"cal.1689774598.2786348.h5","path_to_file":"xfel/cal/gotthard2-type/gh2-0118/","data_set_name":"/GH2-0118/BadPixelsDarkGotthard2/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-19T15:31:17.000+02:00","end_validity_at":null,"begin_at":"2023-07-19T15:31:17.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900390
+        runs:20 21 22","report_id":null,"description":"","created_at":"2023-07-19T15:49:59.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/171473","calibration_constant":{"id":33565,"name":"Gotthard2-Type_BadPixelsDarkGotthard2_Gotthard2
+        DefhkI24QyG7kSVKglxYSrD6Q==\n-2","detector_type_id":11,"calibration_id":46,"condition_id":10847,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        mask of dark bad pixels","created_at":"2023-01-20T16:04:08.000+01:00","updated_at":"2025-11-28T09:49:28.000+01:00"},"physical_detector_unit":{"id":189,"physical_name":"GH2-0118","detector_type_id":11,"flg_available":true,"description":null,"created_at":"2022-07-07T17:57:02.000+02:00","updated_at":"2022-07-07T17:57:02.000+02:00","karabo_da":"GH201","detector_id":33,"virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"GH201","detector_id_at_ccv_begin_at":33,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":136967,"name":"20220726_140053_sIdx=0","file_name":"cal.1658844051.740191.h5","path_to_file":"xfel/cal/gotthard2-type/gh2-0118/","data_set_name":"/GH2-0118/RelativeGainGotthard2/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-07-26T16:00:21.000+02:00","end_validity_at":null,"begin_at":"2022-07-26T16:00:21.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"/gpfs/exfel/data/user/mramilli/gotthard2/constants/GH2-0118/gain_map_GH2-0118.h5","report_id":null,"description":"","created_at":"2022-07-26T16:00:53.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/136967","calibration_constant":{"id":20459,"name":"Gotthard2-Type_RelativeGainGotthard2_Gotthard2
+        DefNdTzOBH74TL3kLZ2ahwIXg==\n","detector_type_id":11,"calibration_id":45,"condition_id":6283,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        relative gain","created_at":"2022-07-26T16:00:52.000+02:00","updated_at":"2022-07-26T16:00:52.000+02:00"},"physical_detector_unit":{"id":189,"physical_name":"GH2-0118","detector_type_id":11,"flg_available":true,"description":null,"created_at":"2022-07-07T17:57:02.000+02:00","updated_at":"2022-07-07T17:57:02.000+02:00","karabo_da":"GH201","detector_id":33,"virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"GH201","detector_id_at_ccv_begin_at":33,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":136962,"name":"20220725_091845_sIdx=0","file_name":"cal.1658740724.2774765.h5","path_to_file":"xfel/cal/gotthard2-type/gh2-0118/","data_set_name":"/GH2-0118/LUTGotthard2/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-07-08T02:00:00.000+02:00","end_validity_at":null,"begin_at":"2022-07-08T02:00:00.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"PSI
+        initial constant.","report_id":null,"description":"","created_at":"2022-07-25T11:18:45.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/136962","calibration_constant":{"id":33557,"name":"Gotthard2-Type_LUTGotthard2_Gotthard2
+        Defmu74m+DYmLDtYCKlJ3PhWQ==\nmu74m+DYmLDtYCKlJ3PhWQ-2","detector_type_id":11,"calibration_id":48,"condition_id":10846,"flg_auto_approve":true,"flg_available":true,"description":"Look
+        Up Table to convert from 12 bit to 10 bit","created_at":"2022-07-25T11:18:45.000+02:00","updated_at":"2025-11-28T09:49:25.000+01:00"},"physical_detector_unit":{"id":189,"physical_name":"GH2-0118","detector_type_id":11,"flg_available":true,"description":null,"created_at":"2022-07-07T17:57:02.000+02:00","updated_at":"2022-07-07T17:57:02.000+02:00","karabo_da":"GH201","detector_id":33,"virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"GH201","detector_id_at_ccv_begin_at":33,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '7320'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:31 GMT
+      Etag:
+      - W/"7bb0bc840a8ce68758a991ebe94c8c30"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 051a9d4b-6462-426c-8f3d-d145cb90a3a6
+      X-Runtime:
+      - '0.826165'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/me
+  response:
+    body:
+      string: '{"id":-9,"email":"admin@example.com","provider":"local","contact_email":"admin@example.com","name":"Admin
+        User","first_name":"Admin","last_name":"User","nickname":null,"uid":null,"ldap_synced_at":null,"flg_service_account":true,"flg_ldap_account_valid":false,"roles":["admin"]}'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '277'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:42 GMT
+      Etag:
+      - W/"9ec4cec974b56aebafbb6dc312056934"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 878a5131-bac9-4a68-9614-6df077b9aab3
+      X-Runtime:
+      - '0.023864'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/detectors?identifier=FXE_XAD_G2XES
+  response:
+    body:
+      string: '[{"id":33,"name":"FXE_XAD_G2XES","identifier":"FXE_XAD_G2XES","alias":null,"karabo_name":"FXE_XAD_G2XES","karabo_id_control":"","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":6,"detector_id":33}]}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '310'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:42 GMT
+      Etag:
+      - W/"d43cb2ebbeb4d05f9d40ee1ed4ac1e68"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 9d35b172-8626-4f9d-8acc-bf69949422e6
+      X-Runtime:
+      - '0.028605'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=33&pdu_snapshot_at=2022-07-10+11%3A11%3A11.11111%2B00%3A00
+  response:
+    body:
+      string: '[{"id":189,"physical_name":"GH2-0118","karabo_da":"GH201","virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"detector_type_id":11,"detector_id":33,"module_number":null,"flg_available":true,"description":null,"detector":{"id":33,"name":"FXE_XAD_G2XES","identifier":"FXE_XAD_G2XES","alias":null,"karabo_name":"FXE_XAD_G2XES","karabo_id_control":"","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":11,"name":"Gotthard2-Type","flg_available":true,"description":null,"data_frame_size":3840}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '610'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:42 GMT
+      Etag:
+      - W/"80569e21f6d4a6f315626a727b2cbc41"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - c61754f0-1c69-4d73-9889-97a9ca5f78b4
+      X-Runtime:
+      - '0.614716'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=OffsetGotthard2
+  response:
+    body:
+      string: '[{"id":49,"name":"OffsetGotthard2","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '126'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:42 GMT
+      Etag:
+      - W/"e66e1231acb23ca839823400b95df3ab"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 322708dd-c5cd-4aed-a143-a183210fcd81
+      X-Runtime:
+      - '0.033174'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=NoiseGotthard2
+  response:
+    body:
+      string: '[{"id":47,"name":"NoiseGotthard2","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '125'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:42 GMT
+      Etag:
+      - W/"7236061c5f3392bc56c78fff663930ba"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 115aa2ff-c78b-4b60-b14a-cf74e8a74dbd
+      X-Runtime:
+      - '0.026573'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=BadPixelsDarkGotthard2
+  response:
+    body:
+      string: '[{"id":46,"name":"BadPixelsDarkGotthard2","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '134'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:43 GMT
+      Etag:
+      - W/"f44e198ac5db1f1ade60f92f75cf124d"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 1ec2174b-df16-43a5-be08-224bce85d42a
+      X-Runtime:
+      - '0.025889'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=RelativeGainGotthard2
+  response:
+    body:
+      string: '[{"id":45,"name":"RelativeGainGotthard2","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '133'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:43 GMT
+      Etag:
+      - W/"556948e5b2ccd20b90db7b8874f3a05d"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 101042fb-c61e-4c29-9314-7c77d3ab8f33
+      X-Runtime:
+      - '0.024766'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=LUTGotthard2
+  response:
+    body:
+      string: '[{"id":48,"name":"LUTGotthard2","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '124'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:43 GMT
+      Etag:
+      - W/"70808d31655a61ddde32810c731802eb"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 429b669b-a4c7-4d01-afa6-8b8844f3e7ae
+      X-Runtime:
+      - '0.025072'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"parameters_conditions_attributes": [{"parameter_name": "Sensor Bias Voltage",
+      "value": 200.0}, {"parameter_name": "Acquisition rate", "value": 1.1}, {"parameter_name":
+      "Exposure time", "value": 0.0}, {"parameter_name": "Exposure period", "value":
+      0.0}, {"parameter_name": "Single photon", "value": 0.0}]}'
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '306'
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=FXE_XAD_G2XES&calibration_id=%5B49%2C+47%2C+46%2C+45%2C+48%5D&karabo_da=&event_at=2022-07-10+11%3A11%3A11.11111%2B00%3A00&pdu_snapshot_at=2022-07-10+11%3A11%3A11.11111%2B00%3A00&begin_at_strategy=closest
+  response:
+    body:
+      string: '[{"id":136961,"name":"20220725_091821_sIdx=0","file_name":"cal.1658740700.2984622.h5","path_to_file":"xfel/cal/gotthard2-type/gh2-0118/","data_set_name":"/GH2-0118/OffsetGotthard2/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-07-08T02:00:00.000+02:00","end_validity_at":null,"begin_at":"2022-07-08T02:00:00.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"PSI
+        initial constant.","report_id":null,"description":"","created_at":"2022-07-25T11:18:21.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/136961","calibration_constant":{"id":33556,"name":"Gotthard2-Type_OffsetGotthard2_Gotthard2
+        Defmu74m+DYmLDtYCKlJ3PhWQ==\nmu74m+DYmLDtYCKlJ3PhWQ-2","detector_type_id":11,"calibration_id":49,"condition_id":10846,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        offset","created_at":"2022-07-25T11:18:21.000+02:00","updated_at":"2025-11-28T09:49:25.000+01:00"},"physical_detector_unit":{"id":189,"physical_name":"GH2-0118","detector_type_id":11,"flg_available":true,"description":null,"created_at":"2022-07-07T17:57:02.000+02:00","updated_at":"2022-07-07T17:57:02.000+02:00","karabo_da":"GH201","detector_id":33,"virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"GH201","detector_id_at_ccv_begin_at":33,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":171472,"name":"20230719_134958_sIdx=0","file_name":"cal.1689774597.10672.h5","path_to_file":"xfel/cal/gotthard2-type/gh2-0118/","data_set_name":"/GH2-0118/NoiseGotthard2/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-19T15:31:17.000+02:00","end_validity_at":null,"begin_at":"2023-07-19T15:31:17.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900390
+        runs:20 21 22","report_id":null,"description":"","created_at":"2023-07-19T15:49:58.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/171472","calibration_constant":{"id":33564,"name":"Gotthard2-Type_NoiseGotthard2_Gotthard2
+        DefhkI24QyG7kSVKglxYSrD6Q==\n-2","detector_type_id":11,"calibration_id":47,"condition_id":10847,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        noise","created_at":"2023-01-20T16:04:06.000+01:00","updated_at":"2025-11-28T09:49:28.000+01:00"},"physical_detector_unit":{"id":189,"physical_name":"GH2-0118","detector_type_id":11,"flg_available":true,"description":null,"created_at":"2022-07-07T17:57:02.000+02:00","updated_at":"2022-07-07T17:57:02.000+02:00","karabo_da":"GH201","detector_id":33,"virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"GH201","detector_id_at_ccv_begin_at":33,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":171473,"name":"20230719_134959_sIdx=0","file_name":"cal.1689774598.2786348.h5","path_to_file":"xfel/cal/gotthard2-type/gh2-0118/","data_set_name":"/GH2-0118/BadPixelsDarkGotthard2/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-19T15:31:17.000+02:00","end_validity_at":null,"begin_at":"2023-07-19T15:31:17.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900390
+        runs:20 21 22","report_id":null,"description":"","created_at":"2023-07-19T15:49:59.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/171473","calibration_constant":{"id":33565,"name":"Gotthard2-Type_BadPixelsDarkGotthard2_Gotthard2
+        DefhkI24QyG7kSVKglxYSrD6Q==\n-2","detector_type_id":11,"calibration_id":46,"condition_id":10847,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        mask of dark bad pixels","created_at":"2023-01-20T16:04:08.000+01:00","updated_at":"2025-11-28T09:49:28.000+01:00"},"physical_detector_unit":{"id":189,"physical_name":"GH2-0118","detector_type_id":11,"flg_available":true,"description":null,"created_at":"2022-07-07T17:57:02.000+02:00","updated_at":"2022-07-07T17:57:02.000+02:00","karabo_da":"GH201","detector_id":33,"virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"GH201","detector_id_at_ccv_begin_at":33,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":136967,"name":"20220726_140053_sIdx=0","file_name":"cal.1658844051.740191.h5","path_to_file":"xfel/cal/gotthard2-type/gh2-0118/","data_set_name":"/GH2-0118/RelativeGainGotthard2/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-07-26T16:00:21.000+02:00","end_validity_at":null,"begin_at":"2022-07-26T16:00:21.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"/gpfs/exfel/data/user/mramilli/gotthard2/constants/GH2-0118/gain_map_GH2-0118.h5","report_id":null,"description":"","created_at":"2022-07-26T16:00:53.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/136967","calibration_constant":{"id":20459,"name":"Gotthard2-Type_RelativeGainGotthard2_Gotthard2
+        DefNdTzOBH74TL3kLZ2ahwIXg==\n","detector_type_id":11,"calibration_id":45,"condition_id":6283,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        relative gain","created_at":"2022-07-26T16:00:52.000+02:00","updated_at":"2022-07-26T16:00:52.000+02:00"},"physical_detector_unit":{"id":189,"physical_name":"GH2-0118","detector_type_id":11,"flg_available":true,"description":null,"created_at":"2022-07-07T17:57:02.000+02:00","updated_at":"2022-07-07T17:57:02.000+02:00","karabo_da":"GH201","detector_id":33,"virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"GH201","detector_id_at_ccv_begin_at":33,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":136962,"name":"20220725_091845_sIdx=0","file_name":"cal.1658740724.2774765.h5","path_to_file":"xfel/cal/gotthard2-type/gh2-0118/","data_set_name":"/GH2-0118/LUTGotthard2/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-07-08T02:00:00.000+02:00","end_validity_at":null,"begin_at":"2022-07-08T02:00:00.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"PSI
+        initial constant.","report_id":null,"description":"","created_at":"2022-07-25T11:18:45.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/136962","calibration_constant":{"id":33557,"name":"Gotthard2-Type_LUTGotthard2_Gotthard2
+        Defmu74m+DYmLDtYCKlJ3PhWQ==\nmu74m+DYmLDtYCKlJ3PhWQ-2","detector_type_id":11,"calibration_id":48,"condition_id":10846,"flg_auto_approve":true,"flg_available":true,"description":"Look
+        Up Table to convert from 12 bit to 10 bit","created_at":"2022-07-25T11:18:45.000+02:00","updated_at":"2025-11-28T09:49:25.000+01:00"},"physical_detector_unit":{"id":189,"physical_name":"GH2-0118","detector_type_id":11,"flg_available":true,"description":null,"created_at":"2022-07-07T17:57:02.000+02:00","updated_at":"2022-07-07T17:57:02.000+02:00","karabo_da":"GH201","detector_id":33,"virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"GH201","detector_id_at_ccv_begin_at":33,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '7320'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:43 GMT
+      Etag:
+      - W/"7bb0bc840a8ce68758a991ebe94c8c30"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 69815c27-39ea-4af7-9a87-aee3097fb573
+      X-Runtime:
+      - '0.746056'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/me
+  response:
+    body:
+      string: '{"id":-9,"email":"admin@example.com","provider":"local","contact_email":"admin@example.com","name":"Admin
+        User","first_name":"Admin","last_name":"User","nickname":null,"uid":null,"ldap_synced_at":null,"flg_service_account":true,"flg_ldap_account_valid":false,"roles":["admin"]}'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '277'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:51 GMT
+      Etag:
+      - W/"9ec4cec974b56aebafbb6dc312056934"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 2b94979b-f26a-4ca5-a9b6-201e4204aac4
+      X-Runtime:
+      - '0.027665'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/detectors?identifier=FXE_XAD_G2XES
+  response:
+    body:
+      string: '[{"id":33,"name":"FXE_XAD_G2XES","identifier":"FXE_XAD_G2XES","alias":null,"karabo_name":"FXE_XAD_G2XES","karabo_id_control":"","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":6,"detector_id":33}]}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '310'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:51 GMT
+      Etag:
+      - W/"d43cb2ebbeb4d05f9d40ee1ed4ac1e68"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 0a3b8dec-b8d3-4b9f-a290-04eb66963a4a
+      X-Runtime:
+      - '0.028025'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=33&pdu_snapshot_at=2022-07-10+11%3A11%3A11.11111%2B00%3A00
+  response:
+    body:
+      string: '[{"id":189,"physical_name":"GH2-0118","karabo_da":"GH201","virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"detector_type_id":11,"detector_id":33,"module_number":null,"flg_available":true,"description":null,"detector":{"id":33,"name":"FXE_XAD_G2XES","identifier":"FXE_XAD_G2XES","alias":null,"karabo_name":"FXE_XAD_G2XES","karabo_id_control":"","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":11,"name":"Gotthard2-Type","flg_available":true,"description":null,"data_frame_size":3840}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '610'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:51 GMT
+      Etag:
+      - W/"80569e21f6d4a6f315626a727b2cbc41"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 86bc29e9-9ce1-43a7-a483-72519af21d1d
+      X-Runtime:
+      - '0.744675'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=OffsetGotthard2
+  response:
+    body:
+      string: '[{"id":49,"name":"OffsetGotthard2","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '126'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:52 GMT
+      Etag:
+      - W/"e66e1231acb23ca839823400b95df3ab"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - d1dc7c33-90e4-41b3-9614-c1784f78d6b4
+      X-Runtime:
+      - '0.028945'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=NoiseGotthard2
+  response:
+    body:
+      string: '[{"id":47,"name":"NoiseGotthard2","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '125'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:52 GMT
+      Etag:
+      - W/"7236061c5f3392bc56c78fff663930ba"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 34e8772e-0e53-411c-bc21-e58d4e75a709
+      X-Runtime:
+      - '0.027401'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=BadPixelsDarkGotthard2
+  response:
+    body:
+      string: '[{"id":46,"name":"BadPixelsDarkGotthard2","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '134'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:52 GMT
+      Etag:
+      - W/"f44e198ac5db1f1ade60f92f75cf124d"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 4a11c21d-bec2-4c05-9c26-b9e786b98ad4
+      X-Runtime:
+      - '0.025804'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=RelativeGainGotthard2
+  response:
+    body:
+      string: '[{"id":45,"name":"RelativeGainGotthard2","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '133'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:52 GMT
+      Etag:
+      - W/"556948e5b2ccd20b90db7b8874f3a05d"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - e1478e29-35de-4b9b-bb4b-070d5866a06b
+      X-Runtime:
+      - '0.027405'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=LUTGotthard2
+  response:
+    body:
+      string: '[{"id":48,"name":"LUTGotthard2","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '124'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:52 GMT
+      Etag:
+      - W/"70808d31655a61ddde32810c731802eb"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 54042df8-56a2-4bc1-874b-42d61f95bb0a
+      X-Runtime:
+      - '0.022428'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"parameters_conditions_attributes": [{"parameter_name": "Sensor Bias Voltage",
+      "value": 200.0}, {"parameter_name": "Acquisition rate", "value": 1.1}, {"parameter_name":
+      "Exposure time", "value": 0.0}, {"parameter_name": "Exposure period", "value":
+      0.0}, {"parameter_name": "Single photon", "value": 0.0}]}'
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '306'
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=FXE_XAD_G2XES&calibration_id=%5B49%2C+47%2C+46%2C+45%2C+48%5D&karabo_da=&event_at=2022-07-10+11%3A11%3A11.11111%2B00%3A00&pdu_snapshot_at=2022-07-10+11%3A11%3A11.11111%2B00%3A00&begin_at_strategy=closest
+  response:
+    body:
+      string: '[{"id":136961,"name":"20220725_091821_sIdx=0","file_name":"cal.1658740700.2984622.h5","path_to_file":"xfel/cal/gotthard2-type/gh2-0118/","data_set_name":"/GH2-0118/OffsetGotthard2/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-07-08T02:00:00.000+02:00","end_validity_at":null,"begin_at":"2022-07-08T02:00:00.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"PSI
+        initial constant.","report_id":null,"description":"","created_at":"2022-07-25T11:18:21.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/136961","calibration_constant":{"id":33556,"name":"Gotthard2-Type_OffsetGotthard2_Gotthard2
+        Defmu74m+DYmLDtYCKlJ3PhWQ==\nmu74m+DYmLDtYCKlJ3PhWQ-2","detector_type_id":11,"calibration_id":49,"condition_id":10846,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        offset","created_at":"2022-07-25T11:18:21.000+02:00","updated_at":"2025-11-28T09:49:25.000+01:00"},"physical_detector_unit":{"id":189,"physical_name":"GH2-0118","detector_type_id":11,"flg_available":true,"description":null,"created_at":"2022-07-07T17:57:02.000+02:00","updated_at":"2022-07-07T17:57:02.000+02:00","karabo_da":"GH201","detector_id":33,"virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"GH201","detector_id_at_ccv_begin_at":33,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":171472,"name":"20230719_134958_sIdx=0","file_name":"cal.1689774597.10672.h5","path_to_file":"xfel/cal/gotthard2-type/gh2-0118/","data_set_name":"/GH2-0118/NoiseGotthard2/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-19T15:31:17.000+02:00","end_validity_at":null,"begin_at":"2023-07-19T15:31:17.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900390
+        runs:20 21 22","report_id":null,"description":"","created_at":"2023-07-19T15:49:58.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/171472","calibration_constant":{"id":33564,"name":"Gotthard2-Type_NoiseGotthard2_Gotthard2
+        DefhkI24QyG7kSVKglxYSrD6Q==\n-2","detector_type_id":11,"calibration_id":47,"condition_id":10847,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        noise","created_at":"2023-01-20T16:04:06.000+01:00","updated_at":"2025-11-28T09:49:28.000+01:00"},"physical_detector_unit":{"id":189,"physical_name":"GH2-0118","detector_type_id":11,"flg_available":true,"description":null,"created_at":"2022-07-07T17:57:02.000+02:00","updated_at":"2022-07-07T17:57:02.000+02:00","karabo_da":"GH201","detector_id":33,"virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"GH201","detector_id_at_ccv_begin_at":33,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":171473,"name":"20230719_134959_sIdx=0","file_name":"cal.1689774598.2786348.h5","path_to_file":"xfel/cal/gotthard2-type/gh2-0118/","data_set_name":"/GH2-0118/BadPixelsDarkGotthard2/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-19T15:31:17.000+02:00","end_validity_at":null,"begin_at":"2023-07-19T15:31:17.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900390
+        runs:20 21 22","report_id":null,"description":"","created_at":"2023-07-19T15:49:59.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/171473","calibration_constant":{"id":33565,"name":"Gotthard2-Type_BadPixelsDarkGotthard2_Gotthard2
+        DefhkI24QyG7kSVKglxYSrD6Q==\n-2","detector_type_id":11,"calibration_id":46,"condition_id":10847,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        mask of dark bad pixels","created_at":"2023-01-20T16:04:08.000+01:00","updated_at":"2025-11-28T09:49:28.000+01:00"},"physical_detector_unit":{"id":189,"physical_name":"GH2-0118","detector_type_id":11,"flg_available":true,"description":null,"created_at":"2022-07-07T17:57:02.000+02:00","updated_at":"2022-07-07T17:57:02.000+02:00","karabo_da":"GH201","detector_id":33,"virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"GH201","detector_id_at_ccv_begin_at":33,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":136967,"name":"20220726_140053_sIdx=0","file_name":"cal.1658844051.740191.h5","path_to_file":"xfel/cal/gotthard2-type/gh2-0118/","data_set_name":"/GH2-0118/RelativeGainGotthard2/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-07-26T16:00:21.000+02:00","end_validity_at":null,"begin_at":"2022-07-26T16:00:21.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"/gpfs/exfel/data/user/mramilli/gotthard2/constants/GH2-0118/gain_map_GH2-0118.h5","report_id":null,"description":"","created_at":"2022-07-26T16:00:53.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/136967","calibration_constant":{"id":20459,"name":"Gotthard2-Type_RelativeGainGotthard2_Gotthard2
+        DefNdTzOBH74TL3kLZ2ahwIXg==\n","detector_type_id":11,"calibration_id":45,"condition_id":6283,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        relative gain","created_at":"2022-07-26T16:00:52.000+02:00","updated_at":"2022-07-26T16:00:52.000+02:00"},"physical_detector_unit":{"id":189,"physical_name":"GH2-0118","detector_type_id":11,"flg_available":true,"description":null,"created_at":"2022-07-07T17:57:02.000+02:00","updated_at":"2022-07-07T17:57:02.000+02:00","karabo_da":"GH201","detector_id":33,"virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"GH201","detector_id_at_ccv_begin_at":33,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":136962,"name":"20220725_091845_sIdx=0","file_name":"cal.1658740724.2774765.h5","path_to_file":"xfel/cal/gotthard2-type/gh2-0118/","data_set_name":"/GH2-0118/LUTGotthard2/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-07-08T02:00:00.000+02:00","end_validity_at":null,"begin_at":"2022-07-08T02:00:00.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"PSI
+        initial constant.","report_id":null,"description":"","created_at":"2022-07-25T11:18:45.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/136962","calibration_constant":{"id":33557,"name":"Gotthard2-Type_LUTGotthard2_Gotthard2
+        Defmu74m+DYmLDtYCKlJ3PhWQ==\nmu74m+DYmLDtYCKlJ3PhWQ-2","detector_type_id":11,"calibration_id":48,"condition_id":10846,"flg_auto_approve":true,"flg_available":true,"description":"Look
+        Up Table to convert from 12 bit to 10 bit","created_at":"2022-07-25T11:18:45.000+02:00","updated_at":"2025-11-28T09:49:25.000+01:00"},"physical_detector_unit":{"id":189,"physical_name":"GH2-0118","detector_type_id":11,"flg_available":true,"description":null,"created_at":"2022-07-07T17:57:02.000+02:00","updated_at":"2022-07-07T17:57:02.000+02:00","karabo_da":"GH201","detector_id":33,"virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"GH201","detector_id_at_ccv_begin_at":33,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '7320'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:15:52 GMT
+      Etag:
+      - W/"7bb0bc840a8ce68758a991ebe94c8c30"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 0cc4ede0-57de-4e2d-9030-06dfd5803b42
+      X-Runtime:
+      - '0.749995'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/me
+  response:
+    body:
+      string: '{"id":-9,"email":"admin@example.com","provider":"local","contact_email":"admin@example.com","name":"Admin
+        User","first_name":"Admin","last_name":"User","nickname":null,"uid":null,"ldap_synced_at":null,"flg_service_account":true,"flg_ldap_account_valid":false,"roles":["admin"]}'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '277'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:16:53 GMT
+      Etag:
+      - W/"9ec4cec974b56aebafbb6dc312056934"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 16d368fb-625f-419a-b285-86a6847f8c55
+      X-Runtime:
+      - '0.240893'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/detectors?identifier=FXE_XAD_G2XES
+  response:
+    body:
+      string: '[{"id":33,"name":"FXE_XAD_G2XES","identifier":"FXE_XAD_G2XES","alias":null,"karabo_name":"FXE_XAD_G2XES","karabo_id_control":"","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":6,"detector_id":33}]}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '310'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:16:54 GMT
+      Etag:
+      - W/"d43cb2ebbeb4d05f9d40ee1ed4ac1e68"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 86f6162a-f2f6-4093-9cd7-5b2cf32ade6e
+      X-Runtime:
+      - '0.034038'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=33&pdu_snapshot_at=2022-07-10+11%3A11%3A11.11111%2B00%3A00
+  response:
+    body:
+      string: '[{"id":189,"physical_name":"GH2-0118","karabo_da":"GH201","virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"detector_type_id":11,"detector_id":33,"module_number":null,"flg_available":true,"description":null,"detector":{"id":33,"name":"FXE_XAD_G2XES","identifier":"FXE_XAD_G2XES","alias":null,"karabo_name":"FXE_XAD_G2XES","karabo_id_control":"","source_name_pattern":null,"number_of_modules":null,"first_module_index":null,"flg_available":true,"description":null},"detector_type":{"id":11,"name":"Gotthard2-Type","flg_available":true,"description":null,"data_frame_size":3840}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '610'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:16:54 GMT
+      Etag:
+      - W/"80569e21f6d4a6f315626a727b2cbc41"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - f4ee88bd-e010-459d-9785-6460453a0746
+      X-Runtime:
+      - '0.637703'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=OffsetGotthard2
+  response:
+    body:
+      string: '[{"id":49,"name":"OffsetGotthard2","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '126'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:16:54 GMT
+      Etag:
+      - W/"e66e1231acb23ca839823400b95df3ab"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - ce04bd85-455a-42b4-99e0-d42220acf6b2
+      X-Runtime:
+      - '0.027340'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=NoiseGotthard2
+  response:
+    body:
+      string: '[{"id":47,"name":"NoiseGotthard2","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '125'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:16:54 GMT
+      Etag:
+      - W/"7236061c5f3392bc56c78fff663930ba"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 286690ce-c1cc-43dd-88d2-909b8899072f
+      X-Runtime:
+      - '0.027639'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=BadPixelsDarkGotthard2
+  response:
+    body:
+      string: '[{"id":46,"name":"BadPixelsDarkGotthard2","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '134'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:16:54 GMT
+      Etag:
+      - W/"f44e198ac5db1f1ade60f92f75cf124d"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - ee7cf10d-cccd-45b3-9f0c-9268ffadb174
+      X-Runtime:
+      - '0.024956'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=RelativeGainGotthard2
+  response:
+    body:
+      string: '[{"id":45,"name":"RelativeGainGotthard2","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '133'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:16:54 GMT
+      Etag:
+      - W/"556948e5b2ccd20b90db7b8874f3a05d"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 673fc6aa-b203-4142-bee9-09ac26a03ad0
+      X-Runtime:
+      - '0.025284'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=LUTGotthard2
+  response:
+    body:
+      string: '[{"id":48,"name":"LUTGotthard2","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '124'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:16:55 GMT
+      Etag:
+      - W/"70808d31655a61ddde32810c731802eb"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 8684389d-ee93-42c6-84ec-089db26305ff
+      X-Runtime:
+      - '0.028948'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"parameters_conditions_attributes": [{"parameter_name": "Sensor Bias Voltage",
+      "value": 200.0}, {"parameter_name": "Acquisition rate", "value": 1.1}, {"parameter_name":
+      "Exposure time", "value": 0.0}, {"parameter_name": "Exposure period", "value":
+      0.0}, {"parameter_name": "Single photon", "value": 0.0}]}'
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '306'
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=FXE_XAD_G2XES&calibration_id=%5B49%2C+47%2C+46%2C+45%2C+48%5D&karabo_da=&event_at=2022-07-10+11%3A11%3A11.11111%2B00%3A00&pdu_snapshot_at=2022-07-10+11%3A11%3A11.11111%2B00%3A00&begin_at_strategy=closest
+  response:
+    body:
+      string: '[{"id":136961,"name":"20220725_091821_sIdx=0","file_name":"cal.1658740700.2984622.h5","path_to_file":"xfel/cal/gotthard2-type/gh2-0118/","data_set_name":"/GH2-0118/OffsetGotthard2/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-07-08T02:00:00.000+02:00","end_validity_at":null,"begin_at":"2022-07-08T02:00:00.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"PSI
+        initial constant.","report_id":null,"description":"","created_at":"2022-07-25T11:18:21.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/136961","calibration_constant":{"id":33556,"name":"Gotthard2-Type_OffsetGotthard2_Gotthard2
+        Defmu74m+DYmLDtYCKlJ3PhWQ==\nmu74m+DYmLDtYCKlJ3PhWQ-2","detector_type_id":11,"calibration_id":49,"condition_id":10846,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        offset","created_at":"2022-07-25T11:18:21.000+02:00","updated_at":"2025-11-28T09:49:25.000+01:00"},"physical_detector_unit":{"id":189,"physical_name":"GH2-0118","detector_type_id":11,"flg_available":true,"description":null,"created_at":"2022-07-07T17:57:02.000+02:00","updated_at":"2022-07-07T17:57:02.000+02:00","karabo_da":"GH201","detector_id":33,"virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"GH201","detector_id_at_ccv_begin_at":33,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":171472,"name":"20230719_134958_sIdx=0","file_name":"cal.1689774597.10672.h5","path_to_file":"xfel/cal/gotthard2-type/gh2-0118/","data_set_name":"/GH2-0118/NoiseGotthard2/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-19T15:31:17.000+02:00","end_validity_at":null,"begin_at":"2023-07-19T15:31:17.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900390
+        runs:20 21 22","report_id":null,"description":"","created_at":"2023-07-19T15:49:58.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/171472","calibration_constant":{"id":33564,"name":"Gotthard2-Type_NoiseGotthard2_Gotthard2
+        DefhkI24QyG7kSVKglxYSrD6Q==\n-2","detector_type_id":11,"calibration_id":47,"condition_id":10847,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        noise","created_at":"2023-01-20T16:04:06.000+01:00","updated_at":"2025-11-28T09:49:28.000+01:00"},"physical_detector_unit":{"id":189,"physical_name":"GH2-0118","detector_type_id":11,"flg_available":true,"description":null,"created_at":"2022-07-07T17:57:02.000+02:00","updated_at":"2022-07-07T17:57:02.000+02:00","karabo_da":"GH201","detector_id":33,"virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"GH201","detector_id_at_ccv_begin_at":33,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":171473,"name":"20230719_134959_sIdx=0","file_name":"cal.1689774598.2786348.h5","path_to_file":"xfel/cal/gotthard2-type/gh2-0118/","data_set_name":"/GH2-0118/BadPixelsDarkGotthard2/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-07-19T15:31:17.000+02:00","end_validity_at":null,"begin_at":"2023-07-19T15:31:17.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:900390
+        runs:20 21 22","report_id":null,"description":"","created_at":"2023-07-19T15:49:59.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/171473","calibration_constant":{"id":33565,"name":"Gotthard2-Type_BadPixelsDarkGotthard2_Gotthard2
+        DefhkI24QyG7kSVKglxYSrD6Q==\n-2","detector_type_id":11,"calibration_id":46,"condition_id":10847,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        mask of dark bad pixels","created_at":"2023-01-20T16:04:08.000+01:00","updated_at":"2025-11-28T09:49:28.000+01:00"},"physical_detector_unit":{"id":189,"physical_name":"GH2-0118","detector_type_id":11,"flg_available":true,"description":null,"created_at":"2022-07-07T17:57:02.000+02:00","updated_at":"2022-07-07T17:57:02.000+02:00","karabo_da":"GH201","detector_id":33,"virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"GH201","detector_id_at_ccv_begin_at":33,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":136967,"name":"20220726_140053_sIdx=0","file_name":"cal.1658844051.740191.h5","path_to_file":"xfel/cal/gotthard2-type/gh2-0118/","data_set_name":"/GH2-0118/RelativeGainGotthard2/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-07-26T16:00:21.000+02:00","end_validity_at":null,"begin_at":"2022-07-26T16:00:21.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"/gpfs/exfel/data/user/mramilli/gotthard2/constants/GH2-0118/gain_map_GH2-0118.h5","report_id":null,"description":"","created_at":"2022-07-26T16:00:53.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/136967","calibration_constant":{"id":20459,"name":"Gotthard2-Type_RelativeGainGotthard2_Gotthard2
+        DefNdTzOBH74TL3kLZ2ahwIXg==\n","detector_type_id":11,"calibration_id":45,"condition_id":6283,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        relative gain","created_at":"2022-07-26T16:00:52.000+02:00","updated_at":"2022-07-26T16:00:52.000+02:00"},"physical_detector_unit":{"id":189,"physical_name":"GH2-0118","detector_type_id":11,"flg_available":true,"description":null,"created_at":"2022-07-07T17:57:02.000+02:00","updated_at":"2022-07-07T17:57:02.000+02:00","karabo_da":"GH201","detector_id":33,"virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"GH201","detector_id_at_ccv_begin_at":33,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}},{"id":136962,"name":"20220725_091845_sIdx=0","file_name":"cal.1658740724.2774765.h5","path_to_file":"xfel/cal/gotthard2-type/gh2-0118/","data_set_name":"/GH2-0118/LUTGotthard2/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-07-08T02:00:00.000+02:00","end_validity_at":null,"begin_at":"2022-07-08T02:00:00.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"PSI
+        initial constant.","report_id":null,"description":"","created_at":"2022-07-25T11:18:45.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/136962","calibration_constant":{"id":33557,"name":"Gotthard2-Type_LUTGotthard2_Gotthard2
+        Defmu74m+DYmLDtYCKlJ3PhWQ==\nmu74m+DYmLDtYCKlJ3PhWQ-2","detector_type_id":11,"calibration_id":48,"condition_id":10846,"flg_auto_approve":true,"flg_available":true,"description":"Look
+        Up Table to convert from 12 bit to 10 bit","created_at":"2022-07-25T11:18:45.000+02:00","updated_at":"2025-11-28T09:49:25.000+01:00"},"physical_detector_unit":{"id":189,"physical_name":"GH2-0118","detector_type_id":11,"flg_available":true,"description":null,"created_at":"2022-07-07T17:57:02.000+02:00","updated_at":"2022-07-07T17:57:02.000+02:00","karabo_da":"GH201","detector_id":33,"virtual_device_name":null,"uuid":1000000000003,"float_uuid":4.940656458427e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"GH201","detector_id_at_ccv_begin_at":33,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '7320'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 06 Nov 2026 09:16:55 GMT
+      Etag:
+      - W/"7bb0bc840a8ce68758a991ebe94c8c30"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - ff8bd792-a844-4f18-9831-cf105eb53df5
+      X-Runtime:
+      - '0.739187'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+version: 1

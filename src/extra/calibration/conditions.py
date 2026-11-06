@@ -618,6 +618,64 @@ JUNGFRAUConditions = JungfrauConditions  # Legacy name
 
 
 @dataclass
+class Gotthard2Conditions(ConditionsBase):
+    sensor_bias_voltage: int = 200
+    acquisition_rate: float = 4.5  # MHz
+    exposure_time: float = 0.0
+    exposure_period: float = 0.0
+    single_photon: bool = False
+
+    _params = [
+        "Sensor Bias Voltage",
+        "Acquisition rate",
+        "Exposure time",
+        "Exposure period",
+        "Single photon",
+    ]
+
+    calibration_types = {
+        "OffsetGotthard2": _params,
+        "NoiseGotthard2": _params,
+        "BadPixelsDarkGotthard2": _params,
+        "RelativeGainGotthard2": _params,
+        "LUTGotthard2": _params,
+    }
+
+
+@dataclass
+class PNCCDConditions(ConditionsBase):
+    """Conditions for JUNGFRAU detectors"""
+    sensor_bias_voltage: float
+    integration_time: float
+    sensor_temperature: float
+    gain_setting: int
+    source_energy: float = 9.2
+    pixels_x: int = 1024
+    pixels_y: int = 1024
+    memory_cells: int = 1
+
+    _dark_params = [
+        "Sensor Bias Voltage",
+        "Memory cells",
+        "Pixels X",
+        "Pixels Y",
+        "Integration Time",
+        "Sensor Temperature",
+        "Gain Setting",
+    ]
+
+    _light_params = _dark_params + ["Source energy"]
+
+    calibration_types = {
+        "OffsetCCD": _dark_params,
+        "BadPixelsDarkCCD": _dark_params,
+        "NoiseCCD": _dark_params,
+        "RelativeGainCCD": _light_params,
+        "CTECCD": _light_params,
+    }
+
+
+@dataclass
 class ShimadzuHPVX2Conditions(ConditionsBase):
     burst_frame_count: float
 
@@ -631,4 +689,6 @@ detector_cond_cls = {
     'AGIPD-Type': AGIPDConditions,
     'LPD-Type': LPDConditions,
     'jungfrau-Type': JungfrauConditions,
+    'Gotthard2-Type': Gotthard2Conditions,
+    'pnCCD-Type': PNCCDConditions,
 }
