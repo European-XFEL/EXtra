@@ -688,7 +688,9 @@ class ShimadzuHPVX2Conditions(ConditionsBase):
 detector_cond_cls = {
     'AGIPD-Type': AGIPDConditions,
     'LPD-Type': LPDConditions,
+    'DSSC-Type': DSSCConditions,
     'jungfrau-Type': JungfrauConditions,
     'Gotthard2-Type': Gotthard2Conditions,
     'pnCCD-Type': PNCCDConditions,
+    'ShimadzuHPVX2-Type': ShimadzuHPVX2Conditions
 }
