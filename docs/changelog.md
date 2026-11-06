@@ -17,14 +17,13 @@
     ```
 
 Added:
+- Added [Gotthard2Conditions][extra.calibration.Gotthard2Conditions] and [PNCCDConditions][extra.calibration.PNCCDConditions]. (!603)
 - [XCCA](applications/xcca.md) Toolbox for the computation of X-ray cross-correlation analysis related quantities.
 - [DetectorData][extra.calibration.DetectorData] can now look up detectors by instrument
   at a specific point in the past, with a `snapshot_at` parameter.
 
 Fixed:
 - [TOFAnalogResponse][extra.applications.TOFAnalogResponse] has improved numerical stability (!538).
-
-Fixed:
 - Added support in [OpticalLaserDelay][extra.components.OpticalLaserDelay] for changed key names of underlying delay sources (!577).
 - Fixed support for future PythonCall.jl versions in
   [imshow2()][extra.utils.imshow2] (!547).
