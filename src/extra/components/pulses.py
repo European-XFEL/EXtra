@@ -1015,7 +1015,7 @@ class PulsePattern:
         considered if the pulses do not have equal distances. For trains
         with a single pulse, the value can be specified or is filled by
         the largest value encountered across other trains with more
-        pulses.
+        pulses. Only monotonically increasing pulse IDs are considered.
 
         The resulting series is cast to integers unless it contains
         non-finite values as a result of fill values.
@@ -1035,10 +1035,14 @@ class PulsePattern:
                 train, indexed by train ID if labelled is True.
         """
 
-        # Minimum of difference between pulses in a train by train.
-        act_periods = (self.pulse_ids(copy=False)
-            .groupby(level=0).diff()  # Periods within each train.
-            .groupby(level=0).min())  # Minimal period in each train.
+        # Compute the minimal difference between consective pulse IDs
+        # per train while ignoring non-monotonically increasing ones.
+        # Some pulse implementation may mix in negative pulse IDs for
+        # virtual pulses, which throws of computing the differences.
+        pid_diffs = (self.pulse_ids(copy=False)
+            .groupby(level=0).cummax()
+            .groupby(level=0).diff())
+        act_periods = pid_diffs[pid_diffs != 0].groupby(level=0).min()
 
         # Fill any NaN value with a fill value.
         single_pulse_periods = act_periods.isna()
