@@ -453,7 +453,7 @@ class DSSCConditions(ConditionsBase):
 
 
 @dataclass
-class JUNGFRAUConditions(ConditionsBase):
+class JungfrauConditions(ConditionsBase):
     """Conditions for JUNGFRAU detectors"""
     sensor_bias_voltage: float
     memory_cells: int
@@ -614,6 +614,8 @@ class JUNGFRAUConditions(ConditionsBase):
         except KeyError:
             raise ValueError(f'invalid gain mode {val!s} encountered') from None
 
+JUNGFRAUConditions = JungfrauConditions  # Legacy name
+
 
 @dataclass
 class ShimadzuHPVX2Conditions(ConditionsBase):
@@ -628,5 +630,5 @@ class ShimadzuHPVX2Conditions(ConditionsBase):
 detector_cond_cls = {
     'AGIPD-Type': AGIPDConditions,
     'LPD-Type': LPDConditions,
-    'jungfrau-Type': JUNGFRAUConditions
+    'jungfrau-Type': JungfrauConditions,
 }

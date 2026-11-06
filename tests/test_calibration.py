@@ -14,6 +14,7 @@ from extra.calibration import (
     AGIPDConditions,
     CalibrationData,
     DSSCConditions,
+    JungfrauConditions,
     JUNGFRAUConditions,
     LPDConditions,
     SingleConstant,
@@ -375,6 +376,10 @@ def test_JUNGFRAU_from_correction_by_run():
     assert jf_cd.aggregator_names == ["JNGFR01", "JNGFR02"]
     assert jf_cd.pdu_names == ["Jungfrau_M530", "Jungfrau_M512"]
     assert jf_cd["Offset10Hz", "JNGFR01"].ccv_id == 235941
+
+
+def test_JUNGFRAU_name_backwards_compatible():
+    assert JungfrauConditions is JUNGFRAUConditions
 
 
 def test_format_time(mock_spb_aux_run):

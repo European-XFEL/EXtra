@@ -5,7 +5,8 @@ from .calcat import CalCatAPIError, CalCatAPIClient, get_client, setup_client, \
     get_default_caldb_root, set_default_caldb_root
 from .detector import DetectorData, DetectorModule
 from .conditions import AutoConditionsError, ConditionsBase, AGIPDConditions, \
-    LPDConditions, DSSCConditions, JUNGFRAUConditions, ShimadzuHPVX2Conditions
+    LPDConditions, DSSCConditions, JungfrauConditions, JUNGFRAUConditions, \
+    ShimadzuHPVX2Conditions
 from .constants import SingleConstant, MultiModuleConstant, CalibrationData, \
     NoDimensionLabelsError, lpd_dark_consts_with_fallback
 
@@ -50,6 +51,7 @@ __all__ = [
     "AGIPDConditions",
     "LPDConditions",
     "DSSCConditions",
+    "JungfrauConditions",
     "JUNGFRAUConditions",
     "ShimadzuHPVX2Conditions",
     "DetectorData",
