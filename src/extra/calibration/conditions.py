@@ -109,6 +109,7 @@ class AGIPDConditions(ConditionsBase):
     integration_time: int = 12
     pixels_x: int = 512
     pixels_y: int = 128
+    empty_condition: bool = True
 
     _base_parameters = [
         "Sensor Bias Voltage",
@@ -133,7 +134,9 @@ class AGIPDConditions(ConditionsBase):
         "BadPixelsFF": _illuminated_parameters,
         "SlopesFF": _illuminated_parameters,
         "BadPixelsCS": _base_parameters,
-        "SlopesCS": _base_parameters
+        "SlopesCS": _base_parameters,
+        "BadPixelsHvOff": ["Empty condition"],
+        "BadPixelsManual": ["Empty condition"],
     }
 
     def make_dict(self, parameters):
