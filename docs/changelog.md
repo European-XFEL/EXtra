@@ -32,6 +32,9 @@ Fixed:
   [Scantool](extra.components.Scantool) component (!547).
 - Fixed data format for calibration in [CookieboxCalibration][extra.applications.CookieboxCalibration],
   so that it accepts both stacked pulses and train IDs and pulse ID/indices separately (!588).
+- Added `BadPixelsHvOff` and `BadPixelsManual` condition types to
+  [AGIPDConditions][extra.calibration.AGIPDConditions]
+- [AGIPDConditions][extra.calibration.AGIPDConditions] can now be used with `gain_mode=2` or greater and successfully find constants (using gain mode 1).
 
 ## [2026.1.1]
 
