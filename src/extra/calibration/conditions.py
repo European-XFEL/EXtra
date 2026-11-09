@@ -143,8 +143,10 @@ class AGIPDConditions(ConditionsBase):
         cond = super().make_dict(parameters)
 
         # Fix-up some database quirks.
-        if int(cond.get("Gain mode", -1)) == 0:
+        if int(gm := cond.get("Gain mode", -1)) == 0:
             del cond["Gain mode"]
+        elif gm > 0:  # Convert any gain mode >1 to 1
+            cond["Gain mode"] = 1
 
         if int(cond.get("Integration time", -1)) == 12:
             del cond["Integration time"]
