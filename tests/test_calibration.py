@@ -14,7 +14,10 @@ from extra.calibration import (
     AGIPDConditions,
     CalibrationData,
     DSSCConditions,
+    JungfrauConditions,
     JUNGFRAUConditions,
+    Gotthard2Conditions,
+    PNCCDConditions,
     LPDConditions,
     SingleConstant,
     DetectorData,
@@ -375,6 +378,43 @@ def test_JUNGFRAU_from_correction_by_run():
     assert jf_cd.aggregator_names == ["JNGFR01", "JNGFR02"]
     assert jf_cd.pdu_names == ["Jungfrau_M530", "Jungfrau_M512"]
     assert jf_cd["Offset10Hz", "JNGFR01"].ccv_id == 235941
+
+
+def test_JUNGFRAU_name_backwards_compatible():
+    assert JungfrauConditions is JUNGFRAUConditions
+
+
+@pytest.mark.vcr
+def test_Gotthard2_constant():
+    cond = Gotthard2Conditions(
+        sensor_bias_voltage=200,
+        acquisition_rate=1.1
+    )
+    gh2_cd = CalibrationData.from_condition(
+        cond,
+        'FXE_XAD_G2XES',
+        event_at='2022-07-10 11:11:11.11111+00:00',
+    )
+    assert gh2_cd.aggregator_names == ['GH201']
+    assert set(gh2_cd) >= {'RelativeGainGotthard2', 'BadPixelsDarkGotthard2',
+                           'OffsetGotthard2', 'NoiseGotthard2', 'LUTGotthard2'}
+
+
+@pytest.mark.vcr
+def test_pnCCD_constant():
+    cond = PNCCDConditions(
+        sensor_bias_voltage=399.8920593261719,
+        sensor_temperature=240.6,
+        integration_time=70,
+        gain_setting=16
+    )
+    pnccd_cd = CalibrationData.from_condition(
+        cond,
+        'SQS_NQS_PNCCD1MP',
+        event_at='2025-11-23T18:17:55+0100',
+    )
+    assert pnccd_cd.aggregator_names == ['PNCCD01']
+    assert set(pnccd_cd) >= {'OffsetCCD', 'NoiseCCD', 'BadPixelsDarkCCD'}
 
 
 def test_format_time(mock_spb_aux_run):
