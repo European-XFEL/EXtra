@@ -637,6 +637,7 @@ class Gotthard2Conditions(ConditionsBase):
         "OffsetGotthard2": _params,
         "NoiseGotthard2": _params,
         "BadPixelsDarkGotthard2": _params,
+        "BadPixelsFFGotthard2": _params,
         "RelativeGainGotthard2": _params,
         "LUTGotthard2": _params,
     }
