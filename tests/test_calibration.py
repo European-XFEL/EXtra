@@ -17,6 +17,7 @@ from extra.calibration import (
     JungfrauConditions,
     JUNGFRAUConditions,
     Gotthard2Conditions,
+    EPix100Conditions,
     PNCCDConditions,
     LPDConditions,
     SingleConstant,
@@ -398,6 +399,26 @@ def test_Gotthard2_constant():
     assert gh2_cd.aggregator_names == ['GH201']
     assert set(gh2_cd) >= {'RelativeGainGotthard2', 'BadPixelsDarkGotthard2',
                            'OffsetGotthard2', 'NoiseGotthard2', 'LUTGotthard2'}
+
+
+@pytest.mark.vcr
+def test_ePix100_constant():
+    cond = EPix100Conditions(
+        sensor_bias_voltage=200.0,
+        integration_time=800,
+        sensor_temperature=287.3,
+        in_vacuum=False,
+        source_energy=8.05,
+
+    )
+    epix_cd = CalibrationData.from_condition(
+        cond,
+        'MID_EXP_EPIX-2',
+        event_at='2023-10-09 11:07:48+00:00',
+    )
+    assert epix_cd.aggregator_names == ['EPIX02']
+    assert set(epix_cd) >= {'RelativeGainEPix100', 'BadPixelsDarkEPix100',
+                            'OffsetEPix100', 'NoiseEPix100'}
 
 
 @pytest.mark.vcr

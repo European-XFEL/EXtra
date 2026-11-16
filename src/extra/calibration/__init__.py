@@ -6,8 +6,8 @@ from .calcat import CalCatAPIError, CalCatAPIClient, get_client, setup_client, \
 from .detector import DetectorData, DetectorModule
 from .conditions import AutoConditionsError, ConditionsBase, AGIPDConditions, \
     LPDConditions, DSSCConditions, JungfrauConditions, JUNGFRAUConditions, \
-    Gotthard2Conditions, GOTTHARD2Conditions, PNCCDConditions,
-    ShimadzuHPVX2Conditions
+    Gotthard2Conditions, GOTTHARD2Conditions, EPix100Conditions, \
+    PNCCDConditions, ShimadzuHPVX2Conditions
 from .constants import SingleConstant, MultiModuleConstant, CalibrationData, \
     NoDimensionLabelsError, lpd_dark_consts_with_fallback
 
@@ -56,6 +56,7 @@ __all__ = [
     "JUNGFRAUConditions",
     "Gotthard2Conditions",
     "GOTTHARD2Conditions",
+    "EPix100Conditions",
     "PNCCDConditions",
     "ShimadzuHPVX2Conditions",
     "DetectorData",

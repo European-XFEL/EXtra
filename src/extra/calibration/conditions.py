@@ -679,6 +679,39 @@ class PNCCDConditions(ConditionsBase):
 
 
 @dataclass
+class EPix100Conditions(ConditionsBase):
+    """Conditions for ePix100 detectors"""
+    sensor_bias_voltage: float
+    integration_time: float
+    sensor_temperature: float
+    in_vacuum: bool
+    source_energy: Optional[float] = None
+    pixels_x: int = 708
+    pixels_y: int = 768
+    memory_cells: int = 1
+
+    _dark_params = [
+        "Sensor Bias Voltage",
+        "Memory cells",
+        "Pixels X",
+        "Pixels Y",
+        "Integration Time",
+        "Sensor Temperature",
+        "In vacuum",  # The v is lowercase in CalCat (August 2025)
+    ]
+
+    _light_params = _dark_params + ["Source energy"]
+
+    calibration_types = {
+        "OffsetEPix100": _dark_params,
+        "BadPixelsDarkEPix100": _dark_params,
+        "NoiseEPix100": _dark_params,
+        "RelativeGainEPix100": _light_params,
+        "BadPixelsFFEPix100": _light_params,
+    }
+
+
+@dataclass
 class ShimadzuHPVX2Conditions(ConditionsBase):
     burst_frame_count: float
 

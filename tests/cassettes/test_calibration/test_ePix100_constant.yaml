@@ -1,0 +1,678 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/me
+  response:
+    body:
+      string: '{"id":-9,"email":"admin@example.com","provider":"local","contact_email":"admin@example.com","name":"Admin
+        User","first_name":"Admin","last_name":"User","nickname":null,"uid":null,"ldap_synced_at":null,"flg_service_account":true,"flg_ldap_account_valid":false,"roles":["admin"]}'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '277'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Mon, 16 Nov 2026 09:08:55 GMT
+      Etag:
+      - W/"9ec4cec974b56aebafbb6dc312056934"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 23931ab0-1601-4b83-ba19-b3b08f9bab54
+      X-Runtime:
+      - '0.024835'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/detectors?identifier=MID_EXP_EPIX-2
+  response:
+    body:
+      string: '[{"id":6,"name":"MID_EXP_EPIX-2","identifier":"MID_EXP_EPIX-2","alias":null,"karabo_name":"MID_EXP_EPIX-2","karabo_id_control":"NA","source_name_pattern":"MID_EXP_EPIX-2/DET/RECEIVER:daqOutput","number_of_modules":1,"first_module_index":0,"flg_available":true,"description":null,"detectors_instruments":[{"instrument_id":4,"detector_id":6},{"instrument_id":7,"detector_id":6}]}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '378'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Mon, 16 Nov 2026 09:08:55 GMT
+      Etag:
+      - W/"ddc0352c2fb324a82e8ccc41641c7fa2"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - d12f6705-4f16-4d9b-b0f8-959bc34709bf
+      X-Runtime:
+      - '0.032952'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/physical_detector_units/get_all_by_detector?detector_id=6&pdu_snapshot_at=2023-10-09+11%3A07%3A48%2B00%3A00
+  response:
+    body:
+      string: '[{"id":114,"physical_name":"ePix100_M18","karabo_da":"EPIX02","virtual_device_name":"","uuid":1600000000000,"float_uuid":7.90505033346e-312,"detector_type_id":5,"detector_id":6,"module_number":null,"flg_available":true,"description":null,"detector":{"id":6,"name":"MID_EXP_EPIX-2","identifier":"MID_EXP_EPIX-2","alias":null,"karabo_name":"MID_EXP_EPIX-2","karabo_id_control":"NA","source_name_pattern":"MID_EXP_EPIX-2/DET/RECEIVER:daqOutput","number_of_modules":1,"first_module_index":0,"flg_available":true,"description":null},"detector_type":{"id":5,"name":"ePix100-Type","flg_available":true,"description":"The
+        ePix100 detector type","data_frame_size":1087488}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '665'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Mon, 16 Nov 2026 09:08:55 GMT
+      Etag:
+      - W/"b3cc35ac17908587d6c7e96e0052925a"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - e6799a66-1d31-4eae-be9e-396a59b47638
+      X-Runtime:
+      - '0.564265'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=OffsetEPix100
+  response:
+    body:
+      string: '[{"id":31,"name":"OffsetEPix100","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":""}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '122'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Mon, 16 Nov 2026 09:08:56 GMT
+      Etag:
+      - W/"92f2143ca007d5fdecf862a4b5cb0cf6"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 7c38d433-1661-4a7d-9861-a151ea30b0da
+      X-Runtime:
+      - '0.028509'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=BadPixelsDarkEPix100
+  response:
+    body:
+      string: '[{"id":38,"name":"BadPixelsDarkEPix100","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '132'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Mon, 16 Nov 2026 09:08:56 GMT
+      Etag:
+      - W/"20876a2844ef66beccc65c4fbd6cc9c0"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - beaffa8e-721e-4010-bad2-db83d12ea8b5
+      X-Runtime:
+      - '0.019140'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=NoiseEPix100
+  response:
+    body:
+      string: '[{"id":32,"name":"NoiseEPix100","unit_id":1,"max_value":null,"min_value":null,"allowed_deviation":null,"description":""}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '121'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Mon, 16 Nov 2026 09:08:56 GMT
+      Etag:
+      - W/"313d3b4eff22e0bda699bd37a7eca570"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 6a3eba2d-7b31-4a39-b436-7a580fdff645
+      X-Runtime:
+      - '0.034035'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"parameters_conditions_attributes": [{"parameter_name": "Sensor Bias Voltage",
+      "value": 200.0}, {"parameter_name": "Memory cells", "value": 1.0}, {"parameter_name":
+      "Pixels X", "value": 708.0}, {"parameter_name": "Pixels Y", "value": 768.0},
+      {"parameter_name": "Integration Time", "value": 800.0}, {"parameter_name": "Sensor
+      Temperature", "value": 287.3}, {"parameter_name": "In vacuum", "value": 0.0}]}'
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '404'
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=MID_EXP_EPIX-2&calibration_id=%5B31%2C+38%2C+32%5D&karabo_da=&event_at=2023-10-09+11%3A07%3A48%2B00%3A00&pdu_snapshot_at=2023-10-09+11%3A07%3A48%2B00%3A00&begin_at_strategy=closest
+  response:
+    body:
+      string: '[{"id":183555,"name":"20231031_174809_sIdx=0","file_name":"cal.1698774487.8045852.h5","path_to_file":"xfel/cal/epix100-type/epix100_m18/","data_set_name":"/ePix100_M18/OffsetEPix100/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-10-31T18:16:29.000+01:00","end_validity_at":null,"begin_at":"2023-10-31T18:16:29.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p004442
+        runs:3","report_id":4153,"description":"","created_at":"2023-10-31T18:48:09.000+01:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/183555","calibration_constant":{"id":25033,"name":"ePix100-Type_OffsetEPix100_ePix100
+        Defav46uYcTjt7vtw9lYscuCA==\n","detector_type_id":5,"calibration_id":31,"condition_id":7913,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        offset","created_at":"2023-10-31T18:48:08.000+01:00","updated_at":"2023-10-31T18:48:08.000+01:00"},"physical_detector_unit":{"id":114,"physical_name":"ePix100_M18","detector_type_id":5,"flg_available":true,"description":null,"created_at":"2019-04-09T11:06:13.000+02:00","updated_at":"2023-03-06T05:57:51.000+01:00","karabo_da":"EPIX02","detector_id":6,"virtual_device_name":"","uuid":1600000000000,"float_uuid":7.90505033346e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"EPIX02","detector_id_at_ccv_begin_at":6,"virtual_device_name_at_ccv_begin_at":"","module_number_at_ccv_begin_at":null}},{"id":183557,"name":"20231031_174812_sIdx=0","file_name":"cal.1698774491.5712707.h5","path_to_file":"xfel/cal/epix100-type/epix100_m18/","data_set_name":"/ePix100_M18/BadPixelsDarkEPix100/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-10-31T18:16:29.000+01:00","end_validity_at":null,"begin_at":"2023-10-31T18:16:29.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p004442
+        runs:3","report_id":4153,"description":"","created_at":"2023-10-31T18:48:12.000+01:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/183557","calibration_constant":{"id":25035,"name":"ePix100-Type_BadPixelsDarkEPix100_ePix100
+        Defav46uYcTjt7vtw9lYscuCA==\n","detector_type_id":5,"calibration_id":38,"condition_id":7913,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        mask of dark bad pixels","created_at":"2023-10-31T18:48:12.000+01:00","updated_at":"2023-10-31T18:48:12.000+01:00"},"physical_detector_unit":{"id":114,"physical_name":"ePix100_M18","detector_type_id":5,"flg_available":true,"description":null,"created_at":"2019-04-09T11:06:13.000+02:00","updated_at":"2023-03-06T05:57:51.000+01:00","karabo_da":"EPIX02","detector_id":6,"virtual_device_name":"","uuid":1600000000000,"float_uuid":7.90505033346e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"EPIX02","detector_id_at_ccv_begin_at":6,"virtual_device_name_at_ccv_begin_at":"","module_number_at_ccv_begin_at":null}},{"id":183556,"name":"20231031_174811_sIdx=0","file_name":"cal.1698774489.8714917.h5","path_to_file":"xfel/cal/epix100-type/epix100_m18/","data_set_name":"/ePix100_M18/NoiseEPix100/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2023-10-31T18:16:29.000+01:00","end_validity_at":null,"begin_at":"2023-10-31T18:16:29.000+01:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p004442
+        runs:3","report_id":4153,"description":"","created_at":"2023-10-31T18:48:11.000+01:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/183556","calibration_constant":{"id":25034,"name":"ePix100-Type_NoiseEPix100_ePix100
+        Defav46uYcTjt7vtw9lYscuCA==\n","detector_type_id":5,"calibration_id":32,"condition_id":7913,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        noise","created_at":"2023-10-31T18:48:11.000+01:00","updated_at":"2023-10-31T18:48:11.000+01:00"},"physical_detector_unit":{"id":114,"physical_name":"ePix100_M18","detector_type_id":5,"flg_available":true,"description":null,"created_at":"2019-04-09T11:06:13.000+02:00","updated_at":"2023-03-06T05:57:51.000+01:00","karabo_da":"EPIX02","detector_id":6,"virtual_device_name":"","uuid":1600000000000,"float_uuid":7.90505033346e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"EPIX02","detector_id_at_ccv_begin_at":6,"virtual_device_name_at_ccv_begin_at":"","module_number_at_ccv_begin_at":null}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '4283'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Mon, 16 Nov 2026 09:08:56 GMT
+      Etag:
+      - W/"647c935d3e4f198a2bf8c093888e63c0"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 576506d4-cdaa-4b6c-8b9e-53f1991ba261
+      X-Runtime:
+      - '1.288925'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=RelativeGainEPix100
+  response:
+    body:
+      string: '[{"id":35,"name":"RelativeGainEPix100","unit_id":3,"max_value":null,"min_value":null,"allowed_deviation":null,"description":"The
+        values in this calibration are expected to be absolute."}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '187'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Mon, 16 Nov 2026 09:08:57 GMT
+      Etag:
+      - W/"ef03f19ddf365e8ddf4e10d28e4c353b"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - 59098ccc-24b8-45b5-a194-c36a9e2f0d44
+      X-Runtime:
+      - '0.028145'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibrations?name=BadPixelsFFEPix100
+  response:
+    body:
+      string: '[{"id":51,"name":"BadPixelsFFEPix100","unit_id":19,"max_value":null,"min_value":null,"allowed_deviation":null,"description":null}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '130'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Mon, 16 Nov 2026 09:08:57 GMT
+      Etag:
+      - W/"4058b6631d7e4b2ae3ee6493be00c773"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Count-Per-Page:
+      - '100'
+      X-Current-Page:
+      - '1'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - cc199b59-6e63-499a-a78a-d43d26df7f6b
+      X-Runtime:
+      - '0.025290'
+      X-Total-Count:
+      - '1'
+      X-Total-Pages:
+      - '1'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"parameters_conditions_attributes": [{"parameter_name": "Sensor Bias Voltage",
+      "value": 200.0}, {"parameter_name": "Memory cells", "value": 1.0}, {"parameter_name":
+      "Pixels X", "value": 708.0}, {"parameter_name": "Pixels Y", "value": 768.0},
+      {"parameter_name": "Integration Time", "value": 800.0}, {"parameter_name": "Sensor
+      Temperature", "value": 287.3}, {"parameter_name": "In vacuum", "value": 0.0},
+      {"parameter_name": "Source energy", "value": 8.05}]}'
+    headers:
+      Accept:
+      - application/json; version=2
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '456'
+      User-Agent:
+      - EXtra/2025.1.194+7868e3e
+      content-type:
+      - application/json
+    method: GET
+    uri: http://exflcalproxy.desy.de:8080/api/calibration_constant_versions/get_by_detector_conditions?detector_identifier=MID_EXP_EPIX-2&calibration_id=%5B35%2C+51%5D&karabo_da=&event_at=2023-10-09+11%3A07%3A48%2B00%3A00&pdu_snapshot_at=2023-10-09+11%3A07%3A48%2B00%3A00&begin_at_strategy=closest
+  response:
+    body:
+      string: '[{"id":146898,"name":"20221010_154838_sIdx=0","file_name":"cal.1665416917.634143.h5","path_to_file":"xfel/cal/epix100-type/epix100_m18/","data_set_name":"/ePix100_M18/RelativeGainEPix100/0","flg_deployed":true,"flg_good_quality":true,"begin_validity_at":"2022-08-03T00:11:29.000+02:00","end_validity_at":null,"begin_at":"2022-08-03T00:11:29.000+02:00","start_idx":0,"end_idx":0,"raw_data_location":"proposal:p900310
+        runs:29","report_id":null,"description":"","created_at":"2022-10-10T17:48:38.000+02:00","view_url":"https://in.xfel.eu/calibration/calibration_constant_versions/146898","calibration_constant":{"id":21315,"name":"ePix100-Type_RelativeGainEPix100_ePix100
+        Def IllBcNjntbahi4AxsbXPclk4w==\n","detector_type_id":5,"calibration_id":35,"condition_id":6625,"flg_auto_approve":true,"flg_available":true,"description":"Per-pixel
+        relative gain","created_at":"2022-10-10T17:48:38.000+02:00","updated_at":"2022-10-10T17:48:38.000+02:00"},"physical_detector_unit":{"id":114,"physical_name":"ePix100_M18","detector_type_id":5,"flg_available":true,"description":null,"created_at":"2019-04-09T11:06:13.000+02:00","updated_at":"2023-03-06T05:57:51.000+01:00","karabo_da":"EPIX02","detector_id":6,"virtual_device_name":"","uuid":1600000000000,"float_uuid":7.90505033346e-312,"module_number":null,"karabo_da_at_ccv_begin_at":"EPIX02","detector_id_at_ccv_begin_at":6,"virtual_device_name_at_ccv_begin_at":null,"module_number_at_ccv_begin_at":null}}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Length:
+      - '1444'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Mon, 16 Nov 2026 09:08:58 GMT
+      Etag:
+      - W/"7c43a71ef90e491d49bd821df8a044ef"
+      Keep-Alive:
+      - timeout=5, max=100
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - Apache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=16070400; includeSubDomains
+      Vary:
+      - Origin
+      Via:
+      - HTTP/1.1 xfel_oauth_proxy
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Powered-By:
+      - Phusion Passenger(R)
+      X-Request-Id:
+      - afc1425a-7c9f-42c2-bf0d-1e148e2d3d0f
+      X-Runtime:
+      - '0.642778'
+      X-Xss-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+version: 1
