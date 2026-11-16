@@ -614,7 +614,7 @@ class JungfrauConditions(ConditionsBase):
         except KeyError:
             raise ValueError(f'invalid gain mode {val!s} encountered') from None
 
-JUNGFRAUConditions = JungfrauConditions  # Legacy name
+JUNGFRAUConditions = JungfrauConditions  # Alternative name
 
 
 @dataclass
@@ -641,6 +641,8 @@ class Gotthard2Conditions(ConditionsBase):
         "RelativeGainGotthard2": _params,
         "LUTGotthard2": _params,
     }
+
+GOTTHARD2Conditions = JungfrauConditions  # Alternative name
 
 
 @dataclass
