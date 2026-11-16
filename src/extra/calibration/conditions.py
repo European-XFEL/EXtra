@@ -8,6 +8,8 @@ import numpy as np
 from ..data import PropertyNameError
 from .detector import DetectorData
 
+EMPTY_COND_PARAM = "Empty condition"
+
 
 def any_is_none(*values):
     for value in values:
@@ -135,8 +137,8 @@ class AGIPDConditions(ConditionsBase):
         "SlopesFF": _illuminated_parameters,
         "BadPixelsCS": _base_parameters,
         "SlopesCS": _base_parameters,
-        "BadPixelsHvOff": ["Empty condition"],
-        "BadPixelsManual": ["Empty condition"],
+        "BadPixelsHvOff": [EMPTY_COND_PARAM],
+        "BadPixelsManual": [EMPTY_COND_PARAM],
     }
 
     def make_dict(self, parameters):
