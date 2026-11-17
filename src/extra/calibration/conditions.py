@@ -8,6 +8,8 @@ import numpy as np
 from ..data import PropertyNameError
 from .detector import DetectorData
 
+EMPTY_COND_PARAM = "Empty condition"
+
 
 def any_is_none(*values):
     for value in values:
@@ -109,6 +111,7 @@ class AGIPDConditions(ConditionsBase):
     integration_time: int = 12
     pixels_x: int = 512
     pixels_y: int = 128
+    empty_condition: bool = True
 
     _base_parameters = [
         "Sensor Bias Voltage",
@@ -133,15 +136,19 @@ class AGIPDConditions(ConditionsBase):
         "BadPixelsFF": _illuminated_parameters,
         "SlopesFF": _illuminated_parameters,
         "BadPixelsCS": _base_parameters,
-        "SlopesCS": _base_parameters
+        "SlopesCS": _base_parameters,
+        "BadPixelsHvOff": [EMPTY_COND_PARAM],
+        "BadPixelsManual": [EMPTY_COND_PARAM],
     }
 
     def make_dict(self, parameters):
         cond = super().make_dict(parameters)
 
         # Fix-up some database quirks.
-        if int(cond.get("Gain mode", -1)) == 0:
+        if int(gm := cond.get("Gain mode", -1)) == 0:
             del cond["Gain mode"]
+        elif gm > 0:  # Convert any gain mode >1 to 1
+            cond["Gain mode"] = 1
 
         if int(cond.get("Integration time", -1)) == 12:
             del cond["Integration time"]
