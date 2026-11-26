@@ -499,7 +499,9 @@ class TOFAnalogResponse(SerializableMixin):
                 this_tof_data = -tof.pulse_data(pulse_dim="pulseIndex", parallel=parallel).unstack("pulse")
                 logging.info("Averaging over mono settings ...")
                 for k, e in enumerate(scan.positions):
-                    d = this_tof_data.sel(trainId=scan.positions_train_ids[k])
+                    trainIds = scan.positions_train_ids[k]
+                    trainIds = np.intersect1d(trainIds, this_tof_data.trainId.data)
+                    d = this_tof_data.sel(trainId=trainIds)
                     if self.roi is not None:
                         d = d.isel(sample=self.roi)
                     d = d.mean("trainId").mean("pulseIndex").to_numpy()
