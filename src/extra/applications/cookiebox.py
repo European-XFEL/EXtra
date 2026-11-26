@@ -181,13 +181,13 @@ def calc_mean(itr: Tuple[int, int], scan: Scan, xgm_data: xr.DataArray, tof: Dic
         # - the given run may not have both XGM and eTOF for every train;
         # - and we cannot control the creation of the run object, since we want to receive the ready-made XGM object
         good_ids = train_ids
-        if xgm_threshold > 0:
-            good_ids = np.intersect1d(train_ids, xgm_data.trainId.data)
+        good_ids = np.intersect1d(train_ids, xgm_data.trainId.data)
         if len(good_ids) == 0:
             x = tof[tof_id].select_trains(np._[0:1]).pulse_data(pulse_dim='pulseIndex').to_numpy().mean(0)
             return np.zeros_like(x), 0
         tof_data = tof[tof_id].select_trains(by_id[good_ids])
         tof_data = tof_data.pulse_data(pulse_dim='pulseIndex', parallel=parallel)
+        good_ids = np.intersect1d(good_ids, tof_data.trainId.data)
 
         # select XGM
         mask = xgm_data.coords["trainId"].isin(good_ids)
