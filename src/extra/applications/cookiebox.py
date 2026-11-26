@@ -57,8 +57,8 @@ def search_roi(roi: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
 
     Returns: Peak position.
     """
-    roi_smooth = gaussian_filter(roi[np.isfinite(roi)], sigma=5)
-    p, prop = find_peaks(roi_smooth, prominence=0.25*np.max(roi_smooth), width=1, height=0)
+    roi_smooth = gaussian_filter(roi[np.isfinite(roi)], sigma=3)
+    p, prop = find_peaks(roi_smooth, prominence=0.1*np.max(roi_smooth), width=1, height=0)
     idx = np.argsort(prop["peak_heights"])[::-1]
     p = p[idx]
     w = prop["widths"][idx]
@@ -822,7 +822,7 @@ class CookieboxCalibration(SerializableMixin):
             self.mask[tof_id] = False
             return
         idx = np.argmin(p)
-        pos = p[idx] - 2*w[idx]
+        pos = p[idx] - w[idx]
         self.auger_start_roi[tof_id] = 0
         self.start_roi[tof_id] = int(pos)
         self.stop_roi[tof_id] = N
@@ -884,7 +884,7 @@ class CookieboxCalibration(SerializableMixin):
             energy += [energies[e]]
             # get Auger
             peak, peak_dict = find_peaks(data[e, auger_start_roi:start_roi],
-                                         prominence=0.25,
+                                         prominence=0.1*np.max(data[e, auger_start_roi:start_roi]),
                                          distance=10,
                                          width=0,
                                          height=0)
@@ -901,7 +901,7 @@ class CookieboxCalibration(SerializableMixin):
                 Aa += [np.sum(data[e, int(highest_peak_index-3*s):int(highest_peak_index+3*s)] - o)]
             # get photon line
             peak, peaks_dict = find_peaks(data[e, start_roi:stop_roi],
-                                          prominence=0.25,
+                                          prominence=0.1*np.max(data[e, start_roi:stop_roi]),
                                           distance=10,
                                           width=0,
                                           height=0)
